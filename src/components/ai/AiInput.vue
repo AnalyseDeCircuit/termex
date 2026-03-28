@@ -6,14 +6,18 @@ import { tauriInvoke, tauriListen } from "@/utils/tauri";
 
 const { t } = useI18n();
 const aiStore = useAiStore();
+
+const props = defineProps<{
+  disabled?: boolean;
+}>();
+
 const input = ref("");
 const loading = ref(false);
 
 async function handleSubmit() {
   const text = input.value.trim();
-  if (!text || loading.value) return;
+  if (!text || loading.value || props.disabled) return;
 
-  // Add user message
   aiStore.messages.push({
     id: crypto.randomUUID(),
     role: "user",
@@ -25,7 +29,6 @@ async function handleSubmit() {
   loading.value = true;
 
   try {
-    // Use NL2Cmd for command generation
     const requestId = crypto.randomUUID();
 
     const unlisten = await tauriListen<{ command: string; done: boolean }>(
@@ -70,19 +73,20 @@ function handleKeydown(e: KeyboardEvent) {
 </script>
 
 <template>
-  <div class="border-t border-gray-700 p-2">
+  <div class="p-2" style="border-top: 1px solid var(--tm-border)">
     <div class="flex gap-2">
       <el-input
         v-model="input"
-        :placeholder="t('ai.inputPlaceholder')"
+        :placeholder="disabled ? t('ai.noProviderShort') : t('ai.inputPlaceholder')"
         size="small"
-        :disabled="loading"
+        :disabled="loading || disabled"
         @keydown="handleKeydown"
       />
       <el-button
         type="primary"
         size="small"
         :loading="loading"
+        :disabled="disabled"
         @click="handleSubmit"
       >
         {{ t("ai.send") }}

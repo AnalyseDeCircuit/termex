@@ -31,7 +31,7 @@ function insertCommand() {
         : 'bg-gray-700/50 mr-8'
     "
   >
-    <div class="text-gray-300 whitespace-pre-wrap break-words">
+    <div class="whitespace-pre-wrap break-words cursor-text" style="color: var(--tm-text-primary)">
       {{ message.content }}
     </div>
 

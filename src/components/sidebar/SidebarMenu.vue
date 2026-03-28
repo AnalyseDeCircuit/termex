@@ -1,26 +1,53 @@
 <script setup lang="ts">
 import { useI18n } from "vue-i18n";
+import { ElMessageBox } from "element-plus";
 import {
   Plus,
+  Folder,
   Connection,
   Download,
   Upload,
+  Setting,
   ArrowDown,
 } from "@element-plus/icons-vue";
+import { useServerStore } from "@/stores/serverStore";
 
 const { t } = useI18n();
+const serverStore = useServerStore();
 
 const emit = defineEmits<{
   (e: "new-host"): void;
   (e: "quick-connect"): void;
   (e: "import"): void;
   (e: "export"): void;
+  (e: "settings"): void;
 }>();
+
+async function createGroup() {
+  try {
+    const { value } = await ElMessageBox.prompt(
+      t("sidebar.groupNameHint"),
+      t("sidebar.newGroup"),
+      {
+        confirmButtonText: t("connection.save"),
+        cancelButtonText: t("connection.cancel"),
+        inputPattern: /\S+/,
+        inputErrorMessage: t("sidebar.groupNameRequired"),
+      },
+    );
+    await serverStore.createGroup({ name: value.trim() });
+  } catch {
+    // cancelled
+  }
+}
 
 function handleCommand(cmd: string) {
   switch (cmd) {
     case "new":
       emit("new-host");
+      break;
+    case "new-group":
+      createGroup();
       break;
     case "quick":
       emit("quick-connect");
@@ -31,6 +58,9 @@ function handleCommand(cmd: string) {
     case "export":
       emit("export");
       break;
+    case "settings":
+      emit("settings");
+      break;
   }
 }
 </script>
@@ -38,8 +68,7 @@ function handleCommand(cmd: string) {
 <template>
   <el-dropdown trigger="click" @command="handleCommand">
     <button
-      class="flex items-center gap-1.5 px-2 py-1 rounded hover:bg-white/10
-             text-gray-300 hover:text-gray-100 text-xs font-medium transition-colors"
+      class="tm-tree-item flex items-center gap-1.5 px-2 py-1 rounded text-xs font-medium transition-colors"
     >
       <span>Termex</span>
       <el-icon :size="10"><ArrowDown /></el-icon>
@@ -50,6 +79,9 @@ function handleCommand(cmd: string) {
         <el-dropdown-item :icon="Plus" command="new">
           {{ t("sidebar.newConnection") }}
         </el-dropdown-item>
+        <el-dropdown-item :icon="Folder" command="new-group">
+          {{ t("sidebar.newGroup") }}
+        </el-dropdown-item>
         <el-dropdown-item :icon="Connection" command="quick">
           {{ t("sidebar.quickConnect") }}
         </el-dropdown-item>
@@ -58,6 +90,9 @@ function handleCommand(cmd: string) {
         </el-dropdown-item>
         <el-dropdown-item :icon="Upload" command="export">
           {{ t("sidebar.exportConfig") }}
+        </el-dropdown-item>
+        <el-dropdown-item divided :icon="Setting" command="settings">
+          {{ t("settings.title") }}
         </el-dropdown-item>
       </el-dropdown-menu>
     </template>

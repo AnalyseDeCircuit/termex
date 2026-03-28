@@ -157,7 +157,14 @@ pub struct PortForward {
 pub enum ProviderType {
     Claude,
     Openai,
+    Gemini,
+    Deepseek,
     Ollama,
+    Grok,
+    Mistral,
+    Glm,
+    Minimax,
+    Doubao,
     Custom,
 }
 
@@ -167,7 +174,14 @@ impl ProviderType {
         match self {
             Self::Claude => "claude",
             Self::Openai => "openai",
+            Self::Gemini => "gemini",
+            Self::Deepseek => "deepseek",
             Self::Ollama => "ollama",
+            Self::Grok => "grok",
+            Self::Mistral => "mistral",
+            Self::Glm => "glm",
+            Self::Minimax => "minimax",
+            Self::Doubao => "doubao",
             Self::Custom => "custom",
         }
     }
@@ -184,6 +198,8 @@ pub struct AiProvider {
     pub api_key_enc: Option<Vec<u8>>,
     pub api_base_url: Option<String>,
     pub model: String,
+    pub max_tokens: i32,
+    pub temperature: f64,
     pub is_default: bool,
     pub created_at: String,
     pub updated_at: String,

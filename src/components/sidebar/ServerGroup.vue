@@ -1,32 +1,196 @@
 <script setup lang="ts">
-import { ref } from "vue";
+import { ref, computed, nextTick } from "vue";
+import { useI18n } from "vue-i18n";
+import { ElMessageBox } from "element-plus";
 import { ArrowRight } from "@element-plus/icons-vue";
-import type { Server, ServerGroup } from "@/types/server";
+import { useServerStore } from "@/stores/serverStore";
+import type { Server, ServerGroup, ServerInput } from "@/types/server";
 import ServerItem from "./ServerItem.vue";
+import ContextMenu from "./ContextMenu.vue";
+import type { MenuItem } from "./ContextMenu.vue";
 
-defineProps<{
+const { t } = useI18n();
+const serverStore = useServerStore();
+
+const props = defineProps<{
   group: ServerGroup;
   servers: Server[];
 }>();
 
 const emit = defineEmits<{
   (e: "connect", server: Server): void;
+  (e: "edit-server", server: Server): void;
+  (e: "new-host"): void;
 }>();
 
 const expanded = ref(true);
+const dragOver = ref(false);
+
+// ── Inline rename ──
+const renaming = ref(false);
+const renameValue = ref("");
+const renameInputRef = ref<HTMLInputElement | null>(null);
+
+async function startRename() {
+  renameValue.value = props.group.name;
+  renaming.value = true;
+  await nextTick();
+  renameInputRef.value?.focus();
+  renameInputRef.value?.select();
+}
+
+async function commitRename() {
+  const trimmed = renameValue.value.trim();
+  renaming.value = false;
+  if (trimmed && trimmed !== props.group.name) {
+    await serverStore.updateGroup(props.group.id, {
+      name: trimmed,
+      color: props.group.color,
+      icon: props.group.icon,
+      parentId: props.group.parentId,
+    });
+  }
+}
+
+function cancelRename() {
+  renaming.value = false;
+}
 
 function toggle() {
   expanded.value = !expanded.value;
 }
+
+// ── Drop zone ──
+const dropRef = ref<HTMLElement | null>(null);
+let groupDragCount = 0;
+
+function onDragEnter(e: DragEvent) {
+  if (!e.dataTransfer?.types.includes("text/plain")) return;
+  e.stopPropagation();
+  groupDragCount++;
+  dragOver.value = true;
+}
+
+function onDragOver(e: DragEvent) {
+  if (e.dataTransfer?.types.includes("text/plain")) {
+    e.preventDefault();
+    e.stopPropagation();
+    e.dataTransfer!.dropEffect = "move";
+  }
+}
+
+function onDragLeave(e: DragEvent) {
+  e.stopPropagation();
+  groupDragCount--;
+  if (groupDragCount <= 0) {
+    groupDragCount = 0;
+    dragOver.value = false;
+  }
+}
+
+async function onDrop(e: DragEvent) {
+  e.preventDefault();
+  e.stopPropagation();
+  groupDragCount = 0;
+  dragOver.value = false;
+  const raw = e.dataTransfer?.getData("text/plain") ?? "";
+  if (!raw.startsWith("termex-server:")) return;
+  const serverId = raw.slice("termex-server:".length);
+
+  const server = serverStore.servers.find((s) => s.id === serverId);
+  if (!server || server.groupId === props.group.id) return;
+
+  const input: ServerInput = {
+    name: server.name,
+    host: server.host,
+    port: server.port,
+    username: server.username,
+    authType: server.authType,
+    keyPath: server.keyPath,
+    groupId: props.group.id,
+    startupCmd: server.startupCmd,
+    tags: [...server.tags],
+  };
+  await serverStore.updateServer(serverId, input);
+}
+
+// ── Context menu ──
+const ctxVisible = ref(false);
+const ctxX = ref(0);
+const ctxY = ref(0);
+
+const ctxItems = computed<MenuItem[]>(() => [
+  { label: t("sidebar.newConnection"), action: "new-host" },
+  { label: t("context.rename"), action: "rename", divided: true },
+  { label: t("context.newSubgroup"), action: "new-subgroup" },
+  {
+    label: t("context.delete"),
+    action: "delete",
+    divided: true,
+    danger: true,
+  },
+]);
+
+function onContextMenu(e: MouseEvent) {
+  e.preventDefault();
+  ctxX.value = e.clientX;
+  ctxY.value = e.clientY;
+  ctxVisible.value = true;
+}
+
+async function onCtxSelect(action: string) {
+  if (action === "new-host") {
+    emit("new-host");
+  } else if (action === "rename") {
+    startRename();
+  } else if (action === "new-subgroup") {
+    try {
+      const { value } = await ElMessageBox.prompt(
+        t("sidebar.groupNameHint"),
+        t("sidebar.newGroup"),
+        {
+          confirmButtonText: t("connection.save"),
+          cancelButtonText: t("connection.cancel"),
+          inputPattern: /\S+/,
+          inputErrorMessage: t("sidebar.groupNameRequired"),
+        },
+      );
+      await serverStore.createGroup({
+        name: value.trim(),
+        parentId: props.group.id,
+      });
+    } catch { /* cancelled */ }
+  } else if (action === "delete") {
+    try {
+      await ElMessageBox.confirm(
+        t("context.deleteGroupConfirm", { name: props.group.name }),
+        t("context.delete"),
+        {
+          confirmButtonText: t("connection.save"),
+          cancelButtonText: t("connection.cancel"),
+          type: "warning",
+        },
+      );
+      await serverStore.deleteGroup(props.group.id);
+    } catch { /* cancelled */ }
+  }
+}
 </script>
 
 <template>
-  <div>
+  <div
+    ref="dropRef"
+    @dragenter="onDragEnter"
+    @dragover="onDragOver"
+    @dragleave="onDragLeave"
+    @drop="onDrop"
+  >
     <!-- Group header -->
     <button
-      class="w-full flex items-center gap-1.5 px-2 py-1.5 hover:bg-white/5
-             text-gray-400 hover:text-gray-200 transition-colors"
+      class="tm-tree-item w-full flex items-center gap-1.5 px-2 py-1.5 transition-colors"
+      :class="{ 'bg-primary-500/15 ring-1 ring-primary-500/40': dragOver }"
       @click="toggle"
+      @contextmenu="onContextMenu"
     >
       <el-icon
         :size="10"
@@ -39,8 +203,21 @@ function toggle() {
         class="w-2 h-2 rounded-full shrink-0"
         :style="{ backgroundColor: group.color }"
       />
-      <span class="truncate font-medium">{{ group.name }}</span>
-      <span class="ml-auto text-gray-600 text-[10px]">{{ servers.length }}</span>
+      <input
+        v-if="renaming"
+        ref="renameInputRef"
+        v-model="renameValue"
+        class="flex-1 min-w-0 text-xs px-1 py-0 rounded outline-none font-medium"
+        style="background: var(--tm-input-bg); color: var(--tm-text-primary); border: 1px solid var(--tm-input-border)"
+        @blur="commitRename"
+        @keydown.enter="commitRename"
+        @keydown.escape="cancelRename"
+        @click.stop
+      />
+      <template v-else>
+        <span class="truncate font-medium">{{ group.name }}</span>
+        <span class="ml-auto text-[10px]" style="color: var(--tm-text-muted)">{{ servers.length }}</span>
+      </template>
     </button>
 
     <!-- Servers in group -->
@@ -50,7 +227,18 @@ function toggle() {
         :key="server.id"
         :server="server"
         @connect="emit('connect', $event)"
+        @edit="emit('edit-server', $event)"
       />
     </div>
+
+    <!-- Context menu -->
+    <ContextMenu
+      v-if="ctxVisible"
+      :items="ctxItems"
+      :x="ctxX"
+      :y="ctxY"
+      @select="onCtxSelect"
+      @close="ctxVisible = false"
+    />
   </div>
 </template>

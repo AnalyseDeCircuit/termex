@@ -3,6 +3,7 @@ import { ref, reactive, watch, computed } from "vue";
 import { useI18n } from "vue-i18n";
 import { useServerStore } from "@/stores/serverStore";
 import { useSessionStore } from "@/stores/sessionStore";
+import { tauriInvoke } from "@/utils/tauri";
 import type { ServerInput } from "@/types/server";
 
 const { t } = useI18n();
@@ -24,6 +25,8 @@ const dialogVisible = computed({
 });
 
 const loading = ref(false);
+const testing = ref(false);
+const testResult = ref<{ ok: boolean; msg: string } | null>(null);
 
 const form = reactive<ServerInput>({
   name: "",
@@ -68,9 +71,10 @@ function resetForm() {
   form.groupId = null;
   form.startupCmd = "";
   form.tags = [];
+  testResult.value = null;
 }
 
-function loadServer(id: string) {
+async function loadServer(id: string) {
   const server = serverStore.servers.find((s) => s.id === id);
   if (!server) return;
   form.name = server.name;
@@ -78,12 +82,23 @@ function loadServer(id: string) {
   form.port = server.port;
   form.username = server.username;
   form.authType = server.authType;
-  form.password = "";
   form.keyPath = server.keyPath ?? "";
-  form.passphrase = "";
   form.groupId = server.groupId;
   form.startupCmd = server.startupCmd ?? "";
   form.tags = [...server.tags];
+
+  // Fetch decrypted credentials
+  try {
+    const creds = await tauriInvoke<{ password: string; passphrase: string }>(
+      "server_get_credentials",
+      { id },
+    );
+    form.password = creds.password;
+    form.passphrase = creds.passphrase;
+  } catch {
+    form.password = "";
+    form.passphrase = "";
+  }
 }
 
 async function handleSave() {
@@ -108,10 +123,29 @@ async function handleSave() {
   }
 }
 
+const fileInputRef = ref<HTMLInputElement | null>(null);
+
+function browseKeyFile() {
+  fileInputRef.value?.click();
+}
+
+function onKeyFileSelected(event: Event) {
+  const input = event.target as HTMLInputElement;
+  const file = input.files?.[0];
+  if (!file) return;
+  const reader = new FileReader();
+  reader.onload = () => {
+    form.keyPath = reader.result as string;
+  };
+  reader.readAsText(file);
+  input.value = "";
+}
+
 async function handleSaveAndConnect() {
   if (!form.host || !form.username) return;
 
   loading.value = true;
+  testResult.value = null;
   try {
     const input: ServerInput = {
       ...form,
@@ -125,9 +159,33 @@ async function handleSaveAndConnect() {
       server = await serverStore.createServer(input);
     }
     dialogVisible.value = false;
-    sessionStore.connect(server.id, server.name, 80, 24);
+    await sessionStore.connect(server.id, server.name, 80, 24);
+  } catch (e) {
+    testResult.value = { ok: false, msg: String(e) };
   } finally {
     loading.value = false;
+  }
+}
+
+async function handleTest() {
+  if (!form.host || !form.username) return;
+  testing.value = true;
+  testResult.value = null;
+  try {
+    await tauriInvoke("ssh_test", {
+      host: form.host,
+      port: form.port,
+      username: form.username,
+      authType: form.authType,
+      password: form.password || null,
+      keyPath: form.keyPath || null,
+      passphrase: form.passphrase || null,
+    });
+    testResult.value = { ok: true, msg: t("connection.testSuccess") };
+  } catch (e) {
+    testResult.value = { ok: false, msg: String(e) };
+  } finally {
+    testing.value = false;
   }
 }
 </script>
@@ -137,7 +195,8 @@ async function handleSaveAndConnect() {
     v-model="dialogVisible"
     :title="title"
     width="480px"
-    :close-on-click-modal="false"
+    :close-on-click-modal="true"
+    :close-on-press-escape="true"
     destroy-on-close
     class="connect-dialog"
   >
@@ -174,8 +233,33 @@ async function handleSaveAndConnect() {
       </el-form-item>
 
       <template v-if="form.authType === 'key'">
-        <el-form-item :label="t('connection.privateKey')">
-          <el-input v-model="form.keyPath" placeholder="~/.ssh/id_rsa" />
+        <el-form-item>
+          <template #label>
+            <div class="flex items-center justify-between w-full">
+              <span>{{ t('connection.privateKey') }}</span>
+              <button
+                type="button"
+                class="ml-3 text-[11px] text-primary-400 hover:text-primary-300 transition-colors"
+                @click="browseKeyFile"
+              >
+                {{ t('connection.browseKey') }}
+              </button>
+              <input
+                ref="fileInputRef"
+                type="file"
+                accept=".pem,.key,.pub,.ppk,*"
+                class="hidden"
+                @change="onKeyFileSelected"
+              />
+            </div>
+          </template>
+          <el-input
+            v-model="form.keyPath"
+            type="textarea"
+            :rows="4"
+            placeholder="-----BEGIN RSA PRIVATE KEY-----&#10;...&#10;-----END RSA PRIVATE KEY-----"
+            resize="none"
+          />
         </el-form-item>
         <el-form-item label="Passphrase">
           <el-input v-model="form.passphrase" type="password" show-password />
@@ -195,16 +279,32 @@ async function handleSaveAndConnect() {
     </el-form>
 
     <template #footer>
-      <div class="flex justify-end gap-2">
-        <el-button @click="dialogVisible = false">
-          {{ t("connection.cancel") }}
-        </el-button>
-        <el-button type="default" :loading="loading" @click="handleSave">
-          {{ t("connection.save") }}
-        </el-button>
-        <el-button type="primary" :loading="loading" @click="handleSaveAndConnect">
-          {{ t("connection.connect") }}
-        </el-button>
+      <div>
+        <!-- Test result -->
+        <div
+          v-if="testResult"
+          class="text-xs px-2 py-1.5 rounded mb-2"
+          :class="testResult.ok ? 'text-green-500' : 'text-red-400'"
+          style="background: var(--tm-bg-hover)"
+        >
+          {{ testResult.msg }}
+        </div>
+        <div class="flex justify-between">
+          <el-button :loading="testing" @click="handleTest">
+            {{ t("connection.test") }}
+          </el-button>
+          <div class="flex gap-2">
+            <el-button @click="dialogVisible = false">
+              {{ t("connection.cancel") }}
+            </el-button>
+            <el-button type="default" :loading="loading" @click="handleSave">
+              {{ t("connection.save") }}
+            </el-button>
+            <el-button type="primary" :loading="loading" @click="handleSaveAndConnect">
+              {{ t("connection.connect") }}
+            </el-button>
+          </div>
+        </div>
       </div>
     </template>
   </el-dialog>
@@ -212,7 +312,40 @@ async function handleSaveAndConnect() {
 
 <style scoped>
 :deep(.connect-dialog .el-dialog) {
-  --el-dialog-bg-color: #1a1a2e;
+  --el-dialog-bg-color: var(--tm-bg-elevated);
   --el-dialog-border-radius: 8px;
+  --el-text-color-primary: var(--tm-text-primary);
+  --el-text-color-regular: var(--tm-text-primary);
+  --el-text-color-secondary: var(--tm-text-secondary);
+  --el-text-color-placeholder: var(--tm-text-muted);
+  --el-bg-color: var(--tm-bg-elevated);
+  --el-bg-color-overlay: var(--tm-bg-elevated);
+  --el-fill-color-blank: var(--tm-input-bg);
+  --el-fill-color-light: var(--tm-bg-hover);
+  --el-border-color: var(--tm-input-border);
+  --el-border-color-light: var(--tm-border);
+  --el-border-color-lighter: var(--tm-border);
+  color: var(--tm-text-primary);
+}
+
+:deep(.connect-dialog .el-form-item) {
+  margin-bottom: 12px;
+}
+
+:deep(.connect-dialog .el-form-item__label) {
+  padding-bottom: 2px;
+}
+
+:deep(.connect-dialog .el-input__inner) {
+  height: 30px;
+  line-height: 30px;
+}
+
+:deep(.connect-dialog .el-input) {
+  --el-input-height: 30px;
+}
+
+:deep(.connect-dialog .el-input-number) {
+  --el-input-number-height: 30px;
 }
 </style>

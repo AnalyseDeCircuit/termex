@@ -1,0 +1,89 @@
+<svg xmlns="http://www.w3.org/2000/svg" width="800" height="600" viewBox="0 0 800 600">
+  <style>
+    text { font-family: 'SF Mono', 'Fira Code', 'JetBrains Mono', monospace; }
+  </style>
+
+  <!-- Background -->
+  <rect width="800" height="600" fill="#0a0a1a"/>
+
+  <!-- Title -->
+  <text x="400" y="40" text-anchor="middle" fill="#666" font-size="14" font-family="sans-serif">Termex Logo Concepts — ">_"</text>
+
+  <!-- ============ Concept A: Rounded Square + >_ ============ -->
+  <g transform="translate(150, 130)">
+    <!-- Rounded square bg -->
+    <rect x="-50" y="-50" width="100" height="100" rx="20" fill="#1a1a2e"/>
+    <rect x="-50" y="-50" width="100" height="100" rx="20" fill="none" stroke="#3b82f6" stroke-width="2"/>
+    <!-- > symbol -->
+    <text x="-20" y="12" fill="#3b82f6" font-size="48" font-weight="bold">&gt;</text>
+    <!-- _ cursor (blinking feel) -->
+    <rect x="18" y="2" width="22" height="4" rx="1" fill="#60a5fa"/>
+    <!-- Label -->
+    <text x="0" y="90" text-anchor="middle" fill="#888" font-size="12" font-family="sans-serif">A. Rounded Square</text>
+  </g>
+
+  <!-- ============ Concept B: Gradient bg + bold >_ ============ -->
+  <g transform="translate(400, 130)">
+    <defs>
+      <linearGradient id="grad1" x1="0%" y1="0%" x2="100%" y2="100%">
+        <stop offset="0%" style="stop-color:#3b82f6"/>
+        <stop offset="100%" style="stop-color:#8b5cf6"/>
+      </linearGradient>
+    </defs>
+    <rect x="-50" y="-50" width="100" height="100" rx="22" fill="url(#grad1)"/>
+    <!-- >_ in white -->
+    <text x="-24" y="15" fill="white" font-size="52" font-weight="bold">&gt;_</text>
+    <!-- Label -->
+    <text x="0" y="90" text-anchor="middle" fill="#888" font-size="12" font-family="sans-serif">B. Gradient + White</text>
+  </g>
+
+  <!-- ============ Concept C: Circle + minimal >_ ============ -->
+  <g transform="translate(650, 130)">
+    <circle cx="0" cy="0" r="48" fill="#1e293b"/>
+    <circle cx="0" cy="0" r="48" fill="none" stroke="#22d3ee" stroke-width="1.5"/>
+    <text x="-22" y="12" fill="#22d3ee" font-size="44" font-weight="600">&gt;_</text>
+    <!-- Label -->
+    <text x="0" y="90" text-anchor="middle" fill="#888" font-size="12" font-family="sans-serif">C. Circle + Cyan</text>
+  </g>
+
+  <!-- ============ Concept D: Terminal window frame ============ -->
+  <g transform="translate(150, 340)">
+    <!-- Window frame -->
+    <rect x="-50" y="-50" width="100" height="100" rx="12" fill="#1a1a2e"/>
+    <!-- Title bar -->
+    <rect x="-50" y="-50" width="100" height="22" rx="12" fill="#252540"/>
+    <rect x="-50" y="-38" width="100" height="10" fill="#252540"/>
+    <!-- Traffic lights -->
+    <circle cx="-34" cy="-39" r="3.5" fill="#ff5f57"/>
+    <circle cx="-23" cy="-39" r="3.5" fill="#febc2e"/>
+    <circle cx="-12" cy="-39" r="3.5" fill="#28c840"/>
+    <!-- >_ prompt -->
+    <text x="-22" y="18" fill="#3b82f6" font-size="46" font-weight="bold">&gt;_</text>
+    <!-- Label -->
+    <text x="0" y="90" text-anchor="middle" fill="#888" font-size="12" font-family="sans-serif">D. Terminal Window</text>
+  </g>
+
+  <!-- ============ Concept E: Hexagon + >_ ============ -->
+  <g transform="translate(400, 340)">
+    <polygon points="0,-52 45,-26 45,26 0,52 -45,26 -45,-26" fill="#1a1a2e" stroke="#a78bfa" stroke-width="2"/>
+    <text x="-22" y="12" fill="#a78bfa" font-size="42" font-weight="bold">&gt;_</text>
+    <!-- Label -->
+    <text x="0" y="90" text-anchor="middle" fill="#888" font-size="12" font-family="sans-serif">E. Hexagon + Purple</text>
+  </g>
+
+  <!-- ============ Concept F: Pure >_ with AI spark ============ -->
+  <g transform="translate(650, 340)">
+    <rect x="-50" y="-50" width="100" height="100" rx="20" fill="#0f172a"/>
+    <!-- >_ main -->
+    <text x="-26" y="14" fill="#60a5fa" font-size="50" font-weight="bold">&gt;_</text>
+    <!-- AI sparkle dots -->
+    <circle cx="30" cy="-30" r="3" fill="#f59e0b"/>
+    <circle cx="38" cy="-22" r="2" fill="#f59e0b" opacity="0.7"/>
+    <circle cx="24" cy="-38" r="1.5" fill="#f59e0b" opacity="0.5"/>
+    <!-- Label -->
+    <text x="0" y="90" text-anchor="middle" fill="#888" font-size="12" font-family="sans-serif">F. >_ + AI Spark</text>
+  </g>
+
+  <!-- Footer -->
+  <text x="400" y="570" text-anchor="middle" fill="#444" font-size="12" font-family="sans-serif">Open in browser to preview — pick a concept to refine</text>
+</svg>

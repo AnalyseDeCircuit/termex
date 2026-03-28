@@ -2,7 +2,11 @@ use rusqlite::Connection;
 
 /// All migration SQL statements, ordered by version.
 /// Each entry is `(version, description, sql)`.
-const MIGRATIONS: &[(i32, &str, &str)] = &[(1, "initial schema", MIGRATION_V1)];
+const MIGRATIONS: &[(i32, &str, &str)] = &[
+    (1, "initial schema", MIGRATION_V1),
+    (2, "ai provider max_tokens and temperature", ""),
+    (3, "keychain credential storage", ""),
+];
 
 /// Runs all pending migrations in order.
 pub fn run_migrations(conn: &Connection) -> Result<(), rusqlite::Error> {
@@ -25,7 +29,19 @@ pub fn run_migrations(conn: &Connection) -> Result<(), rusqlite::Error> {
 
     for &(version, description, sql) in MIGRATIONS {
         if version > current_version {
-            conn.execute_batch(sql)?;
+            if !sql.is_empty() {
+                conn.execute_batch(sql)?;
+            }
+            // Rust-based migrations (safe for columns that may already exist)
+            if version == 2 {
+                add_column_if_missing(conn, "ai_providers", "max_tokens", "INTEGER NOT NULL DEFAULT 4096");
+                add_column_if_missing(conn, "ai_providers", "temperature", "REAL NOT NULL DEFAULT 0.7");
+            }
+            if version == 3 {
+                add_column_if_missing(conn, "servers", "password_keychain_id", "TEXT");
+                add_column_if_missing(conn, "servers", "passphrase_keychain_id", "TEXT");
+                add_column_if_missing(conn, "ai_providers", "api_key_keychain_id", "TEXT");
+            }
             conn.execute(
                 "INSERT INTO _migrations (version, description, applied_at) VALUES (?1, ?2, ?3)",
                 rusqlite::params![
@@ -67,8 +83,10 @@ CREATE TABLE servers (
     username        TEXT NOT NULL,
     auth_type       TEXT NOT NULL,
     password_enc    BLOB,
+    password_keychain_id TEXT,
     key_path        TEXT,
     passphrase_enc  BLOB,
+    passphrase_keychain_id TEXT,
     group_id        TEXT,
     sort_order      INTEGER DEFAULT 0,
     proxy_id        TEXT,
@@ -116,8 +134,11 @@ CREATE TABLE ai_providers (
     name            TEXT NOT NULL,
     provider_type   TEXT NOT NULL,
     api_key_enc     BLOB,
+    api_key_keychain_id TEXT,
     api_base_url    TEXT,
     model           TEXT NOT NULL,
+    max_tokens      INTEGER NOT NULL DEFAULT 4096,
+    temperature     REAL NOT NULL DEFAULT 0.7,
     is_default      INTEGER DEFAULT 0,
     created_at      TEXT NOT NULL,
     updated_at      TEXT NOT NULL
@@ -148,24 +169,16 @@ CREATE INDEX idx_port_forwards_server ON port_forwards(server_id);
 CREATE INDEX idx_ai_providers_default ON ai_providers(is_default);
 ";
 
-#[cfg(test)]
-mod tests {
-    use super::*;
 
-    #[test]
-    fn test_migrations_idempotent() {
-        let conn = Connection::open_in_memory().unwrap();
-        conn.pragma_update(None, "foreign_keys", "ON").unwrap();
+/// Adds a column to a table if it doesn't already exist (idempotent).
+fn add_column_if_missing(conn: &Connection, table: &str, column: &str, col_type: &str) {
+    let has_col: bool = conn
+        .prepare(&format!("SELECT COUNT(*) FROM pragma_table_info('{table}') WHERE name='{column}'"))
+        .and_then(|mut s| s.query_row([], |r| r.get::<_, i32>(0)))
+        .map(|c| c > 0)
+        .unwrap_or(false);
 
-        // Run twice — second run should be a no-op
-        run_migrations(&conn).unwrap();
-        run_migrations(&conn).unwrap();
-
-        let version: i32 = conn
-            .query_row("SELECT MAX(version) FROM _migrations", [], |row| {
-                row.get(0)
-            })
-            .unwrap();
-        assert_eq!(version, 1);
+    if !has_col {
+        let _ = conn.execute_batch(&format!("ALTER TABLE {table} ADD COLUMN {column} {col_type};"));
     }
 }

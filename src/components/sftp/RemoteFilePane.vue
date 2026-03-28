@@ -1,0 +1,160 @@
+<script setup lang="ts">
+import { useI18n } from "vue-i18n";
+import { useSftpStore } from "@/stores/sftpStore";
+import type { FileEntry } from "@/types/sftp";
+import { ElMessage, ElMessageBox } from "element-plus";
+import {
+  Folder,
+  Document,
+  Link,
+  Delete,
+  Edit,
+  Download,
+  ArrowUp,
+  RefreshRight,
+  FolderAdd,
+} from "@element-plus/icons-vue";
+
+const { t } = useI18n();
+const sftpStore = useSftpStore();
+
+function handleDoubleClick(entry: FileEntry) {
+  if (entry.isDir) {
+    sftpStore.enterDir(entry.name);
+  }
+}
+
+function formatSize(bytes: number): string {
+  if (bytes === 0) return "-";
+  const units = ["B", "KB", "MB", "GB", "TB"];
+  const i = Math.floor(Math.log(bytes) / Math.log(1024));
+  const size = (bytes / Math.pow(1024, i)).toFixed(i > 0 ? 1 : 0);
+  return `${size} ${units[i]}`;
+}
+
+async function handleDelete(entry: FileEntry) {
+  try {
+    await ElMessageBox.confirm(
+      t("sftp.deleteConfirm", { name: entry.name }),
+      t("sftp.delete"),
+      { confirmButtonText: t("sftp.confirm"), cancelButtonText: t("sftp.cancel"), type: "warning" },
+    );
+    await sftpStore.deleteEntry(entry);
+    ElMessage.success(t("sftp.deleted"));
+  } catch { /* cancelled */ }
+}
+
+async function handleRename(entry: FileEntry) {
+  try {
+    const { value } = await ElMessageBox.prompt(
+      t("sftp.renamePrompt"), t("sftp.rename"),
+      { confirmButtonText: t("sftp.confirm"), cancelButtonText: t("sftp.cancel"), inputValue: entry.name },
+    );
+    if (value && value !== entry.name) {
+      await sftpStore.rename(entry.name, value);
+    }
+  } catch { /* cancelled */ }
+}
+
+async function handleDownload(entry: FileEntry) {
+  try {
+    const { value } = await ElMessageBox.prompt(
+      t("sftp.downloadPrompt"), t("sftp.download"),
+      { confirmButtonText: t("sftp.confirm"), cancelButtonText: t("sftp.cancel"), inputValue: `~/Downloads/${entry.name}` },
+    );
+    if (value) {
+      await sftpStore.download(entry.name, value);
+      ElMessage.success(t("sftp.downloadStarted"));
+    }
+  } catch { /* cancelled */ }
+}
+
+async function handleMkdir() {
+  try {
+    const { value } = await ElMessageBox.prompt(
+      t("sftp.newFolderPrompt"), t("sftp.newFolder"),
+      { confirmButtonText: t("sftp.confirm"), cancelButtonText: t("sftp.cancel") },
+    );
+    if (value) await sftpStore.mkdir(value);
+  } catch { /* cancelled */ }
+}
+
+// Breadcrumbs
+import { computed } from "vue";
+const breadcrumbs = computed(() => {
+  const parts = sftpStore.currentPath.split("/").filter(Boolean);
+  const items = [{ name: "/", path: "/" }];
+  let acc = "";
+  for (const part of parts) {
+    acc += `/${part}`;
+    items.push({ name: part, path: acc });
+  }
+  return items;
+});
+</script>
+
+<template>
+  <div class="flex flex-col h-full min-w-0">
+    <!-- Toolbar -->
+    <div class="flex items-center gap-1 px-2 py-1 shrink-0" style="border-bottom: 1px solid var(--tm-border)">
+      <span class="text-[10px] font-medium px-1" style="color: var(--tm-text-muted)">{{ t("sftp.remote") }}</span>
+      <button class="tm-icon-btn p-0.5 rounded" :title="t('sftp.goUp')" @click="sftpStore.goUp()">
+        <el-icon :size="12"><ArrowUp /></el-icon>
+      </button>
+      <button class="tm-icon-btn p-0.5 rounded" :title="t('sftp.refresh')" @click="sftpStore.refresh()">
+        <el-icon :size="12"><RefreshRight /></el-icon>
+      </button>
+      <button class="tm-icon-btn p-0.5 rounded" :title="t('sftp.newFolder')" @click="handleMkdir">
+        <el-icon :size="12"><FolderAdd /></el-icon>
+      </button>
+      <!-- Breadcrumb -->
+      <div class="flex-1 flex items-center text-[10px] overflow-hidden ml-1" style="color: var(--tm-text-muted)">
+        <template v-for="(item, idx) in breadcrumbs" :key="item.path">
+          <span v-if="idx > 0" class="mx-0.5">/</span>
+          <button class="truncate px-0.5 rounded hover:bg-white/5" style="color: var(--tm-text-secondary)" @click="sftpStore.listDir(item.path)">
+            {{ item.name }}
+          </button>
+        </template>
+      </div>
+    </div>
+
+    <!-- File list -->
+    <div class="flex-1 overflow-auto text-xs">
+      <div
+        v-for="entry in sftpStore.sortedEntries"
+        :key="entry.name"
+        class="tm-tree-item flex items-center gap-1.5 px-2 py-1 group cursor-default"
+        @dblclick="handleDoubleClick(entry)"
+      >
+        <el-icon :size="12" class="shrink-0">
+          <Link v-if="entry.isSymlink" />
+          <Folder v-else-if="entry.isDir" class="text-yellow-500" />
+          <Document v-else style="color: var(--tm-text-muted)" />
+        </el-icon>
+        <span class="truncate flex-1">{{ entry.name }}</span>
+        <span class="text-[10px] shrink-0 w-14 text-right" style="color: var(--tm-text-muted)">
+          {{ entry.isDir ? "" : formatSize(entry.size) }}
+        </span>
+        <!-- Actions on hover -->
+        <div class="shrink-0 flex gap-0.5 opacity-0 group-hover:opacity-100 transition-opacity">
+          <button v-if="!entry.isDir" class="tm-icon-btn p-0.5 rounded" @click.stop="handleDownload(entry)">
+            <el-icon :size="11"><Download /></el-icon>
+          </button>
+          <button class="tm-icon-btn p-0.5 rounded" @click.stop="handleRename(entry)">
+            <el-icon :size="11"><Edit /></el-icon>
+          </button>
+          <button class="p-0.5 rounded text-red-400/60 hover:text-red-400 transition-colors" @click.stop="handleDelete(entry)">
+            <el-icon :size="11"><Delete /></el-icon>
+          </button>
+        </div>
+      </div>
+
+      <div v-if="!sftpStore.loading && sftpStore.entries.length === 0" class="text-center py-4" style="color: var(--tm-text-muted)">
+        {{ t("sftp.empty") }}
+      </div>
+      <div v-if="sftpStore.loading" class="text-center py-4" style="color: var(--tm-text-muted)">
+        <el-icon class="is-loading" :size="16" />
+      </div>
+    </div>
+  </div>
+</template>

@@ -64,6 +64,9 @@ export function useTerminal(sessionId: Ref<string>) {
     }
 
     fitAddon.fit();
+    terminal.focus();
+    // Ensure focus after xterm fully renders
+    requestAnimationFrame(() => terminal?.focus());
 
     // User input → SSH
     terminal.onData((data: string) => {
@@ -136,9 +139,11 @@ export function useTerminal(sessionId: Ref<string>) {
     return { cols: 80, rows: 24 };
   }
 
-  /** Triggers a fit recalculation. */
+  /** Triggers a fit recalculation and focuses the terminal. */
   function fit() {
     fitAddon?.fit();
+    terminal?.focus();
+    requestAnimationFrame(() => terminal?.focus());
   }
 
   /** Cleans up all resources. */

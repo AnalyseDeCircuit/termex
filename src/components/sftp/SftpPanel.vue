@@ -2,16 +2,10 @@
 import { computed } from "vue";
 import { useI18n } from "vue-i18n";
 import { useSftpStore } from "@/stores/sftpStore";
-import FileList from "./FileList.vue";
+import { Close } from "@element-plus/icons-vue";
+import LocalFilePane from "./LocalFilePane.vue";
+import RemoteFilePane from "./RemoteFilePane.vue";
 import TransferBar from "./TransferBar.vue";
-import PathBar from "./PathBar.vue";
-import {
-  ArrowUp,
-  RefreshRight,
-  FolderAdd,
-  Close,
-} from "@element-plus/icons-vue";
-import { ElMessageBox } from "element-plus";
 
 const { t } = useI18n();
 const sftpStore = useSftpStore();
@@ -20,65 +14,32 @@ const hasActiveTransfers = computed(
   () => sftpStore.activeTransfers.length > 0,
 );
 
-async function handleMkdir() {
-  try {
-    const { value } = await ElMessageBox.prompt(
-      t("sftp.newFolderPrompt"),
-      t("sftp.newFolder"),
-      { confirmButtonText: t("sftp.confirm"), cancelButtonText: t("sftp.cancel") },
-    );
-    if (value) {
-      await sftpStore.mkdir(value);
-    }
-  } catch {
-    // cancelled
-  }
-}
-
 function handleClose() {
   sftpStore.close();
 }
 </script>
 
 <template>
-  <div class="flex flex-col bg-gray-800 border-t border-gray-700">
-    <!-- Toolbar -->
-    <div class="flex items-center gap-1 px-2 py-1 bg-gray-850 border-b border-gray-700">
-      <el-button
-        text
-        size="small"
-        :icon="ArrowUp"
-        :title="t('sftp.goUp')"
-        @click="sftpStore.goUp()"
-      />
-      <el-button
-        text
-        size="small"
-        :icon="RefreshRight"
-        :title="t('sftp.refresh')"
-        @click="sftpStore.refresh()"
-      />
-      <el-button
-        text
-        size="small"
-        :icon="FolderAdd"
-        :title="t('sftp.newFolder')"
-        @click="handleMkdir"
-      />
-
-      <PathBar class="flex-1 mx-2" />
-
-      <el-button
-        text
-        size="small"
-        :icon="Close"
-        :title="t('sftp.close')"
-        @click="handleClose"
-      />
+  <div class="flex flex-col" style="background: var(--tm-bg-surface); border-top: 1px solid var(--tm-border)">
+    <!-- Header -->
+    <div class="flex items-center justify-between px-2 h-7 shrink-0" style="border-bottom: 1px solid var(--tm-border)">
+      <span class="text-[10px] font-medium" style="color: var(--tm-text-secondary)">SFTP</span>
+      <button class="tm-icon-btn p-0.5 rounded" :title="t('sftp.close')" @click="handleClose">
+        <el-icon :size="12"><Close /></el-icon>
+      </button>
     </div>
 
-    <!-- File list -->
-    <FileList class="flex-1 min-h-0 overflow-auto" />
+    <!-- Dual pane -->
+    <div class="flex-1 flex min-h-0">
+      <!-- Left: Local -->
+      <LocalFilePane class="flex-1" />
+
+      <!-- Divider -->
+      <div class="w-px shrink-0" style="background: var(--tm-border)" />
+
+      <!-- Right: Remote -->
+      <RemoteFilePane class="flex-1" />
+    </div>
 
     <!-- Transfer bar -->
     <TransferBar v-if="hasActiveTransfers" />

@@ -102,15 +102,23 @@ impl SshSession {
     }
 
     /// Disconnects the SSH session and cleans up resources.
-    pub async fn disconnect(self) -> Result<(), SshError> {
-        if let Some(ch) = self.channel {
+    pub async fn disconnect(mut self) -> Result<(), SshError> {
+        // 1. Close the shell channel first
+        if let Some(ch) = self.channel.take() {
             let _ = ch.cmd_tx.send(ChannelCommand::Close);
-            ch.task_handle.abort();
+            // Wait up to 2s for graceful close, then abort
+            if tokio::time::timeout(
+                std::time::Duration::from_secs(2),
+                ch.task_handle,
+            ).await.is_err() {
+                // Task didn't finish in time — it's already been dropped
+            }
         }
-        self.handle
+        // 2. Send SSH disconnect message
+        let _ = self.handle
             .disconnect(russh::Disconnect::ByApplication, "", "en")
-            .await
-            .map_err(|e| SshError::ConnectionFailed(e.to_string()))?;
+            .await;
+        // 3. handle is dropped here, closing the TCP connection
         Ok(())
     }
 }

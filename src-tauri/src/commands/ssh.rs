@@ -1,6 +1,7 @@
 use tauri::{AppHandle, Emitter, State};
 
 use crate::crypto::aes;
+use crate::keychain;
 use crate::ssh::session::SshSession;
 use crate::ssh::{auth, SshError};
 use crate::state::AppState;
@@ -36,6 +37,7 @@ pub async fn ssh_connect(
                         password_enc: row.get(4)?,
                         key_path: row.get(5)?,
                         passphrase_enc: row.get(6)?,
+                        server_id: server_id.clone(),
                     })
                 },
             )
@@ -48,16 +50,25 @@ pub async fn ssh_connect(
         serde_json::json!({"status": "connecting", "message": "connecting..."}),
     );
 
-    // Connect to SSH server
-    let mut ssh_session = SshSession::connect(&server.host, server.port as u16)
-        .await
-        .map_err(|e| emit_error(&app, &status_event, &e))?;
+    // Connect to SSH server (10s timeout)
+    let mut ssh_session = tokio::time::timeout(
+        std::time::Duration::from_secs(10),
+        SshSession::connect(&server.host, server.port as u16),
+    )
+    .await
+    .map_err(|_| {
+        let err = SshError::ConnectionFailed("connection timed out (10s)".into());
+        emit_error(&app, &status_event, &err)
+    })?
+    .map_err(|e| emit_error(&app, &status_event, &e))?;
 
     // Authenticate
     let auth_type = AuthType::from_str(&server.auth_type).unwrap_or(AuthType::Password);
     match auth_type {
         AuthType::Password => {
-            let password = decrypt_field(&state, server.password_enc)?;
+            // Try keychain first, then legacy encrypted field
+            let password = keychain::get(&keychain::ssh_password_key(&server.server_id))
+                .unwrap_or_else(|_| decrypt_field(&state, server.password_enc).unwrap_or_default());
             auth::auth_password(ssh_session.handle_mut(), &server.username, &password)
                 .await
                 .map_err(|e| emit_error(&app, &status_event, &e))?;
@@ -67,11 +78,14 @@ pub async fn ssh_connect(
                 .key_path
                 .as_deref()
                 .ok_or("no key path configured")?;
-            let passphrase = if server.passphrase_enc.is_some() {
-                Some(decrypt_field(&state, server.passphrase_enc)?)
-            } else {
-                None
-            };
+            // Try keychain first for passphrase
+            let passphrase = keychain::get(&keychain::ssh_passphrase_key(&server.server_id))
+                .ok()
+                .or_else(|| {
+                    server.passphrase_enc.and_then(|enc| {
+                        decrypt_field(&state, Some(enc)).ok().filter(|s| !s.is_empty())
+                    })
+                });
             auth::auth_key(
                 ssh_session.handle_mut(),
                 &server.username,
@@ -114,6 +128,50 @@ pub async fn ssh_connect(
     });
 
     Ok(session_id)
+}
+
+/// Tests SSH connectivity using form input (without saving).
+#[tauri::command]
+pub async fn ssh_test(
+    state: State<'_, AppState>,
+    host: String,
+    port: u32,
+    username: String,
+    auth_type: String,
+    password: Option<String>,
+    key_path: Option<String>,
+    passphrase: Option<String>,
+) -> Result<String, String> {
+    // Connect (10s timeout)
+    let mut ssh_session = tokio::time::timeout(
+        std::time::Duration::from_secs(10),
+        SshSession::connect(&host, port as u16),
+    )
+    .await
+    .map_err(|_| "connection timed out (10s)".to_string())?
+    .map_err(|e| e.to_string())?;
+
+    // Authenticate
+    let at = AuthType::from_str(&auth_type).unwrap_or(AuthType::Password);
+    match at {
+        AuthType::Password => {
+            let pw = password.unwrap_or_default();
+            auth::auth_password(ssh_session.handle_mut(), &username, &pw)
+                .await
+                .map_err(|e| e.to_string())?;
+        }
+        AuthType::Key => {
+            let kp = key_path.as_deref().ok_or("no key path")?;
+            auth::auth_key(ssh_session.handle_mut(), &username, kp, passphrase.as_deref())
+                .await
+                .map_err(|e| e.to_string())?;
+        }
+    }
+
+    // Disconnect immediately
+    let _ = ssh_session.disconnect().await;
+
+    Ok("ok".into())
 }
 
 /// Disconnects an SSH session.
@@ -171,6 +229,7 @@ pub async fn ssh_resize(
 // ── Internal ───────────────────────────────────────────────────
 
 struct ServerInfo {
+    server_id: String,
     host: String,
     port: i32,
     username: String,

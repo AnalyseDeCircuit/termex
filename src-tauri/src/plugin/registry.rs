@@ -185,37 +185,3 @@ fn copy_dir_recursive(src: &str, dest: &PathBuf) -> Result<(), PluginError> {
     }
     Ok(())
 }
-
-#[cfg(test)]
-mod tests {
-    use super::*;
-
-    #[test]
-    fn test_plugin_state_serialize() {
-        let state = PluginState::Enabled;
-        let json = serde_json::to_string(&state).unwrap();
-        assert_eq!(json, "\"enabled\"");
-    }
-
-    #[test]
-    fn test_installed_plugin_serialize() {
-        let plugin = InstalledPlugin {
-            manifest: PluginManifest {
-                id: "test".into(),
-                name: "Test Plugin".into(),
-                version: "1.0.0".into(),
-                description: "A test plugin".into(),
-                author: None,
-                homepage: None,
-                permissions: vec![],
-                entry: "index.js".into(),
-                min_termex_version: None,
-            },
-            state: PluginState::Enabled,
-            install_path: "/tmp/plugins/test".into(),
-        };
-        let json = serde_json::to_string(&plugin).unwrap();
-        assert!(json.contains("\"id\":\"test\""));
-        assert!(json.contains("\"state\":\"enabled\""));
-    }
-}

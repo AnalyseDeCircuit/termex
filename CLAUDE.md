@@ -73,18 +73,27 @@ src/                     # Vue 3 frontend
 - No `unwrap()` in Rust production code — use `?` operator or proper error handling
 - No hardcoded strings for user-facing text — prepare for i18n
 - **单文件行数上限 800 行** — 超过时必须按职责拆分为多个文件。Rust 用 `mod` 子模块拆分，Vue 用子组件 + composable 拆分，TypeScript 按领域拆分到独立文件。宁可多文件也不要单文件臃肿
-- **实现与测试必须同步** — 每个功能模块在实现的同时必须编写对应的单元测试/集成测试。Rust 使用 `#[cfg(test)] mod tests` 内联测试，前端使用 Vitest。不允许先实现后补测试，也不允许提交无测试覆盖的功能代码
+- **实现与测试必须同步** — 每个功能模块在实现的同时必须编写对应的单元测试/集成测试。不允许先实现后补测试，也不允许提交无测试覆盖的功能代码
+- **测试代码独立存放** — 所有测试用例必须放在独立的 `tests/` 目录下，按模块分类组织，禁止在业务代码文件内编写 `#[cfg(test)] mod tests`。Rust 测试放在 `src-tauri/tests/`，前端测试使用 Vitest 放在 `src/__tests__/`
 
 ## Security Rules (CRITICAL)
 
-- **NEVER** store passwords or API keys in plaintext — always AES-256-GCM encrypt
 - **NEVER** log sensitive data (passwords, keys, tokens) at any log level
 - **NEVER** send credentials to AI providers — only send command text and server metadata (OS, hostname)
 - **NEVER** include secrets in error messages returned to frontend
-- All encryption uses `ring` crate with AES-256-GCM
-- Key derivation uses Argon2id (m=64MB, t=3, p=4)
-- Master key exists only in memory, zeroed on app lock
-- Export files use independent password + salt, decoupled from master password
+
+### Credential Storage Strategy (v0.10.0+)
+
+- **Primary: OS Keychain** — SSH passwords, passphrases, AI API keys stored via `keyring` crate
+  - macOS: Keychain Services (Secure Enclave)
+  - Windows: Credential Manager (DPAPI)
+  - Linux: Secret Service (GNOME Keyring / KDE Wallet)
+- **termex.db stores only keychain reference IDs** (e.g., `termex:ssh:password:{uuid}`), never actual credentials
+- **Fallback: AES-256-GCM + Master Password** — when OS keychain is unavailable (headless Linux)
+  - Encryption uses `ring` crate with AES-256-GCM
+  - Key derivation uses Argon2id (m=64MB, t=3, p=4)
+  - Master key exists only in memory, zeroed on app lock
+- Export files use independent password + salt, decoupled from keychain/master password
 
 ## IPC Conventions
 
@@ -129,6 +138,32 @@ src/                     # Vue 3 frontend
 6. **Event-driven SSH data**: Events over invoke for real-time terminal data streaming
 7. **Multi-provider AI**: Abstract trait allows plugging any LLM backend
 8. **User brings own key**: No proxy server, no Termex backend, pure local app
+
+## Common Commands
+
+```bash
+pnpm tauri dev                    # Full-stack dev (frontend + Rust, hot reload)
+pnpm dev                          # Frontend only (Vite)
+pnpm run build                    # Type-check + build frontend
+pnpm tauri build                  # Build production binary
+pnpm tauri build --debug          # Build debug binary (faster compile)
+cd src-tauri && cargo test        # Run Rust tests (45 tests)
+cd src-tauri && cargo clippy      # Lint Rust code
+RUST_LOG=debug pnpm tauri dev     # Dev with verbose Rust logging
+```
+
+### Version Bump
+
+`pnpm version:bump <patch|minor|major|x.y.z>` syncs version across three files:
+- `package.json`
+- `src-tauri/Cargo.toml`
+- `src-tauri/tauri.conf.json`
+
+```bash
+pnpm version:bump patch           # 0.1.0 → 0.1.1
+pnpm version:bump minor           # 0.1.0 → 0.2.0
+pnpm version:bump 0.2.0           # explicit version
+```
 
 ## Documentation
 

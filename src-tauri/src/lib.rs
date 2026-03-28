@@ -1,6 +1,7 @@
 pub mod ai;
 mod commands;
 pub mod crypto;
+pub mod keychain;
 pub mod plugin;
 pub mod recording;
 pub mod sftp;
@@ -8,7 +9,92 @@ pub mod ssh;
 pub mod storage;
 mod state;
 
+use tauri::menu::{MenuBuilder, MenuItemBuilder, SubmenuBuilder};
+use tauri::Emitter;
+
 use state::AppState;
+
+/// Builds the native application menu.
+fn build_menu(app: &tauri::App) -> Result<tauri::menu::Menu<tauri::Wry>, Box<dyn std::error::Error>> {
+    // App submenu (macOS "Termex" menu)
+    let settings = MenuItemBuilder::with_id("settings", "Settings...")
+        .accelerator("CmdOrCtrl+,")
+        .build(app)?;
+
+    let app_menu = SubmenuBuilder::new(app, "Termex")
+        .about(None)
+        .separator()
+        .item(&settings)
+        .separator()
+        .services()
+        .separator()
+        .hide()
+        .hide_others()
+        .show_all()
+        .separator()
+        .quit()
+        .build()?;
+
+    // File submenu
+    let new_connection = MenuItemBuilder::with_id("new_connection", "New Connection")
+        .accelerator("CmdOrCtrl+N")
+        .build(app)?;
+    let new_group = MenuItemBuilder::with_id("new_group", "New Group")
+        .build(app)?;
+
+    let file_menu = SubmenuBuilder::new(app, "File")
+        .item(&new_connection)
+        .item(&new_group)
+        .separator()
+        .close_window()
+        .build()?;
+
+    // Edit submenu
+    let edit_menu = SubmenuBuilder::new(app, "Edit")
+        .undo()
+        .redo()
+        .separator()
+        .cut()
+        .copy()
+        .paste()
+        .select_all()
+        .build()?;
+
+    // View submenu
+    let toggle_sidebar = MenuItemBuilder::with_id("toggle_sidebar", "Sidebar")
+        .accelerator("CmdOrCtrl+B")
+        .build(app)?;
+    let toggle_ai = MenuItemBuilder::with_id("toggle_ai", "AI Panel")
+        .accelerator("CmdOrCtrl+Shift+A")
+        .build(app)?;
+    let toggle_sftp = MenuItemBuilder::with_id("toggle_sftp", "SFTP Panel")
+        .accelerator("CmdOrCtrl+Shift+S")
+        .build(app)?;
+
+    let view_menu = SubmenuBuilder::new(app, "View")
+        .item(&toggle_sidebar)
+        .item(&toggle_ai)
+        .item(&toggle_sftp)
+        .build()?;
+
+    // Window submenu
+    let window_menu = SubmenuBuilder::new(app, "Window")
+        .minimize()
+        .maximize()
+        .separator()
+        .fullscreen()
+        .build()?;
+
+    let menu = MenuBuilder::new(app)
+        .item(&app_menu)
+        .item(&file_menu)
+        .item(&edit_menu)
+        .item(&view_menu)
+        .item(&window_menu)
+        .build()?;
+
+    Ok(menu)
+}
 
 /// Initializes and runs the Tauri application.
 pub fn run() {
@@ -18,6 +104,36 @@ pub fn run() {
 
     tauri::Builder::default()
         .manage(app_state)
+        .setup(|app| {
+            let menu = build_menu(app)?;
+            app.set_menu(menu)?;
+
+            app.on_menu_event(move |app_handle, event| {
+                match event.id().as_ref() {
+                    "settings" => {
+                        let _ = app_handle.emit("menu://settings", ());
+                    }
+                    "new_connection" => {
+                        let _ = app_handle.emit("menu://new-connection", ());
+                    }
+                    "new_group" => {
+                        let _ = app_handle.emit("menu://new-group", ());
+                    }
+                    "toggle_sidebar" => {
+                        let _ = app_handle.emit("menu://toggle-sidebar", ());
+                    }
+                    "toggle_ai" => {
+                        let _ = app_handle.emit("menu://toggle-ai", ());
+                    }
+                    "toggle_sftp" => {
+                        let _ = app_handle.emit("menu://toggle-sftp", ());
+                    }
+                    _ => {}
+                }
+            });
+
+            Ok(())
+        })
         .invoke_handler(tauri::generate_handler![
             // Master password
             commands::crypto::master_password_exists,
@@ -30,6 +146,7 @@ pub fn run() {
             commands::server::server_create,
             commands::server::server_update,
             commands::server::server_delete,
+            commands::server::server_get_credentials,
             commands::server::server_touch,
             commands::server::server_reorder,
             commands::server::group_list,
@@ -39,6 +156,7 @@ pub fn run() {
             commands::server::group_reorder,
             // SSH
             commands::ssh::ssh_connect,
+            commands::ssh::ssh_test,
             commands::ssh::ssh_disconnect,
             commands::ssh::ssh_write,
             commands::ssh::ssh_resize,
@@ -65,7 +183,9 @@ pub fn run() {
             commands::ai::ai_check_danger,
             commands::ai::ai_explain_command,
             commands::ai::ai_nl2cmd,
+            commands::ai::ai_provider_get_key,
             commands::ai::ai_provider_test,
+            commands::ai::ai_provider_test_direct,
             // Recording
             commands::recording::recording_start,
             commands::recording::recording_stop,
@@ -91,6 +211,10 @@ pub fn run() {
             commands::sftp::sftp_download,
             commands::sftp::sftp_upload,
             commands::sftp::sftp_canonicalize,
+            // Local filesystem
+            commands::local_fs::local_home_dir,
+            commands::local_fs::local_list_dir,
+            commands::local_fs::security_status,
         ])
         .run(tauri::generate_context!())
         .expect("error while running Termex");

@@ -1,13 +1,8 @@
 <script setup lang="ts">
 import { computed } from "vue";
-import { useI18n } from "vue-i18n";
 import { useSessionStore } from "@/stores/sessionStore";
-import { useSftpStore } from "@/stores/sftpStore";
-import { FolderOpened } from "@element-plus/icons-vue";
 
-const { t } = useI18n();
 const sessionStore = useSessionStore();
-const sftpStore = useSftpStore();
 
 const statusText = computed(() => {
   const session = sessionStore.activeSession;
@@ -41,35 +36,14 @@ const statusColor = computed(() => {
   }
 });
 
-const canOpenSftp = computed(() => {
-  const session = sessionStore.activeSession;
-  return session?.status === "connected" && !sftpStore.panelVisible;
-});
-
-async function openSftp() {
-  const session = sessionStore.activeSession;
-  if (!session) return;
-  await sftpStore.open(session.id);
-}
 </script>
 
 <template>
   <div
-    class="h-6 bg-gray-950 border-t border-white/5 flex items-center px-3 text-xs shrink-0"
+    class="h-6 flex items-center px-3 text-xs shrink-0 select-none"
+    style="background: var(--tm-statusbar-bg); border-top: 1px solid var(--tm-border)"
   >
     <span :class="statusColor">{{ statusText }}</span>
-
-    <el-button
-      v-if="canOpenSftp"
-      text
-      size="small"
-      class="!h-5 !px-1.5 ml-2 !text-xs"
-      :icon="FolderOpened"
-      @click="openSftp"
-    >
-      {{ t("sftp.openSftp") }}
-    </el-button>
-
-    <span class="ml-auto text-gray-600">UTF-8</span>
+    <span class="ml-auto" style="color: var(--tm-text-muted)">UTF-8</span>
   </div>
 </template>

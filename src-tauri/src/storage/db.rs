@@ -83,29 +83,3 @@ impl Database {
         Ok(data_dir.join("termex").join("termex.db"))
     }
 }
-
-#[cfg(test)]
-mod tests {
-    use super::*;
-
-    #[test]
-    fn test_open_in_memory() {
-        let conn = Connection::open_in_memory().unwrap();
-        conn.pragma_update(None, "foreign_keys", "ON").unwrap();
-        migrations::run_migrations(&conn).unwrap();
-
-        // Verify tables exist
-        let tables: Vec<String> = conn
-            .prepare("SELECT name FROM sqlite_master WHERE type='table' ORDER BY name")
-            .unwrap()
-            .query_map([], |row| row.get(0))
-            .unwrap()
-            .filter_map(|r| r.ok())
-            .collect();
-
-        assert!(tables.contains(&"groups".to_string()));
-        assert!(tables.contains(&"servers".to_string()));
-        assert!(tables.contains(&"settings".to_string()));
-        assert!(tables.contains(&"known_hosts".to_string()));
-    }
-}

@@ -1,7 +1,8 @@
-use serde::Deserialize;
+use serde::{Deserialize, Serialize};
 use tauri::State;
 
 use crate::crypto::aes;
+use crate::keychain;
 use crate::state::AppState;
 use crate::storage::models::{AuthType, Server, ServerGroup};
 
@@ -125,15 +126,22 @@ pub fn server_create(
     let now = chrono::Utc::now().to_rfc3339();
     let tags_json = serde_json::to_string(&input.tags).unwrap_or_else(|_| "[]".into());
 
-    let password_enc = encrypt_optional(&state, input.password.as_deref())?;
-    let passphrase_enc = encrypt_optional(&state, input.passphrase.as_deref())?;
+    // Store credentials in OS keychain
+    let pw_keychain_id = store_to_keychain(
+        input.password.as_deref(),
+        &keychain::ssh_password_key(&id),
+    );
+    let pp_keychain_id = store_to_keychain(
+        input.passphrase.as_deref(),
+        &keychain::ssh_passphrase_key(&id),
+    );
 
     state
         .db
         .with_conn(|conn| {
             conn.execute(
                 "INSERT INTO servers (id, name, host, port, username, auth_type,
-                    password_enc, key_path, passphrase_enc, group_id, sort_order,
+                    password_keychain_id, key_path, passphrase_keychain_id, group_id, sort_order,
                     proxy_id, startup_cmd, encoding, tags, created_at, updated_at)
                  VALUES (?1,?2,?3,?4,?5,?6,?7,?8,?9,?10,?11,?12,?13,?14,?15,?16,?17)",
                 rusqlite::params![
@@ -143,9 +151,9 @@ pub fn server_create(
                     input.port,
                     input.username,
                     input.auth_type.as_str(),
-                    password_enc,
+                    pw_keychain_id,
                     input.key_path,
-                    passphrase_enc,
+                    pp_keychain_id,
                     input.group_id,
                     0,
                     input.proxy_id,
@@ -192,16 +200,23 @@ pub fn server_update(
     let now = chrono::Utc::now().to_rfc3339();
     let tags_json = serde_json::to_string(&input.tags).unwrap_or_else(|_| "[]".into());
 
-    let password_enc = encrypt_optional(&state, input.password.as_deref())?;
-    let passphrase_enc = encrypt_optional(&state, input.passphrase.as_deref())?;
+    // Update keychain credentials (only if provided / non-empty)
+    let pw_keychain_id = store_to_keychain(
+        input.password.as_deref(),
+        &keychain::ssh_password_key(&id),
+    );
+    let pp_keychain_id = store_to_keychain(
+        input.passphrase.as_deref(),
+        &keychain::ssh_passphrase_key(&id),
+    );
 
     state
         .db
         .with_conn(|conn| {
             let affected = conn.execute(
                 "UPDATE servers SET name=?1, host=?2, port=?3, username=?4, auth_type=?5,
-                    password_enc=COALESCE(?6, password_enc), key_path=?7,
-                    passphrase_enc=COALESCE(?8, passphrase_enc), group_id=?9,
+                    password_keychain_id=COALESCE(?6, password_keychain_id), key_path=?7,
+                    passphrase_keychain_id=COALESCE(?8, passphrase_keychain_id), group_id=?9,
                     proxy_id=?10, startup_cmd=?11, encoding=?12, tags=?13, updated_at=?14
                  WHERE id=?15",
                 rusqlite::params![
@@ -210,9 +225,9 @@ pub fn server_update(
                     input.port,
                     input.username,
                     input.auth_type.as_str(),
-                    password_enc,
+                    pw_keychain_id,
                     input.key_path,
-                    passphrase_enc,
+                    pp_keychain_id,
                     input.group_id,
                     input.proxy_id,
                     input.startup_cmd,
@@ -251,9 +266,13 @@ pub fn server_update(
     })
 }
 
-/// Deletes a server by ID.
+/// Deletes a server by ID and removes its keychain credentials.
 #[tauri::command]
 pub fn server_delete(state: State<'_, AppState>, id: String) -> Result<(), String> {
+    // Clean up keychain entries
+    let _ = keychain::delete(&keychain::ssh_password_key(&id));
+    let _ = keychain::delete(&keychain::ssh_passphrase_key(&id));
+
     state
         .db
         .with_conn(|conn| {
@@ -261,6 +280,48 @@ pub fn server_delete(state: State<'_, AppState>, id: String) -> Result<(), Strin
             Ok(())
         })
         .map_err(|e| e.to_string())
+}
+
+/// Returns credentials for a server (from keychain or legacy encrypted fields).
+#[derive(Debug, Serialize)]
+#[serde(rename_all = "camelCase")]
+pub struct ServerCredentials {
+    pub password: String,
+    pub passphrase: String,
+}
+
+#[tauri::command]
+pub fn server_get_credentials(
+    state: State<'_, AppState>,
+    id: String,
+) -> Result<ServerCredentials, String> {
+    // Try keychain first
+    let password = keychain::get(&keychain::ssh_password_key(&id)).unwrap_or_default();
+    let passphrase = keychain::get(&keychain::ssh_passphrase_key(&id)).unwrap_or_default();
+
+    // If keychain returned values, use them
+    if !password.is_empty() || !passphrase.is_empty() {
+        return Ok(ServerCredentials { password, passphrase });
+    }
+
+    // Fallback: read legacy encrypted fields from DB
+    let (password_enc, passphrase_enc): (Option<Vec<u8>>, Option<Vec<u8>>) = state
+        .db
+        .with_conn(|conn| {
+            conn.query_row(
+                "SELECT password_enc, passphrase_enc FROM servers WHERE id = ?1",
+                rusqlite::params![id],
+                |row| Ok((row.get(0)?, row.get(1)?)),
+            )
+        })
+        .map_err(|e| e.to_string())?;
+
+    let mk = state.master_key.read().expect("master_key lock poisoned");
+
+    let password = decrypt_legacy(&mk, password_enc);
+    let passphrase = decrypt_legacy(&mk, passphrase_enc);
+
+    Ok(ServerCredentials { password, passphrase })
 }
 
 /// Updates the last_connected timestamp for a server.
@@ -434,24 +495,25 @@ pub fn group_reorder(
 
 // ── Helpers ────────────────────────────────────────────────────
 
-/// Encrypts an optional plaintext value using the master key.
-/// Returns `None` if the input is `None` or empty.
-fn encrypt_optional(
-    state: &State<'_, AppState>,
-    plaintext: Option<&str>,
-) -> Result<Option<Vec<u8>>, String> {
-    let Some(text) = plaintext.filter(|s| !s.is_empty()) else {
-        return Ok(None);
-    };
+/// Stores a credential in the OS keychain. Returns the keychain key as Some(String)
+/// if a non-empty value was stored, or None if the value was empty/not provided.
+fn store_to_keychain(value: Option<&str>, keychain_key: &str) -> Option<String> {
+    let text = value.filter(|s| !s.is_empty())?;
+    match keychain::store(keychain_key, text) {
+        Ok(()) => Some(keychain_key.to_string()),
+        Err(_) => None,
+    }
+}
 
-    let mk = state.master_key.read().expect("master_key lock poisoned");
-    let Some(ref key) = *mk else {
-        // No master password set — store as unencrypted marker.
-        // This allows the app to work without a master password.
-        return Ok(None);
-    };
-
-    aes::encrypt(key, text.as_bytes())
-        .map(Some)
-        .map_err(|e| e.to_string())
+/// Decrypts a legacy encrypted field (pre-keychain migration).
+fn decrypt_legacy(mk: &std::sync::RwLockReadGuard<'_, Option<[u8; 32]>>, enc: Option<Vec<u8>>) -> String {
+    match (&**mk, enc) {
+        (Some(key), Some(data)) => {
+            aes::decrypt(key, &data)
+                .map(|p| String::from_utf8(p).unwrap_or_default())
+                .unwrap_or_default()
+        }
+        (None, Some(data)) => String::from_utf8(data).unwrap_or_default(),
+        _ => String::new(),
+    }
 }

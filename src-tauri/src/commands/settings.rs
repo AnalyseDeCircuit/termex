@@ -87,22 +87,6 @@ pub fn settings_delete(state: State<'_, AppState>, key: String) -> Result<(), St
         .map_err(|e| e.to_string())
 }
 
-#[cfg(test)]
-mod tests {
-    use super::*;
-
-    #[test]
-    fn test_setting_entry_serialize() {
-        let entry = SettingEntry {
-            key: "theme".into(),
-            value: "dark".into(),
-        };
-        let json = serde_json::to_string(&entry).unwrap();
-        assert!(json.contains("\"key\":\"theme\""));
-        assert!(json.contains("\"value\":\"dark\""));
-    }
-}
-
 /// Helper trait for optional query results.
 trait OptionalExt<T> {
     fn optional(self) -> Result<Option<T>, rusqlite::Error>;

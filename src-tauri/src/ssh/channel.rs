@@ -78,6 +78,7 @@ pub fn spawn_channel_task(
             }
         }
 
+        let _ = channel.eof().await;
         let _ = channel.close().await;
     });
 

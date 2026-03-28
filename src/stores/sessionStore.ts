@@ -23,49 +23,84 @@ export const useSessionStore = defineStore("session", () => {
 
   // ── Actions ────────────────────────────────────────────────
 
-  /** Opens an SSH connection and creates a tab. */
+  /** Opens an SSH connection and creates a tab immediately. */
   async function connect(
     serverId: string,
     serverName: string,
     cols: number,
     rows: number,
-  ): Promise<string> {
-    const sessionId = await tauriInvoke<string>("ssh_connect", {
-      serverId,
-      cols,
-      rows,
-    });
+  ): Promise<void> {
+    // 1. Create tab + session immediately so user sees feedback
+    const tabKey = `tab-${Date.now()}-${Math.random().toString(36).slice(2, 6)}`;
+    const placeholderId = `connecting-${tabKey}`;
 
     const session: Session = {
-      id: sessionId,
+      id: placeholderId,
       serverId,
       serverName,
       status: "connecting",
       startedAt: new Date().toISOString(),
     };
-    sessions.value.set(sessionId, session);
+    sessions.value.set(placeholderId, session);
 
     const tab: Tab = {
-      id: sessionId,
-      sessionId,
+      tabKey,
+      id: placeholderId,
+      sessionId: placeholderId,
       title: serverName,
       active: true,
     };
-
-    // Deactivate other tabs
     tabs.value.forEach((t) => (t.active = false));
     tabs.value.push(tab);
-    activeSessionId.value = sessionId;
+    activeSessionId.value = placeholderId;
 
-    // Mark as connected
-    updateStatus(sessionId, "connected");
+    // 2. Attempt SSH connection in the background
+    try {
+      const realId = await tauriInvoke<string>("ssh_connect", {
+        serverId,
+        cols,
+        rows,
+      });
 
-    return sessionId;
+      // 3. Success — replace placeholder with real session
+      sessions.value.delete(placeholderId);
+      tab.id = realId;
+      tab.sessionId = realId;
+
+      const realSession: Session = {
+        id: realId,
+        serverId,
+        serverName,
+        status: "connected",
+        startedAt: session.startedAt,
+      };
+      sessions.value.set(realId, realSession);
+
+      if (activeSessionId.value === placeholderId) {
+        activeSessionId.value = realId;
+      }
+    } catch (err) {
+      // 4. Failed — update placeholder session to error
+      const s = sessions.value.get(placeholderId);
+      if (s) {
+        s.status = "error";
+      }
+      throw err;
+    }
   }
 
   /** Disconnects an SSH session and removes the tab. */
   async function disconnect(sessionId: string): Promise<void> {
-    await tauriInvoke("ssh_disconnect", { sessionId });
+    // For placeholder sessions that never connected, just remove the tab
+    if (sessionId.startsWith("connecting-")) {
+      closeTab(sessionId);
+      return;
+    }
+    try {
+      await tauriInvoke("ssh_disconnect", { sessionId });
+    } catch {
+      // Ignore disconnect errors
+    }
     closeTab(sessionId);
   }
 

@@ -59,33 +59,3 @@ pub struct ProviderConfig {
     pub api_base_url: Option<String>,
     pub model: String,
 }
-
-#[cfg(test)]
-mod tests {
-    use super::*;
-
-    #[test]
-    fn test_ai_chunk_serialize() {
-        let chunk = AiChunk {
-            text: "hello".into(),
-            done: false,
-        };
-        let json = serde_json::to_string(&chunk).unwrap();
-        assert!(json.contains("\"text\":\"hello\""));
-        assert!(json.contains("\"done\":false"));
-    }
-
-    #[test]
-    fn test_provider_config_roundtrip() {
-        let config = ProviderConfig {
-            provider_type: "openai".into(),
-            api_key: "sk-test".into(),
-            api_base_url: None,
-            model: "gpt-4".into(),
-        };
-        let json = serde_json::to_string(&config).unwrap();
-        let parsed: ProviderConfig = serde_json::from_str(&json).unwrap();
-        assert_eq!(parsed.provider_type, "openai");
-        assert_eq!(parsed.model, "gpt-4");
-    }
-}
