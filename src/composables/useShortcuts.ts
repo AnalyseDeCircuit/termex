@@ -16,8 +16,8 @@ export function useShortcuts(handlers: ShortcutHandlers) {
   function onKeydown(e: KeyboardEvent) {
     const mod = e.ctrlKey || e.metaKey;
 
-    // Ctrl+B — toggle sidebar
-    if (mod && e.key === "b") {
+    // Ctrl+\ — toggle sidebar
+    if (mod && e.key === "\\") {
       e.preventDefault();
       handlers.toggleSidebar();
       return;

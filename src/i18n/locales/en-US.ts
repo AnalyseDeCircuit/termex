@@ -162,6 +162,7 @@ export default {
     newConnection: "New Connection",
     openSettings: "Open Settings",
     toggleSidebar: "Toggle Sidebar",
+    toggleAi: "Toggle AI Panel",
     closeTab: "Close Current Tab",
     nextTab: "Next Tab",
     prevTab: "Previous Tab",

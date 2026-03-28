@@ -9,7 +9,8 @@ const mod = isMac ? "⌘" : "Ctrl";
 const shortcuts = [
   { keys: `${mod}+N`, action: "keybindings.newConnection" },
   { keys: `${mod}+,`, action: "keybindings.openSettings" },
-  { keys: `${mod}+B`, action: "keybindings.toggleSidebar" },
+  { keys: `${mod}+\\`, action: "keybindings.toggleSidebar" },
+  { keys: `${mod}+Shift+I`, action: "keybindings.toggleAi" },
   { keys: `${mod}+W`, action: "keybindings.closeTab" },
   { keys: `${mod}+Tab`, action: "keybindings.nextTab" },
   { keys: `${mod}+Shift+Tab`, action: "keybindings.prevTab" },

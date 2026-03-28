@@ -133,7 +133,7 @@ pub async fn ssh_connect(
 /// Tests SSH connectivity using form input (without saving).
 #[tauri::command]
 pub async fn ssh_test(
-    state: State<'_, AppState>,
+    _state: State<'_, AppState>,
     host: String,
     port: u32,
     username: String,

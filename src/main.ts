@@ -6,6 +6,12 @@ import { i18n } from "./i18n";
 import App from "./App.vue";
 import "./assets/styles/tailwind.css";
 
+// Set platform class before mount for CSS layout
+const platform = navigator.platform.toUpperCase();
+if (platform.includes("MAC")) document.documentElement.classList.add("platform-macos");
+else if (platform.includes("WIN")) document.documentElement.classList.add("platform-windows");
+else document.documentElement.classList.add("platform-linux");
+
 const app = createApp(App);
 app.use(createPinia());
 app.use(ElementPlus);

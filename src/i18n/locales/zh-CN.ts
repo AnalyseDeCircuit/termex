@@ -162,6 +162,7 @@ export default {
     newConnection: "\u65B0\u5EFA\u8FDE\u63A5",
     openSettings: "\u6253\u5F00\u8BBE\u7F6E",
     toggleSidebar: "\u5207\u6362\u4FA7\u8FB9\u680F",
+    toggleAi: "\u5207\u6362 AI \u9762\u677F",
     closeTab: "\u5173\u95ED\u5F53\u524D\u6807\u7B7E",
     nextTab: "\u4E0B\u4E00\u4E2A\u6807\u7B7E",
     prevTab: "\u4E0A\u4E00\u4E2A\u6807\u7B7E",

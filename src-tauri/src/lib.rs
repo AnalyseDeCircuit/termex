@@ -62,10 +62,10 @@ fn build_menu(app: &tauri::App) -> Result<tauri::menu::Menu<tauri::Wry>, Box<dyn
 
     // View submenu
     let toggle_sidebar = MenuItemBuilder::with_id("toggle_sidebar", "Sidebar")
-        .accelerator("CmdOrCtrl+B")
+        .accelerator("CmdOrCtrl+\\")
         .build(app)?;
     let toggle_ai = MenuItemBuilder::with_id("toggle_ai", "AI Panel")
-        .accelerator("CmdOrCtrl+Shift+A")
+        .accelerator("CmdOrCtrl+Shift+I")
         .build(app)?;
     let toggle_sftp = MenuItemBuilder::with_id("toggle_sftp", "SFTP Panel")
         .accelerator("CmdOrCtrl+Shift+S")

@@ -113,7 +113,15 @@ onBeforeUnmount(() => {
   <div class="h-screen w-screen flex flex-col overflow-hidden"
        style="background: var(--tm-bg-base); color: var(--tm-text-primary)"
   >
-    <!-- Main area (sidebar + content) -->
+    <!-- Titlebar / Tab bar (full width, acts as custom titlebar) -->
+    <TerminalTabs
+      :sidebar-open="sidebarVisible"
+      @settings="settingsModalVisible = true"
+      @toggle-ai="aiPanelVisible = !aiPanelVisible"
+      @new-host="openNewConnection"
+    />
+
+    <!-- Main area -->
     <div class="flex-1 flex min-h-0">
       <!-- Sidebar -->
       <Sidebar
@@ -123,15 +131,9 @@ onBeforeUnmount(() => {
         @edit-server="openEditServer"
       />
 
-      <!-- Main content area -->
+      <!-- Content column -->
       <div class="flex-1 flex flex-col min-w-0">
-        <TerminalTabs
-        @settings="settingsModalVisible = true"
-        @toggle-ai="aiPanelVisible = !aiPanelVisible"
-        @new-host="openNewConnection"
-      />
-
-        <!-- Content + AI Panel row -->
+        <!-- Terminal + AI row -->
         <div class="flex-1 min-h-0 flex">
           <!-- Terminal area -->
           <div class="flex-1 min-w-0 relative">
@@ -157,7 +159,7 @@ onBeforeUnmount(() => {
             </div>
           </div>
 
-          <!-- AI Panel (right side, below tabs) -->
+          <!-- AI Panel (right side) -->
           <AiPanel
             v-if="aiPanelVisible"
             class="w-80 shrink-0"

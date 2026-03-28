@@ -234,7 +234,7 @@ git push origin main --tags     # triggers GitHub Actions build
 - [x] v0.7.0 -- Session Recording + Server Monitoring
 - [x] v0.8.0 -- Plugin System + Extensibility
 - [x] v0.9.0 -- Stable Release
-- [ ] v0.10.0 -- OS Keychain Security (credential protection)
+- [x] v0.10.0 -- OS Keychain Security (credential protection)
 
 > See [docs/iterations/](docs/iterations/) for detailed plans of each version.
 

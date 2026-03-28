@@ -1,6 +1,7 @@
 <script setup lang="ts">
 import { ref, computed, nextTick } from "vue";
 import { useI18n } from "vue-i18n";
+import { getCurrentWindow } from "@tauri-apps/api/window";
 import { Close, Setting, FolderOpened } from "@element-plus/icons-vue";
 import { useSessionStore } from "@/stores/sessionStore";
 import { useSftpStore } from "@/stores/sftpStore";
@@ -8,6 +9,29 @@ import ContextMenu from "@/components/sidebar/ContextMenu.vue";
 import type { MenuItem } from "@/components/sidebar/ContextMenu.vue";
 
 const { t } = useI18n();
+const appWindow = getCurrentWindow();
+
+function handleTitlebarMouseDown(e: MouseEvent) {
+  // Only drag on left mouse button, and not on interactive children
+  if (e.button !== 0) return;
+  appWindow.startDragging();
+}
+
+function handleTitlebarDblClick() {
+  appWindow.toggleMaximize();
+}
+
+const props = defineProps<{
+  sidebarOpen?: boolean;
+}>();
+
+const isMac = navigator.platform.toUpperCase().includes("MAC");
+// macOS: when sidebar open use sidebar width (240px), otherwise traffic light width (78px)
+// Windows/Linux: no spacer needed
+const spacerWidth = computed(() => {
+  if (!isMac) return "0px";
+  return props.sidebarOpen ? "240px" : "78px";
+});
 
 const emit = defineEmits<{
   (e: "settings"): void;
@@ -137,15 +161,23 @@ async function onCtxSelect(action: string) {
 </script>
 
 <template>
-  <div class="h-9 flex items-center shrink-0 overflow-x-auto select-none"
+  <div class="titlebar h-9 flex items-center shrink-0 overflow-x-auto select-none"
        style="background: var(--tm-bg-surface); border-bottom: 1px solid var(--tm-border)"
   >
+    <!-- Left spacer: adapts to sidebar width on macOS, hidden on other platforms -->
+    <div
+      class="shrink-0 h-full transition-all duration-200"
+      :style="{ width: spacerWidth }"
+      @mousedown="handleTitlebarMouseDown"
+      @dblclick="handleTitlebarDblClick"
+    />
+
     <!-- Tabs -->
     <button
       v-for="tab in sessionStore.tabs"
       :key="tab.tabKey"
       class="group flex items-center gap-1.5 px-3 h-full text-xs transition-colors shrink-0 max-w-[180px]"
-      :class="tab.active ? 'tm-tab-active border-b-2 border-b-primary-500' : 'tm-tab-inactive'"
+           :class="tab.active ? 'tm-tab-active border-b-2 border-b-primary-500' : 'tm-tab-inactive'"
       @click="onTabClick(tab.sessionId)"
       @contextmenu="onTabContextMenu($event, tab.sessionId)"
     >
@@ -185,14 +217,13 @@ async function onCtxSelect(action: string) {
       </el-icon>
     </button>
 
-    <!-- Empty fill -->
-    <div class="flex-1" />
+    <!-- Empty fill (draggable, double-click to maximize) -->
+    <div class="flex-1 h-full" @mousedown="handleTitlebarMouseDown" @dblclick="handleTitlebarDblClick" />
 
     <!-- SFTP toggle -->
     <button
       v-if="canOpenSftp"
-      class="tm-icon-btn px-2 h-full transition-colors shrink-0"
-      :title="$t('sftp.title')"
+      class="tm-icon-btn px-2 h-full transition-colors shrink-0"      :title="$t('sftp.title')"
       @click="openSftp"
     >
       <el-icon :size="14"><FolderOpened /></el-icon>
@@ -200,8 +231,7 @@ async function onCtxSelect(action: string) {
 
     <!-- AI toggle -->
     <button
-      class="tm-icon-btn px-2 h-full transition-colors shrink-0"
-      :title="$t('settings.aiConfig')"
+      class="tm-icon-btn px-2 h-full transition-colors shrink-0"      :title="$t('settings.aiConfig')"
       @click="emit('toggle-ai')"
     >
       <span class="text-sm leading-none">&#x2728;</span>
@@ -209,8 +239,7 @@ async function onCtxSelect(action: string) {
 
     <!-- Settings -->
     <button
-      class="tm-icon-btn px-2 h-full transition-colors shrink-0"
-      :title="$t('settings.title')"
+      class="tm-icon-btn px-2 h-full transition-colors shrink-0"      :title="$t('settings.title')"
       @click="emit('settings')"
     >
       <el-icon :size="14"><Setting /></el-icon>
