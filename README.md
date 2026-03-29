@@ -92,6 +92,25 @@ pnpm tauri build
 - Multi-provider support (Claude / OpenAI / Ollama)
 - User brings own API key, fully local, no proxy
 
+### Local AI Models (v0.11.0) ✅
+
+- **Local LLM Support** -- Run open-source models locally without API keys
+  - Built-in `llama-server` binary (all platforms: macOS/Windows/Linux)
+  - Auto-detection from Homebrew or custom paths
+- **Model Management** -- Download and manage multiple models
+  - 12 curated GGUF models across 4 size tiers (Micro/Small/Medium/Large)
+  - HTTP Range download with resume support
+  - SHA256 verification for integrity
+  - Automatic path management (`~/.termex/models/`)
+- **Complete Offline** -- Zero-dependency AI when models are cached
+  - No internet required after download
+  - No API quotas or rate limits
+  - Full privacy (data stays local)
+- **Seamless Integration** -- Works like any other AI provider
+  - Same command explanation, NL→Shell commands
+  - LAN Ollama support with network detection
+  - Automatic process management & cleanup
+
 ## Tech Stack
 
 ```text
@@ -255,6 +274,13 @@ git push origin main --tags     # triggers GitHub Actions build
 - [x] v0.8.0 -- Plugin System + Extensibility
 - [x] v0.9.0 -- Stable Release
 - [x] v0.10.0 -- OS Keychain Security (credential protection)
+- [x] **v0.11.0 -- Local AI Models (llama-server integration, 12 models, offline-first)** ✅ **(COMPLETE)**
+
+### Planned (v0.11.1+)
+
+- [ ] v0.11.1 -- Performance Optimizations (async SHA256, parallel downloads, throttled progress)
+- [ ] v0.12.0 -- Enhanced Local AI (Ollama pull, multi-instance, HuggingFace mirror support)
+- [ ] v1.0.0 -- Production Ready (full testing, release builds, app stores)
 
 > See [docs/iterations/](docs/iterations/) for detailed plans of each version.
 
