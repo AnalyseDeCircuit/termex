@@ -22,6 +22,7 @@ thiserror = "2"
 chrono = { version = "0.4", features = ["serde"] }
 tokio = { version = "1", features = ["full"] }
 log = "0.4"
+env_logger = "0.11"
 rusqlite = { version = "0.32", features = ["bundled-sqlcipher"] }
 ring = "0.17"
 argon2 = "0.5"
@@ -34,7 +35,9 @@ tokio-util = "0.7"
 regex = "1"
 reqwest = { version = "0.12", features = ["json", "stream"] }
 flate2 = "1"
+tar = "0.4"
 futures-util = "0.3"
+hex = "0.4"
 open = "5"
 keyring = { version = "3", features = ["apple-native", "windows-native", "sync-secret-service"] }
 

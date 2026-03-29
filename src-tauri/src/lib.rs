@@ -2,6 +2,7 @@ pub mod ai;
 mod commands;
 pub mod crypto;
 pub mod keychain;
+pub mod local_ai;
 pub mod plugin;
 pub mod recording;
 pub mod sftp;
@@ -111,6 +112,12 @@ fn build_menu(app: &tauri::App) -> Result<tauri::menu::Menu<tauri::Wry>, Box<dyn
 
 /// Initializes and runs the Tauri application.
 pub fn run() {
+    // Initialize logging with env_logger
+    // This reads the RUST_LOG environment variable (e.g., RUST_LOG=info, RUST_LOG=debug)
+    env_logger::Builder::from_default_env()
+        .format_timestamp_millis()
+        .init();
+
     // MVP: no master password — database is unencrypted.
     // When user sets a master password, it encrypts credential fields via AES-256-GCM.
     let app_state = AppState::new(None).expect("failed to initialize database");
@@ -226,6 +233,16 @@ pub fn run() {
             commands::ai::ai_provider_get_key,
             commands::ai::ai_provider_test,
             commands::ai::ai_provider_test_direct,
+            // Local AI
+            commands::local_ai::local_ai_engine_status,
+            commands::local_ai::local_ai_start_engine,
+            commands::local_ai::local_ai_stop_engine,
+            commands::local_ai::local_ai_list_downloaded,
+            commands::local_ai::local_ai_download_model,
+            commands::local_ai::local_ai_delete_model,
+            commands::local_ai::local_ai_cancel_download,
+            commands::local_ai::local_ai_start_health_check,
+            commands::local_ai::local_ai_check_disk_space,
             // Recording
             commands::recording::recording_start,
             commands::recording::recording_stop,

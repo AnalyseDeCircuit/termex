@@ -19,6 +19,7 @@ import PrivacyDialog from "@/components/settings/PrivacyDialog.vue";
 import { useSftpStore } from "@/stores/sftpStore";
 import { useSettingsStore } from "@/stores/settingsStore";
 import { checkForUpdate, shouldCheckToday } from "@/utils/update";
+import localModelsCatalog from "@/assets/local-models.json";
 
 const { t, locale } = useI18n();
 const serverStore = useServerStore();
@@ -35,6 +36,7 @@ const updateDialogVisible = ref(false);
 const privacyDialogVisible = ref(false);
 const keychainVerificationVisible = ref(false);
 const keychainVerificationMessage = ref("");
+const modelCatalogUpdateVisible = ref(false);
 
 function openNewConnection() {
   editServerId.value = null;
@@ -66,6 +68,27 @@ async function handleKeychainVerify() {
   } catch (e) {
     // If verification fails, show error but allow user to continue
     ElMessage.error(t('keychain.verification.failed'));
+  }
+}
+
+async function checkCatalogUpdate() {
+  try {
+    const saved = await tauriInvoke<string | null>(
+      "settings_get",
+      { key: "local_models_catalog_version" },
+    );
+
+    if (saved && saved !== localModelsCatalog.catalogVersion) {
+      modelCatalogUpdateVisible.value = true;
+    }
+
+    // Save current catalog version
+    await tauriInvoke("settings_set", {
+      key: "local_models_catalog_version",
+      value: localModelsCatalog.catalogVersion,
+    });
+  } catch (err) {
+    console.error("Failed to check catalog update:", err);
   }
 }
 
@@ -127,6 +150,9 @@ onMounted(async () => {
     keychainVerificationMessage.value = message;
     keychainVerificationVisible.value = true;
   }));
+
+  // Check local AI model catalog updates
+  await checkCatalogUpdate();
 
   // Auto-check for updates (once per day)
   if (shouldCheckToday(null)) {
@@ -218,6 +244,24 @@ onBeforeUnmount(() => {
     <SettingsModal v-model:visible="settingsModalVisible" />
     <UpdateDialog v-if="updateDialogVisible" @close="updateDialogVisible = false" />
     <PrivacyDialog v-if="privacyDialogVisible" @close="privacyDialogVisible = false" />
+
+    <!-- Model Catalog Update Dialog -->
+    <el-dialog
+      v-model="modelCatalogUpdateVisible"
+      :title="t('localAi.title')"
+      width="400px"
+    >
+      <div>
+        <p style="color: var(--tm-text-primary)">
+          {{ t('localAi.catalogUpdated') }}
+        </p>
+      </div>
+      <template #footer>
+        <el-button @click="modelCatalogUpdateVisible = false">
+          {{ t('localAi.ok') }}
+        </el-button>
+      </template>
+    </el-dialog>
 
     <!-- Keychain Verification Dialog -->
     <el-dialog

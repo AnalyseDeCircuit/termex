@@ -9,6 +9,7 @@ export type ProviderType =
   | "glm"
   | "minimax"
   | "doubao"
+  | "local"
   | "custom";
 
 export interface AiProvider {
@@ -63,6 +64,7 @@ export const DEFAULT_MAX_TOKENS: Record<ProviderType, number> = {
   glm: 4096,
   minimax: 4096,
   doubao: 4096,
+  local: 4096,
   custom: 4096,
 };
 
@@ -128,6 +130,7 @@ export const DEFAULT_MODELS: Record<ProviderType, string[]> = {
   ],
   minimax: ["MiniMax-M2.5", "MiniMax-M2.5-highspeed", "MiniMax-Text-01"],
   doubao: [],
+  local: [],
   custom: [],
 };
 
@@ -143,6 +146,7 @@ export const PROVIDER_BASE_URLS: Record<ProviderType, string> = {
   glm: "https://open.bigmodel.cn/api/paas/v4",
   minimax: "https://api.minimax.io/v1",
   doubao: "https://ark.cn-beijing.volces.com/api/v3",
+  local: "http://localhost:15000",
   custom: "",
 };
 
@@ -158,5 +162,6 @@ export const PROVIDER_NAMES: Record<ProviderType, string> = {
   glm: "GLM (Zhipu)",
   minimax: "MiniMax",
   doubao: "Doubao (VolcEngine)",
+  local: "Local AI (llama-server)",
   custom: "Custom (OpenAI Compatible)",
 };

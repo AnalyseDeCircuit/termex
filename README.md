@@ -16,6 +16,8 @@
 
 ![](https://raw.githubusercontent.com/zouwei/resource/master/images/moraya/20260329-023219.-image.png)
 
+![](https://raw.githubusercontent.com/zouwei/resource/master/images/moraya/20260329-151239.-image.png)
+
 ## Why Termex?
 
 |  | Termius | Tabby | WindTerm | Termex |

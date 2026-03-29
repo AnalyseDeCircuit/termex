@@ -265,6 +265,7 @@ pub async fn ai_explain_command(
 
     // Make HTTP request to the AI provider
     let response = call_ai_provider(
+        &state,
         &provider_type,
         &api_key,
         api_base_url.as_deref(),
@@ -335,6 +336,7 @@ pub async fn ai_nl2cmd(
     let event = format!("ai://nl2cmd/{request_id}");
 
     let response = call_ai_provider(
+        &state,
         &provider_type,
         &api_key,
         api_base_url.as_deref(),
@@ -392,6 +394,7 @@ pub async fn ai_provider_test(
     let api_key = resolve_api_key(&state, &id, api_key_enc);
 
     let response = call_ai_provider(
+        &state,
         &provider_type,
         &api_key,
         api_base_url.as_deref(),
@@ -442,12 +445,19 @@ pub fn ai_provider_get_key(
 /// Tests AI provider connectivity using provided credentials directly (without saving).
 #[tauri::command]
 pub async fn ai_provider_test_direct(
+    state: State<'_, AppState>,
     provider_type: String,
     api_key: String,
     api_base_url: Option<String>,
     model: String,
 ) -> Result<String, String> {
+    // Local provider doesn't need connection test
+    if provider_type == "local" {
+        return Err("Local AI provider doesn't require connection test".to_string());
+    }
+
     let response = call_ai_provider(
+        &state,
         &provider_type,
         &api_key,
         api_base_url.as_deref(),
@@ -475,6 +485,7 @@ fn parse_provider_type(s: &str) -> ProviderType {
         "glm" => ProviderType::Glm,
         "minimax" => ProviderType::Minimax,
         "doubao" => ProviderType::Doubao,
+        "local" => ProviderType::Local,
         _ => ProviderType::Custom,
     }
 }
@@ -504,6 +515,7 @@ fn resolve_api_key(
 
 /// Calls an AI provider's completion API.
 async fn call_ai_provider(
+    state: &AppState,
     provider_type: &str,
     api_key: &str,
     base_url: Option<&str>,
@@ -572,6 +584,38 @@ async fn call_ai_provider(
                 return Err(err.to_string());
             }
             Ok(json["candidates"][0]["content"]["parts"][0]["text"]
+                .as_str()
+                .unwrap_or("")
+                .to_string())
+        }
+        // Local model via llama-server
+        "local" => {
+            let server = state.llama_server.read().await;
+            let port = server
+                .port
+                .ok_or("Local AI engine is not running. Start it first.")?;
+            drop(server);
+
+            let url = format!("http://localhost:{}/v1/chat/completions", port);
+            let body = serde_json::json!({
+                "model": model,
+                "messages": [
+                    { "role": "system", "content": system },
+                    { "role": "user", "content": user_message },
+                ],
+                "max_tokens": max_tok,
+            });
+            let resp = client
+                .post(&url)
+                .json(&body)
+                .send()
+                .await
+                .map_err(|e| e.to_string())?;
+            let json: serde_json::Value = resp.json().await.map_err(|e| e.to_string())?;
+            if let Some(err) = json["error"]["message"].as_str() {
+                return Err(err.to_string());
+            }
+            Ok(json["choices"][0]["message"]["content"]
                 .as_str()
                 .unwrap_or("")
                 .to_string())

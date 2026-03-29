@@ -1,9 +1,10 @@
 use std::collections::HashMap;
 use std::sync::RwLock;
 
-use tokio::sync::RwLock as TokioRwLock;
+use tokio::sync::{RwLock as TokioRwLock, oneshot};
 
 use crate::keychain;
+use crate::local_ai::LlamaServerState;
 use crate::plugin::registry::PluginRegistry;
 use crate::recording::recorder::RecorderRegistry;
 use crate::sftp::session::SftpHandle;
@@ -27,6 +28,10 @@ pub struct AppState {
     pub recorder: RecorderRegistry,
     /// Plugin registry.
     pub plugin_registry: RwLock<PluginRegistry>,
+    /// Local AI (llama-server) process state.
+    pub llama_server: TokioRwLock<LlamaServerState>,
+    /// Active model downloads, keyed by model_id, with cancellation token.
+    pub active_downloads: TokioRwLock<HashMap<String, oneshot::Sender<()>>>,
 }
 
 impl AppState {
@@ -44,6 +49,8 @@ impl AppState {
             forwards: crate::ssh::forward::new_registry(),
             recorder: RecorderRegistry::new(),
             plugin_registry: RwLock::new(plugin_registry),
+            llama_server: TokioRwLock::new(LlamaServerState::new()),
+            active_downloads: TokioRwLock::new(HashMap::new()),
         };
 
         // Initialize keychain (reads single store entry → at most 1 OS prompt)

@@ -165,6 +165,7 @@ pub enum ProviderType {
     Glm,
     Minimax,
     Doubao,
+    Local,
     Custom,
 }
 
@@ -182,6 +183,7 @@ impl ProviderType {
             Self::Glm => "glm",
             Self::Minimax => "minimax",
             Self::Doubao => "doubao",
+            Self::Local => "local",
             Self::Custom => "custom",
         }
     }
