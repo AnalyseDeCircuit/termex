@@ -148,20 +148,28 @@ pub fn run() {
             let state = app.state::<AppState>();
 
             // Check keychain verification and detect system password changes
-            match state.check_keychain_verification() {
-                Ok(true) => {
-                    // Keychain verified - update app version for upgrade detection
-                    state.update_app_version(env!("CARGO_PKG_VERSION"));
+            // Skip in debug/dev mode to avoid frequent password prompts during development
+            let should_check_keychain = !cfg!(debug_assertions) || std::env::var("FORCE_KEYCHAIN_CHECK").is_ok();
+
+            if should_check_keychain {
+                match state.check_keychain_verification() {
+                    Ok(true) => {
+                        // Keychain verified - update app version for upgrade detection
+                        state.update_app_version(env!("CARGO_PKG_VERSION"));
+                    }
+                    Ok(false) => {
+                        // Keychain not available (e.g., headless Linux) - normal, continue
+                        state.update_app_version(env!("CARGO_PKG_VERSION"));
+                    }
+                    Err(e) => {
+                        // Keychain verification failed - likely system password changed
+                        // Emit event to frontend to show verification dialog
+                        let _ = app_handle.emit("keychain://verification_required", format!("Keychain access failed: {}", e));
+                    }
                 }
-                Ok(false) => {
-                    // Keychain not available (e.g., headless Linux) - normal, continue
-                    state.update_app_version(env!("CARGO_PKG_VERSION"));
-                }
-                Err(e) => {
-                    // Keychain verification failed - likely system password changed
-                    // Emit event to frontend to show verification dialog
-                    let _ = app_handle.emit("keychain://verification_required", format!("Keychain access failed: {}", e));
-                }
+            } else {
+                // Debug mode: skip keychain check, just update version
+                state.update_app_version(env!("CARGO_PKG_VERSION"));
             }
 
             let menu = build_menu(app)?;
