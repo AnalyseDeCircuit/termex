@@ -3,8 +3,17 @@ pub mod downloader;
 pub mod health_check;
 pub mod storage;
 
-use std::path::PathBuf;
+use std::path::{Path, PathBuf};
 use std::process::Stdio;
+
+/// 规范化路径以便比较（处理符号链接、.. 等）
+fn normalize_path(path: &Path) -> String {
+    // 尝试规范化为绝对路径，如果失败就用原始路径
+    match std::fs::canonicalize(path) {
+        Ok(canonical) => canonical.to_string_lossy().to_string(),
+        Err(_) => path.to_string_lossy().to_string(),
+    }
+}
 
 /// Represents the current state of the llama-server process.
 #[derive(Debug, Clone)]
@@ -42,23 +51,28 @@ impl LlamaServerState {
     ) -> Result<u16, String> {
         eprintln!(">>> [MOD] start() called with model: {}", model_path.display());
 
+        // 规范化模型路径以便比较
+        let normalized_model = normalize_path(&model_path);
+        eprintln!(">>> [MOD] Model path normalized:");
+        eprintln!(">>> [MOD]   Original: {}", model_path.display());
+        eprintln!(">>> [MOD]   Normalized: {}", normalized_model);
+
         // If same model is already loaded and running, return the existing port
         if let Some(loaded) = &self.loaded_model {
-            let current_model = model_path.to_string_lossy().to_string();
             eprintln!(">>> [MOD] Checking if model already loaded:");
             eprintln!(">>> [MOD]   Loaded model: {}", loaded);
-            eprintln!(">>> [MOD]   Current model: {}", current_model);
-            eprintln!(">>> [MOD]   Models match: {}", loaded == &current_model);
+            eprintln!(">>> [MOD]   Current model: {}", normalized_model);
+            eprintln!(">>> [MOD]   Models match: {}", loaded == &normalized_model);
             eprintln!(">>> [MOD]   PID: {:?}", self.process_id);
             let is_running = self.is_running();
             eprintln!(">>> [MOD]   Process running: {}", is_running);
 
-            if loaded == &current_model && is_running {
+            if loaded == &normalized_model && is_running {
                 eprintln!(">>> [MOD] Same model already running on port {:?}", self.port);
                 log::info!("Model already loaded: {}", loaded);
                 return self.port.ok_or_else(|| "Port not set but process is running".to_string());
             } else {
-                eprintln!(">>> [MOD] Restarting: model mismatch or process not running");
+                eprintln!(">>> [MOD] Need to restart: model mismatch or process not running");
             }
         } else {
             eprintln!(">>> [MOD] No previous model loaded");
@@ -113,10 +127,10 @@ impl LlamaServerState {
         let pid = child.id();
         eprintln!(">>> [MOD] Process spawned with PID: {}", pid);
 
-        // Update state with the PID
+        // Update state with the PID and normalized model path
         self.process_id = Some(pid);
         self.port = Some(port);
-        self.loaded_model = Some(model_path.to_string_lossy().to_string());
+        self.loaded_model = Some(normalized_model.clone());
 
         // Detach the child process (let it run in background)
         // We'll track it via PID only
