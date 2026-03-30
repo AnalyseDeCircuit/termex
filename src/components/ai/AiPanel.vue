@@ -1,11 +1,10 @@
 <script setup lang="ts">
-import { computed, onMounted, ref } from "vue";
+import { computed, onMounted } from "vue";
 import { useI18n } from "vue-i18n";
 import { Delete, Setting } from "@element-plus/icons-vue";
 import { useAiStore } from "@/stores/aiStore";
 import AiInput from "./AiInput.vue";
 import AiMessage from "./AiMessage.vue";
-import LocalAiLaunchDialog from "./LocalAiLaunchDialog.vue";
 
 const { t } = useI18n();
 const aiStore = useAiStore();
@@ -13,8 +12,6 @@ const emit = defineEmits<{
   (e: "insert-command", command: string): void;
   (e: "open-settings"): void;
 }>();
-
-const localAiDialogVisible = ref(false);
 
 const hasProvider = computed(() => aiStore.providers.length > 0);
 const hasMessages = computed(() => aiStore.messages.length > 0);
@@ -25,10 +22,6 @@ function handleInsert(command: string) {
 
 function clearMessages() {
   aiStore.messages = [];
-}
-
-function handleStartLocalAi() {
-  localAiDialogVisible.value = true;
 }
 
 onMounted(() => {
@@ -98,9 +91,6 @@ onMounted(() => {
     </div>
 
     <!-- Input -->
-    <AiInput :disabled="!hasProvider" @start-local-ai="handleStartLocalAi" />
+    <AiInput :disabled="!hasProvider" />
   </div>
-
-  <!-- Local AI Launch Dialog -->
-  <LocalAiLaunchDialog v-model:visible="localAiDialogVisible" />
 </template>
