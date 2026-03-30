@@ -129,6 +129,8 @@ export const useSftpStore = defineStore("sftp", () => {
     const parts = currentPath.value.split("/").filter(Boolean);
     parts.pop();
     const parent = parts.length === 0 ? "/" : "/" + parts.join("/");
+    // Update path immediately for instant UI feedback
+    currentPath.value = parent;
     await listDir(parent);
   }
 
