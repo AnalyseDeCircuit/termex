@@ -20,6 +20,8 @@ export default {
     closeTab: "\u5173\u95ED\u6807\u7B7E",
     disconnect: "\u65AD\u5F00\u8FDE\u63A5",
     reconnect: "\u91CD\u65B0\u8FDE\u63A5",
+    openLocalTerminal: "\u6253\u5F00\u672C\u5730\u7EC8\u7AEF",
+    openLocalTerminalError: "\u65E0\u6CD5\u6253\u5F00\u7EC8\u7AEF",
   },
   settings: {
     title: "\u8BBE\u7F6E",

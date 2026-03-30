@@ -82,6 +82,54 @@ pub fn open_url(url: String) -> Result<(), String> {
     open::that(&url).map_err(|e| e.to_string())
 }
 
+/// Opens the system default terminal emulator.
+#[tauri::command]
+pub fn open_local_terminal() -> Result<(), String> {
+    #[cfg(target_os = "macos")]
+    {
+        std::process::Command::new("open")
+            .args(&["-a", "Terminal"])
+            .spawn()
+            .or_else(|_| {
+                // Fallback to iTerm if Terminal not found
+                std::process::Command::new("open")
+                    .args(&["-a", "iTerm"])
+                    .spawn()
+            })
+            .map_err(|e| e.to_string())?;
+        Ok(())
+    }
+
+    #[cfg(target_os = "windows")]
+    {
+        std::process::Command::new("wt.exe")
+            .spawn()
+            .or_else(|_| {
+                // Fallback to cmd.exe if Windows Terminal not found
+                std::process::Command::new("cmd.exe").spawn()
+            })
+            .map_err(|e| e.to_string())?;
+        Ok(())
+    }
+
+    #[cfg(target_os = "linux")]
+    {
+        // Try common Linux terminal emulators in order
+        let terminals = ["x-terminal-emulator", "gnome-terminal", "xterm", "konsole"];
+        for term in &terminals {
+            if let Ok(_) = std::process::Command::new(term).spawn() {
+                return Ok(());
+            }
+        }
+        Err("No terminal emulator found".into())
+    }
+
+    #[cfg(not(any(target_os = "macos", target_os = "windows", target_os = "linux")))]
+    {
+        Err("Terminal opening not supported on this platform".into())
+    }
+}
+
 /// Returns the current security/keychain status.
 #[tauri::command]
 pub fn security_status(state: State<'_, AppState>) -> Result<SecurityStatus, String> {

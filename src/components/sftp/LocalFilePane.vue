@@ -19,6 +19,8 @@ const currentPath = ref("");
 const entries = ref<LocalEntry[]>([]);
 const loading = ref(false);
 const isDragOver = ref(false);
+const editingPath = ref(false);
+const editPathInput = ref("");
 
 onMounted(async () => {
   try {
@@ -71,6 +73,22 @@ const breadcrumbs = computed(() => {
   }
   return items;
 });
+
+function enterEditMode() {
+  editPathInput.value = currentPath.value;
+  editingPath.value = true;
+}
+
+function submitPathEdit() {
+  if (editPathInput.value && editPathInput.value !== currentPath.value) {
+    listDir(editPathInput.value);
+  }
+  editingPath.value = false;
+}
+
+function cancelPathEdit() {
+  editingPath.value = false;
+}
 
 function handleDblClick(entry: LocalEntry) {
   if (entry.isDir) enterDir(entry.name);
@@ -146,11 +164,28 @@ async function handleDrop(e: DragEvent) {
       <button class="tm-icon-btn p-0.5 rounded" @click="listDir(currentPath)">
         <el-icon :size="12"><RefreshRight /></el-icon>
       </button>
-      <!-- Breadcrumb -->
-      <div class="flex-1 flex items-center text-[10px] overflow-hidden ml-1" style="color: var(--tm-text-muted)">
+
+      <!-- Path input or breadcrumb -->
+      <div v-if="editingPath" class="flex-1 flex items-center gap-1 ml-1">
+        <input
+          v-model="editPathInput"
+          type="text"
+          class="flex-1 px-2 py-0.5 rounded text-[10px] bg-gray-700/50 text-white outline-none focus:bg-gray-600/50"
+          style="border: 1px solid var(--tm-border)"
+          @keyup.enter="submitPathEdit"
+          @keyup.escape="cancelPathEdit"
+          autofocus
+        />
+      </div>
+      <div
+        v-else
+        class="flex-1 flex items-center text-[10px] overflow-hidden ml-1 cursor-text rounded px-1 py-0.5 hover:bg-white/5"
+        style="color: var(--tm-text-muted)"
+        @click="enterEditMode"
+      >
         <template v-for="(item, idx) in breadcrumbs" :key="item.path">
           <span v-if="idx > 0" class="mx-0.5">/</span>
-          <button class="truncate px-0.5 rounded hover:bg-white/5" style="color: var(--tm-text-secondary)" @click="listDir(item.path)">
+          <button class="truncate px-0.5" style="color: var(--tm-text-secondary)" @click.stop="listDir(item.path)">
             {{ item.name }}
           </button>
         </template>

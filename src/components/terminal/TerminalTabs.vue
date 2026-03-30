@@ -2,9 +2,11 @@
 import { ref, computed, nextTick } from "vue";
 import { useI18n } from "vue-i18n";
 import { getCurrentWindow } from "@tauri-apps/api/window";
-import { Close, Setting, FolderOpened } from "@element-plus/icons-vue";
+import { Close, Setting, FolderOpened, Monitor } from "@element-plus/icons-vue";
 import { useSessionStore } from "@/stores/sessionStore";
 import { useSftpStore } from "@/stores/sftpStore";
+import { tauriInvoke } from "@/utils/tauri";
+import { ElMessage } from "element-plus";
 import ContextMenu from "@/components/sidebar/ContextMenu.vue";
 import type { MenuItem } from "@/components/sidebar/ContextMenu.vue";
 
@@ -68,6 +70,14 @@ function onTabClick(sessionId: string) {
 function onTabClose(e: MouseEvent, sessionId: string) {
   e.stopPropagation();
   sessionStore.disconnect(sessionId);
+}
+
+async function openLocalTerminal() {
+  try {
+    await tauriInvoke("open_local_terminal");
+  } catch (err) {
+    ElMessage.error(`${t("terminal.openLocalTerminalError")}: ${err}`);
+  }
 }
 
 // ── Inline rename ──
@@ -230,6 +240,15 @@ async function onCtxSelect(action: string) {
       @click="openSftp"
     >
       <el-icon :size="14"><FolderOpened /></el-icon>
+    </button>
+
+    <!-- Local terminal -->
+    <button
+      class="tm-icon-btn px-2 h-full transition-colors shrink-0"
+      :title="$t('terminal.openLocalTerminal')"
+      @click="openLocalTerminal"
+    >
+      <el-icon :size="14"><Monitor /></el-icon>
     </button>
 
     <!-- AI toggle -->

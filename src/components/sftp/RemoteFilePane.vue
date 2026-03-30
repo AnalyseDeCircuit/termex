@@ -22,6 +22,8 @@ const sftpStore = useSftpStore();
 
 const isTauriDragOver = ref(false);
 const isHtmlDragOver = ref(false);
+const editingPath = ref(false);
+const editPathInput = ref("");
 let unlistenDragDrop: (() => void) | null = null;
 
 function handleDoubleClick(entry: FileEntry) {
@@ -96,6 +98,22 @@ const breadcrumbs = computed(() => {
   }
   return items;
 });
+
+function enterEditMode() {
+  editPathInput.value = sftpStore.currentPath;
+  editingPath.value = true;
+}
+
+function submitPathEdit() {
+  if (editPathInput.value && editPathInput.value !== sftpStore.currentPath) {
+    sftpStore.listDir(editPathInput.value);
+  }
+  editingPath.value = false;
+}
+
+function cancelPathEdit() {
+  editingPath.value = false;
+}
 
 // Register Tauri drag-drop events
 onMounted(async () => {
@@ -202,11 +220,28 @@ async function handleHtmlDrop(e: DragEvent) {
       <button class="tm-icon-btn p-0.5 rounded" :title="t('sftp.newFolder')" @click="handleMkdir">
         <el-icon :size="12"><FolderAdd /></el-icon>
       </button>
-      <!-- Breadcrumb -->
-      <div class="flex-1 flex items-center text-[10px] overflow-hidden ml-1" style="color: var(--tm-text-muted)">
+
+      <!-- Path input or breadcrumb -->
+      <div v-if="editingPath" class="flex-1 flex items-center gap-1 ml-1">
+        <input
+          v-model="editPathInput"
+          type="text"
+          class="flex-1 px-2 py-0.5 rounded text-[10px] bg-gray-700/50 text-white outline-none focus:bg-gray-600/50"
+          style="border: 1px solid var(--tm-border)"
+          @keyup.enter="submitPathEdit"
+          @keyup.escape="cancelPathEdit"
+          autofocus
+        />
+      </div>
+      <div
+        v-else
+        class="flex-1 flex items-center text-[10px] overflow-hidden ml-1 cursor-text rounded px-1 py-0.5 hover:bg-white/5"
+        style="color: var(--tm-text-muted)"
+        @click="enterEditMode"
+      >
         <template v-for="(item, idx) in breadcrumbs" :key="item.path">
           <span v-if="idx > 0" class="mx-0.5">/</span>
-          <button class="truncate px-0.5 rounded hover:bg-white/5" style="color: var(--tm-text-secondary)" @click="sftpStore.listDir(item.path)">
+          <button class="truncate px-0.5" style="color: var(--tm-text-secondary)" @click.stop="sftpStore.listDir(item.path)">
             {{ item.name }}
           </button>
         </template>

@@ -20,6 +20,8 @@ export default {
     closeTab: "Close Tab",
     disconnect: "Disconnect",
     reconnect: "Reconnect",
+    openLocalTerminal: "Open Local Terminal",
+    openLocalTerminalError: "Failed to open terminal",
   },
   settings: {
     title: "Settings",
