@@ -39,6 +39,7 @@ const openSub = ref<string | null>(null);
 const menuHeight = ref(0);
 const subMenuRefs = ref<Record<string, HTMLDivElement | null>>({});
 const subMenuSizes = ref<Record<string, { width: number; height: number }>>({});
+const parentItemRefs = ref<Record<string, HTMLDivElement | null>>({});
 
 // Map action names to icon components
 const iconMap: Record<string, any> = {
@@ -75,21 +76,40 @@ const menuStyle = computed(() => {
 });
 
 // Calculate submenu position to ensure it stays within viewport
-function getSubMenuStyle(action: string, itemTop: number) {
+function getSubMenuStyle(action: string) {
   const subSize = subMenuSizes.value[action];
-  if (!subSize) return {};
+  const parentItem = parentItemRefs.value[action];
 
-  const bottomEdge = itemTop + subSize.height;
+  if (!subSize || !parentItem) return {};
+
+  // Get parent item's position relative to viewport
+  const parentRect = parentItem.getBoundingClientRect();
+  const parentTop = parentRect.top;
+  const parentHeight = parentRect.height;
+
+  // Calculate submenu bottom position if placed normally (below parent)
+  const subMenuBottomIfNormal = parentTop + parentHeight + subSize.height;
 
   let top = "0";
 
-  // If submenu would go off bottom, adjust upward
-  if (bottomEdge > window.innerHeight - 10) {
-    const availableSpace = window.innerHeight - itemTop - 10;
-    if (availableSpace < subSize.height) {
-      // Adjust top to fit within viewport
-      const offset = subSize.height - availableSpace;
-      top = `calc(0px - ${offset}px)`;
+  // If submenu would extend beyond viewport bottom, pop up
+  if (subMenuBottomIfNormal > window.innerHeight - 10) {
+    const spaceBelow = window.innerHeight - parentTop - parentHeight - 10;
+    const spaceAbove = parentTop - 10;
+
+    // Prefer popping up if there's enough space
+    if (spaceAbove >= subSize.height) {
+      top = `calc(0px - ${subSize.height}px)`;
+    } else if (spaceBelow >= subSize.height) {
+      // Fallback to below if more space there
+      top = "0";
+    } else {
+      // Squeeze into the space with more room
+      if (spaceAbove > spaceBelow) {
+        top = `calc(0px - ${spaceAbove}px)`;
+      } else {
+        top = "0";
+      }
     }
   }
 
@@ -174,6 +194,7 @@ onBeforeUnmount(() => {
           <!-- Item with submenu -->
           <div
             v-if="item.children"
+            :ref="(el) => { if (el) parentItemRefs[item.action] = el as HTMLDivElement; }"
             class="relative"
             @mouseenter="openSub = item.action"
             @mouseleave="openSub = null"
@@ -200,24 +221,29 @@ onBeforeUnmount(() => {
                   : 'left-full ml-0.5'
               ]"
               :style="{
-                ...getSubMenuStyle(item.action, 0),
+                ...getSubMenuStyle(item.action),
                 background: 'var(--tm-bg-elevated)',
                 border: '1px solid var(--tm-border)',
                 minWidth: '140px'
               }"
             >
-              <button
-                v-for="child in item.children"
-                :key="child.action"
-                class="w-full text-left px-2 py-1.5 hover:bg-white/10 transition-colors whitespace-nowrap flex items-center gap-2"
-                :class="{ 'text-red-400 hover:text-red-300': child.danger }"
-                @click="onSubSelect(child.action)"
-              >
-                <el-icon v-if="child.icon" :size="12" class="flex-shrink-0">
-                  <component :is="getIcon(child.action)" />
-                </el-icon>
-                <span>{{ child.label }}</span>
-              </button>
+              <template v-for="child in item.children" :key="child.action">
+                <!-- Divider line only -->
+                <div v-if="child.divided" class="my-1 border-t border-white/10" />
+
+                <!-- Menu items (skip if divider) -->
+                <button
+                  v-else
+                  class="w-full text-left px-2 py-1.5 hover:bg-white/10 transition-colors whitespace-nowrap flex items-center gap-2"
+                  :class="{ 'text-red-400 hover:text-red-300': child.danger }"
+                  @click="onSubSelect(child.action)"
+                >
+                  <el-icon v-if="child.icon" :size="12" class="flex-shrink-0">
+                    <component :is="getIcon(child.action)" />
+                  </el-icon>
+                  <span>{{ child.label }}</span>
+                </button>
+              </template>
             </div>
           </div>
 
