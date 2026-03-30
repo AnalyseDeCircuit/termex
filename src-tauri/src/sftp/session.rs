@@ -246,6 +246,19 @@ impl SftpHandle {
         Ok(abs)
     }
 
+    /// Changes file permissions.
+    pub async fn chmod(&self, path: &str, mode: u32) -> Result<(), SftpError> {
+        use russh_sftp::protocol::{FileAttrs, FilePermissions};
+
+        let perms = FilePermissions::from_mask(mode);
+        let attrs = FileAttrs {
+            permissions: Some(perms),
+            ..Default::default()
+        };
+        self.sftp.setstat(path, attrs).await?;
+        Ok(())
+    }
+
     /// Closes the SFTP session.
     pub async fn close(self) -> Result<(), SftpError> {
         self.sftp.close().await?;

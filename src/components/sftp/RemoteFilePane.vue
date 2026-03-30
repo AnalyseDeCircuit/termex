@@ -8,14 +8,15 @@ import {
   Folder,
   Document,
   Link,
-  Delete,
-  Edit,
-  Download,
   ArrowUp,
   RefreshRight,
   FolderAdd,
 } from "@element-plus/icons-vue";
 import { getCurrentWebview } from "@tauri-apps/api/webview";
+import ContextMenu from "@/components/sidebar/ContextMenu.vue";
+import type { MenuItem } from "@/components/sidebar/ContextMenu.vue";
+import FileInfoDialog from "./FileInfoDialog.vue";
+import ChmodDialog from "./ChmodDialog.vue";
 
 const { t } = useI18n();
 const sftpStore = useSftpStore();
@@ -25,6 +26,14 @@ const isHtmlDragOver = ref(false);
 const editingPath = ref(false);
 const editPathInput = ref("");
 let unlistenDragDrop: (() => void) | null = null;
+
+// Context menu state
+const contextMenuVisible = ref(false);
+const contextMenuX = ref(0);
+const contextMenuY = ref(0);
+const selectedEntry = ref<FileEntry | null>(null);
+const fileInfoDialogVisible = ref(false);
+const chmodDialogVisible = ref(false);
 
 function handleDoubleClick(entry: FileEntry) {
   if (entry.isDir) {
@@ -39,6 +48,112 @@ function formatSize(bytes: number): string {
   const size = (bytes / Math.pow(1024, i)).toFixed(i > 0 ? 1 : 0);
   return `${size} ${units[i]}`;
 }
+
+function buildFullPath(name: string): string {
+  if (sftpStore.currentPath === "/") {
+    return `/${name}`;
+  }
+  return `${sftpStore.currentPath}/${name}`;
+}
+
+const ctxItems = computed(() => {
+  if (!selectedEntry.value) return [];
+
+  const entry = selectedEntry.value;
+  const items: MenuItem[] = [];
+
+  // Download (files only)
+  if (!entry.isDir) {
+    items.push({
+      label: t("sftp.download"),
+      action: "download",
+    });
+  }
+
+  // Edit (small text files only, < 1MB)
+  if (!entry.isDir && entry.size < 1048576) {
+    items.push({
+      label: t("sftp.edit"),
+      action: "edit",
+    });
+  }
+
+  if (items.length > 0) {
+    items.push({ label: "", action: "divider", divided: true });
+  }
+
+  // Copy/Cut/Paste
+  items.push({
+    label: t("sftp.copy"),
+    action: "copy",
+  });
+  items.push({
+    label: t("sftp.cut"),
+    action: "cut",
+  });
+  if (sftpStore.clipboard) {
+    items.push({
+      label: t("sftp.paste"),
+      action: "paste",
+    });
+  }
+
+  items.push({ label: "", action: "divider2", divided: true });
+
+  // Rename/Delete
+  items.push({
+    label: t("sftp.rename"),
+    action: "rename",
+  });
+  items.push({
+    label: t("sftp.delete"),
+    action: "delete",
+    danger: true,
+  });
+
+  // More submenu
+  const moreItems: MenuItem[] = [
+    {
+      label: t("sftp.copyPath"),
+      action: "copyPath",
+    },
+    { label: "", action: "divider3", divided: true },
+    {
+      label: t("sftp.newFile"),
+      action: "newFile",
+    },
+    {
+      label: t("sftp.mkdir"),
+      action: "mkdir",
+    },
+    { label: "", action: "divider4", divided: true },
+    {
+      label: t("sftp.selectAll"),
+      action: "selectAll",
+    },
+    {
+      label: t("sftp.refresh"),
+      action: "refresh",
+    },
+    { label: "", action: "divider5", divided: true },
+    {
+      label: t("sftp.chmod"),
+      action: "chmod",
+    },
+    {
+      label: t("sftp.fileInfo"),
+      action: "fileInfo",
+    },
+  ];
+
+  items.push({
+    label: t("sftp.more"),
+    action: "more",
+    children: moreItems,
+  });
+
+  return items;
+});
 
 async function handleDelete(entry: FileEntry) {
   try {
@@ -85,6 +200,101 @@ async function handleMkdir() {
     );
     if (value) await sftpStore.mkdir(value);
   } catch { /* cancelled */ }
+}
+
+function handleContextMenu(entry: FileEntry, event: MouseEvent) {
+  event.preventDefault();
+  selectedEntry.value = entry;
+  contextMenuX.value = event.clientX;
+  contextMenuY.value = event.clientY;
+  contextMenuVisible.value = true;
+}
+
+async function handleContextMenuSelect(action: string) {
+  if (!selectedEntry.value) return;
+
+  try {
+    switch (action) {
+      case "download":
+        await handleDownload(selectedEntry.value);
+        break;
+      case "edit":
+        // TODO: Implement inline edit for small files
+        ElMessage.info(t("sftp.editTodo"));
+        break;
+      case "copy":
+        sftpStore.copyToClipboard(selectedEntry.value);
+        ElMessage.success(t("sftp.copied"));
+        break;
+      case "cut":
+        sftpStore.cutToClipboard(selectedEntry.value);
+        ElMessage.success(t("sftp.cut"));
+        break;
+      case "paste":
+        await sftpStore.paste();
+        ElMessage.success(t("sftp.pasted"));
+        break;
+      case "rename":
+        await handleRename(selectedEntry.value);
+        break;
+      case "delete":
+        await handleDelete(selectedEntry.value);
+        break;
+      case "copyPath":
+        {
+          const path = buildFullPath(selectedEntry.value.name);
+          await navigator.clipboard.writeText(path);
+          ElMessage.success(t("sftp.pathCopied"));
+        }
+        break;
+      case "newFile":
+        await handleNewFile();
+        break;
+      case "mkdir":
+        await handleMkdir();
+        break;
+      case "selectAll":
+        // TODO: Implement multi-select
+        ElMessage.info(t("sftp.selectAllTodo"));
+        break;
+      case "refresh":
+        await sftpStore.refresh();
+        break;
+      case "chmod":
+        chmodDialogVisible.value = true;
+        break;
+      case "fileInfo":
+        fileInfoDialogVisible.value = true;
+        break;
+    }
+  } catch (err) {
+    ElMessage.error(`${t("sftp.error")}: ${err}`);
+  }
+}
+
+async function handleNewFile() {
+  try {
+    const { value } = await ElMessageBox.prompt(
+      t("sftp.newFilePrompt"), t("sftp.newFile"),
+      { confirmButtonText: t("sftp.confirm"), cancelButtonText: t("sftp.cancel") },
+    );
+    if (value) {
+      await sftpStore.createFile(value);
+      ElMessage.success(t("sftp.fileCreated"));
+    }
+  } catch { /* cancelled */ }
+}
+
+async function handleChmodConfirm(mode: number) {
+  if (selectedEntry.value) {
+    try {
+      await sftpStore.chmod(selectedEntry.value, mode);
+      ElMessage.success(t("sftp.permissionsUpdated"));
+      chmodDialogVisible.value = false;
+    } catch (err) {
+      ElMessage.error(`${t("sftp.error")}: ${err}`);
+    }
+  }
 }
 
 // Breadcrumbs
@@ -278,9 +488,10 @@ async function handleHtmlDrop(e: DragEvent) {
           v-for="entry in sftpStore.sortedEntries"
           :key="entry.name"
           :draggable="true"
-          class="tm-tree-item flex items-center gap-1.5 px-2 py-1 group cursor-default"
+          class="tm-tree-item flex items-center gap-1.5 px-2 py-1 cursor-default hover:bg-white/5"
           @dblclick="handleDoubleClick(entry)"
           @dragstart="handleDragStart(entry, $event)"
+          @contextmenu="handleContextMenu(entry, $event)"
         >
         <el-icon :size="12" class="shrink-0">
           <Link v-if="entry.isSymlink" />
@@ -291,18 +502,6 @@ async function handleHtmlDrop(e: DragEvent) {
         <span class="text-[10px] shrink-0 w-14 text-right" style="color: var(--tm-text-muted)">
           {{ entry.isDir ? "" : formatSize(entry.size) }}
         </span>
-        <!-- Actions on hover -->
-        <div class="shrink-0 flex gap-0.5 opacity-0 group-hover:opacity-100 transition-opacity">
-          <button v-if="!entry.isDir" class="tm-icon-btn p-0.5 rounded" @click.stop="handleDownload(entry)">
-            <el-icon :size="11"><Download /></el-icon>
-          </button>
-          <button class="tm-icon-btn p-0.5 rounded" @click.stop="handleRename(entry)">
-            <el-icon :size="11"><Edit /></el-icon>
-          </button>
-          <button class="p-0.5 rounded text-red-400/60 hover:text-red-400 transition-colors" @click.stop="handleDelete(entry)">
-            <el-icon :size="11"><Delete /></el-icon>
-          </button>
-        </div>
         </div>
       </div>
 
@@ -313,5 +512,30 @@ async function handleHtmlDrop(e: DragEvent) {
         <el-icon class="is-loading" :size="16" />
       </div>
     </div>
+
+    <!-- Context Menu -->
+    <ContextMenu
+      v-if="contextMenuVisible"
+      :items="ctxItems"
+      :x="contextMenuX"
+      :y="contextMenuY"
+      @select="handleContextMenuSelect"
+      @close="contextMenuVisible = false"
+    />
+
+    <!-- File Info Dialog -->
+    <FileInfoDialog
+      :visible="fileInfoDialogVisible"
+      :entry="selectedEntry"
+      @close="fileInfoDialogVisible = false"
+    />
+
+    <!-- Chmod Dialog -->
+    <ChmodDialog
+      :visible="chmodDialogVisible"
+      :entry="selectedEntry"
+      @confirm="handleChmodConfirm"
+      @close="chmodDialogVisible = false"
+    />
   </div>
 </template>

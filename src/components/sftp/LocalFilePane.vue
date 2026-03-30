@@ -5,6 +5,8 @@ import { useSftpStore } from "@/stores/sftpStore";
 import { tauriInvoke } from "@/utils/tauri";
 import { Folder, Document, ArrowUp, RefreshRight } from "@element-plus/icons-vue";
 import { ElMessage } from "element-plus";
+import ContextMenu from "@/components/sidebar/ContextMenu.vue";
+import type { MenuItem } from "@/components/sidebar/ContextMenu.vue";
 
 const { t } = useI18n();
 const sftpStore = useSftpStore();
@@ -21,6 +23,12 @@ const loading = ref(false);
 const isDragOver = ref(false);
 const editingPath = ref(false);
 const editPathInput = ref("");
+
+// Context menu state
+const contextMenuVisible = ref(false);
+const contextMenuX = ref(0);
+const contextMenuY = ref(0);
+const selectedEntry = ref<LocalEntry | null>(null);
 
 onMounted(async () => {
   try {
@@ -88,6 +96,50 @@ function submitPathEdit() {
 
 function cancelPathEdit() {
   editingPath.value = false;
+}
+
+const ctxItems = computed(() => {
+  const items: MenuItem[] = [
+    {
+      label: t("sftp.copyPath"),
+      action: "copyPath",
+    },
+    { label: "", action: "divider1", divided: true },
+    {
+      label: t("sftp.refresh"),
+      action: "refresh",
+    },
+  ];
+
+  return items;
+});
+
+function handleContextMenu(entry: LocalEntry, event: MouseEvent) {
+  event.preventDefault();
+  selectedEntry.value = entry;
+  contextMenuX.value = event.clientX;
+  contextMenuY.value = event.clientY;
+  contextMenuVisible.value = true;
+}
+
+async function handleContextMenuSelect(action: string) {
+  try {
+    switch (action) {
+      case "copyPath":
+        {
+          const sep = currentPath.value.endsWith("/") ? "" : "/";
+          const path = `${currentPath.value}${sep}${selectedEntry.value?.name}`;
+          await navigator.clipboard.writeText(path);
+          ElMessage.success(t("sftp.pathCopied"));
+        }
+        break;
+      case "refresh":
+        await listDir(currentPath.value);
+        break;
+    }
+  } catch (err) {
+    ElMessage.error(`${t("sftp.error")}: ${err}`);
+  }
 }
 
 function handleDblClick(entry: LocalEntry) {
@@ -214,9 +266,10 @@ async function handleDrop(e: DragEvent) {
           v-for="entry in entries"
           :key="entry.name"
           :draggable="true"
-          class="tm-tree-item flex items-center gap-1.5 px-2 py-1 cursor-default"
+          class="tm-tree-item flex items-center gap-1.5 px-2 py-1 cursor-default hover:bg-white/5"
           @dblclick="handleDblClick(entry)"
           @dragstart="handleDragStart(entry, $event)"
+          @contextmenu="handleContextMenu(entry, $event)"
         >
           <el-icon :size="12" class="shrink-0">
             <Folder v-if="entry.isDir" class="text-yellow-500" />
@@ -230,5 +283,15 @@ async function handleDrop(e: DragEvent) {
         {{ t("sftp.empty") }}
       </div>
     </div>
+
+    <!-- Context Menu -->
+    <ContextMenu
+      v-if="contextMenuVisible"
+      :items="ctxItems"
+      :x="contextMenuX"
+      :y="contextMenuY"
+      @select="handleContextMenuSelect"
+      @close="contextMenuVisible = false"
+    />
   </div>
 </template>

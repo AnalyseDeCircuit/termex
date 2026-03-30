@@ -62,9 +62,9 @@ function handleClose() {
     </div>
 
     <!-- Content -->
-    <div class="flex-1 min-h-0">
+    <div class="flex-1 min-h-0 flex flex-col">
       <!-- Files tab -->
-      <div v-if="activeTab === 'files'" class="flex-1 flex min-h-0">
+      <div v-if="activeTab === 'files'" class="h-full flex min-h-0">
         <!-- Left: Local -->
         <LocalFilePane class="flex-1" />
 

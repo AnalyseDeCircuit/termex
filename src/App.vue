@@ -255,7 +255,7 @@ onBeforeUnmount(() => {
       />
 
       <!-- Content column -->
-      <div class="flex-1 flex flex-col min-w-0">
+      <div class="flex-1 flex flex-col min-w-0 overflow-hidden">
         <!-- Terminal + AI row -->
         <div class="flex-1 min-h-0 flex">
           <!-- Terminal area -->

@@ -34,6 +34,9 @@ export const useSftpStore = defineStore("sftp", () => {
   /** Unlisten functions for transfer events. */
   const unlistenFns: Array<() => void> = [];
 
+  /** Clipboard state for copy/cut operations. */
+  const clipboard = ref<{ op: 'copy' | 'cut'; sourcePath: string; name: string } | null>(null);
+
   // ── Getters ────────────────────────────────────────────────
 
   const sortedEntries = computed(() => {
@@ -216,6 +219,87 @@ export const useSftpStore = defineStore("sftp", () => {
     await listDir(currentPath.value);
   }
 
+  /** Copies a file entry to clipboard. */
+  function copyToClipboard(entry: FileEntry): void {
+    const sourcePath =
+      currentPath.value === "/"
+        ? `/${entry.name}`
+        : `${currentPath.value}/${entry.name}`;
+    clipboard.value = { op: 'copy', sourcePath, name: entry.name };
+  }
+
+  /** Cuts a file entry to clipboard. */
+  function cutToClipboard(entry: FileEntry): void {
+    const sourcePath =
+      currentPath.value === "/"
+        ? `/${entry.name}`
+        : `${currentPath.value}/${entry.name}`;
+    clipboard.value = { op: 'cut', sourcePath, name: entry.name };
+  }
+
+  /** Pastes clipboard content to current directory. */
+  async function paste(): Promise<void> {
+    if (!sessionId.value || !clipboard.value) return;
+
+    const destPath =
+      currentPath.value === "/"
+        ? `/${clipboard.value.name}`
+        : `${currentPath.value}/${clipboard.value.name}`;
+
+    if (clipboard.value.op === 'cut') {
+      // Move via rename
+      await tauriInvoke("sftp_rename", {
+        sessionId: sessionId.value,
+        oldPath: clipboard.value.sourcePath,
+        newPath: destPath,
+      });
+      clipboard.value = null;
+    } else if (clipboard.value.op === 'copy') {
+      // Copy via read-write (for small files)
+      const data = await tauriInvoke<number[]>("sftp_read_file", {
+        sessionId: sessionId.value,
+        path: clipboard.value.sourcePath,
+      });
+      await tauriInvoke("sftp_write_file", {
+        sessionId: sessionId.value,
+        path: destPath,
+        data,
+      });
+    }
+
+    await listDir(currentPath.value);
+  }
+
+  /** Creates an empty file in current directory. */
+  async function createFile(name: string): Promise<void> {
+    if (!sessionId.value) return;
+    const path =
+      currentPath.value === "/"
+        ? `/${name}`
+        : `${currentPath.value}/${name}`;
+    await tauriInvoke("sftp_write_file", {
+      sessionId: sessionId.value,
+      path,
+      data: [],
+    });
+    await listDir(currentPath.value);
+  }
+
+  /** Changes file permissions. */
+  async function chmod(entry: FileEntry, mode: number): Promise<void> {
+    if (!sessionId.value) return;
+    const path =
+      currentPath.value === "/"
+        ? `/${entry.name}`
+        : `${currentPath.value}/${entry.name}`;
+    await tauriInvoke("sftp_chmod", {
+      sessionId: sessionId.value,
+      path,
+      mode,
+    });
+    await listDir(currentPath.value);
+  }
+
   // ── Internal ───────────────────────────────────────────────
 
   function listenTransfer(transferId: string): void {
@@ -253,6 +337,7 @@ export const useSftpStore = defineStore("sftp", () => {
     entries,
     loading,
     transfers,
+    clipboard,
     sortedEntries,
     activeTransfers,
     isConnected,
@@ -267,5 +352,10 @@ export const useSftpStore = defineStore("sftp", () => {
     download,
     upload,
     refresh,
+    copyToClipboard,
+    cutToClipboard,
+    paste,
+    createFile,
+    chmod,
   };
 });
