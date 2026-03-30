@@ -108,6 +108,17 @@ function getSubMenuStyle(action: string) {
   // Clamp top to valid range
   top = Math.max(minTop, Math.min(top, maxTop));
 
+  // Also check viewport bottom bounds - ensure submenu doesn't extend beyond viewport
+  const absoluteTop = mainMenuViewportTop + top;
+  const absoluteBottom = absoluteTop + subSize.height;
+  const viewportBuffer = 10;
+
+  if (absoluteBottom > window.innerHeight - viewportBuffer) {
+    // Submenu extends beyond viewport, shift up to fit
+    const overflow = absoluteBottom - (window.innerHeight - viewportBuffer);
+    top = Math.max(minTop, top - overflow);
+  }
+
   return { top: top + "px" };
 }
 
