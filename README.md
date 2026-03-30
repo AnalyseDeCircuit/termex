@@ -111,6 +111,41 @@ pnpm tauri build
   - LAN Ollama support with network detection
   - Automatic process management & cleanup
 
+### SSH ProxyJump & Bastion (v0.12.0) ✅
+
+- **Multi-Level Bastion Hosts** -- Secure access to internal networks through jump servers
+  - Single-level and multi-level ProxyJump support (unlimited depth)
+  - Automatic proxy chain resolution and cycle detection
+  - SSH Agent forwarding (no private key storage required)
+- **Connection Pool & Reuse** -- Efficient resource management
+  - Multiple internal servers share a single bastion connection
+  - Reference counting with automatic cleanup
+  - Transparent multi-hop tunneling
+- **Enhanced UI** -- Sidebar badges and connection chain preview
+  - Bastion indicators with reference count badges
+  - Internal server arrow icons with hover tooltips showing full chain
+  - ConnectModal tab refactoring (Authorization + SSH Tunnel tabs)
+  - Bastion server selector with chain preview
+
+### SFTP Enhancement & Context Menu (v0.13.0) ✅
+
+- **Bug Fixes** -- Production-ready file browser
+  - Fixed file list scrolling (flex container layout correction)
+  - Fixed SFTP panel covering status bar (overflow handling)
+- **Complete Context Menu System** -- Right-click operations
+  - Main menu: Download, Edit, Copy, Cut, Paste, Rename, Delete
+  - Submenu: Copy Path, New File, New Folder, Select All, Refresh, Edit Permissions, File Info
+  - Conditional items based on file type (download/edit for files only)
+  - Paste item disabled when clipboard is empty
+- **Clipboard Operations** -- File-level cut/copy/paste/move
+  - Copy/Cut to clipboard with path tracking
+  - Paste to new location (copy or move)
+  - Multiple paste support for copy operations
+- **File Management** -- Permission and info dialogs
+  - `chmod` command to modify file permissions (octal notation)
+  - File info dialog showing size, permissions, UID/GID, modification time
+  - Path copying to system clipboard for terminal use
+
 ## Tech Stack
 
 ```text
@@ -275,9 +310,11 @@ git push origin main --tags     # triggers GitHub Actions build
 - [x] v0.9.0 -- Stable Release
 - [x] v0.10.0 -- OS Keychain Security (credential protection)
 - [x] v0.11.0 -- Local AI Models (llama-server integration, 12 models, offline-first)
-
+- [x] v0.12.0 -- SSH ProxyJump & Bastion (multi-level jump servers, connection pooling, SSH Agent)
+- [x] v0.13.0 -- SFTP Enhancement (context menu, clipboard ops, chmod, file info)
 
 > See [docs/iterations/](docs/iterations/) for detailed plans of each version.
+
 
 ## Contributing
 
