@@ -1,5 +1,5 @@
 use std::collections::HashMap;
-use std::sync::RwLock;
+use std::sync::{Arc, RwLock};
 
 use tokio::sync::{RwLock as TokioRwLock, oneshot};
 
@@ -30,8 +30,8 @@ pub struct AppState {
     pub master_key: RwLock<Option<[u8; 32]>>,
     /// Active SSH sessions keyed by session_id (tokio RwLock for async SFTP access).
     pub sessions: TokioRwLock<HashMap<String, SshSession>>,
-    /// Active SFTP handles keyed by session_id.
-    pub sftp_sessions: TokioRwLock<HashMap<String, SftpHandle>>,
+    /// Active SFTP handles keyed by session_id (Arc-wrapped for task sharing).
+    pub sftp_sessions: TokioRwLock<HashMap<String, Arc<SftpHandle>>>,
     /// Active port forwards.
     pub forwards: ForwardRegistry,
     /// Session recording manager.

@@ -1,3 +1,5 @@
+use std::sync::Arc;
+
 use tauri::{AppHandle, State};
 
 use crate::sftp::session::FileEntry;
@@ -22,7 +24,7 @@ pub async fn sftp_open(
     };
 
     let mut sftp_sessions = state.sftp_sessions.write().await;
-    sftp_sessions.insert(session_id, sftp);
+    sftp_sessions.insert(session_id, Arc::new(sftp));
 
     Ok(())
 }
@@ -39,7 +41,14 @@ pub async fn sftp_close(
             .remove(&session_id)
             .ok_or_else(|| SftpError::SessionNotFound(session_id).to_string())?
     };
-    sftp.close().await.map_err(|e| e.to_string())
+    // Try to unwrap the Arc; if there are pending transfers, the Arc will still be held by them
+    // and we just drop it here. The session will be closed once all references are dropped.
+    if let Ok(sftp_handle) = Arc::try_unwrap(sftp) {
+        sftp_handle.close().await.map_err(|e| e.to_string())
+    } else {
+        // Arc still has references from pending transfers, just drop it
+        Ok(())
+    }
 }
 
 /// Lists directory contents at the given path.
@@ -150,10 +159,19 @@ pub async fn sftp_download(
     let sessions = state.sftp_sessions.read().await;
     let sftp = sessions
         .get(&session_id)
-        .ok_or_else(|| SftpError::SessionNotFound(session_id).to_string())?;
-    sftp.download(&remote_path, &local_path, &transfer_id, &app)
-        .await
-        .map_err(|e| e.to_string())?;
+        .ok_or_else(|| SftpError::SessionNotFound(session_id.clone()).to_string())?;
+
+    // Clone the SFTP handle for the background task
+    let sftp_clone = sftp.clone();
+    let transfer_id_clone = transfer_id.clone();
+    let remote_path_clone = remote_path.clone();
+    let local_path_clone = local_path.clone();
+
+    // Return the transfer_id immediately, spawn the actual download in the background
+    tokio::spawn(async move {
+        let _ = sftp_clone.download(&remote_path_clone, &local_path_clone, &transfer_id_clone, &app).await;
+    });
+
     Ok(transfer_id)
 }
 
@@ -170,10 +188,19 @@ pub async fn sftp_upload(
     let sessions = state.sftp_sessions.read().await;
     let sftp = sessions
         .get(&session_id)
-        .ok_or_else(|| SftpError::SessionNotFound(session_id).to_string())?;
-    sftp.upload(&local_path, &remote_path, &transfer_id, &app)
-        .await
-        .map_err(|e| e.to_string())?;
+        .ok_or_else(|| SftpError::SessionNotFound(session_id.clone()).to_string())?;
+
+    // Clone the SFTP handle for the background task
+    let sftp_clone = sftp.clone();
+    let transfer_id_clone = transfer_id.clone();
+    let local_path_clone = local_path.clone();
+    let remote_path_clone = remote_path.clone();
+
+    // Return the transfer_id immediately, spawn the actual upload in the background
+    tokio::spawn(async move {
+        let _ = sftp_clone.upload(&local_path_clone, &remote_path_clone, &transfer_id_clone, &app).await;
+    });
+
     Ok(transfer_id)
 }
 

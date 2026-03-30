@@ -320,7 +320,10 @@ pub async fn ssh_disconnect(
     {
         let mut sftp_sessions = state.sftp_sessions.write().await;
         if let Some(sftp) = sftp_sessions.remove(&session_id) {
-            let _ = sftp.close().await;
+            // Try to unwrap the Arc; if there are pending transfers, just drop it
+            if let Ok(sftp_handle) = std::sync::Arc::try_unwrap(sftp) {
+                let _ = sftp_handle.close().await;
+            }
         }
     }
 
