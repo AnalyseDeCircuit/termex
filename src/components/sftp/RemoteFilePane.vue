@@ -29,6 +29,10 @@ const editingPath = ref(false);
 const editPathInput = ref("");
 let unlistenDragDrop: (() => void) | null = null;
 
+// File rename state
+const editingFileName = ref<string | null>(null);
+const editFileInput = ref("");
+
 // Context menu state
 const contextMenuVisible = ref(false);
 const contextMenuX = ref(0);
@@ -184,16 +188,30 @@ async function handleDelete(entry: FileEntry) {
   } catch { /* cancelled */ }
 }
 
-async function handleRename(entry: FileEntry) {
+function handleRename(entry: FileEntry) {
+  editingFileName.value = entry.name;
+  editFileInput.value = entry.name;
+  // Focus will be handled by nextTick in template
+}
+
+async function submitRename() {
+  if (!editingFileName.value || !editFileInput.value || editFileInput.value === editingFileName.value) {
+    editingFileName.value = null;
+    return;
+  }
+
   try {
-    const { value } = await ElMessageBox.prompt(
-      t("sftp.renamePrompt"), t("sftp.rename"),
-      { confirmButtonText: t("sftp.confirm"), cancelButtonText: t("sftp.cancel"), inputValue: entry.name },
-    );
-    if (value && value !== entry.name) {
-      await sftpStore.rename(entry.name, value);
-    }
-  } catch { /* cancelled */ }
+    await sftpStore.rename(editingFileName.value, editFileInput.value);
+    ElMessage.success(t("sftp.renamed"));
+  } catch (err) {
+    ElMessage.error(`${t("sftp.error")}: ${err}`);
+  } finally {
+    editingFileName.value = null;
+  }
+}
+
+function cancelRename() {
+  editingFileName.value = null;
 }
 
 async function handleDownload(entry: FileEntry) {
@@ -508,7 +526,7 @@ async function handleHtmlDrop(e: DragEvent) {
         <div
           v-for="entry in sftpStore.sortedEntries"
           :key="entry.name"
-          :draggable="true"
+          :draggable="editingFileName !== entry.name"
           class="tm-tree-item flex items-center gap-1.5 px-2 py-1 cursor-default hover:bg-white/5"
           @dblclick="handleDoubleClick(entry)"
           @dragstart="handleDragStart(entry, $event)"
@@ -519,7 +537,20 @@ async function handleHtmlDrop(e: DragEvent) {
           <Folder v-else-if="entry.isDir" class="text-yellow-500" />
           <Document v-else style="color: var(--tm-text-muted)" />
         </el-icon>
-        <span class="truncate flex-1">{{ entry.name }}</span>
+        <!-- Filename display or edit input -->
+        <template v-if="editingFileName === entry.name">
+          <input
+            v-model="editFileInput"
+            type="text"
+            class="flex-1 px-1 py-0 rounded text-xs bg-gray-700/50 text-white outline-none focus:bg-gray-600/50"
+            style="border: 1px solid var(--tm-border)"
+            @keyup.enter="submitRename"
+            @keyup.escape="cancelRename"
+            @click.stop
+            autofocus
+          />
+        </template>
+        <span v-else class="truncate flex-1">{{ entry.name }}</span>
         <span class="text-[10px] shrink-0 w-14 text-right" style="color: var(--tm-text-muted)">
           {{ entry.isDir ? "" : formatSize(entry.size) }}
         </span>
