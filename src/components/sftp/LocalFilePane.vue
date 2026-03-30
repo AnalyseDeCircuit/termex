@@ -273,6 +273,7 @@ async function handleDrop(e: DragEvent) {
       @dragleave="handleDragLeave"
       @dragover="handleDragOver"
       @drop="handleDrop"
+      @click="editingPath && cancelPathEdit()"
     >
       <!-- Drop overlay -->
       <div

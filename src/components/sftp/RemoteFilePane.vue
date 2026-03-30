@@ -504,6 +504,7 @@ async function handleHtmlDrop(e: DragEvent) {
       @dragleave="handleHtmlDragLeave"
       @dragover="handleHtmlDragOver"
       @drop="handleHtmlDrop"
+      @click="editingPath && cancelPathEdit()"
     >
       <!-- Drop overlay (Tauri OS files) -->
       <div
