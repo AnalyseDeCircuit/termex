@@ -70,7 +70,6 @@ defineExpose({ fit, dispose });
     <div
       ref="containerRef"
       class="w-full h-full"
-      :class="{ hidden: isPlaceholder }"
     />
 
     <!-- Connecting / Error overlay -->

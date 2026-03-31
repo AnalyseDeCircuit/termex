@@ -33,6 +33,9 @@ pub enum KeychainError {
 /// Global availability flag, computed once.
 static AVAILABLE: OnceLock<bool> = OnceLock::new();
 
+/// Whether init() successfully loaded credentials (implying keychain is accessible).
+static INIT_VERIFIED: OnceLock<bool> = OnceLock::new();
+
 /// Returns a reference to the global in-memory credential cache.
 fn cache() -> &'static RwLock<HashMap<String, String>> {
     static CACHE: OnceLock<RwLock<HashMap<String, String>>> = OnceLock::new();
@@ -59,6 +62,8 @@ pub fn init() -> bool {
                         *c = map;
                     }
                 }
+                // Successfully read keychain — mark as verified so verify_accessible() can skip
+                let _ = INIT_VERIFIED.set(true);
                 true
             }
             Err(keyring::Error::NoEntry) => {
@@ -68,6 +73,7 @@ pub fn init() -> bool {
                     let token = uuid::Uuid::new_v4().to_string();
                     let _ = keyring::Entry::new(SERVICE_NAME, VERIFICATION_TOKEN_KEY)
                         .and_then(|v_entry| v_entry.set_password(&token));
+                    let _ = INIT_VERIFIED.set(true);
                     return true;
                 }
                 false
@@ -90,6 +96,12 @@ pub fn init() -> bool {
 pub fn verify_accessible() -> Result<bool, KeychainError> {
     if !is_available() {
         return Err(KeychainError::NotAvailable("Keychain not available".to_string()));
+    }
+
+    // If init() already successfully read the keychain store, it's verified —
+    // no need for an extra keychain read that may trigger another OS password prompt.
+    if INIT_VERIFIED.get().copied().unwrap_or(false) {
+        return Ok(true);
     }
 
     let v_entry = keyring::Entry::new(SERVICE_NAME, VERIFICATION_TOKEN_KEY)

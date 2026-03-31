@@ -84,9 +84,14 @@ export function useTerminal(sessionId: Ref<string>) {
       }
     });
 
-    // Container resize → fit terminal
-    resizeObserver = new ResizeObserver(() => {
-      fitAddon?.fit();
+    // Container resize → fit terminal (debounced to avoid v-show transition flicker)
+    let resizeTimer: ReturnType<typeof setTimeout> | null = null;
+    resizeObserver = new ResizeObserver((entries) => {
+      const { width, height } = entries[0].contentRect;
+      if (width > 0 && height > 0 && fitAddon) {
+        if (resizeTimer) clearTimeout(resizeTimer);
+        resizeTimer = setTimeout(() => fitAddon?.fit(), 16);
+      }
     });
     resizeObserver.observe(el);
 
@@ -133,11 +138,28 @@ export function useTerminal(sessionId: Ref<string>) {
     return { cols: 80, rows: 24 };
   }
 
-  /** Triggers a fit recalculation and focuses the terminal. */
+  /** Triggers a fit recalculation and focuses the terminal.
+   *  Recreates WebGL addon to recover from display:none context loss. */
   function fit() {
-    fitAddon?.fit();
-    terminal?.focus();
-    requestAnimationFrame(() => terminal?.focus());
+    if (!terminal || !fitAddon) return;
+
+    // WebGL context is lost when element is display:none (v-show hidden).
+    // Recreate it before fitting to avoid rendering glitches.
+    if (webglAddon) {
+      try {
+        webglAddon.dispose();
+      } catch { /* already disposed */ }
+      webglAddon = null;
+    }
+    try {
+      webglAddon = new WebglAddon();
+      terminal.loadAddon(webglAddon);
+    } catch {
+      webglAddon = null;
+    }
+
+    fitAddon.fit();
+    terminal.focus();
   }
 
   /** Updates the terminal theme. */

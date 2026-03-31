@@ -19,6 +19,7 @@ export function useShortcuts(handlers: ShortcutHandlers) {
     // Ctrl+\ — toggle sidebar
     if (mod && e.key === "\\") {
       e.preventDefault();
+      e.stopImmediatePropagation();
       handlers.toggleSidebar();
       return;
     }
@@ -26,6 +27,7 @@ export function useShortcuts(handlers: ShortcutHandlers) {
     // Ctrl+N — new connection
     if (mod && e.key === "n") {
       e.preventDefault();
+      e.stopImmediatePropagation();
       handlers.openNewConnection();
       return;
     }
@@ -33,6 +35,7 @@ export function useShortcuts(handlers: ShortcutHandlers) {
     // Ctrl+, — open settings
     if (mod && e.key === ",") {
       e.preventDefault();
+      e.stopImmediatePropagation();
       handlers.openSettings();
       return;
     }
@@ -40,6 +43,7 @@ export function useShortcuts(handlers: ShortcutHandlers) {
     // Ctrl+W — close current tab
     if (mod && e.key === "w") {
       e.preventDefault();
+      e.stopImmediatePropagation();
       if (sessionStore.activeSessionId) {
         sessionStore.disconnect(sessionStore.activeSessionId);
       }
@@ -49,6 +53,7 @@ export function useShortcuts(handlers: ShortcutHandlers) {
     // Ctrl+Tab — next tab
     if (mod && e.key === "Tab" && !e.shiftKey) {
       e.preventDefault();
+      e.stopImmediatePropagation();
       cycleTab(1);
       return;
     }
@@ -56,6 +61,7 @@ export function useShortcuts(handlers: ShortcutHandlers) {
     // Ctrl+Shift+Tab — previous tab
     if (mod && e.key === "Tab" && e.shiftKey) {
       e.preventDefault();
+      e.stopImmediatePropagation();
       cycleTab(-1);
       return;
     }
@@ -63,6 +69,7 @@ export function useShortcuts(handlers: ShortcutHandlers) {
     // Ctrl+1~9 — go to tab N
     if (mod && e.key >= "1" && e.key <= "9") {
       e.preventDefault();
+      e.stopImmediatePropagation();
       const idx = parseInt(e.key) - 1;
       const tab = sessionStore.tabs[idx];
       if (tab) {
@@ -82,6 +89,7 @@ export function useShortcuts(handlers: ShortcutHandlers) {
     sessionStore.setActive(tabs[nextIdx].sessionId);
   }
 
-  onMounted(() => window.addEventListener("keydown", onKeydown));
-  onUnmounted(() => window.removeEventListener("keydown", onKeydown));
+  // Use capture phase so shortcuts are intercepted before xterm.js receives the event
+  onMounted(() => window.addEventListener("keydown", onKeydown, true));
+  onUnmounted(() => window.removeEventListener("keydown", onKeydown, true));
 }
