@@ -68,7 +68,7 @@ pub fn port_forward_save(
     input: ForwardInput,
 ) -> Result<PortForward, String> {
     let id = uuid::Uuid::new_v4().to_string();
-    let now = chrono::Utc::now().to_rfc3339();
+    let now = time::OffsetDateTime::now_utc().to_string();
 
     state
         .db

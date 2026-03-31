@@ -146,7 +146,7 @@ pub fn config_import(
                         group["icon"].as_str().unwrap_or("folder"),
                         group["parent_id"].as_str(),
                         group["sort_order"].as_i64().unwrap_or(0),
-                        chrono::Utc::now().to_rfc3339(),
+                        time::OffsetDateTime::now_utc().to_string(),
                     ],
                 )?;
                 imported += 1;
@@ -176,7 +176,7 @@ pub fn config_import(
                     )?;
                 }
 
-                let now = chrono::Utc::now().to_rfc3339();
+                let now = time::OffsetDateTime::now_utc().to_string();
                 conn.execute(
                     "INSERT INTO servers (id, name, host, port, username, auth_type,
                         password_enc, key_path, passphrase_enc, group_id, sort_order,

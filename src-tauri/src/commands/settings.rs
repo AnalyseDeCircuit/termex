@@ -58,7 +58,7 @@ pub fn settings_set(
     key: String,
     value: String,
 ) -> Result<(), String> {
-    let now = chrono::Utc::now().to_rfc3339();
+    let now = time::OffsetDateTime::now_utc().to_string();
     state
         .db
         .with_conn(|conn| {

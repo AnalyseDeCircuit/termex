@@ -39,9 +39,15 @@ impl RecorderRegistry {
         let dir = recordings_dir()?;
         std::fs::create_dir_all(&dir)?;
 
+        let now = time::OffsetDateTime::now_utc();
         let filename = format!(
-            "{}-{}.cast",
-            chrono::Utc::now().format("%Y%m%d_%H%M%S"),
+            "{:04}{:02}{:02}_{:02}{:02}{:02}-{}.cast",
+            now.year(),
+            now.month() as u8,
+            now.day(),
+            now.hour(),
+            now.minute(),
+            now.second(),
             &session_id[..8],
         );
         let file_path = dir.join(&filename);

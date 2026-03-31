@@ -70,7 +70,7 @@ pub fn ai_provider_add(
     input: ProviderInput,
 ) -> Result<AiProvider, String> {
     let id = uuid::Uuid::new_v4().to_string();
-    let now = chrono::Utc::now().to_rfc3339();
+    let now = time::OffsetDateTime::now_utc().to_string();
 
     // Store API key in OS keychain
     let keychain_key = keychain::ai_apikey_key(&id);
@@ -136,7 +136,7 @@ pub fn ai_provider_update(
     id: String,
     input: ProviderInput,
 ) -> Result<(), String> {
-    let now = chrono::Utc::now().to_rfc3339();
+    let now = time::OffsetDateTime::now_utc().to_string();
 
     // Update keychain API key if provided
     let keychain_key = keychain::ai_apikey_key(&id);

@@ -61,7 +61,7 @@ pub fn run_migrations(conn: &Connection) -> Result<(), rusqlite::Error> {
                 rusqlite::params![
                     version,
                     description,
-                    chrono::Utc::now().to_rfc3339(),
+                    time::OffsetDateTime::now_utc().to_string(),
                 ],
             )?;
         }

@@ -5251,7 +5251,6 @@ version = "0.3.1"
 dependencies = [
  "argon2",
  "async-trait",
- "chrono",
  "dirs",
  "env_logger",
  "flate2",
@@ -5274,6 +5273,7 @@ dependencies = [
  "tauri",
  "tauri-build",
  "thiserror 2.0.18",
+ "time",
  "tokio",
  "tokio-util",
  "uuid",

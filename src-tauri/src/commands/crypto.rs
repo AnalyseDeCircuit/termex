@@ -30,7 +30,7 @@ pub fn master_password_set(state: State<'_, AppState>, password: String) -> Resu
     let verify_token = aes::encrypt(&key, b"TERMEX_VERIFY").map_err(|e| e.to_string())?;
     let salt_hex = hex_encode(&salt);
     let token_hex = hex_encode(&verify_token);
-    let now = chrono::Utc::now().to_rfc3339();
+    let now = time::OffsetDateTime::now_utc().to_string();
 
     state
         .db
@@ -97,7 +97,7 @@ pub fn master_password_change(
 
     // Update salt and verify token
     let new_verify = aes::encrypt(&new_key, b"TERMEX_VERIFY").map_err(|e| e.to_string())?;
-    let now = chrono::Utc::now().to_rfc3339();
+    let now = time::OffsetDateTime::now_utc().to_string();
 
     state
         .db

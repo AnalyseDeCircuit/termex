@@ -255,7 +255,7 @@ pub async fn ssh_connect(
     );
 
     // Update last_connected
-    let now = chrono::Utc::now().to_rfc3339();
+    let now = time::OffsetDateTime::now_utc().to_string();
     let _ = state.db.with_conn(|conn| {
         conn.execute(
             "UPDATE servers SET last_connected = ?1, updated_at = ?1 WHERE id = ?2",

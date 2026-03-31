@@ -231,7 +231,7 @@ impl AppState {
                 if accessible {
                     // Keychain token is accessible - mark as verified
                     let _ = self.db.with_conn(|conn| {
-                        let now = chrono::Utc::now().to_rfc3339();
+                        let now = time::OffsetDateTime::now_utc().to_string();
                         conn.execute(
                             "INSERT OR REPLACE INTO settings (key, value, updated_at) VALUES (?1, ?2, ?3)",
                             rusqlite::params!["keychain_verified_at", now, now],
@@ -255,7 +255,7 @@ impl AppState {
     /// Records the current app version in settings for upgrade detection.
     pub fn update_app_version(&self, version: &str) {
         let _ = self.db.with_conn(|conn| {
-            let now = chrono::Utc::now().to_rfc3339();
+            let now = time::OffsetDateTime::now_utc().to_string();
             conn.execute(
                 "INSERT OR REPLACE INTO settings (key, value, updated_at) VALUES (?1, ?2, ?3)",
                 rusqlite::params!["app_version", version, now],

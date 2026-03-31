@@ -123,7 +123,7 @@ pub fn server_create(
     input: ServerInput,
 ) -> Result<Server, String> {
     let id = uuid::Uuid::new_v4().to_string();
-    let now = chrono::Utc::now().to_rfc3339();
+    let now = time::OffsetDateTime::now_utc().to_string();
     let tags_json = serde_json::to_string(&input.tags).unwrap_or_else(|_| "[]".into());
 
     // Store credentials in OS keychain
@@ -197,7 +197,7 @@ pub fn server_update(
     id: String,
     input: ServerInput,
 ) -> Result<Server, String> {
-    let now = chrono::Utc::now().to_rfc3339();
+    let now = time::OffsetDateTime::now_utc().to_string();
     let tags_json = serde_json::to_string(&input.tags).unwrap_or_else(|_| "[]".into());
 
     // Update keychain credentials (only if provided / non-empty)
@@ -274,7 +274,7 @@ pub fn server_delete(state: State<'_, AppState>, id: String) -> Result<(), Strin
     let _ = keychain::delete(&keychain::ssh_password_key(&id));
     let _ = keychain::delete(&keychain::ssh_passphrase_key(&id));
 
-    let now = chrono::Utc::now().to_rfc3339();
+    let now = time::OffsetDateTime::now_utc().to_string();
 
     state
         .db
@@ -336,7 +336,7 @@ pub fn server_get_credentials(
 /// Updates the last_connected timestamp for a server.
 #[tauri::command]
 pub fn server_touch(state: State<'_, AppState>, id: String) -> Result<(), String> {
-    let now = chrono::Utc::now().to_rfc3339();
+    let now = time::OffsetDateTime::now_utc().to_string();
     state
         .db
         .with_conn(|conn| {
@@ -408,7 +408,7 @@ pub fn group_create(
     input: GroupInput,
 ) -> Result<ServerGroup, String> {
     let id = uuid::Uuid::new_v4().to_string();
-    let now = chrono::Utc::now().to_rfc3339();
+    let now = time::OffsetDateTime::now_utc().to_string();
 
     state
         .db
@@ -441,7 +441,7 @@ pub fn group_update(
     id: String,
     input: GroupInput,
 ) -> Result<ServerGroup, String> {
-    let now = chrono::Utc::now().to_rfc3339();
+    let now = time::OffsetDateTime::now_utc().to_string();
 
     state
         .db
