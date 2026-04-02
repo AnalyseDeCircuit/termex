@@ -88,7 +88,7 @@ watch(
   },
 );
 
-defineExpose({ fit, dispose, openSearch, search });
+defineExpose({ fit, dispose, openSearch, search, getTerminal });
 </script>
 
 <template>

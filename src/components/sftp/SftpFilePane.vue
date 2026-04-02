@@ -1,10 +1,9 @@
 <script setup lang="ts">
-import { ref, computed, inject, onMounted, onUnmounted, watch } from "vue";
+import { ref, computed, inject, onMounted, onUnmounted, nextTick } from "vue";
 import { useI18n } from "vue-i18n";
 import { ElMessage } from "element-plus";
 import { Folder, Document, Link, ArrowUp, RefreshRight, FolderAdd } from "@element-plus/icons-vue";
 import { getCurrentWebview } from "@tauri-apps/api/webview";
-import { tauriInvoke } from "@/utils/tauri";
 import { useSftpPane } from "@/composables/useSftpPane";
 import { useSftpDrag } from "@/composables/useSftpDrag";
 import { useSftpStore } from "@/stores/sftpStore";
@@ -25,53 +24,16 @@ const ctx = tabCtx ?? sftpStore;
 const paneOps = useSftpPane(props.side);
 const drag = useSftpDrag(props.side);
 
-// ── CWD sync (remote pane only) ──
-const cwdSyncEnabled = ref(false);
-let cwdSyncTimer: ReturnType<typeof setInterval> | null = null;
-let lastCwd = "";
 
-async function pollCwd() {
-  const pane = paneOps.pane.value;
-  if (!pane.sessionId || pane.mode !== "remote") return;
-  try {
-    const result = await tauriInvoke<{ stdout: string; exitCode: number }>("ssh_exec", {
-      sessionId: pane.sessionId,
-      command: "pwd",
-    });
-    if (result.exitCode === 0 && result.stdout && result.stdout !== lastCwd) {
-      lastCwd = result.stdout;
-      const normalizedCwd = result.stdout.startsWith("/") ? result.stdout : "/" + result.stdout;
-      if (normalizedCwd !== pane.currentPath) {
-        await ctx.listPaneDir(props.side, normalizedCwd);
-      }
-    }
-  } catch { /* session may have disconnected */ }
+// ── Path edit ──
+const pathInputRef = ref<HTMLInputElement>();
+
+async function openPathEdit() {
+  paneOps.enterEditMode();
+  await nextTick();
+  pathInputRef.value?.focus();
+  pathInputRef.value?.select();
 }
-
-function toggleCwdSync() {
-  cwdSyncEnabled.value = !cwdSyncEnabled.value;
-  if (cwdSyncEnabled.value) {
-    lastCwd = paneOps.pane.value.currentPath;
-    pollCwd();
-    cwdSyncTimer = setInterval(pollCwd, 3000);
-  } else {
-    if (cwdSyncTimer) {
-      clearInterval(cwdSyncTimer);
-      cwdSyncTimer = null;
-    }
-  }
-}
-
-// Stop sync when pane mode changes or component unmounts
-watch(() => paneOps.pane.value.mode, () => {
-  if (cwdSyncEnabled.value && paneOps.pane.value.mode !== "remote") {
-    cwdSyncEnabled.value = false;
-    if (cwdSyncTimer) {
-      clearInterval(cwdSyncTimer);
-      cwdSyncTimer = null;
-    }
-  }
-});
 
 // ── OS file drop (Tauri webview drag-drop) ──
 const isTauriDragOver = ref(false);
@@ -102,10 +64,6 @@ onMounted(async () => {
 
 onUnmounted(() => {
   unlistenDragDrop?.();
-  if (cwdSyncTimer) {
-    clearInterval(cwdSyncTimer);
-    cwdSyncTimer = null;
-  }
 });
 
 async function handleOsFileDrop(paths: string[]) {
@@ -315,29 +273,15 @@ const modeSelectorVisible = ref(false);
         <el-icon :size="12"><FolderAdd /></el-icon>
       </button>
 
-      <!-- CWD Sync toggle (any remote pane) -->
-      <button
-        v-if="paneOps.isRemote.value"
-        class="sftp-icon-btn"
-        :class="{ 'sftp-icon-btn-active': cwdSyncEnabled }"
-        :title="cwdSyncEnabled ? 'Sync ON — following terminal CWD' : 'Sync terminal CWD'"
-        @click="toggleCwdSync"
-      >
-        <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
-          <path d="M21.5 2v6h-6" />
-          <path d="M2.5 22v-6h6" />
-          <path d="M2.5 15.5A9 9 0 0 1 5.6 7.8l15.9-5.8" />
-          <path d="M21.5 8.5a9 9 0 0 1-3.1 7.7L2.5 22" />
-        </svg>
-      </button>
-
-      <!-- Breadcrumb path -->
+      <!-- Breadcrumb / path input -->
       <div class="flex-1 min-w-0 flex items-center">
         <template v-if="paneOps.editingPath.value">
           <input
-            v-model="paneOps.editPathInput.value"
+            ref="pathInputRef"
+            :value="paneOps.editPathInput.value"
             class="w-full text-[10px] px-1 py-0.5 rounded outline-none"
             style="background: var(--tm-input-bg); color: var(--tm-text-primary); border: 1px solid var(--tm-input-border)"
+            @input="paneOps.editPathInput.value = ($event.target as HTMLInputElement).value"
             @keydown.enter="paneOps.submitPathEdit"
             @keydown.escape="paneOps.cancelPathEdit"
             @blur="paneOps.cancelPathEdit"
@@ -345,24 +289,15 @@ const modeSelectorVisible = ref(false);
         </template>
         <template v-else>
           <div
-            class="text-[10px] truncate cursor-pointer hover:underline"
+            class="flex-1 min-w-0 text-[10px] truncate cursor-text px-1 py-0.5 rounded hover:bg-white/5"
             style="color: var(--tm-text-muted)"
-            @dblclick="paneOps.enterEditMode"
+            @click="openPathEdit"
           >
-            <span
-              class="hover:text-blue-400 cursor-pointer"
-              @click="paneOps.navigateTo('/')"
-            >/</span>
-            <template v-for="(crumb, idx) in paneOps.breadcrumbs.value" :key="idx">
-              <span
-                class="hover:text-blue-400 cursor-pointer"
-                @click="paneOps.navigateTo(crumb.path)"
-              >{{ crumb.name }}</span>
-              <span v-if="idx < paneOps.breadcrumbs.value.length - 1">/</span>
-            </template>
+            /{{ paneOps.breadcrumbs.value.map(c => c.name).join('/') }}
           </div>
         </template>
       </div>
+
     </div>
 
     <!-- File list -->

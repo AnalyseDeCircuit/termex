@@ -138,6 +138,7 @@ export const useSettingsStore = defineStore("settings", () => {
   const keybindings = ref<KeybindingMap>({ ...DEFAULT_KEYBINDINGS });
   const sidebarTransition = ref<string>("flip");
   const sftpLayout = ref<"tabs" | "right" | "bottom">("tabs");
+  const cwdSync = ref(false);
 
   // ── Actions ────────────────────────────────────────────────
 
@@ -196,6 +197,9 @@ export const useSettingsStore = defineStore("settings", () => {
           break;
         case "sftpLayout":
           sftpLayout.value = value as "tabs" | "right" | "bottom";
+          break;
+        case "cwdSync":
+          cwdSync.value = value === "true";
           break;
       }
     }
@@ -402,6 +406,7 @@ export const useSettingsStore = defineStore("settings", () => {
     keybindings,
     sidebarTransition,
     sftpLayout,
+    cwdSync,
     loadAll,
     set,
     applyTheme,

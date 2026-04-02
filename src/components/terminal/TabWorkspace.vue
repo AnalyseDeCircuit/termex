@@ -1,10 +1,11 @@
 <script setup lang="ts">
-import { ref, computed, watch, nextTick } from "vue";
+import { ref, computed, watch, nextTick, onUnmounted } from "vue";
 import { useI18n } from "vue-i18n";
 import { useSettingsStore } from "@/stores/settingsStore";
 import { useSessionStore } from "@/stores/sessionStore";
 import { useTabSftp } from "@/composables/useTabSftp";
 import { useDragLayout } from "@/composables/useDragLayout";
+import { tauriInvoke } from "@/utils/tauri";
 import TerminalView from "./TerminalView.vue";
 import SftpPanel from "@/components/sftp/SftpPanel.vue";
 import TransfersPanel from "@/components/sftp/TransfersPanel.vue";
@@ -119,6 +120,78 @@ function startSplitResize(e: MouseEvent) {
   window.addEventListener("mouseup", onUp);
 }
 
+// ── CWD Sync (SFTP follows terminal working directory via OSC 7) ──
+// Injects a PROMPT_COMMAND hook that emits OSC 7 (\e]7;path\a) after every command.
+// xterm.js parses the sequence and we update the SFTP pane — zero latency, no polling.
+const cwdSyncEnabled = ref(settingsStore.cwdSync);
+let oscDispose: (() => void) | null = null;
+let lastCwd = "";
+
+// Shell snippet to inject: emits OSC 7 with $PWD before each prompt
+const HOOK_FN = "__termex_cwd";
+const INJECT_CMD = `${HOOK_FN}(){ printf '\\033]7;%s\\007' "$PWD"; };case "$PROMPT_COMMAND" in *${HOOK_FN}*) ;; *) PROMPT_COMMAND="${HOOK_FN};\${PROMPT_COMMAND}" ;; esac`;
+const REMOVE_CMD = `PROMPT_COMMAND="\${PROMPT_COMMAND/${HOOK_FN};/}";unset -f ${HOOK_FN} 2>/dev/null`;
+
+function writeToTerminal(text: string) {
+  const bytes = new TextEncoder().encode(text);
+  tauriInvoke("ssh_write", {
+    sessionId: props.sessionId,
+    data: Array.from(bytes),
+  }).catch(() => {});
+}
+
+function onOsc7(cwd: string) {
+  const rightPane = tabSftp.getPane("right");
+  if (!rightPane.sessionId || rightPane.mode !== "remote") return;
+  const normalized = cwd.startsWith("/") ? cwd : "/" + cwd;
+  if (normalized !== lastCwd) {
+    lastCwd = normalized;
+    tabSftp.listPaneDir("right", normalized);
+  }
+}
+
+function toggleCwdSync() {
+  cwdSyncEnabled.value = !cwdSyncEnabled.value;
+  // Persist preference
+  settingsStore.cwdSync = cwdSyncEnabled.value;
+  settingsStore.set("cwdSync", String(cwdSyncEnabled.value));
+  if (cwdSyncEnabled.value) {
+    activateCwdSync();
+  } else {
+    writeToTerminal(` ${REMOVE_CMD}\n`);
+    oscDispose?.();
+    oscDispose = null;
+  }
+}
+
+// Auto-activate CWD sync when shell becomes connected (if previously enabled)
+watch(isConnected, async (connected) => {
+  if (connected && cwdSyncEnabled.value && !oscDispose) {
+    // Wait for terminal to be mounted and shell to be ready
+    await nextTick();
+    await new Promise((r) => setTimeout(r, 500));
+    activateCwdSync();
+  }
+});
+
+function activateCwdSync() {
+  const term = terminalViewRef.value?.getTerminal();
+  if (!term) return;
+  lastCwd = tabSftp.getPane("right").currentPath;
+  const disposable = term.parser.registerOscHandler(7, (data: string) => {
+    const match = data.match(/^(?:file:\/\/[^/]*)?(\/.*)/);
+    if (match) onOsc7(match[1]);
+    return false;
+  });
+  oscDispose = () => disposable.dispose();
+  writeToTerminal(` ${INJECT_CMD}\n`);
+}
+
+onUnmounted(() => {
+  oscDispose?.();
+  oscDispose = null;
+});
+
 defineExpose({
   fit: () => terminalViewRef.value?.fit(),
   dispose: () => terminalViewRef.value?.dispose(),
@@ -153,6 +226,22 @@ defineExpose({
           >
             {{ tab.badge }}
           </span>
+        </button>
+        <!-- Spacer + CWD Sync button (right-aligned) -->
+        <div class="flex-1" />
+        <button
+          v-if="isConnected"
+          class="cwd-sync-btn"
+          :class="{ 'cwd-sync-btn-active': cwdSyncEnabled }"
+          :title="cwdSyncEnabled ? t('sftp.cwdSyncOn') : t('sftp.cwdSyncOff')"
+          @click="toggleCwdSync"
+        >
+          <svg width="11" height="11" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round">
+            <path d="M21.5 2v6h-6" />
+            <path d="M2.5 22v-6h6" />
+            <path d="M2.5 15.5A9 9 0 0 1 5.6 7.8l15.9-5.8" />
+            <path d="M21.5 8.5a9 9 0 0 1-3.1 7.7L2.5 22" />
+          </svg>
         </button>
       </div>
 
@@ -221,6 +310,21 @@ defineExpose({
                 {{ activeTransferCount }}
               </span>
             </button>
+            <div class="flex-1" />
+            <button
+              v-if="isConnected"
+              class="cwd-sync-btn"
+              :class="{ 'cwd-sync-btn-active': cwdSyncEnabled }"
+              :title="cwdSyncEnabled ? t('sftp.cwdSyncOn') : t('sftp.cwdSyncOff')"
+              @click="toggleCwdSync"
+            >
+              <svg width="11" height="11" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round">
+                <path d="M21.5 2v6h-6" />
+                <path d="M2.5 22v-6h6" />
+                <path d="M2.5 15.5A9 9 0 0 1 5.6 7.8l15.9-5.8" />
+                <path d="M21.5 8.5a9 9 0 0 1-3.1 7.7L2.5 22" />
+              </svg>
+            </button>
           </div>
           <div class="flex-1 min-h-0 relative">
             <div v-show="splitSubTab === 'sftp'" class="absolute inset-0">
@@ -281,6 +385,21 @@ defineExpose({
               >
                 {{ activeTransferCount }}
               </span>
+            </button>
+            <div class="flex-1" />
+            <button
+              v-if="isConnected"
+              class="cwd-sync-btn"
+              :class="{ 'cwd-sync-btn-active': cwdSyncEnabled }"
+              :title="cwdSyncEnabled ? t('sftp.cwdSyncOn') : t('sftp.cwdSyncOff')"
+              @click="toggleCwdSync"
+            >
+              <svg width="11" height="11" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round">
+                <path d="M21.5 2v6h-6" />
+                <path d="M2.5 22v-6h6" />
+                <path d="M2.5 15.5A9 9 0 0 1 5.6 7.8l15.9-5.8" />
+                <path d="M21.5 8.5a9 9 0 0 1-3.1 7.7L2.5 22" />
+              </svg>
             </button>
           </div>
           <div class="flex-1 min-h-0 relative">
@@ -353,5 +472,26 @@ defineExpose({
 .workspace-tab-active {
   color: var(--tm-text-primary);
   border-bottom-color: var(--el-color-primary, #409eff);
+}
+
+.cwd-sync-btn {
+  padding: 2px 6px;
+  height: 100%;
+  display: flex;
+  align-items: center;
+  border: none;
+  background: transparent;
+  color: var(--tm-text-muted);
+  cursor: pointer;
+  transition: color 0.15s;
+}
+.cwd-sync-btn:hover {
+  color: var(--tm-text-primary);
+}
+.cwd-sync-btn-active {
+  color: #22c55e;
+}
+.cwd-sync-btn-active:hover {
+  color: #16a34a;
 }
 </style>
