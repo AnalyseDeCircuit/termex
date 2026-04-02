@@ -1,12 +1,20 @@
 <script setup lang="ts">
+import { inject, computed } from "vue";
 import { useI18n } from "vue-i18n";
 import { useSftpStore } from "@/stores/sftpStore";
+import { tabSftpKey, type TabSftpContext } from "@/composables/useTabSftp";
 import { Upload, Download, Sort, Close } from "@element-plus/icons-vue";
 import { ElMessage } from "element-plus";
 import type { TransferItem } from "@/types/sftp";
 
 const { t } = useI18n();
 const sftpStore = useSftpStore();
+const tabCtx = inject<TabSftpContext | null>(tabSftpKey, null);
+
+// Normalize transfers access — TabSftpContext uses Ref, sftpStore uses reactive array
+const transfers = computed(() =>
+  tabCtx ? tabCtx.transfers.value : sftpStore.transfers,
+);
 
 function formatBytes(bytes: number): string {
   if (bytes === 0) return "0 B";
@@ -36,14 +44,19 @@ function getSubtitle(item: TransferItem): string {
 }
 
 function handleClear() {
-  sftpStore.transfers = sftpStore.transfers.filter((t) => !t.done);
+  if (tabCtx) {
+    tabCtx.transfers.value = tabCtx.transfers.value.filter((t: TransferItem) => !t.done);
+  } else {
+    sftpStore.transfers = sftpStore.transfers.filter((t: TransferItem) => !t.done);
+  }
   ElMessage.success(t("sftp.cleared"));
 }
 
 function handleRemoveTransfer(id: string) {
-  const idx = sftpStore.transfers.findIndex((t) => t.id === id);
+  const arr = tabCtx ? tabCtx.transfers.value : sftpStore.transfers;
+  const idx = arr.findIndex((t: TransferItem) => t.id === id);
   if (idx !== -1) {
-    sftpStore.transfers.splice(idx, 1);
+    arr.splice(idx, 1);
   }
 }
 </script>
@@ -51,9 +64,9 @@ function handleRemoveTransfer(id: string) {
 <template>
   <div class="flex flex-col h-full min-w-0 overflow-auto">
     <!-- Header -->
-    <div v-if="sftpStore.transfers.length > 0" class="flex items-center justify-between px-3 py-2 shrink-0 border-b" style="border-color: var(--tm-border)">
+    <div v-if="transfers.length > 0" class="flex items-center justify-between px-3 py-2 shrink-0 border-b" style="border-color: var(--tm-border)">
       <span class="text-xs font-medium" style="color: var(--tm-text-secondary)">
-        {{ sftpStore.transfers.length }} {{ t("sftp.transfers") }}
+        {{ transfers.length }} {{ t("sftp.transfers") }}
       </span>
       <button
         class="text-xs px-2 py-1 rounded hover:bg-white/10 transition-colors"
@@ -65,9 +78,9 @@ function handleRemoveTransfer(id: string) {
     </div>
 
     <!-- Transfers list -->
-    <div v-if="sftpStore.transfers.length > 0" class="flex-1 overflow-auto">
+    <div v-if="transfers.length > 0" class="flex-1 overflow-auto">
       <div
-        v-for="item in sftpStore.transfers"
+        v-for="item in transfers"
         :key="item.id"
         :class="[
           'px-3 py-3 border-b transition-opacity',

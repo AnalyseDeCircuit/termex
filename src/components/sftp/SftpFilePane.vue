@@ -1,12 +1,14 @@
 <script setup lang="ts">
-import { ref, computed, onMounted, onUnmounted } from "vue";
+import { ref, computed, inject, onMounted, onUnmounted, watch } from "vue";
 import { useI18n } from "vue-i18n";
 import { ElMessage } from "element-plus";
 import { Folder, Document, Link, ArrowUp, RefreshRight, FolderAdd } from "@element-plus/icons-vue";
 import { getCurrentWebview } from "@tauri-apps/api/webview";
+import { tauriInvoke } from "@/utils/tauri";
 import { useSftpPane } from "@/composables/useSftpPane";
 import { useSftpDrag } from "@/composables/useSftpDrag";
 import { useSftpStore } from "@/stores/sftpStore";
+import { tabSftpKey, type TabSftpContext } from "@/composables/useTabSftp";
 import ContextMenu from "@/components/sidebar/ContextMenu.vue";
 import type { MenuItem } from "@/components/sidebar/ContextMenu.vue";
 import FileInfoDialog from "@/components/sftp/FileInfoDialog.vue";
@@ -18,8 +20,58 @@ const props = defineProps<{
 
 const { t } = useI18n();
 const sftpStore = useSftpStore();
+const tabCtx = inject<TabSftpContext | null>(tabSftpKey, null);
+const ctx = tabCtx ?? sftpStore;
 const paneOps = useSftpPane(props.side);
 const drag = useSftpDrag(props.side);
+
+// ── CWD sync (remote pane only) ──
+const cwdSyncEnabled = ref(false);
+let cwdSyncTimer: ReturnType<typeof setInterval> | null = null;
+let lastCwd = "";
+
+async function pollCwd() {
+  const pane = paneOps.pane.value;
+  if (!pane.sessionId || pane.mode !== "remote") return;
+  try {
+    const result = await tauriInvoke<{ stdout: string; exitCode: number }>("ssh_exec", {
+      sessionId: pane.sessionId,
+      command: "pwd",
+    });
+    if (result.exitCode === 0 && result.stdout && result.stdout !== lastCwd) {
+      lastCwd = result.stdout;
+      const normalizedCwd = result.stdout.startsWith("/") ? result.stdout : "/" + result.stdout;
+      if (normalizedCwd !== pane.currentPath) {
+        await ctx.listPaneDir(props.side, normalizedCwd);
+      }
+    }
+  } catch { /* session may have disconnected */ }
+}
+
+function toggleCwdSync() {
+  cwdSyncEnabled.value = !cwdSyncEnabled.value;
+  if (cwdSyncEnabled.value) {
+    lastCwd = paneOps.pane.value.currentPath;
+    pollCwd();
+    cwdSyncTimer = setInterval(pollCwd, 3000);
+  } else {
+    if (cwdSyncTimer) {
+      clearInterval(cwdSyncTimer);
+      cwdSyncTimer = null;
+    }
+  }
+}
+
+// Stop sync when pane mode changes or component unmounts
+watch(() => paneOps.pane.value.mode, () => {
+  if (cwdSyncEnabled.value && paneOps.pane.value.mode !== "remote") {
+    cwdSyncEnabled.value = false;
+    if (cwdSyncTimer) {
+      clearInterval(cwdSyncTimer);
+      cwdSyncTimer = null;
+    }
+  }
+});
 
 // ── OS file drop (Tauri webview drag-drop) ──
 const isTauriDragOver = ref(false);
@@ -50,6 +102,10 @@ onMounted(async () => {
 
 onUnmounted(() => {
   unlistenDragDrop?.();
+  if (cwdSyncTimer) {
+    clearInterval(cwdSyncTimer);
+    cwdSyncTimer = null;
+  }
 });
 
 async function handleOsFileDrop(paths: string[]) {
@@ -60,7 +116,7 @@ async function handleOsFileDrop(paths: string[]) {
     const fileName = localPath.split("/").pop() ?? localPath;
     const basePath = paneOps.pane.value.currentPath === "/" ? "" : paneOps.pane.value.currentPath;
     const remotePath = `${basePath}/${fileName}`.replace(/\/+/g, "/");
-    await sftpStore.uploadFile(paneOps.pane.value.sessionId, localPath, remotePath);
+    await ctx.uploadFile(paneOps.pane.value.sessionId, localPath, remotePath);
   }
   ElMessage.success(t("sftp.uploadStarted"));
   await paneOps.refresh();
@@ -87,7 +143,8 @@ const ctxItems = computed<MenuItem[]>(() => {
     { label: t("sftp.copy"), action: "copy", divided: true },
     { label: t("sftp.cut"), action: "cut" },
   );
-  if (sftpStore.clipboard) {
+  const clip = tabCtx ? tabCtx.clipboard.value : sftpStore.clipboard;
+  if (clip) {
     items.push({ label: t("sftp.paste"), action: "paste" });
   }
   items.push(
@@ -159,7 +216,7 @@ async function handleContextMenuSelect(action: string) {
 
 async function handleDownload(entry: FileEntry) {
   if (!paneOps.isRemote.value || !paneOps.pane.value.sessionId) return;
-  const defaultPath = sftpStore.getPane("left").currentPath || "";
+  const defaultPath = ctx.getPane("left").currentPath || "";
   try {
     const { value } = await (await import("element-plus")).ElMessageBox.prompt(
       t("sftp.downloadPrompt"),
@@ -167,7 +224,7 @@ async function handleDownload(entry: FileEntry) {
     );
     if (value) {
       const remotePath = paneOps.buildFullPath(entry.name);
-      await sftpStore.downloadFile(paneOps.pane.value.sessionId, remotePath, value);
+      await ctx.downloadFile(paneOps.pane.value.sessionId, remotePath, value);
       ElMessage.success(t("sftp.downloadStarted"));
     }
   } catch { /* cancelled */ }
@@ -261,6 +318,22 @@ const modeSelectorVisible = ref(false);
       <!-- New Folder (remote only) -->
       <button v-if="paneOps.isRemote.value" class="sftp-icon-btn" @click="paneOps.handleMkdir">
         <el-icon :size="12"><FolderAdd /></el-icon>
+      </button>
+
+      <!-- CWD Sync toggle (remote pane only) -->
+      <button
+        v-if="props.side === 'right' && paneOps.isRemote.value"
+        class="sftp-icon-btn"
+        :class="{ 'sftp-icon-btn-active': cwdSyncEnabled }"
+        :title="cwdSyncEnabled ? 'Sync ON — following terminal CWD' : 'Sync terminal CWD'"
+        @click="toggleCwdSync"
+      >
+        <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+          <path d="M21.5 2v6h-6" />
+          <path d="M2.5 22v-6h6" />
+          <path d="M2.5 15.5A9 9 0 0 1 5.6 7.8l15.9-5.8" />
+          <path d="M21.5 8.5a9 9 0 0 1-3.1 7.7L2.5 22" />
+        </svg>
       </button>
 
       <!-- Breadcrumb path -->
@@ -417,5 +490,11 @@ const modeSelectorVisible = ref(false);
 .sftp-icon-btn:hover {
   color: var(--tm-text-primary);
   background: var(--tm-bg-hover);
+}
+.sftp-icon-btn-active {
+  color: #22c55e;
+}
+.sftp-icon-btn-active:hover {
+  color: #16a34a;
 }
 </style>

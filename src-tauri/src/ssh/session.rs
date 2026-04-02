@@ -161,6 +161,35 @@ impl SshSession {
             .map_err(|_| SshError::AlreadyDisconnected)
     }
 
+    /// Executes a single command via a separate exec channel (not the PTY shell).
+    /// Returns (stdout, exit_code). Does not interfere with the user's terminal.
+    pub async fn exec_command(&self, command: &str) -> Result<(String, u32), SshError> {
+        use russh::ChannelMsg;
+
+        let mut channel = self
+            .handle
+            .channel_open_session()
+            .await
+            .map_err(|e| SshError::ChannelError(e.to_string()))?;
+
+        channel
+            .exec(true, command)
+            .await
+            .map_err(|e| SshError::ChannelError(e.to_string()))?;
+
+        let mut output = Vec::new();
+        let mut exit_code = 0u32;
+        loop {
+            match channel.wait().await {
+                Some(ChannelMsg::Data { data }) => output.extend_from_slice(&data),
+                Some(ChannelMsg::ExitStatus { exit_status }) => exit_code = exit_status,
+                Some(ChannelMsg::Eof) | None => break,
+                _ => {}
+            }
+        }
+        Ok((String::from_utf8_lossy(&output).to_string(), exit_code))
+    }
+
     /// Opens an SFTP subsystem channel on this SSH connection.
     pub async fn open_sftp(&self) -> Result<SftpHandle, SshError> {
         SftpHandle::open(&self.handle)

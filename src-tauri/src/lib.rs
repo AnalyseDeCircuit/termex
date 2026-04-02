@@ -10,7 +10,7 @@ pub mod ssh;
 pub mod storage;
 mod state;
 
-use tauri::menu::{MenuBuilder, MenuItemBuilder, SubmenuBuilder};
+use tauri::menu::{CheckMenuItemBuilder, MenuBuilder, MenuItemBuilder, SubmenuBuilder};
 use tauri::{Emitter, Manager};
 
 use state::AppState;
@@ -42,12 +42,16 @@ fn build_menu(app: &tauri::App) -> Result<tauri::menu::Menu<tauri::Wry>, Box<dyn
         .build(app)?;
     let new_group = MenuItemBuilder::with_id("new_group", "New Group")
         .build(app)?;
+    // Custom "Close Tab" instead of .close_window() which kills the entire window.
+    let close_tab = MenuItemBuilder::with_id("close_tab", "Close Tab")
+        .accelerator("CmdOrCtrl+W")
+        .build(app)?;
 
     let file_menu = SubmenuBuilder::new(app, "File")
         .item(&new_connection)
         .item(&new_group)
         .separator()
-        .close_window()
+        .item(&close_tab)
         .build()?;
 
     // Edit submenu
@@ -61,21 +65,19 @@ fn build_menu(app: &tauri::App) -> Result<tauri::menu::Menu<tauri::Wry>, Box<dyn
         .select_all()
         .build()?;
 
-    // View submenu
-    let toggle_sidebar = MenuItemBuilder::with_id("toggle_sidebar", "Sidebar")
+    // View submenu — CheckMenuItem for toggle state sync with frontend
+    let toggle_sidebar = CheckMenuItemBuilder::with_id("toggle_sidebar", "Sidebar")
         .accelerator("CmdOrCtrl+\\")
+        .checked(true)
         .build(app)?;
-    let toggle_ai = MenuItemBuilder::with_id("toggle_ai", "AI Panel")
+    let toggle_ai = CheckMenuItemBuilder::with_id("toggle_ai", "AI Panel")
         .accelerator("CmdOrCtrl+Shift+I")
-        .build(app)?;
-    let toggle_sftp = MenuItemBuilder::with_id("toggle_sftp", "SFTP Panel")
-        .accelerator("CmdOrCtrl+Shift+S")
+        .checked(false)
         .build(app)?;
 
     let view_menu = SubmenuBuilder::new(app, "View")
         .item(&toggle_sidebar)
         .item(&toggle_ai)
-        .item(&toggle_sftp)
         .build()?;
 
     // Window submenu
@@ -178,14 +180,14 @@ pub fn run() {
                     "new_group" => {
                         let _ = app_handle.emit("menu://new-group", ());
                     }
+                    "close_tab" => {
+                        let _ = app_handle.emit("menu://close-tab", ());
+                    }
                     "toggle_sidebar" => {
                         let _ = app_handle.emit("menu://toggle-sidebar", ());
                     }
                     "toggle_ai" => {
                         let _ = app_handle.emit("menu://toggle-ai", ());
-                    }
-                    "toggle_sftp" => {
-                        let _ = app_handle.emit("menu://toggle-sftp", ());
                     }
                     "check_update" => {
                         let _ = app_handle.emit("menu://check-update", ());
@@ -233,6 +235,7 @@ pub fn run() {
             commands::ssh::ssh_disconnect,
             commands::ssh::ssh_write,
             commands::ssh::ssh_resize,
+            commands::ssh::ssh_exec,
             // Port Forwarding
             commands::port_forward::port_forward_list,
             commands::port_forward::port_forward_save,
@@ -311,6 +314,8 @@ pub fn run() {
             commands::update::get_platform_info,
             commands::update::download_update,
             commands::update::exit_app,
+            // Menu
+            commands::menu::set_menu_checked,
         ])
         .run(tauri::generate_context!())
         .expect("error while running Termex");

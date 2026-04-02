@@ -12,12 +12,10 @@ import SettingsModal from "@/components/settings/SettingsModal.vue";
 import TerminalTabs from "@/components/terminal/TerminalTabs.vue";
 import TerminalPane from "@/components/terminal/TerminalPane.vue";
 import StatusBar from "@/components/terminal/StatusBar.vue";
-import SftpPanel from "@/components/sftp/SftpPanel.vue";
 import AiPanel from "@/components/ai/AiPanel.vue";
 import UpdateDialog from "@/components/settings/UpdateDialog.vue";
 import PrivacyDialog from "@/components/settings/PrivacyDialog.vue";
 import CrossTabSearchDialog from "@/components/terminal/CrossTabSearchDialog.vue";
-import { useSftpStore } from "@/stores/sftpStore";
 import { useSettingsStore } from "@/stores/settingsStore";
 import { checkForUpdate, shouldCheckToday } from "@/utils/update";
 import localModelsCatalog from "@/assets/local-models.json";
@@ -25,13 +23,11 @@ import localModelsCatalog from "@/assets/local-models.json";
 const { t, locale } = useI18n();
 const serverStore = useServerStore();
 const sessionStore = useSessionStore();
-const sftpStore = useSftpStore();
 const settingsStore = useSettingsStore();
 
 const sidebarVisible = ref(true);
 const sidebarWidth = ref(240);
-const sftpHeight = ref(256);
-const resizing = ref<'sidebar' | 'sftp' | null>(null);
+const resizing = ref<'sidebar' | null>(null);
 const resizeStart = ref({ x: 0, y: 0, val: 0 });
 
 // Load saved dimensions from localStorage
@@ -40,16 +36,15 @@ onMounted(() => {
   if (saved) {
     const dims = JSON.parse(saved);
     if (dims.sidebarWidth) sidebarWidth.value = dims.sidebarWidth;
-    if (dims.sftpHeight) sftpHeight.value = dims.sftpHeight;
   }
 });
 
 // Save dimensions to localStorage on change (debounced via resize end)
 const saveTimeout = ref<ReturnType<typeof setTimeout> | null>(null);
-watch([sidebarWidth, sftpHeight], ([sw, sh]) => {
+watch(sidebarWidth, (sw) => {
   if (saveTimeout.value) clearTimeout(saveTimeout.value);
   saveTimeout.value = setTimeout(() => {
-    localStorage.setItem("ui-dimensions", JSON.stringify({ sidebarWidth: sw, sftpHeight: sh }));
+    localStorage.setItem("ui-dimensions", JSON.stringify({ sidebarWidth: sw }));
   }, 300);
 });
 
@@ -57,25 +52,19 @@ function clamp(val: number, min: number, max: number) {
   return Math.max(min, Math.min(max, val));
 }
 
-function startResize(type: 'sidebar' | 'sftp', e: MouseEvent) {
+function startSidebarResize(e: MouseEvent) {
   e.preventDefault();
-  resizing.value = type;
+  resizing.value = 'sidebar';
   resizeStart.value = {
     x: e.clientX,
     y: e.clientY,
-    val: type === 'sidebar' ? sidebarWidth.value : sftpHeight.value,
+    val: sidebarWidth.value,
   };
 
   function onMove(e: MouseEvent) {
-    if (!resizing.value || !resizeStart.value) return;
-
-    if (resizing.value === 'sidebar') {
-      const delta = e.clientX - resizeStart.value.x;
-      sidebarWidth.value = clamp(resizeStart.value.val + delta, 160, 480);
-    } else {
-      const delta = e.clientY - resizeStart.value.y;
-      sftpHeight.value = clamp(resizeStart.value.val - delta, 120, 600);
-    }
+    if (!resizing.value) return;
+    const delta = e.clientX - resizeStart.value.x;
+    sidebarWidth.value = clamp(resizeStart.value.val + delta, 160, 480);
   }
 
   function onUp() {
@@ -180,10 +169,26 @@ async function checkCatalogUpdate() {
   }
 }
 
+// Dedup layer: native menu accelerators and useShortcuts may both fire for the
+// same keystroke on some platforms. The first handler within 200ms wins.
+const _actionTs: Record<string, number> = {};
+function dedupAction(key: string, fn: () => void) {
+  const now = Date.now();
+  if (now - (_actionTs[key] ?? 0) < 200) return;
+  _actionTs[key] = now;
+  fn();
+}
+
 useShortcuts({
-  toggleSidebar: () => (sidebarVisible.value = !sidebarVisible.value),
-  openNewConnection,
-  openSettings: () => (settingsModalVisible.value = true),
+  toggleSidebar: () => dedupAction("sidebar", () => { sidebarVisible.value = !sidebarVisible.value; }),
+  toggleAi: () => dedupAction("ai", () => { aiPanelVisible.value = !aiPanelVisible.value; }),
+  closeTab: () => dedupAction("closeTab", () => {
+    if (sessionStore.activeSessionId) {
+      sessionStore.disconnect(sessionStore.activeSessionId);
+    }
+  }),
+  openNewConnection: () => dedupAction("newConn", openNewConnection),
+  openSettings: () => dedupAction("settings", () => { settingsModalVisible.value = true; }),
   openSearch: openSearchInActivePane,
   openCrossTabSearch: () => (crossTabSearchVisible.value = true),
 });
@@ -191,20 +196,6 @@ useShortcuts({
 const unlisteners: Array<() => void> = [];
 
 // When active tab changes or session becomes connected, sync SFTP right pane
-watch(
-  () => {
-    const id = sessionStore.activeSessionId;
-    const session = id ? sessionStore.sessions.get(id) : null;
-    return { id, status: session?.status, name: session?.serverName };
-  },
-  ({ id, status, name }) => {
-    if (!id || id.startsWith("connecting-")) return;
-    if (status === "connected" && sftpStore.panelVisible && name) {
-      sftpStore.syncToActiveSession(id, name);
-    }
-  },
-);
-
 // Watch language changes and update i18n locale
 watch(
   () => settingsStore.effectiveLanguage,
@@ -212,6 +203,14 @@ watch(
     locale.value = lang;
   },
 );
+
+// Sync View menu check state with panel visibility
+watch(sidebarVisible, (v) => {
+  tauriInvoke("set_menu_checked", { id: "toggle_sidebar", checked: v });
+});
+watch(aiPanelVisible, (v) => {
+  tauriInvoke("set_menu_checked", { id: "toggle_ai", checked: v });
+});
 
 onMounted(async () => {
   await settingsStore.loadAll();
@@ -221,31 +220,28 @@ onMounted(async () => {
   await settingsStore.loadCustomFonts();
   serverStore.fetchAll();
 
-  // Listen for native menu events
+  // Listen for native menu events (dedup with useShortcuts for shared accelerators)
   unlisteners.push(await tauriListen("menu://settings", () => {
-    settingsModalVisible.value = true;
+    dedupAction("settings", () => { settingsModalVisible.value = true; });
   }));
   unlisteners.push(await tauriListen("menu://new-connection", () => {
-    openNewConnection();
+    dedupAction("newConn", openNewConnection);
   }));
   unlisteners.push(await tauriListen("menu://new-group", () => {
     serverStore.fetchAll();
   }));
+  unlisteners.push(await tauriListen("menu://close-tab", () => {
+    dedupAction("closeTab", () => {
+      if (sessionStore.activeSessionId) {
+        sessionStore.disconnect(sessionStore.activeSessionId);
+      }
+    });
+  }));
   unlisteners.push(await tauriListen("menu://toggle-sidebar", () => {
-    sidebarVisible.value = !sidebarVisible.value;
+    dedupAction("sidebar", () => { sidebarVisible.value = !sidebarVisible.value; });
   }));
   unlisteners.push(await tauriListen("menu://toggle-ai", () => {
-    aiPanelVisible.value = !aiPanelVisible.value;
-  }));
-  unlisteners.push(await tauriListen("menu://toggle-sftp", async () => {
-    const session = sessionStore.activeSession;
-    if (session?.status === "connected") {
-      if (sftpStore.panelVisible) {
-        sftpStore.panelVisible = false;
-      } else {
-        await sftpStore.open(session.id, session.serverName);
-      }
-    }
+    dedupAction("ai", () => { aiPanelVisible.value = !aiPanelVisible.value; });
   }));
   unlisteners.push(await tauriListen("menu://check-update", () => {
     updateDialogVisible.value = true;
@@ -300,7 +296,7 @@ onBeforeUnmount(() => {
         v-if="sidebarVisible"
         class="w-1 bg-gray-700 hover:bg-blue-500 cursor-col-resize transition-colors shrink-0"
         style="background-color: var(--tm-border)"
-        @mousedown="startResize('sidebar', $event)"
+        @mousedown="startSidebarResize($event)"
       />
 
       <!-- Content column -->
@@ -342,19 +338,6 @@ onBeforeUnmount(() => {
           />
         </div>
 
-        <!-- SFTP resize handle -->
-        <div
-          v-if="sftpStore.panelVisible"
-          class="h-1 bg-gray-700 hover:bg-blue-500 cursor-row-resize transition-colors shrink-0"
-          style="background-color: var(--tm-border)"
-          @mousedown="startResize('sftp', $event)"
-        />
-
-        <!-- SFTP Panel -->
-        <SftpPanel
-          v-if="sftpStore.panelVisible"
-          :style="{ height: `${sftpHeight}px` }"
-        />
       </div>
     </div>
 

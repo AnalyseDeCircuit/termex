@@ -1,29 +1,44 @@
 <script setup lang="ts">
-import { computed, ref } from "vue";
+import { computed, inject, ref } from "vue";
 import { useI18n } from "vue-i18n";
 import { useSftpStore } from "@/stores/sftpStore";
+import { tabSftpKey, type TabSftpContext } from "@/composables/useTabSftp";
 import { Close } from "@element-plus/icons-vue";
 import SftpFilePane from "./SftpFilePane.vue";
 import TransfersPanel from "./TransfersPanel.vue";
 
 const { t } = useI18n();
 const sftpStore = useSftpStore();
+const tabCtx = inject<TabSftpContext | null>(tabSftpKey, null);
+
+// When used inside TabWorkspace (per-tab), no internal header needed.
+// When used in legacy global mode (no tabCtx), show full header.
+const isPerTab = computed(() => tabCtx !== null);
 
 const activeTab = ref<"files" | "transfers">("files");
 
-const hasActiveTransfers = computed(
-  () => sftpStore.activeTransfers.length > 0,
-);
+const hasActiveTransfers = computed(() => {
+  const at = tabCtx ? tabCtx.activeTransfers.value : sftpStore.activeTransfers;
+  return at.length > 0;
+});
 
 function handleClose() {
-  sftpStore.close();
+  if (tabCtx) {
+    tabCtx.closeSftp();
+  } else {
+    sftpStore.close();
+  }
 }
 </script>
 
 <template>
-  <div class="flex flex-col" style="background: var(--tm-bg-surface); border-top: 1px solid var(--tm-border)">
-    <!-- Header -->
-    <div class="flex items-stretch justify-between px-2 h-7 shrink-0" style="border-bottom: 1px solid var(--tm-border)">
+  <div class="flex flex-col h-full" style="background: var(--tm-bg-surface)">
+    <!-- Header (only in legacy global mode) -->
+    <div
+      v-if="!isPerTab"
+      class="flex items-stretch justify-between px-2 h-7 shrink-0"
+      style="border-bottom: 1px solid var(--tm-border); border-top: 1px solid var(--tm-border)"
+    >
       <div class="flex items-stretch gap-2">
         <span
           class="text-[10px] font-semibold tracking-widest uppercase select-none flex items-center mr-1"
@@ -53,14 +68,17 @@ function handleClose() {
       </button>
     </div>
 
-    <!-- Content -->
+    <!-- Content: dual pane file browser -->
     <div class="flex-1 min-h-0 flex flex-col">
-      <div v-if="activeTab === 'files'" class="h-full flex min-h-0">
-        <SftpFilePane side="left" class="flex-1" />
+      <div
+        v-if="isPerTab || activeTab === 'files'"
+        class="h-full flex min-h-0"
+      >
+        <SftpFilePane side="left" class="flex-1 min-w-0" />
         <div class="w-px shrink-0" style="background: var(--tm-border)" />
-        <SftpFilePane side="right" class="flex-1" />
+        <SftpFilePane side="right" class="flex-1 min-w-0" />
       </div>
-      <TransfersPanel v-else />
+      <TransfersPanel v-if="!isPerTab && activeTab === 'transfers'" />
     </div>
   </div>
 </template>

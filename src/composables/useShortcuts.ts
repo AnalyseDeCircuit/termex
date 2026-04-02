@@ -6,6 +6,8 @@ import type { KeybindingAction } from "@/types/keybindings";
 
 interface ShortcutHandlers {
   toggleSidebar: () => void;
+  toggleAi: () => void;
+  closeTab: () => void;
   openNewConnection: () => void;
   openSettings: () => void;
   openSearch?: () => void;
@@ -25,12 +27,8 @@ export function useShortcuts(handlers: ShortcutHandlers) {
     newConnection: () => handlers.openNewConnection(),
     openSettings: () => handlers.openSettings(),
     toggleSidebar: () => handlers.toggleSidebar(),
-    toggleAi: () => handlers.openSettings(), // fallback — menu-driven
-    closeTab: () => {
-      if (sessionStore.activeSessionId) {
-        sessionStore.disconnect(sessionStore.activeSessionId);
-      }
-    },
+    toggleAi: () => handlers.toggleAi(),
+    closeTab: () => handlers.closeTab(),
     nextTab: () => cycleTab(1),
     prevTab: () => cycleTab(-1),
     search: () => handlers.openSearch?.(),

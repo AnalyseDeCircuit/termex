@@ -1,8 +1,9 @@
-import { ref, computed } from "vue";
+import { ref, computed, inject } from "vue";
 import { useI18n } from "vue-i18n";
 import { ElMessage } from "element-plus";
 import { tauriInvoke } from "@/utils/tauri";
 import { useSftpStore } from "@/stores/sftpStore";
+import { tabSftpKey, type TabSftpContext } from "@/composables/useTabSftp";
 import type { FileEntry } from "@/types/sftp";
 
 /** Drag data payload shared between panes. */
@@ -79,8 +80,10 @@ function ensureGlobalListeners() {
 export function useSftpDrag(side: "left" | "right") {
   const { t } = useI18n();
   const sftpStore = useSftpStore();
+  const tabCtx = inject<TabSftpContext | null>(tabSftpKey, null);
+  const ctx = tabCtx ?? sftpStore;
 
-  const pane = computed(() => sftpStore.getPane(side));
+  const pane = computed(() => ctx.getPane(side));
   const isDropTarget = computed(() =>
     activeDrag.value !== null && activeDrag.value.side !== side && isDragging.value,
   );
@@ -119,10 +122,10 @@ export function useSftpDrag(side: "left" | "right") {
 
     try {
       if (src.mode === "local" && dst.mode === "remote" && dst.sessionId) {
-        await sftpStore.uploadFile(dst.sessionId, src.fullPath, dstFullPath);
+        await ctx.uploadFile(dst.sessionId, src.fullPath, dstFullPath);
         ElMessage.success(t("sftp.uploadStarted"));
       } else if (src.mode === "remote" && dst.mode === "local" && src.sessionId) {
-        await sftpStore.downloadFile(src.sessionId, src.fullPath, dstFullPath);
+        await ctx.downloadFile(src.sessionId, src.fullPath, dstFullPath);
         ElMessage.success(t("sftp.downloadStarted"));
       } else if (
         src.mode === "remote" && dst.mode === "remote" &&
@@ -135,9 +138,9 @@ export function useSftpDrag(side: "left" | "right") {
             newPath: dstFullPath,
           });
         } else {
-          const srcName = sftpStore.getPane(src.side).serverName ?? src.sessionId;
+          const srcName = ctx.getPane(src.side).serverName ?? src.sessionId;
           const dstName = dst.serverName ?? dst.sessionId;
-          await sftpStore.serverToServerTransfer(
+          await ctx.serverToServerTransfer(
             src.sessionId, src.fullPath,
             dst.sessionId!, dstFullPath,
             srcName, dstName!,

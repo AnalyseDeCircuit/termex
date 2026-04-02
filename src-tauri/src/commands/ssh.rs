@@ -536,6 +536,25 @@ pub async fn ssh_resize(
     session.resize(cols, rows).map_err(|e| e.to_string())
 }
 
+/// Executes a command on the remote server via a separate exec channel.
+/// Does not interfere with the PTY shell. Returns { stdout, exitCode }.
+#[tauri::command]
+pub async fn ssh_exec(
+    state: State<'_, AppState>,
+    session_id: String,
+    command: String,
+) -> Result<serde_json::Value, String> {
+    let sessions = state.sessions.read().await;
+    let session = sessions
+        .get(&session_id)
+        .ok_or_else(|| SshError::SessionNotFound(session_id).to_string())?;
+    let (stdout, exit_code) = session.exec_command(&command).await.map_err(|e| e.to_string())?;
+    Ok(serde_json::json!({
+        "stdout": stdout.trim_end(),
+        "exitCode": exit_code,
+    }))
+}
+
 // ── Internal ───────────────────────────────────────────────────
 
 #[derive(Clone)]

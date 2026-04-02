@@ -137,6 +137,7 @@ export const useSettingsStore = defineStore("settings", () => {
   const keywordRules = ref<KeywordRule[]>([]);
   const keybindings = ref<KeybindingMap>({ ...DEFAULT_KEYBINDINGS });
   const sidebarTransition = ref<string>("flip");
+  const sftpLayout = ref<"tabs" | "right" | "bottom">("tabs");
 
   // ── Actions ────────────────────────────────────────────────
 
@@ -192,6 +193,9 @@ export const useSettingsStore = defineStore("settings", () => {
           break;
         case "sidebarTransition":
           sidebarTransition.value = value;
+          break;
+        case "sftpLayout":
+          sftpLayout.value = value as "tabs" | "right" | "bottom";
           break;
       }
     }
@@ -381,6 +385,7 @@ export const useSettingsStore = defineStore("settings", () => {
   watch(terminalTheme, (v) => set("terminalTheme", v));
   watch(keywordRules, (v) => set("keyword_highlight_rules", JSON.stringify(v)), { deep: true });
   watch(sidebarTransition, (v) => set("sidebarTransition", v));
+  watch(sftpLayout, (v) => set("sftpLayout", v));
 
   return {
     theme,
@@ -396,6 +401,7 @@ export const useSettingsStore = defineStore("settings", () => {
     keywordRules,
     keybindings,
     sidebarTransition,
+    sftpLayout,
     loadAll,
     set,
     applyTheme,

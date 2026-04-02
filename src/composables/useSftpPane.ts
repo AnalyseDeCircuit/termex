@@ -1,21 +1,29 @@
-import { computed, ref } from "vue";
+import { computed, inject, ref } from "vue";
 import { useI18n } from "vue-i18n";
 import { ElMessage, ElMessageBox } from "element-plus";
 import { useSftpStore } from "@/stores/sftpStore";
 import { useSessionStore } from "@/stores/sessionStore";
+import { tabSftpKey, type TabSftpContext } from "@/composables/useTabSftp";
 import type { FileEntry } from "@/types/sftp";
 
 /**
  * Composable that encapsulates pane-level file operations,
  * directory navigation, and clipboard for a single SFTP pane.
+ *
+ * Uses per-tab context (via inject) when available, otherwise
+ * falls back to the global sftpStore for backward compatibility.
  */
 export function useSftpPane(side: "left" | "right") {
   const { t } = useI18n();
   const sftpStore = useSftpStore();
   const sessionStore = useSessionStore();
+  const tabCtx = inject<TabSftpContext | null>(tabSftpKey, null);
+
+  // Use per-tab context when available, global store otherwise
+  const ctx = tabCtx ?? sftpStore;
 
   // ── Reactive pane state ──
-  const pane = computed(() => sftpStore.getPane(side));
+  const pane = computed(() => ctx.getPane(side));
   const isRemote = computed(() => pane.value.mode === "remote");
   const isLocal = computed(() => pane.value.mode === "local");
 
@@ -39,7 +47,7 @@ export function useSftpPane(side: "left" | "right") {
   async function submitPathEdit() {
     editingPath.value = false;
     if (editPathInput.value && editPathInput.value !== pane.value.currentPath) {
-      await sftpStore.listPaneDir(side, editPathInput.value);
+      await ctx.listPaneDir(side, editPathInput.value);
     }
   }
 
@@ -59,20 +67,20 @@ export function useSftpPane(side: "left" | "right") {
   // ── Navigation ──
   async function handleDoubleClick(entry: FileEntry) {
     if (entry.isDir) {
-      await sftpStore.enterPaneDir(side, entry.name);
+      await ctx.enterPaneDir(side, entry.name);
     }
   }
 
   async function goUp() {
-    await sftpStore.goUpPane(side);
+    await ctx.goUpPane(side);
   }
 
   async function refresh() {
-    await sftpStore.refreshPane(side);
+    await ctx.refreshPane(side);
   }
 
   async function navigateTo(path: string) {
-    await sftpStore.listPaneDir(side, path);
+    await ctx.listPaneDir(side, path);
   }
 
   // ── File operations (remote only) ──
@@ -84,7 +92,7 @@ export function useSftpPane(side: "left" | "right") {
         cancelButtonText: t("sftp.cancel"),
       });
       if (value) {
-        await sftpStore.mkdirInPane(side, value);
+        await ctx.mkdirInPane(side, value);
         ElMessage.success(t("sftp.folderCreated"));
       }
     } catch { /* cancelled */ }
@@ -97,7 +105,7 @@ export function useSftpPane(side: "left" | "right") {
         cancelButtonText: t("sftp.cancel"),
         type: "warning",
       });
-      await sftpStore.deleteInPane(side, entry);
+      await ctx.deleteInPane(side, entry);
       ElMessage.success(t("sftp.deleted"));
     } catch { /* cancelled */ }
   }
@@ -117,7 +125,7 @@ export function useSftpPane(side: "left" | "right") {
     const newName = editFileInput.value.trim();
     editingFileName.value = null;
     if (newName && newName !== oldName) {
-      await sftpStore.renameInPane(side, oldName, newName);
+      await ctx.renameInPane(side, oldName, newName);
     }
   }
 
@@ -127,17 +135,17 @@ export function useSftpPane(side: "left" | "right") {
 
   // ── Clipboard ──
   function copy(entry: FileEntry) {
-    sftpStore.copyToClipboard(side, entry);
+    ctx.copyToClipboard(side, entry);
     ElMessage.success(t("sftp.copied"));
   }
 
   function cut(entry: FileEntry) {
-    sftpStore.cutToClipboard(side, entry);
+    ctx.cutToClipboard(side, entry);
     ElMessage.success(t("sftp.copied"));
   }
 
   async function paste() {
-    await sftpStore.pasteInPane(side);
+    await ctx.pasteInPane(side);
   }
 
   // ── New file ──
@@ -149,7 +157,7 @@ export function useSftpPane(side: "left" | "right") {
         cancelButtonText: t("sftp.cancel"),
       });
       if (value) {
-        await sftpStore.createFileInPane(side, value);
+        await ctx.createFileInPane(side, value);
         ElMessage.success(t("sftp.fileCreated"));
       }
     } catch { /* cancelled */ }
@@ -160,7 +168,7 @@ export function useSftpPane(side: "left" | "right") {
 
   /** Session ID currently used by the OTHER pane (for disabling duplicates). */
   const otherPaneSessionId = computed(() => {
-    const otherPane = sftpStore.getPane(otherSide);
+    const otherPane = ctx.getPane(otherSide);
     return otherPane.mode === "remote" ? otherPane.sessionId : null;
   });
 
@@ -179,11 +187,11 @@ export function useSftpPane(side: "left" | "right") {
   });
 
   async function switchToLocal() {
-    await sftpStore.setPaneLocal(side);
+    await ctx.setPaneLocal(side);
   }
 
   async function switchToServer(sessionId: string, serverName: string) {
-    await sftpStore.openPane(side, sessionId, serverName);
+    await ctx.openPane(side, sessionId, serverName);
   }
 
   // ── Utilities ──

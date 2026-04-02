@@ -1,7 +1,6 @@
 import { defineStore } from "pinia";
 import { ref, computed } from "vue";
 import { tauriInvoke } from "@/utils/tauri";
-import { useSftpStore } from "./sftpStore";
 import type { Session, SessionStatus, Tab } from "@/types/session";
 
 export const useSessionStore = defineStore("session", () => {
@@ -109,11 +108,8 @@ export const useSessionStore = defineStore("session", () => {
       return;
     }
 
-    // Close SFTP if this SSH session has SFTP open
-    const sftpStore = useSftpStore();
-    if (sftpStore.sessionId === sessionId && sftpStore.isConnected) {
-      await sftpStore.close();
-    }
+    // SFTP cleanup is handled per-tab by useTabSftp (component unmount)
+    // and by the Rust backend (ssh_disconnect auto-closes SFTP channel)
 
     try {
       await tauriInvoke("ssh_disconnect", { sessionId });

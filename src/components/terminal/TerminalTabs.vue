@@ -2,9 +2,8 @@
 import { ref, computed, nextTick } from "vue";
 import { useI18n } from "vue-i18n";
 import { getCurrentWindow } from "@tauri-apps/api/window";
-import { Close, Setting, FolderOpened, Monitor } from "@element-plus/icons-vue";
+import { Close, Setting, Monitor } from "@element-plus/icons-vue";
 import { useSessionStore } from "@/stores/sessionStore";
-import { useSftpStore } from "@/stores/sftpStore";
 import { tauriInvoke } from "@/utils/tauri";
 import { ElMessage } from "element-plus";
 import ContextMenu from "@/components/sidebar/ContextMenu.vue";
@@ -46,23 +45,6 @@ const emit = defineEmits<{
 }>();
 
 const sessionStore = useSessionStore();
-const sftpStore = useSftpStore();
-
-const canOpenSftp = computed(() => {
-  const session = sessionStore.activeSession;
-  return session?.status === "connected";
-});
-
-async function openSftp() {
-  const session = sessionStore.activeSession;
-  if (!session) return;
-  if (sftpStore.panelVisible) {
-    sftpStore.panelVisible = false;
-  } else {
-    await sftpStore.open(session.id, session.serverName);
-  }
-}
-
 function onTabClick(sessionId: string) {
   sessionStore.setActive(sessionId);
 }
@@ -159,7 +141,6 @@ async function onCtxSelect(action: string) {
     const session = sessionStore.sessions.get(sid);
     if (!session) return;
 
-    const sftpWasOpen = sftpStore.sessionId === sid && sftpStore.panelVisible;
     const tabTitle = tab?.title ?? session.serverName;
     const { serverId, serverName } = session;
     const tabIdx = sessionStore.tabs.findIndex((t) => t.sessionId === sid);
@@ -197,9 +178,6 @@ async function onCtxSelect(action: string) {
         sessionStore.activeSessionId = realId;
       }
 
-      if (sftpWasOpen && sessionStore.activeSession?.status === "connected") {
-        await sftpStore.open(realId, serverName);
-      }
     } catch {
       const s = sessionStore.sessions.get(placeholderId);
       if (s) s.status = "error";
@@ -207,22 +185,13 @@ async function onCtxSelect(action: string) {
   } else if (action === "reconnect-all") {
     const allSessions = [...sessionStore.sessions.values()];
     const allTabs = [...sessionStore.tabs];
-    const sftpSessionIds = new Map<string, boolean>();
 
     for (const t of allTabs) {
-      if (sftpStore.sessionId === t.sessionId && sftpStore.panelVisible) {
-        sftpSessionIds.set(t.sessionId, true);
-      }
       sessionStore.disconnect(t.sessionId);
     }
 
     for (const s of allSessions) {
-      const wasSftpOpen = sftpSessionIds.get(s.id) ?? false;
       await sessionStore.connect(s.serverId, s.serverName);
-
-      if (wasSftpOpen && sessionStore.activeSession?.status === "connected") {
-        await sftpStore.open(sessionStore.activeSession.id, sessionStore.activeSession.serverName);
-      }
     }
   }
 }
@@ -287,15 +256,6 @@ async function onCtxSelect(action: string) {
 
     <!-- Empty fill -->
     <div class="flex-1 h-full" />
-
-    <!-- SFTP toggle -->
-    <button
-      v-if="canOpenSftp"
-      class="tm-icon-btn px-2 h-full transition-colors shrink-0"      :title="$t('sftp.title')"
-      @click="openSftp"
-    >
-      <el-icon :size="14"><FolderOpened /></el-icon>
-    </button>
 
     <!-- Local terminal -->
     <button
