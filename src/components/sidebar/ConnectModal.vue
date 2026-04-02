@@ -378,6 +378,8 @@ async function handleTest() {
   if (!form.host || !form.username) return;
   testing.value = true;
   testResult.value = null;
+  // Sync chain so form.proxyId / form.networkProxyId are up-to-date
+  syncChainToForm();
   try {
     await tauriInvoke("ssh_test", {
       host: form.host,
@@ -387,6 +389,8 @@ async function handleTest() {
       password: form.password || null,
       keyPath: form.keyPath || null,
       passphrase: form.passphrase || null,
+      proxyId: form.proxyId || null,
+      networkProxyId: form.networkProxyId || null,
     });
     testResult.value = { ok: true, msg: t("connection.testSuccess") };
   } catch (e) {
