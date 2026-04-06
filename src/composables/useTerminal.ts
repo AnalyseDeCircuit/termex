@@ -60,6 +60,38 @@ export function useTerminal(sessionId: Ref<string>, options?: TerminalOptions) {
       webglAddon = null;
     }
 
+    // Copy/Paste keyboard support
+    // - Mac: Cmd+C copies selection (falls through to terminal SIGINT if no selection)
+    // - Linux: Ctrl+Shift+C copies selection
+    // - Paste: Cmd+V (Mac) / Ctrl+Shift+V (Linux)
+    terminal.attachCustomKeyEventHandler((ev) => {
+      const isMac = navigator.platform.startsWith("Mac");
+      if (ev.type !== "keydown") return true;
+
+      // Copy: Cmd+C (Mac) or Ctrl+Shift+C (Linux)
+      if (ev.key === "c" && ((isMac && ev.metaKey && !ev.shiftKey) || (!isMac && ev.ctrlKey && ev.shiftKey))) {
+        const sel = terminal!.getSelection();
+        if (sel) {
+          navigator.clipboard.writeText(sel);
+          return false; // prevent terminal from processing
+        }
+        // No selection on Mac Cmd+C → let through as SIGINT
+        return isMac ? true : false;
+      }
+
+      // Paste: Cmd+V (Mac) or Ctrl+Shift+V (Linux)
+      if (ev.key === "v" && ((isMac && ev.metaKey && !ev.shiftKey) || (!isMac && ev.ctrlKey && ev.shiftKey))) {
+        navigator.clipboard.readText().then((text) => {
+          if (text && terminal) {
+            terminal.paste(text);
+          }
+        });
+        return false;
+      }
+
+      return true;
+    });
+
     fitAddon.fit();
     terminal.focus();
     // Ensure focus after xterm fully renders

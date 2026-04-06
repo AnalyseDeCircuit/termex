@@ -24,6 +24,7 @@ const activeSubTab = ref<"ssh" | "sftp" | "transfers">("ssh");
 const splitSubTab = ref<"sftp" | "transfers">("sftp");
 
 const sftpLayout = computed(() => settingsStore.sftpLayout ?? "tabs");
+const showFloatingTabBar = computed(() => !isLocal.value && sftpLayout.value === "tabs");
 const splitRatio = ref(0.5);
 
 // Terminal sizing: local sessions always fullscreen; SSH depends on layout
@@ -180,14 +181,16 @@ function toggleCwdSync() {
 }
 
 // Auto-activate CWD sync when shell becomes connected (if previously enabled)
-// Auto-activate CWD sync only for SSH sessions when previously enabled
+// Uses { immediate: true } to also handle cases where the session is already
+// connected when the component mounts (e.g., app restart with persisted setting).
 watch(isConnected, async (connected) => {
   if (connected && !isLocal.value && cwdSyncEnabled.value && !oscDispose) {
     await nextTick();
-    await new Promise((r) => setTimeout(r, 800));
+    // Wait for terminal to be fully mounted and shell to be ready
+    await new Promise((r) => setTimeout(r, 1200));
     activateCwdSync();
   }
-});
+}, { immediate: true });
 
 async function activateCwdSync() {
   const term = terminalViewRef.value?.getTerminal();
@@ -240,7 +243,7 @@ defineExpose({
       ref="terminalViewRef"
       :session-id="sessionId"
       class="min-w-0 min-h-0 shrink-0"
-      :style="terminalStyle"
+      :style="{ ...terminalStyle, paddingTop: showFloatingTabBar ? '24px' : '0' }"
     />
 
     <!-- ═══ Tabs mode: overlaid content panels ═══ -->
