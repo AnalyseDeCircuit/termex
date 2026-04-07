@@ -237,63 +237,6 @@ function onHopMouseDown(idx: number, e: MouseEvent) {
   window.addEventListener("mouseup", onUp);
 }
 
-// ── Inline proxy creation ──
-const addingProxy = ref(false);
-const proxyForm = reactive({
-  name: "",
-  proxyType: "socks5" as "socks5" | "socks4" | "http" | "command",
-  host: "",
-  port: 1080,
-  username: "",
-  password: "",
-  tlsEnabled: false,
-  tlsVerify: true,
-  caCertPath: "",
-  clientCertPath: "",
-  clientKeyPath: "",
-  command: "",
-});
-
-const proxyTypeOptions = [
-  { value: "socks5", label: "SOCKS5", defaultPort: 1080 },
-  { value: "socks4", label: "SOCKS4", defaultPort: 1080 },
-  { value: "http", label: "HTTP CONNECT", defaultPort: 8080 },
-  { value: "command", label: "ProxyCommand", defaultPort: 0 },
-];
-
-function onProxyTypeChange(val: string) {
-  const pt = proxyTypeOptions.find((p) => p.value === val);
-  if (pt) proxyForm.port = pt.defaultPort;
-}
-
-function startAddProxy() {
-  proxyForm.name = "";
-  proxyForm.proxyType = "socks5";
-  proxyForm.host = "";
-  proxyForm.port = 1080;
-  proxyForm.username = "";
-  proxyForm.password = "";
-  proxyForm.tlsEnabled = false;
-  proxyForm.tlsVerify = true;
-  proxyForm.caCertPath = "";
-  proxyForm.clientCertPath = "";
-  proxyForm.clientKeyPath = "";
-  proxyForm.command = "";
-  addingProxy.value = true;
-}
-
-async function saveQuickProxy() {
-  const isCmd = proxyForm.proxyType === "command";
-  if (!proxyForm.name || (isCmd ? !proxyForm.command : !proxyForm.host)) return;
-  try {
-    const created = await proxyStore.create({ ...proxyForm });
-    chain.value.push({ type: "proxy", id: created.id });
-    addingProxy.value = false;
-  } catch (e) {
-    ElMessage.error(String(e));
-  }
-}
-
 // ── Form lifecycle ──
 watch(
   () => props.visible,
@@ -554,7 +497,6 @@ async function handleTest() {
   if (!form.host || !form.username) return;
   testing.value = true;
   testResult.value = null;
-  // Sync chain so form.proxyId / form.networkProxyId are up-to-date
   syncChainToForm();
   try {
     await tauriInvoke("ssh_test", {
@@ -567,6 +509,7 @@ async function handleTest() {
       passphrase: form.passphrase || null,
       proxyId: form.proxyId || null,
       networkProxyId: form.networkProxyId || null,
+      chain: buildChainPayload(),
     });
     testResult.value = { ok: true, msg: t("connection.testSuccess") };
   } catch (e) {

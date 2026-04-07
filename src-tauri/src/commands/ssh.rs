@@ -183,6 +183,7 @@ pub async fn ssh_open_shell(
 
 /// Tests SSH connectivity using form input (without saving).
 /// Uses the chain engine for proper session lifecycle management.
+/// Accepts an optional `chain` parameter with the exact hop order from the UI.
 #[tauri::command]
 pub async fn ssh_test(
     state: State<'_, AppState>,
@@ -196,46 +197,71 @@ pub async fn ssh_test(
     passphrase: Option<String>,
     proxy_id: Option<String>,
     network_proxy_id: Option<String>,
+    chain: Option<Vec<crate::storage::models::ChainHopInput>>,
 ) -> Result<String, String> {
-    let proxy_id = proxy_id.filter(|s| !s.is_empty());
-    let network_proxy_id = network_proxy_id.filter(|s| !s.is_empty());
+    // Build pre-target hops: prefer chain parameter, fall back to legacy fields
+    let pre_hops = if let Some(ref chain_hops) = chain {
+        let pre: Vec<_> = chain_hops.iter().filter(|h| h.phase == "pre").collect();
+        let mut hops = Vec::new();
+        for h in pre {
+            let hop = resolve_single_hop(
+                &state,
+                &ChainHop {
+                    id: String::new(),
+                    server_id: String::new(),
+                    position: 0,
+                    hop_type: h.hop_type.clone(),
+                    hop_id: h.hop_id.clone(),
+                    phase: "pre".into(),
+                    created_at: String::new(),
+                },
+            )
+            .map_err(|e| e.to_string())?;
+            hops.push(hop);
+        }
+        hops
+    } else {
+        // Legacy fallback
+        let proxy_id = proxy_id.filter(|s| !s.is_empty());
+        let network_proxy_id = network_proxy_id.filter(|s| !s.is_empty());
+        let mut hops = Vec::new();
 
-    // Build pre-target hops from legacy fields (ssh_test doesn't use chain table)
-    let mut pre_hops = Vec::new();
+        if let Some(ref np_id) = network_proxy_id {
+            let hop = resolve_single_hop(
+                &state,
+                &ChainHop {
+                    id: String::new(),
+                    server_id: String::new(),
+                    position: 0,
+                    hop_type: "proxy".into(),
+                    hop_id: np_id.clone(),
+                    phase: "pre".into(),
+                    created_at: String::new(),
+                },
+            )
+            .map_err(|e| e.to_string())?;
+            hops.push(hop);
+        }
 
-    if let Some(ref np_id) = network_proxy_id {
-        let hop = resolve_single_hop(
-            &state,
-            &ChainHop {
-                id: String::new(),
-                server_id: String::new(),
-                position: 0,
-                hop_type: "proxy".into(),
-                hop_id: np_id.clone(),
-                phase: "pre".into(),
-                created_at: String::new(),
-            },
-        )
-        .map_err(|e| e.to_string())?;
-        pre_hops.push(hop);
-    }
+        if let Some(ref b_id) = proxy_id {
+            let hop = resolve_single_hop(
+                &state,
+                &ChainHop {
+                    id: String::new(),
+                    server_id: String::new(),
+                    position: 0,
+                    hop_type: "ssh".into(),
+                    hop_id: b_id.clone(),
+                    phase: "pre".into(),
+                    created_at: String::new(),
+                },
+            )
+            .map_err(|e| e.to_string())?;
+            hops.push(hop);
+        }
 
-    if let Some(ref b_id) = proxy_id {
-        let hop = resolve_single_hop(
-            &state,
-            &ChainHop {
-                id: String::new(),
-                server_id: String::new(),
-                position: 0,
-                hop_type: "ssh".into(),
-                hop_id: b_id.clone(),
-                phase: "pre".into(),
-                created_at: String::new(),
-            },
-        )
-        .map_err(|e| e.to_string())?;
-        pre_hops.push(hop);
-    }
+        hops
+    };
 
     // Build target with form credentials (not from DB/keychain)
     let resolved_target = chain_connect::ResolvedTarget {
