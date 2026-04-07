@@ -1,20 +1,33 @@
+use std::collections::HashMap;
 use std::sync::Arc;
 
 use russh::client::{self, Msg, Session};
 use russh::keys::key::PrivateKeyWithHashAlg;
 use russh::keys::PublicKey;
 use russh::{Channel, ChannelMsg};
+use tokio::sync::RwLock;
 
 use super::reverse_forward::{
     parse_sync_request, SharedReverseForwardRegistry, SyncAction, HTTP_200,
 };
 use super::SshError;
 
+/// Registry for exit proxy forwarded ports.
+/// Maps "address:port" to a local TCP port where the SOCKS5 relay listens.
+pub type ExitForwardRegistry = Arc<RwLock<HashMap<String, u16>>>;
+
+/// Creates a new empty exit forward registry.
+pub fn new_exit_forward_registry() -> ExitForwardRegistry {
+    Arc::new(RwLock::new(HashMap::new()))
+}
+
 /// SSH client handler that accepts all host keys (MVP).
-/// Also handles reverse port forwarding channels for Git Auto Sync.
+/// Also handles reverse port forwarding channels for Git Auto Sync and exit proxy.
 pub struct ClientHandler {
     /// Shared reverse forward registry for Git Sync.
     pub reverse_registry: Option<SharedReverseForwardRegistry>,
+    /// Exit proxy forward registry: remote address:port → local SOCKS5 port.
+    pub exit_forward_registry: Option<ExitForwardRegistry>,
     /// Tauri app handle for emitting events.
     pub app_handle: Option<tauri::AppHandle>,
 }
@@ -24,6 +37,7 @@ impl ClientHandler {
     pub fn new() -> Self {
         Self {
             reverse_registry: None,
+            exit_forward_registry: None,
             app_handle: None,
         }
     }
@@ -35,6 +49,7 @@ impl ClientHandler {
     ) -> Self {
         Self {
             reverse_registry: Some(registry),
+            exit_forward_registry: None,
             app_handle: Some(app_handle),
         }
     }
@@ -64,6 +79,28 @@ impl client::Handler for ClientHandler {
         _originator_port: u32,
         _session: &mut Session,
     ) -> Result<(), Self::Error> {
+        let key = format!("{}:{}", connected_address, connected_port);
+        eprintln!(">>> [FORWARDED-TCPIP] Received: {} (from {}:{})", key, _originator_address, _originator_port);
+
+        // Check exit proxy registry first
+        if let Some(exit_reg) = &self.exit_forward_registry {
+            let reg = exit_reg.read().await;
+            eprintln!(">>> [FORWARDED-TCPIP] Registry has {} entries: {:?}", reg.len(), reg.keys().collect::<Vec<_>>());
+            if let Some(&local_port) = reg.get(&key) {
+                drop(reg);
+                eprintln!(">>> [FORWARDED-TCPIP] Matched! Bridging to local:{}", local_port);
+                // Bridge this channel to the local SOCKS5 server
+                tokio::spawn(async move {
+                    bridge_forwarded_to_local(channel, local_port).await;
+                });
+                return Ok(());
+            }
+            eprintln!(">>> [FORWARDED-TCPIP] No match for key: {}", key);
+        } else {
+            eprintln!(">>> [FORWARDED-TCPIP] No exit_forward_registry on handler");
+        }
+
+        // Fall through to Git Sync reverse forward registry
         let registry = match &self.reverse_registry {
             Some(r) => r.clone(),
             None => return Ok(()),
@@ -202,4 +239,48 @@ pub async fn auth_key(
     // If file read fails, treat key_path as the key content directly
     // (this handles the case where the frontend passes key content instead of path)
     auth_key_data(handle, username, key_path, passphrase).await
+}
+
+/// Bridges a forwarded-tcpip SSH channel to a local TCP port (exit proxy SOCKS5 server).
+async fn bridge_forwarded_to_local(mut channel: Channel<Msg>, local_port: u16) {
+    use tokio::io::{AsyncReadExt, AsyncWriteExt};
+    use tokio::net::TcpStream;
+
+    let Ok(mut tcp) = TcpStream::connect(format!("127.0.0.1:{}", local_port)).await else {
+        let _ = channel.close().await;
+        return;
+    };
+
+    let (mut tcp_rd, mut tcp_wr) = tcp.split();
+    let mut buf = vec![0u8; 32768];
+
+    loop {
+        tokio::select! {
+            // SSH channel → local TCP
+            msg = channel.wait() => {
+                match msg {
+                    Some(ChannelMsg::Data { data }) => {
+                        if tcp_wr.write_all(&data).await.is_err() {
+                            break;
+                        }
+                    }
+                    Some(ChannelMsg::Eof) | None => break,
+                    _ => {}
+                }
+            }
+            // Local TCP → SSH channel
+            result = tcp_rd.read(&mut buf) => {
+                match result {
+                    Ok(0) | Err(_) => break,
+                    Ok(n) => {
+                        if channel.data(&buf[..n]).await.is_err() {
+                            break;
+                        }
+                    }
+                }
+            }
+        }
+    }
+
+    let _ = channel.close().await;
 }

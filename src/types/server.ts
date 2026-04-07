@@ -9,6 +9,25 @@ export interface ServerGroup {
   updatedAt: string;
 }
 
+/** A single hop in a server's connection chain. */
+export interface ChainHop {
+  id: string;
+  serverId: string;
+  position: number;
+  hopType: "ssh" | "proxy";
+  hopId: string;
+  /** "pre" = before target (ingress), "post" = after target (exit routing) */
+  phase: "pre" | "post";
+  createdAt: string;
+}
+
+/** Input for saving a chain hop (no id/timestamps). */
+export interface ChainHopInput {
+  hopType: "ssh" | "proxy";
+  hopId: string;
+  phase: "pre" | "post";
+}
+
 export interface Server {
   id: string;
   name: string;
@@ -30,6 +49,8 @@ export interface Server {
   gitSyncMode: string;
   gitSyncLocalPath?: string;
   gitSyncRemotePath?: string;
+  /** Connection chain hops (V10+). */
+  chain?: ChainHop[];
   lastConnected?: string;
   createdAt: string;
   updatedAt: string;
@@ -57,6 +78,8 @@ export interface ServerInput {
   gitSyncMode?: string;
   gitSyncLocalPath?: string;
   gitSyncRemotePath?: string;
+  /** Connection chain hops (V10+). */
+  chain?: ChainHopInput[];
 }
 
 /** Input for creating or updating a group. */

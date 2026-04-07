@@ -1,8 +1,9 @@
 use std::sync::Arc;
 
 use russh::client;
+use tokio_util::sync::CancellationToken;
 
-use super::auth::ClientHandler;
+use super::auth::{self as ssh_auth, ClientHandler, ExitForwardRegistry};
 use super::channel::{ChannelCommand, ChannelHandle, spawn_channel_task};
 use super::proxy::{self, ProxyConfig};
 use super::SshError;
@@ -22,9 +23,35 @@ pub struct SshSession {
     /// Empty for direct connections, contains [bastion_id] for single-hop,
     /// [innermost_bastion, ..., outermost_bastion] for multi-hop.
     pub proxy_chain: Vec<String>,
+    /// If post-target exit routing is active, the proxy URL to inject (e.g., "socks5://host:port").
+    pub exit_proxy_url: Option<String>,
+    /// Cancellation token for the exit proxy background task.
+    pub exit_proxy_cancel: Option<CancellationToken>,
+    /// Exit forward registry shared with ClientHandler for forwarded-tcpip bridging.
+    pub exit_forward_registry: ExitForwardRegistry,
 }
 
 impl SshSession {
+    /// Creates a new SshSession from a handle, with a fresh exit forward registry.
+    fn from_handle(handle: client::Handle<ClientHandler>, exit_reg: ExitForwardRegistry) -> Self {
+        Self {
+            handle,
+            channel: None,
+            proxy_chain: Vec::new(),
+            exit_proxy_url: None,
+            exit_proxy_cancel: None,
+            exit_forward_registry: exit_reg,
+        }
+    }
+
+    /// Creates a ClientHandler with exit forward registry support.
+    fn new_handler() -> (ClientHandler, ExitForwardRegistry) {
+        let reg = ssh_auth::new_exit_forward_registry();
+        let mut handler = ClientHandler::new();
+        handler.exit_forward_registry = Some(reg.clone());
+        (handler, reg)
+    }
+
     /// Connects to an SSH server. Authentication must be done separately.
     pub async fn connect(host: &str, port: u16) -> Result<Self, SshError> {
         let config = Arc::new(client::Config {
@@ -33,16 +60,12 @@ impl SshSession {
             ..Default::default()
         });
 
-        let handler = ClientHandler::new();
+        let (handler, reg) = Self::new_handler();
         let handle = client::connect(config, (host, port), handler)
             .await
             .map_err(|e| SshError::ConnectionFailed(e.to_string()))?;
 
-        Ok(Self {
-            handle,
-            channel: None,
-            proxy_chain: Vec::new(),
-        })
+        Ok(Self::from_handle(handle, reg))
     }
 
     /// Connects to an SSH server via a bastion host using direct-tcpip tunneling.
@@ -66,16 +89,12 @@ impl SshSession {
             ..Default::default()
         });
 
-        let handler = ClientHandler::new();
+        let (handler, reg) = Self::new_handler();
         let handle = client::connect_stream(config, stream, handler)
             .await
             .map_err(|e| SshError::ConnectionFailed(format!("Failed to connect through proxy: {}", e)))?;
 
-        Ok(Self {
-            handle,
-            channel: None,
-            proxy_chain: Vec::new(),
-        })
+        Ok(Self::from_handle(handle, reg))
     }
 
     /// Connects to an SSH server through a network proxy (SOCKS5/SOCKS4/HTTP CONNECT).
@@ -93,16 +112,87 @@ impl SshSession {
             ..Default::default()
         });
 
-        let handler = ClientHandler::new();
+        let (handler, reg) = Self::new_handler();
         let handle = client::connect_stream(config, stream, handler)
             .await
             .map_err(|e| SshError::ConnectionFailed(format!("SSH via proxy: {}", e)))?;
 
-        Ok(Self {
-            handle,
-            channel: None,
-            proxy_chain: Vec::new(),
-        })
+        Ok(Self::from_handle(handle, reg))
+    }
+
+    /// Connects to a target host by tunneling through a network proxy that is itself
+    /// reachable via an SSH bastion's direct-tcpip channel.
+    ///
+    /// Flow: bastion → direct-tcpip to proxy:port → proxy handshake → SSH to target.
+    pub async fn connect_via_tunneled_proxy(
+        bastion_handle: &client::Handle<ClientHandler>,
+        proxy: &ProxyConfig,
+        target_host: &str,
+        target_port: u16,
+    ) -> Result<Self, SshError> {
+        // 1. Open direct-tcpip channel from bastion to the proxy server
+        let channel = bastion_handle
+            .channel_open_direct_tcpip(
+                &proxy.host,
+                proxy.port as u32,
+                "127.0.0.1",
+                0,
+            )
+            .await
+            .map_err(|e| {
+                SshError::ProxyFailed(format!(
+                    "Failed to open tunnel to proxy {}:{}: {}",
+                    proxy.host, proxy.port, e
+                ))
+            })?;
+
+        // 2. Convert channel to a stream for the proxy handshake
+        let channel_stream = channel.into_stream();
+
+        // 3. Perform the proxy protocol handshake (SOCKS5/HTTP CONNECT/etc.)
+        //    over the SSH-tunneled stream to reach the target
+        let tunneled_stream = proxy::connect_via_proxy_on_stream(
+            proxy,
+            target_host,
+            target_port,
+            Box::new(channel_stream),
+        )
+        .await?;
+
+        // 4. Run SSH handshake over the proxy-tunneled stream
+        let config = Arc::new(client::Config {
+            inactivity_timeout: Some(std::time::Duration::from_secs(3600)),
+            keepalive_interval: Some(std::time::Duration::from_secs(30)),
+            ..Default::default()
+        });
+
+        let (handler, reg) = Self::new_handler();
+        let handle = client::connect_stream(config, tunneled_stream, handler)
+            .await
+            .map_err(|e| {
+                SshError::ConnectionFailed(format!("SSH via tunneled proxy: {}", e))
+            })?;
+
+        Ok(Self::from_handle(handle, reg))
+    }
+
+    /// Connects to an SSH server over a pre-established async stream.
+    /// Used when the transport has been set up by the chain connection engine.
+    pub async fn connect_on_stream(
+        stream: Box<dyn proxy::AsyncStream>,
+    ) -> Result<Self, SshError> {
+        let config = Arc::new(client::Config {
+            inactivity_timeout: Some(std::time::Duration::from_secs(3600)),
+            keepalive_interval: Some(std::time::Duration::from_secs(30)),
+            ..Default::default()
+        });
+
+        let (handler, reg) = Self::new_handler();
+        let handle = client::connect_stream(config, stream, handler)
+            .await
+            .map_err(|e| SshError::ConnectionFailed(format!("SSH via stream: {}", e)))?;
+
+        Ok(Self::from_handle(handle, reg))
     }
 
     /// Returns a mutable reference to the client handle for authentication.
@@ -200,7 +290,11 @@ impl SshSession {
     /// Disconnects the SSH session and cleans up resources.
     /// Returns the proxy_chain so the caller can decrement reference counts.
     pub async fn disconnect(mut self) -> Result<Vec<String>, SshError> {
-        // 1. Close the shell channel first
+        // 1. Cancel exit proxy if active
+        if let Some(cancel) = self.exit_proxy_cancel.take() {
+            cancel.cancel();
+        }
+        // 2. Close the shell channel first
         if let Some(ch) = self.channel.take() {
             let _ = ch.cmd_tx.send(ChannelCommand::Close);
             // Wait up to 2s for graceful close, then abort
@@ -211,11 +305,11 @@ impl SshSession {
                 // Task didn't finish in time — it's already been dropped
             }
         }
-        // 2. Send SSH disconnect message
+        // 3. Send SSH disconnect message
         let _ = self.handle
             .disconnect(russh::Disconnect::ByApplication, "", "en")
             .await;
-        // 3. Return proxy_chain for reference count cleanup
+        // 4. Return proxy_chain for reference count cleanup
         Ok(self.proxy_chain)
     }
 }

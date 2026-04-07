@@ -398,6 +398,8 @@ pub fn run() {
             commands::git_sync::git_sync_deploy,
             commands::git_sync::git_sync_setup_tunnel,
             commands::git_sync::git_sync_pull,
+            // Clipboard
+            commands::clipboard::clipboard_read_text,
         ])
         .run(tauri::generate_context!())
         .expect("error while running Termex");

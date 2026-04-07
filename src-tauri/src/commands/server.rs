@@ -4,7 +4,7 @@ use tauri::State;
 use crate::crypto::aes;
 use crate::keychain;
 use crate::state::AppState;
-use crate::storage::models::{AuthType, Server, ServerGroup};
+use crate::storage::models::{AuthType, ChainHopInput, Server, ServerGroup};
 
 // ── Input types ────────────────────────────────────────────────
 
@@ -41,6 +41,9 @@ pub struct ServerInput {
     pub git_sync_mode: String,
     pub git_sync_local_path: Option<String>,
     pub git_sync_remote_path: Option<String>,
+    /// Connection chain hops (replaces proxy_id/network_proxy_id for V10+).
+    #[serde(default)]
+    pub chain: Vec<ChainHopInput>,
 }
 
 fn default_tmux_mode() -> String {
@@ -89,10 +92,10 @@ pub struct ReorderItem {
 
 // ── Server commands ────────────────────────────────────────────
 
-/// Lists all servers with their group info.
+/// Lists all servers with their group info and connection chains.
 #[tauri::command]
 pub fn server_list(state: State<'_, AppState>) -> Result<Vec<Server>, String> {
-    state
+    let mut servers: Vec<Server> = state
         .db
         .with_conn(|conn| {
             let mut stmt = conn.prepare(
@@ -134,6 +137,7 @@ pub fn server_list(state: State<'_, AppState>) -> Result<Vec<Server>, String> {
                         git_sync_mode: row.get::<_, Option<String>>(22)?.unwrap_or_else(|| "notify".into()),
                         git_sync_local_path: row.get(23)?,
                         git_sync_remote_path: row.get(24)?,
+                        chain: Vec::new(), // populated below
                         last_connected: row.get(15)?,
                         created_at: row.get(16)?,
                         updated_at: row.get(17)?,
@@ -143,7 +147,14 @@ pub fn server_list(state: State<'_, AppState>) -> Result<Vec<Server>, String> {
                 .collect();
             Ok(rows)
         })
-        .map_err(|e| e.to_string())
+        .map_err(|e| e.to_string())?;
+
+    // Load connection chains for all servers
+    for server in &mut servers {
+        server.chain = crate::storage::chain::list(&state.db, &server.id).unwrap_or_default();
+    }
+
+    Ok(servers)
 }
 
 /// Creates a new server connection.
@@ -215,6 +226,15 @@ pub fn server_create(
         })
         .map_err(|e| e.to_string())?;
 
+    // Save connection chain if provided
+    if !input.chain.is_empty() {
+        crate::storage::chain::save(&state.db, &id, &input.chain)
+            .map_err(|e| e.to_string())?;
+    }
+
+    // Load saved chain for response
+    let chain = crate::storage::chain::list(&state.db, &id).unwrap_or_default();
+
     Ok(Server {
         id,
         name: input.name,
@@ -238,6 +258,7 @@ pub fn server_create(
         git_sync_mode: input.git_sync_mode,
         git_sync_local_path: input.git_sync_local_path,
         git_sync_remote_path: input.git_sync_remote_path,
+        chain,
         last_connected: None,
         created_at: now.clone(),
         updated_at: now,
@@ -319,6 +340,13 @@ pub fn server_update(
         })
         .map_err(|e| e.to_string())?;
 
+    // Save connection chain (always overwrite — even empty chain clears old hops)
+    crate::storage::chain::save(&state.db, &id, &input.chain)
+        .map_err(|e| e.to_string())?;
+
+    // Load saved chain for response
+    let chain = crate::storage::chain::list(&state.db, &id).unwrap_or_default();
+
     Ok(Server {
         id,
         name: input.name,
@@ -342,6 +370,7 @@ pub fn server_update(
         git_sync_mode: input.git_sync_mode,
         git_sync_local_path: input.git_sync_local_path,
         git_sync_remote_path: input.git_sync_remote_path,
+        chain,
         last_connected: None,
         created_at: String::new(),
         updated_at: now,

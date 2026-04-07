@@ -1,5 +1,7 @@
 pub mod auth;
+pub mod chain_connect;
 pub mod channel;
+pub mod exit_proxy;
 pub mod forward;
 pub mod proxy;
 pub mod proxy_command;

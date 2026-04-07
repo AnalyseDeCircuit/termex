@@ -12,6 +12,7 @@ const MIGRATIONS: &[(i32, &str, &str)] = &[
     (7, "proxy TLS support", ""),
     (8, "tmux and git sync support", ""),
     (9, "proxy command support", ""),
+    (10, "connection chain support", MIGRATION_V10),
 ];
 
 /// Runs all pending migrations in order.
@@ -84,6 +85,11 @@ pub fn run_migrations(conn: &Connection) -> Result<(), rusqlite::Error> {
             if version == 9 {
                 // Migration v9: ProxyCommand support
                 add_column_if_missing(conn, "proxies", "command", "TEXT");
+            }
+            if version == 10 {
+                // Migration v10: connection chain support
+                // Migrate existing proxy_id / network_proxy_id to connection_chain rows
+                migrate_legacy_chains(conn);
             }
             conn.execute(
                 "INSERT INTO _migrations (version, description, applied_at) VALUES (?1, ?2, ?3)",
@@ -236,6 +242,75 @@ CREATE TABLE IF NOT EXISTS proxies (
     updated_at              TEXT NOT NULL
 );
 ";
+
+// ============================================================
+// V10: Connection chain support
+// ============================================================
+
+const MIGRATION_V10: &str = "
+CREATE TABLE IF NOT EXISTS connection_chain (
+    id          TEXT PRIMARY KEY,
+    server_id   TEXT NOT NULL,
+    position    INTEGER NOT NULL,
+    hop_type    TEXT NOT NULL,
+    hop_id      TEXT NOT NULL,
+    phase       TEXT NOT NULL DEFAULT 'pre',
+    created_at  TEXT NOT NULL,
+    FOREIGN KEY (server_id) REFERENCES servers(id) ON DELETE CASCADE
+);
+CREATE INDEX IF NOT EXISTS idx_chain_server ON connection_chain(server_id, position);
+";
+
+/// Migrates existing `proxy_id` / `network_proxy_id` fields to `connection_chain` rows.
+/// Called once during migration V10. Servers with neither field are skipped.
+fn migrate_legacy_chains(conn: &Connection) {
+    let Ok(mut stmt) = conn.prepare(
+        "SELECT id, proxy_id, network_proxy_id FROM servers
+         WHERE (proxy_id IS NOT NULL AND proxy_id != '')
+            OR (network_proxy_id IS NOT NULL AND network_proxy_id != '')",
+    ) else {
+        return;
+    };
+
+    let Ok(rows_iter) = stmt.query_map([], |row| {
+        Ok((row.get(0)?, row.get(1)?, row.get(2)?))
+    }) else {
+        return;
+    };
+    let rows: Vec<(String, Option<String>, Option<String>)> =
+        rows_iter.filter_map(|r| r.ok()).collect();
+
+    let now = time::OffsetDateTime::now_utc().to_string();
+
+    for (server_id, proxy_id, network_proxy_id) in rows {
+        let mut position = 0i32;
+
+        // Network proxy comes first in the chain (position 0)
+        if let Some(ref np_id) = network_proxy_id {
+            if !np_id.is_empty() {
+                let id = uuid::Uuid::new_v4().to_string();
+                let _ = conn.execute(
+                    "INSERT INTO connection_chain (id, server_id, position, hop_type, hop_id, phase, created_at)
+                     VALUES (?1, ?2, ?3, 'proxy', ?4, 'pre', ?5)",
+                    rusqlite::params![id, server_id, position, np_id, now],
+                );
+                position += 1;
+            }
+        }
+
+        // SSH bastion comes after network proxy (position 1)
+        if let Some(ref p_id) = proxy_id {
+            if !p_id.is_empty() {
+                let id = uuid::Uuid::new_v4().to_string();
+                let _ = conn.execute(
+                    "INSERT INTO connection_chain (id, server_id, position, hop_type, hop_id, phase, created_at)
+                     VALUES (?1, ?2, ?3, 'ssh', ?4, 'pre', ?5)",
+                    rusqlite::params![id, server_id, position, p_id, now],
+                );
+            }
+        }
+    }
+}
 
 /// Adds a column to a table if it doesn't already exist (idempotent).
 fn add_column_if_missing(conn: &Connection, table: &str, column: &str, col_type: &str) {

@@ -18,4 +18,5 @@ pub mod fonts;
 pub mod menu;
 pub mod tor;
 pub mod git_sync;
+pub mod clipboard;
 pub mod portable;

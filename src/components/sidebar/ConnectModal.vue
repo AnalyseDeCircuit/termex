@@ -1,14 +1,14 @@
 <script setup lang="ts">
 import { ref, reactive, watch, computed } from "vue";
 import { useI18n } from "vue-i18n";
-import { Close, Plus, Connection } from "@element-plus/icons-vue";
+import { Close, Plus, Connection, QuestionFilled } from "@element-plus/icons-vue";
 import { ElMessage } from "element-plus";
 import { useServerStore } from "@/stores/serverStore";
 import { useSessionStore } from "@/stores/sessionStore";
 import { useProxyStore } from "@/stores/proxyStore";
 import { usePortForwardStore } from "@/stores/portForwardStore";
 import { tauriInvoke } from "@/utils/tauri";
-import type { ServerInput } from "@/types/server";
+import type { ServerInput, ChainHopInput } from "@/types/server";
 import type { ForwardInput } from "@/types/portForward";
 
 const { t } = useI18n();
@@ -62,14 +62,15 @@ const title = computed(() =>
   props.editId ? t("connection.editConnection") : t("sidebar.newConnection"),
 );
 
-// ── Unified connection chain ──
-// Each hop is either a network proxy or a bastion server, stored in order.
-interface ChainHop {
-  type: "proxy" | "bastion";
+// ── Unified connection chain with draggable target ──
+// Each node is a proxy, bastion, or the target server itself.
+// Target is always present and determines the split between ingress and egress hops.
+interface ChainNode {
+  type: "proxy" | "bastion" | "target";
   id: string;
 }
 
-const chain = ref<ChainHop[]>([]);
+const chain = ref<ChainNode[]>([{ type: "target", id: "" }]);
 
 // Staging selects — used to pick items to add, then cleared after adding
 const tunnelSelect = ref<string | null>(null);
@@ -104,53 +105,90 @@ const availableBastions = computed(() => {
 
 function onTunnelChange(id: string | null) {
   if (!id || usedBastionIds.value.has(id)) return;
-  chain.value.push({ type: "bastion", id });
+  // Insert before target by default (add to pre-target chain)
+  const targetIdx = chain.value.findIndex((n) => n.type === "target");
+  chain.value.splice(targetIdx, 0, { type: "bastion", id });
   tunnelSelect.value = null;
 }
 
 function onProxyChange(id: string | null) {
   if (!id || usedProxyIds.value.has(id)) return;
-  chain.value.push({ type: "proxy", id });
+  // Insert after target by default (add to post-target / exit chain)
+  const targetIdx = chain.value.findIndex((n) => n.type === "target");
+  chain.value.splice(targetIdx + 1, 0, { type: "proxy", id });
   proxySelect.value = null;
 }
 
 function removeHop(idx: number) {
+  // Cannot remove target node
+  if (chain.value[idx]?.type === "target") return;
   chain.value.splice(idx, 1);
 }
 
 // Resolve hop display info
 interface PathHop {
-  type: "proxy" | "bastion";
+  type: "proxy" | "bastion" | "target";
   label: string;
   detail: string;
   color: string;
 }
 
-const connectionPath = computed<PathHop[]>(() =>
-  chain.value.map((hop) => {
+const connectionPath = computed<PathHop[]>(() => {
+  const targetIdx = chain.value.findIndex((n) => n.type === "target");
+  return chain.value.map((hop, i) => {
+    if (hop.type === "target") {
+      return {
+        type: "target" as const,
+        label: form.name || `${form.username}@${form.host}` || "Target",
+        detail: form.host ? `${form.host}:${form.port}` : "",
+        color: "#10b981",
+      };
+    }
     if (hop.type === "proxy") {
       const p = proxyStore.proxies.find((px) => px.id === hop.id);
+      const isPostTarget = i > targetIdx;
       return {
         type: "proxy",
         label: p?.name ?? hop.id,
         detail: p ? (p.proxyType === "command" ? `CMD, ${p.command ?? ""}` : `${p.proxyType.toUpperCase()}, ${p.host}:${p.port}`) : "",
-        color: "#f59e0b",
+        color: isPostTarget ? "#f97316" : "#f59e0b",
       };
     }
     const s = serverStore.servers.find((sv) => sv.id === hop.id);
+    const isPostTarget = i > targetIdx;
     return {
       type: "bastion",
       label: s?.name ?? hop.id,
       detail: s ? `${s.host}:${s.port}` : "",
-      color: "#8b5cf6",
+      color: isPostTarget ? "#a855f7" : "#8b5cf6",
     };
-  }),
-);
+  });
+});
 
-// Sync chain → form fields on save (backend supports first proxy + first bastion)
+// Build chain payload for the backend (V10 connection_chain format)
+function buildChainPayload(): ChainHopInput[] {
+  const targetIdx = chain.value.findIndex((n) => n.type === "target");
+  return chain.value
+    .filter((n) => n.type !== "target")
+    .map((n, _i) => {
+      // Determine phase based on original position relative to target
+      const origIdx = chain.value.indexOf(n);
+      const phase: "pre" | "post" = origIdx < targetIdx ? "pre" : "post";
+      return {
+        hopType: n.type === "bastion" ? ("ssh" as const) : ("proxy" as const),
+        hopId: n.id,
+        phase,
+      };
+    });
+}
+
+// Legacy sync for backward compat (ssh_test still uses proxyId/networkProxyId)
+// Only picks hops BEFORE the target (pre-target), ignores post-target exit hops
 function syncChainToForm() {
-  const firstProxy = chain.value.find((h) => h.type === "proxy");
-  const firstBastion = chain.value.find((h) => h.type === "bastion");
+  const targetIdx = chain.value.findIndex((n) => n.type === "target");
+  const preHops = chain.value.slice(0, targetIdx);
+  const firstProxy = preHops.find((h) => h.type === "proxy");
+  const firstBastion = preHops.find((h) => h.type === "bastion");
   form.networkProxyId = firstProxy?.id ?? null;
   form.proxyId = firstBastion?.id ?? null;
 }
@@ -291,7 +329,7 @@ function resetForm() {
   form.gitSyncMode = "notify";
   form.gitSyncLocalPath = "";
   form.gitSyncRemotePath = "";
-  chain.value = [];
+  chain.value = [{ type: "target", id: "" }];
   testResult.value = null;
   activeTab.value = "authorization";
 }
@@ -410,11 +448,26 @@ async function loadServer(id: string) {
   form.gitSyncLocalPath = server.gitSyncLocalPath ?? "";
   form.gitSyncRemotePath = server.gitSyncRemotePath ?? "";
 
-  // Rebuild chain from saved fields
-  const hops: ChainHop[] = [];
-  if (server.networkProxyId) hops.push({ type: "proxy", id: server.networkProxyId });
-  if (server.proxyId) hops.push({ type: "bastion", id: server.proxyId });
-  chain.value = hops;
+  // Rebuild chain from V10 chain data, or fall back to legacy fields
+  const nodes: ChainNode[] = [];
+  if (server.chain && server.chain.length > 0) {
+    // V10+: reconstruct from chain hops with target in the right position
+    const preHops = server.chain.filter((h) => h.phase === "pre");
+    const postHops = server.chain.filter((h) => h.phase === "post");
+    for (const h of preHops) {
+      nodes.push({ type: h.hopType === "ssh" ? "bastion" : "proxy", id: h.hopId });
+    }
+    nodes.push({ type: "target", id: "" });
+    for (const h of postHops) {
+      nodes.push({ type: h.hopType === "ssh" ? "bastion" : "proxy", id: h.hopId });
+    }
+  } else {
+    // Legacy fallback: build from proxyId/networkProxyId (all pre-target)
+    if (server.networkProxyId) nodes.push({ type: "proxy", id: server.networkProxyId });
+    if (server.proxyId) nodes.push({ type: "bastion", id: server.proxyId });
+    nodes.push({ type: "target", id: "" });
+  }
+  chain.value = nodes;
 
   try {
     const creds = await tauriInvoke<{ password: string; passphrase: string }>(
@@ -440,6 +493,7 @@ async function handleSave() {
     const input: ServerInput = {
       ...form,
       name: form.name || `${form.username}@${form.host}`,
+      chain: buildChainPayload(),
     };
     if (props.editId) {
       await serverStore.updateServer(props.editId, input);
@@ -479,6 +533,7 @@ async function handleSaveAndConnect() {
     const input: ServerInput = {
       ...form,
       name: form.name || `${form.username}@${form.host}`,
+      chain: buildChainPayload(),
     };
     let server;
     if (props.editId) {
@@ -617,10 +672,22 @@ async function handleTest() {
         </el-form>
       </el-tab-pane>
 
-      <!-- Tab 2: SSH Tunnel — add multiple bastions -->
-      <el-tab-pane name="tunnel" :label="t('connection.sshTunnel')">
+      <!-- Tab 2: Chain — SSH Tunnel + Proxy combined -->
+      <el-tab-pane name="chain" :label="t('connection.sshTunnel') + ' + ' + t('connection.proxy')">
         <el-form label-position="top" size="default">
-          <el-form-item :label="t('connection.bastion')">
+          <!-- SSH Bastion selector -->
+          <el-form-item>
+            <template #label>
+              <div class="flex items-center gap-1">
+                <span>{{ t('connection.bastion') }}</span>
+                <el-tooltip placement="bottom-start" :show-after="300" :offset="4">
+                  <template #content>
+                    <div style="max-width: 420px; white-space: normal; line-height: 1.5">{{ t('connection.bastionHint') }}</div>
+                  </template>
+                  <el-icon :size="13" class="cursor-pointer" style="color: var(--tm-text-muted)"><QuestionFilled /></el-icon>
+                </el-tooltip>
+              </div>
+            </template>
             <el-select
               v-model="tunnelSelect"
               filterable
@@ -637,74 +704,35 @@ async function handleTest() {
               />
             </el-select>
           </el-form-item>
-        </el-form>
-      </el-tab-pane>
 
-      <!-- Tab 3: Proxy — add multiple proxies -->
-      <el-tab-pane name="proxy" :label="t('connection.proxy')">
-        <el-form label-position="top" size="default">
-          <el-form-item :label="t('connection.networkProxy')">
-            <div class="flex gap-2 w-full">
-              <el-select
-                v-model="proxySelect"
-                :placeholder="t('connection.proxyNone')"
-                class="flex-1"
-                @change="onProxyChange"
-              >
-                <el-option
-                  v-for="proxy in proxyStore.proxies"
-                  :key="proxy.id"
-                  :label="proxy.proxyType === 'command' ? `${proxy.name} (CMD)` : `${proxy.name} (${proxy.proxyType.toUpperCase()}, ${proxy.host}:${proxy.port})`"
-                  :value="proxy.id"
-                  :disabled="usedProxyIds.has(proxy.id)"
-                />
-              </el-select>
-              <el-button :icon="Plus" @click="startAddProxy" />
-            </div>
+          <!-- Network Proxy selector -->
+          <el-form-item>
+            <template #label>
+              <div class="flex items-center gap-1">
+                <span>{{ t('connection.networkProxy') }}</span>
+                <el-tooltip placement="bottom-start" :show-after="300" :offset="4">
+                  <template #content>
+                    <div style="max-width: 420px; white-space: normal; line-height: 1.5">{{ t('connection.networkProxyHint') }}</div>
+                  </template>
+                  <el-icon :size="13" class="cursor-pointer" style="color: var(--tm-text-muted)"><QuestionFilled /></el-icon>
+                </el-tooltip>
+              </div>
+            </template>
+            <el-select
+              v-model="proxySelect"
+              :placeholder="t('connection.proxyNone')"
+              class="w-full"
+              @change="onProxyChange"
+            >
+              <el-option
+                v-for="proxy in proxyStore.proxies"
+                :key="proxy.id"
+                :label="proxy.proxyType === 'command' ? `${proxy.name} (CMD)` : `${proxy.name} (${proxy.proxyType.toUpperCase()}, ${proxy.host}:${proxy.port})`"
+                :value="proxy.id"
+                :disabled="usedProxyIds.has(proxy.id)"
+              />
+            </el-select>
           </el-form-item>
-
-          <!-- Inline quick-add proxy form -->
-          <div
-            v-if="addingProxy"
-            class="p-3 rounded mb-3 space-y-2"
-            style="background: var(--tm-bg-hover); border: 1px solid var(--tm-border)"
-          >
-            <div class="flex gap-2">
-              <el-input v-model="proxyForm.name" size="small" :placeholder="t('connection.proxyName')" class="flex-1" />
-              <el-select v-model="proxyForm.proxyType" size="small" class="w-36" @change="onProxyTypeChange">
-                <el-option v-for="pt in proxyTypeOptions" :key="pt.value" :label="pt.label" :value="pt.value" />
-              </el-select>
-            </div>
-            <template v-if="proxyForm.proxyType !== 'command'">
-              <div class="flex gap-2">
-                <el-input v-model="proxyForm.host" size="small" :placeholder="t('connection.proxyHost')" class="flex-1" />
-                <el-input-number v-model="proxyForm.port" size="small" :min="1" :max="65535" controls-position="right" class="w-24" />
-              </div>
-              <div class="flex gap-2">
-                <el-input v-model="proxyForm.username" size="small" :placeholder="t('connection.proxyUsername')" class="flex-1" />
-                <el-input v-model="proxyForm.password" size="small" type="password" show-password :placeholder="t('connection.proxyPassword')" class="flex-1" />
-              </div>
-            </template>
-            <template v-else>
-              <el-input v-model="proxyForm.command" type="textarea" :rows="2" size="small" :placeholder="t('connection.proxyCommandPlaceholder')" />
-              <div class="text-[10px]" style="color: var(--tm-text-muted)">{{ t("connection.proxyCommandHint") }}</div>
-            </template>
-            <template v-if="proxyForm.proxyType === 'http'">
-              <div class="flex items-center gap-3 pt-1">
-                <el-checkbox v-model="proxyForm.tlsEnabled" size="small">{{ t("connection.proxyTlsEnable") }}</el-checkbox>
-                <el-checkbox v-model="proxyForm.tlsVerify" size="small" :disabled="!proxyForm.tlsEnabled">{{ t("connection.proxyTlsVerify") }}</el-checkbox>
-              </div>
-              <template v-if="proxyForm.tlsEnabled">
-                <el-input v-model="proxyForm.caCertPath" size="small" :placeholder="t('connection.proxyCaCert')" />
-                <el-input v-model="proxyForm.clientCertPath" size="small" :placeholder="t('connection.proxyClientCert')" />
-                <el-input v-model="proxyForm.clientKeyPath" size="small" :placeholder="t('connection.proxyClientKey')" />
-              </template>
-            </template>
-            <div class="flex justify-end gap-2">
-              <el-button size="small" @click="addingProxy = false">{{ t("connection.cancel") }}</el-button>
-              <el-button size="small" type="primary" @click="saveQuickProxy">{{ t("connection.save") }}</el-button>
-            </div>
-          </div>
         </el-form>
       </el-tab-pane>
 
@@ -851,7 +879,7 @@ async function handleTest() {
 
     <!-- Shared Connection Path (visible across all tabs) -->
     <div
-      v-if="chain.length > 0"
+      v-if="chain.length > 1 && activeTab === 'chain'"
       class="px-3 py-2 rounded text-xs mt-3"
       style="background: var(--tm-bg-hover)"
     >
@@ -863,10 +891,10 @@ async function handleTest() {
           <span class="text-[10px] shrink-0" style="color: var(--tm-text-muted)">&#x27A4;</span>
           <span style="color: var(--tm-text-primary)">Client</span>
         </div>
-        <!-- Intermediate hops (draggable to reorder) -->
+        <!-- Chain hops including target (all draggable to reorder) -->
         <div
           v-for="(hop, idx) in connectionPath"
-          :key="`${chain[idx].type}-${chain[idx].id}`"
+          :key="`${chain[idx]?.type}-${chain[idx]?.id}-${idx}`"
           :data-hop-idx="idx"
           class="flex items-center gap-2 px-2 py-1.5 rounded group transition-colors select-none"
           :class="[
@@ -877,32 +905,39 @@ async function handleTest() {
           @mousedown="onHopMouseDown(idx, $event)"
         >
           <span class="text-[10px] font-mono shrink-0" style="color: var(--tm-text-muted)">{{ idx + 2 }}</span>
-          <!-- Type icon: globe for proxy, connection for bastion -->
-          <svg v-if="hop.type === 'proxy'" class="shrink-0" width="11" height="11" viewBox="0 0 24 24" fill="none" :stroke="hop.color" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
-            <circle cx="12" cy="12" r="10" />
-            <ellipse cx="12" cy="12" rx="4" ry="10" />
-            <path d="M2 12h20" />
-          </svg>
-          <el-icon v-else :size="11" class="shrink-0" :style="{ color: hop.color }">
-            <Connection />
-          </el-icon>
-          <span class="truncate" :style="{ color: hop.color }">{{ hop.label }}</span>
-          <span class="text-[10px] truncate" style="color: var(--tm-text-muted)">({{ hop.detail }})</span>
-          <!-- Remove button (always right-aligned) -->
+          <!-- Target node: special icon + green color -->
+          <template v-if="hop.type === 'target'">
+            <span class="text-[10px] shrink-0" style="color: #10b981">&#x25C9;</span>
+            <span class="truncate font-medium" style="color: #10b981">{{ hop.label }}</span>
+            <span class="text-[10px] truncate" style="color: var(--tm-text-muted)">(Target{{ hop.detail ? `, ${hop.detail}` : '' }})</span>
+          </template>
+          <!-- Proxy node: globe icon -->
+          <template v-else-if="hop.type === 'proxy'">
+            <svg class="shrink-0" width="11" height="11" viewBox="0 0 24 24" fill="none" :stroke="hop.color" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+              <circle cx="12" cy="12" r="10" />
+              <ellipse cx="12" cy="12" rx="4" ry="10" />
+              <path d="M2 12h20" />
+            </svg>
+            <span class="truncate" :style="{ color: hop.color }">{{ hop.label }}</span>
+            <span class="text-[10px] truncate" style="color: var(--tm-text-muted)">({{ hop.detail }})</span>
+          </template>
+          <!-- Bastion node: connection icon -->
+          <template v-else>
+            <el-icon :size="11" class="shrink-0" :style="{ color: hop.color }">
+              <Connection />
+            </el-icon>
+            <span class="truncate" :style="{ color: hop.color }">{{ hop.label }}</span>
+            <span class="text-[10px] truncate" style="color: var(--tm-text-muted)">({{ hop.detail }})</span>
+          </template>
+          <!-- Remove button (hidden for target node) -->
           <button
+            v-if="hop.type !== 'target'"
             class="ml-auto shrink-0 p-0.5 rounded opacity-0 group-hover:opacity-70 hover:!opacity-100 hover:!bg-red-500/20 transition-all"
             style="color: var(--tm-text-muted)"
             @click="removeHop(idx)"
           >
             <el-icon :size="11"><Close /></el-icon>
           </button>
-        </div>
-        <!-- Target (fixed, not draggable) -->
-        <div class="flex items-center gap-2 px-2 py-1.5 rounded" style="background: var(--tm-bg-elevated)">
-          <span class="text-[10px] font-mono shrink-0" style="color: var(--tm-text-muted)">{{ chain.length + 2 }}</span>
-          <span class="text-[10px] shrink-0" style="color: var(--tm-text-muted)">&#x27A4;</span>
-          <span class="truncate font-medium" style="color: #10b981">{{ form.host || 'target' }}</span>
-          <span class="text-[10px]" style="color: var(--tm-text-muted)">(Target)</span>
         </div>
       </div>
     </div>

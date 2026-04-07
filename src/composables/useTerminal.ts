@@ -81,7 +81,9 @@ export function useTerminal(sessionId: Ref<string>, options?: TerminalOptions) {
 
       // Paste: Cmd+V (Mac) or Ctrl+Shift+V (Linux)
       if (ev.key === "v" && ((isMac && ev.metaKey && !ev.shiftKey) || (!isMac && ev.ctrlKey && ev.shiftKey))) {
-        navigator.clipboard.readText().then((text) => {
+        ev.preventDefault();
+        ev.stopPropagation();
+        tauriInvoke<string>("clipboard_read_text").then((text) => {
           if (text && terminal) {
             terminal.paste(text);
           }

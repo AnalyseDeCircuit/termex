@@ -48,7 +48,8 @@ pub struct AppState {
     pub keychain_verified: RwLock<Option<bool>>,
     /// Proxy session pool for bastion/jump hosts, keyed by bastion server_id
     /// Multiple inner sessions can share the same bastion connection via reference counting
-    pub proxy_sessions: TokioRwLock<HashMap<String, ProxyEntry>>,
+    /// Arc-wrapped so exit proxy tasks can hold a reference across async boundaries
+    pub proxy_sessions: Arc<TokioRwLock<HashMap<String, ProxyEntry>>>,
     /// Reverse forward registry for Git Auto Sync notifications.
     pub reverse_forward_registry: SharedReverseForwardRegistry,
 }
@@ -71,7 +72,7 @@ impl AppState {
             llama_server: TokioRwLock::new(LlamaServerState::new()),
             active_downloads: TokioRwLock::new(HashMap::new()),
             keychain_verified: RwLock::new(None), // Will be checked once on startup
-            proxy_sessions: TokioRwLock::new(HashMap::new()), // ProxyJump bastion pool
+            proxy_sessions: Arc::new(TokioRwLock::new(HashMap::new())), // ProxyJump bastion pool
             reverse_forward_registry: reverse_forward::new_shared_registry(),
         };
 

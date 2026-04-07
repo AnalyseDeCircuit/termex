@@ -34,7 +34,11 @@ function typeLabel(t: string) {
 }
 
 function usageCount(proxyId: string): number {
-  return serverStore.servers.filter((s) => s.networkProxyId === proxyId).length;
+  return serverStore.servers.filter((s) => {
+    if (s.networkProxyId === proxyId) return true;
+    if (s.chain?.some((h) => h.hopType === "proxy" && h.hopId === proxyId)) return true;
+    return false;
+  }).length;
 }
 
 function onTypeChange(val: ProxyType) {

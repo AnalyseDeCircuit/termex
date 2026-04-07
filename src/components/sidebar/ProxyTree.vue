@@ -144,7 +144,13 @@ async function deleteProxy(id: string) {
 }
 
 function usageCount(proxyId: string): number {
-  return serverStore.servers.filter((s) => s.networkProxyId === proxyId).length;
+  return serverStore.servers.filter((s) => {
+    // Legacy field
+    if (s.networkProxyId === proxyId) return true;
+    // V10 chain: check if any hop references this proxy
+    if (s.chain?.some((h) => h.hopType === "proxy" && h.hopId === proxyId)) return true;
+    return false;
+  }).length;
 }
 
 // ── Context menu ──

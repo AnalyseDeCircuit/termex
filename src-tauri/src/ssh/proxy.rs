@@ -105,6 +105,190 @@ pub async fn connect_via_proxy(
     }
 }
 
+/// Performs a proxy handshake over a pre-established stream (e.g., an SSH direct-tcpip channel).
+///
+/// Unlike `connect_via_proxy` which creates a new TCP connection to the proxy,
+/// this function uses an existing `AsyncStream` as the transport to the proxy server.
+/// Used when the proxy is reachable through an SSH tunnel.
+pub async fn connect_via_proxy_on_stream(
+    proxy: &ProxyConfig,
+    target_host: &str,
+    target_port: u16,
+    stream: Box<dyn AsyncStream>,
+) -> Result<Box<dyn AsyncStream>, SshError> {
+    match proxy.proxy_type {
+        ProxyType::Socks5 | ProxyType::Tor => {
+            socks5_handshake_on_stream(proxy, target_host, target_port, stream).await
+        }
+        ProxyType::Http => {
+            http_connect_on_stream(proxy, target_host, target_port, stream).await
+        }
+        ProxyType::Socks4 => {
+            socks4_handshake_on_stream(target_host, target_port, stream).await
+        }
+        ProxyType::Command => {
+            // ProxyCommand through a tunnel doesn't make sense — it spawns a local process.
+            // Fall back to direct ProxyCommand (ignoring the stream).
+            let cmd = proxy.command.as_deref()
+                .ok_or_else(|| SshError::ProxyFailed("ProxyCommand is empty".into()))?;
+            super::proxy_command::connect_command(
+                cmd, target_host, target_port, proxy.username.as_deref(),
+            ).await
+        }
+    }
+}
+
+/// SOCKS5 handshake over an existing stream.
+async fn socks5_handshake_on_stream(
+    proxy: &ProxyConfig,
+    target_host: &str,
+    target_port: u16,
+    mut stream: Box<dyn AsyncStream>,
+) -> Result<Box<dyn AsyncStream>, SshError> {
+    let has_auth = proxy.username.is_some() && proxy.password.is_some();
+
+    // Method negotiation
+    if has_auth {
+        stream.write_all(&[0x05, 0x02, 0x00, 0x02]).await
+            .map_err(|e| SshError::ProxyFailed(format!("SOCKS5 write methods: {e}")))?;
+    } else {
+        stream.write_all(&[0x05, 0x01, 0x00]).await
+            .map_err(|e| SshError::ProxyFailed(format!("SOCKS5 write methods: {e}")))?;
+    }
+
+    let mut resp = [0u8; 2];
+    stream.read_exact(&mut resp).await
+        .map_err(|e| SshError::ProxyFailed(format!("SOCKS5 read method reply: {e}")))?;
+    if resp[0] != 0x05 {
+        return Err(SshError::ProxyFailed(format!("SOCKS5 invalid version: {}", resp[0])));
+    }
+
+    // Username/password auth (RFC 1929) if selected
+    if resp[1] == 0x02 {
+        let user = proxy.username.as_deref().unwrap_or("");
+        let pass = proxy.password.as_deref().unwrap_or("");
+        let mut auth_req = vec![0x01, user.len() as u8];
+        auth_req.extend_from_slice(user.as_bytes());
+        auth_req.push(pass.len() as u8);
+        auth_req.extend_from_slice(pass.as_bytes());
+        stream.write_all(&auth_req).await
+            .map_err(|e| SshError::ProxyFailed(format!("SOCKS5 write auth: {e}")))?;
+
+        let mut auth_resp = [0u8; 2];
+        stream.read_exact(&mut auth_resp).await
+            .map_err(|e| SshError::ProxyFailed(format!("SOCKS5 read auth reply: {e}")))?;
+        if auth_resp[1] != 0x00 {
+            return Err(SshError::ProxyFailed("SOCKS5 authentication failed".into()));
+        }
+    } else if resp[1] != 0x00 {
+        return Err(SshError::ProxyFailed(format!("SOCKS5 no acceptable method: {}", resp[1])));
+    }
+
+    // CONNECT request
+    let mut connect_req = vec![0x05, 0x01, 0x00, 0x03];
+    let host_bytes = target_host.as_bytes();
+    connect_req.push(host_bytes.len() as u8);
+    connect_req.extend_from_slice(host_bytes);
+    connect_req.push((target_port >> 8) as u8);
+    connect_req.push(target_port as u8);
+    stream.write_all(&connect_req).await
+        .map_err(|e| SshError::ProxyFailed(format!("SOCKS5 write connect: {e}")))?;
+
+    // Read CONNECT reply (min 10 bytes for IPv4 response)
+    let mut reply = [0u8; 10];
+    stream.read_exact(&mut reply).await
+        .map_err(|e| SshError::ProxyFailed(format!("SOCKS5 read connect reply: {e}")))?;
+    if reply[1] != 0x00 {
+        return Err(SshError::ProxyFailed(format!("SOCKS5 CONNECT failed: reply code {}", reply[1])));
+    }
+
+    // Handle variable-length BND.ADDR
+    match reply[3] {
+        0x03 => {
+            // Domain: skip len + domain + port (already read 10 bytes, need to read extra)
+            let domain_len = reply[4] as usize;
+            if domain_len > 5 {
+                let extra = domain_len - 5 + 2; // remaining domain bytes + port
+                let mut extra_buf = vec![0u8; extra];
+                stream.read_exact(&mut extra_buf).await
+                    .map_err(|e| SshError::ProxyFailed(format!("SOCKS5 read bind addr: {e}")))?;
+            }
+        }
+        0x04 => {
+            // IPv6: need 12 more bytes (16 addr + 2 port - 6 already read)
+            let mut extra = [0u8; 12];
+            stream.read_exact(&mut extra).await
+                .map_err(|e| SshError::ProxyFailed(format!("SOCKS5 read bind addr: {e}")))?;
+        }
+        _ => {} // IPv4: already fully read in the 10-byte reply
+    }
+
+    Ok(stream)
+}
+
+/// HTTP CONNECT handshake over an existing stream.
+async fn http_connect_on_stream(
+    proxy: &ProxyConfig,
+    target_host: &str,
+    target_port: u16,
+    mut stream: Box<dyn AsyncStream>,
+) -> Result<Box<dyn AsyncStream>, SshError> {
+    let target = format!("{}:{}", target_host, target_port);
+    let mut request = format!("CONNECT {} HTTP/1.1\r\nHost: {}\r\n", target, target);
+
+    if let (Some(user), Some(pass)) = (&proxy.username, &proxy.password) {
+        let credentials = format!("{}:{}", user, pass);
+        let encoded = base64_encode(credentials.as_bytes());
+        request.push_str(&format!("Proxy-Authorization: Basic {}\r\n", encoded));
+    }
+    request.push_str("\r\n");
+
+    stream.write_all(request.as_bytes()).await
+        .map_err(|e| SshError::ProxyFailed(format!("HTTP CONNECT write: {e}")))?;
+
+    let mut buf = vec![0u8; 4096];
+    let n = stream.read(&mut buf).await
+        .map_err(|e| SshError::ProxyFailed(format!("HTTP CONNECT read: {e}")))?;
+
+    let response = String::from_utf8_lossy(&buf[..n]);
+    if !response.contains("200") {
+        let first_line = response.lines().next().unwrap_or("(empty)");
+        return Err(SshError::ProxyFailed(format!("HTTP CONNECT rejected: {first_line}")));
+    }
+
+    Ok(stream)
+}
+
+/// SOCKS4/4a handshake over an existing stream.
+async fn socks4_handshake_on_stream(
+    target_host: &str,
+    target_port: u16,
+    mut stream: Box<dyn AsyncStream>,
+) -> Result<Box<dyn AsyncStream>, SshError> {
+    // SOCKS4a: VER(1) + CMD(1) + PORT(2) + IP(4: 0.0.0.x) + USERID(1: null) + DOMAIN + null
+    let mut req = vec![0x04, 0x01];
+    req.push((target_port >> 8) as u8);
+    req.push(target_port as u8);
+    // SOCKS4a: use 0.0.0.x to signal domain follows
+    req.extend_from_slice(&[0, 0, 0, 1]);
+    req.push(0x00); // empty user ID
+    req.extend_from_slice(target_host.as_bytes());
+    req.push(0x00); // null terminator
+
+    stream.write_all(&req).await
+        .map_err(|e| SshError::ProxyFailed(format!("SOCKS4 write: {e}")))?;
+
+    let mut reply = [0u8; 8];
+    stream.read_exact(&mut reply).await
+        .map_err(|e| SshError::ProxyFailed(format!("SOCKS4 read reply: {e}")))?;
+
+    if reply[1] != 0x5A {
+        return Err(SshError::ProxyFailed(format!("SOCKS4 rejected: status {:#04x}", reply[1])));
+    }
+
+    Ok(stream)
+}
+
 /// SOCKS5 proxy connection (RFC 1928).
 /// Supports no-auth and username/password authentication.
 async fn connect_socks5(
