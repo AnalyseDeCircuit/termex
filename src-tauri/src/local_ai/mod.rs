@@ -117,6 +117,10 @@ impl LlamaServerState {
             tokio::time::sleep(tokio::time::Duration::from_millis(500)).await;
         }
 
+        // Kill any orphaned llama-server processes from previous app runs
+        // (e.g., after dev hot-reload where Drop didn't fire properly)
+        kill_orphaned_llama_servers();
+
         // Verify binary and model exist
         if !binary_path.exists() {
             return Err(format!("llama-server binary not found: {}", binary_path.display()));
@@ -245,6 +249,63 @@ impl LlamaServerState {
             false
         }
     }
+}
+
+/// Attempts to recover state by discovering a running llama-server on known ports.
+/// Called on app startup or when state is lost after dev hot-reload.
+pub async fn try_recover_llama_state(state: &LlamaServerState) -> Option<u16> {
+    // If we already know the port, nothing to recover
+    if state.port.is_some() {
+        return state.port;
+    }
+
+    let client = match reqwest::Client::builder()
+        .timeout(std::time::Duration::from_millis(300))
+        .build()
+    {
+        Ok(c) => c,
+        Err(_) => return None,
+    };
+
+    // Scan the port range we use for llama-server
+    for port in 15000..=15020 {
+        let url = format!("http://localhost:{}/health", port);
+        if let Ok(resp) = client.get(&url).send().await {
+            if resp.status().is_success() {
+                log::info!("[local_ai] Discovered running llama-server on port {}", port);
+                return Some(port);
+            }
+        }
+    }
+    None
+}
+
+/// Kills any orphaned llama-server processes left over from previous app sessions.
+/// This handles the case where the app crashed, dev hot-reloaded, or Drop didn't fire.
+#[cfg(not(target_os = "windows"))]
+fn kill_orphaned_llama_servers() {
+    use std::process::Command;
+    // Find llama-server processes and kill them
+    if let Ok(output) = Command::new("pgrep").arg("-f").arg("llama-server.*--port 15").output() {
+        let stdout = String::from_utf8_lossy(&output.stdout);
+        for line in stdout.lines() {
+            if let Ok(pid) = line.trim().parse::<u32>() {
+                eprintln!(">>> [MOD] Killing orphaned llama-server PID: {}", pid);
+                let _ = Command::new("kill").arg("-9").arg(pid.to_string()).output();
+            }
+        }
+    }
+    // Brief pause to let ports free up
+    std::thread::sleep(std::time::Duration::from_millis(300));
+}
+
+#[cfg(target_os = "windows")]
+fn kill_orphaned_llama_servers() {
+    use std::process::Command;
+    let _ = Command::new("taskkill")
+        .args(["/F", "/IM", "llama-server*.exe"])
+        .output();
+    std::thread::sleep(std::time::Duration::from_millis(300));
 }
 
 /// Finds an available TCP port in the given range.

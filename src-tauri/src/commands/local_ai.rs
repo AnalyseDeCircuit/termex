@@ -43,20 +43,51 @@ pub struct DownloadProgressEvent {
 
 /// Check if the llama-server binary is available and get current status.
 ///
-/// Returns engine status including running state, port, and loaded model.
+/// If the internal state shows no running engine, attempts to discover
+/// an orphaned llama-server process (e.g., surviving a dev hot-reload).
+/// This ensures the UI stays in sync with the actual process state.
 #[tauri::command]
 pub async fn local_ai_engine_status(app_state: State<'_, AppState>) -> Result<EngineStatus, String> {
-    let server = app_state.llama_server.read().await;
-
     let binary_ready = get_llama_binary_path()
         .map(|p| p.exists())
         .unwrap_or(false);
 
+    // First check current state
+    {
+        let server = app_state.llama_server.read().await;
+        if server.is_running() {
+            return Ok(EngineStatus {
+                binary_ready,
+                running: true,
+                port: server.port,
+                loaded_model: server.loaded_model.clone(),
+            });
+        }
+    }
+
+    // State says not running — try to discover an orphaned llama-server
+    let server_read = app_state.llama_server.read().await;
+    if let Some(port) = crate::local_ai::try_recover_llama_state(&server_read).await {
+        drop(server_read);
+        // Recover the state
+        let mut server = app_state.llama_server.write().await;
+        server.port = Some(port);
+        // We don't know the PID or model, but at least the port is valid
+        log::info!("[local_ai] Recovered orphaned llama-server on port {}", port);
+        return Ok(EngineStatus {
+            binary_ready,
+            running: true,
+            port: Some(port),
+            loaded_model: server.loaded_model.clone(),
+        });
+    }
+    drop(server_read);
+
     Ok(EngineStatus {
         binary_ready,
-        running: server.is_running(),
-        port: server.port,
-        loaded_model: server.loaded_model.clone(),
+        running: false,
+        port: None,
+        loaded_model: None,
     })
 }
 
