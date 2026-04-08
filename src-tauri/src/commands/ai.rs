@@ -829,7 +829,7 @@ pub fn parse_suggestions(text: &str) -> Vec<String> {
 /// 1. Keeps suggestions that already start with the partial command
 /// 2. Tries to repair partial suggestions by prepending the command prefix
 /// 3. Deduplicates results
-fn filter_by_prefix(suggestions: Vec<String>, partial: &str) -> Vec<String> {
+pub fn filter_by_prefix(suggestions: Vec<String>, partial: &str) -> Vec<String> {
     let lower_partial = partial.to_lowercase();
     // Extract the base command (e.g., "git" from "git co")
     let base_cmd = partial.split_whitespace().next().unwrap_or("");

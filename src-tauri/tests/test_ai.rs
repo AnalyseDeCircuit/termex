@@ -152,7 +152,7 @@ fn test_provider_config_roundtrip() {
 
 // ── parse_suggestions Tests ──────────────────────────────────
 
-use termex_lib::commands::ai::{parse_suggestions, extract_code_fence, AutocompleteContext};
+use termex_lib::commands::ai::{parse_suggestions, extract_code_fence, filter_by_prefix, AutocompleteContext};
 
 #[test]
 fn test_parse_suggestions_valid_json() {
@@ -286,4 +286,52 @@ fn test_autocomplete_context_with_flags() {
     assert_eq!(ctx.partial_command, "curl");
     assert!(!ctx.prefer_local);
     assert!(ctx.has_sensitive);
+}
+
+// ── filter_by_prefix Tests ──────────────────────────────────
+
+#[test]
+fn test_filter_keeps_valid_completions() {
+    let suggestions = vec!["git commit".into(), "git config".into()];
+    let result = filter_by_prefix(suggestions, "git co");
+    assert_eq!(result, vec!["git commit", "git config"]);
+}
+
+#[test]
+fn test_filter_repairs_partial_suggestions() {
+    // Small models often return just the subcommand without the base command
+    let suggestions = vec!["commit".into(), "config".into(), "merge".into()];
+    let result = filter_by_prefix(suggestions, "git co");
+    // "commit" and "config" start with "co" → repaired to "git commit", "git config"
+    // "merge" does not start with "co" → filtered out
+    assert_eq!(result, vec!["git commit", "git config"]);
+}
+
+#[test]
+fn test_filter_mixed_valid_and_partial() {
+    let suggestions = vec!["git checkout -b".into(), "checkout".into(), "random".into()];
+    let result = filter_by_prefix(suggestions, "git ch");
+    assert_eq!(result, vec!["git checkout -b", "git checkout"]);
+}
+
+#[test]
+fn test_filter_deduplicates() {
+    let suggestions = vec!["git checkout".into(), "checkout".into()];
+    let result = filter_by_prefix(suggestions, "git ch");
+    // "git checkout" kept directly, "checkout" repaired to "git checkout" but dedup'd
+    assert_eq!(result, vec!["git checkout"]);
+}
+
+#[test]
+fn test_filter_single_word_partial() {
+    // No base command / sub prefix split possible
+    let suggestions = vec!["ls -la".into(), "ls -lh".into(), "cat".into()];
+    let result = filter_by_prefix(suggestions, "ls");
+    assert_eq!(result, vec!["ls -la", "ls -lh"]);
+}
+
+#[test]
+fn test_filter_empty_suggestions() {
+    let result = filter_by_prefix(vec![], "git co");
+    assert!(result.is_empty());
 }
