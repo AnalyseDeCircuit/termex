@@ -277,7 +277,7 @@ git push origin main --tags     # triggers GitHub Actions build
 - [x] v0.22.0 -- ProxyCommand Support (Cloudflare Tunnel, custom transport via `ssh -o ProxyCommand`)
 - [x] v0.23.0 -- Portable Mode (USB drive, `.portable` marker, all data relative to exe)
 - [x] v0.24.0 -- Connection Chain (multi-hop any-order chains, draggable target position, post-target exit routing via SOCKS5)
-- [ ] v0.25.0 -- Security Compliance (GDPR / ISO 27001 / GB/T 22239, SSH host key TOFU, CSP, audit logging)
+- [x] v0.25.0 -- Security Compliance (GDPR / ISO 27001 / GB/T 22239, SSH host key TOFU, CSP, audit logging)
 - [ ] v0.26.0 -- AI Smart Autocomplete (inline terminal suggestions, context-aware, local/cloud AI, ghost text UX)
 
 ## Contributing

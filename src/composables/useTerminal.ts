@@ -18,6 +18,16 @@ import { registerTerminal, unregisterTerminal } from "@/utils/terminalRegistry";
 export interface TerminalOptions {
   /** Called after SSH shell is successfully opened. Use for tmux init, git sync, etc. */
   onShellReady?: (sessionId: string) => Promise<void>;
+  /** Autocomplete composable reference for keyboard shortcut integration. */
+  getAutocomplete?: () => {
+    suggestion: { value: string | null };
+    popupVisible: { value: boolean };
+    accept: () => void;
+    dismiss: () => void;
+    showPopup: () => void;
+    nextSuggestion: () => void;
+    prevSuggestion: () => void;
+  } | null;
 }
 
 export function useTerminal(sessionId: Ref<string>, options?: TerminalOptions) {
@@ -89,6 +99,46 @@ export function useTerminal(sessionId: Ref<string>, options?: TerminalOptions) {
           }
         });
         return false;
+      }
+
+      // === AI Autocomplete shortcuts ===
+      const ac = options?.getAutocomplete?.();
+      if (ac) {
+        // Tab: accept ghost text (only when suggestion visible)
+        if (ev.key === "Tab" && !ev.shiftKey && !ev.ctrlKey && !ev.metaKey && !ev.altKey) {
+          if (ac.suggestion.value) {
+            ac.accept();
+            return false;
+          }
+          return true; // No suggestion → pass Tab to shell for native completion
+        }
+
+        // Escape: dismiss suggestion/popup
+        if (ev.key === "Escape") {
+          if (ac.suggestion.value || ac.popupVisible.value) {
+            ac.dismiss();
+            return false;
+          }
+          return true;
+        }
+
+        // Ctrl+Space: show popup
+        if (ev.key === " " && ev.ctrlKey && !ev.shiftKey && !ev.metaKey) {
+          ac.showPopup();
+          return false;
+        }
+
+        // Alt+]: next suggestion
+        if (ev.key === "]" && ev.altKey) {
+          ac.nextSuggestion();
+          return false;
+        }
+
+        // Alt+[: previous suggestion
+        if (ev.key === "[" && ev.altKey) {
+          ac.prevSuggestion();
+          return false;
+        }
       }
 
       return true;

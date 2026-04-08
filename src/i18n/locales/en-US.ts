@@ -437,6 +437,15 @@ export default {
       failed: "Verification failed. Some credentials may be temporarily inaccessible. You can still use Termex, but you may need to re-enter passwords.",
     },
   },
+  autocomplete: {
+    title: "Smart Autocomplete",
+    enabled: "Enable terminal inline autocomplete",
+    debounce: "Trigger delay",
+    debounceUnit: "ms",
+    minChars: "Minimum characters",
+    preferLocal: "Prefer local AI model",
+    preferLocalHint: "Use local engine when running, lower latency",
+  },
   localAi: {
     title: "Local AI Models",
     engineRunning: "Engine Running",

@@ -140,6 +140,12 @@ export const useSettingsStore = defineStore("settings", () => {
   const sftpLayout = ref<"tabs" | "right" | "bottom">("tabs");
   const cwdSync = ref(false);
 
+  // AI autocomplete settings
+  const autocompleteEnabled = ref(true);
+  const autocompleteDebounceMs = ref(400);
+  const autocompleteMinChars = ref(2);
+  const autocompletePreferLocal = ref(true);
+
   // ── Actions ────────────────────────────────────────────────
 
   /** Loads all settings from the database. */
@@ -200,6 +206,18 @@ export const useSettingsStore = defineStore("settings", () => {
           break;
         case "cwdSync":
           cwdSync.value = value === "true";
+          break;
+        case "autocompleteEnabled":
+          autocompleteEnabled.value = value === "true";
+          break;
+        case "autocompleteDebounceMs":
+          autocompleteDebounceMs.value = Number(value) || 400;
+          break;
+        case "autocompleteMinChars":
+          autocompleteMinChars.value = Number(value) || 2;
+          break;
+        case "autocompletePreferLocal":
+          autocompletePreferLocal.value = value === "true";
           break;
       }
     }
@@ -390,6 +408,10 @@ export const useSettingsStore = defineStore("settings", () => {
   watch(keywordRules, (v) => set("keyword_highlight_rules", JSON.stringify(v)), { deep: true });
   watch(sidebarTransition, (v) => set("sidebarTransition", v));
   watch(sftpLayout, (v) => set("sftpLayout", v));
+  watch(autocompleteEnabled, (v) => set("autocompleteEnabled", String(v)));
+  watch(autocompleteDebounceMs, (v) => set("autocompleteDebounceMs", String(v)));
+  watch(autocompleteMinChars, (v) => set("autocompleteMinChars", String(v)));
+  watch(autocompletePreferLocal, (v) => set("autocompletePreferLocal", String(v)));
 
   return {
     theme,
@@ -407,6 +429,10 @@ export const useSettingsStore = defineStore("settings", () => {
     sidebarTransition,
     sftpLayout,
     cwdSync,
+    autocompleteEnabled,
+    autocompleteDebounceMs,
+    autocompleteMinChars,
+    autocompletePreferLocal,
     loadAll,
     set,
     applyTheme,

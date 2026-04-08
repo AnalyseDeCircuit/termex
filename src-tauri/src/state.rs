@@ -83,6 +83,8 @@ impl AppState {
 
         // Initialize keychain (reads single store entry → at most 1 OS prompt)
         keychain::init();
+        // Enable keychain writes — ONLY in real app context, never in cargo test
+        keychain::enable_flush();
 
         // Migrate legacy DB encrypted fields to keychain (one-time)
         state.migrate_to_keychain();

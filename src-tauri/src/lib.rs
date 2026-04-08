@@ -1,6 +1,6 @@
 pub mod ai;
 pub mod audit;
-mod commands;
+pub mod commands;
 pub mod crypto;
 pub mod keychain;
 pub mod local_ai;
@@ -337,6 +337,7 @@ pub fn run() {
             commands::ai::ai_provider_get_key,
             commands::ai::ai_provider_test,
             commands::ai::ai_provider_test_direct,
+            commands::ai::ai_autocomplete,
             // Local AI
             commands::local_ai::local_ai_engine_status,
             commands::local_ai::local_ai_start_engine,

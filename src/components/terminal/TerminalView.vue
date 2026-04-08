@@ -3,6 +3,8 @@ import { ref, computed, onMounted, watch, toRef, nextTick } from "vue";
 import { useTerminal } from "@/composables/useTerminal";
 import { useTerminalSearch } from "@/composables/useTerminalSearch";
 import { useKeywordHighlight } from "@/composables/useKeywordHighlight";
+import { useCommandTracker } from "@/composables/useCommandTracker";
+import { useTerminalAutocomplete } from "@/composables/useTerminalAutocomplete";
 import { useTmux } from "@/composables/useTmux";
 import { useGitSync } from "@/composables/useGitSync";
 import { useSessionStore } from "@/stores/sessionStore";
@@ -10,6 +12,7 @@ import { useSettingsStore } from "@/stores/settingsStore";
 import { useServerStore } from "@/stores/serverStore";
 import { usePortForwardStore } from "@/stores/portForwardStore";
 import TerminalSearchBar from "./TerminalSearchBar.vue";
+import AutocompletePopup from "./AutocompletePopup.vue";
 
 const props = defineProps<{
   sessionId: string;
@@ -30,8 +33,20 @@ const isActive = computed(() => sessionStore.activeSessionId === props.sessionId
 const tmux = useTmux();
 const gitSync = useGitSync();
 
+// AI autocomplete integration
+const commandTracker = useCommandTracker(
+  () => getTerminal(),
+  sessionIdRef,
+);
+const autocomplete = useTerminalAutocomplete(
+  () => getTerminal(),
+  sessionIdRef,
+  commandTracker.state,
+);
+
 const { mount, fit, setTheme, setFont, getSearchAddon, getTerminal, dispose } =
   useTerminal(sessionIdRef, {
+    getAutocomplete: () => autocomplete,
     onShellReady: async (sid) => {
       const sess = sessionStore.sessions.get(sid);
       if (!sess) return;
@@ -93,6 +108,7 @@ onMounted(async () => {
   if (containerRef.value && !isPlaceholder.value) {
     await mount(containerRef.value);
     highlight.init();
+    commandTracker.init();
   }
 });
 
@@ -104,6 +120,7 @@ watch(
       await nextTick();
       await mount(containerRef.value);
       highlight.init();
+      commandTracker.init();
     }
   },
 );
@@ -133,7 +150,11 @@ watch(
   },
 );
 
-defineExpose({ fit, dispose, openSearch, search, getTerminal, tmuxStatus: tmux.status, cleanupTmux: tmux.cleanupTmux });
+defineExpose({
+  fit, dispose, openSearch, search, getTerminal,
+  tmuxStatus: tmux.status, cleanupTmux: tmux.cleanupTmux,
+  commandTracker, autocomplete,
+});
 </script>
 
 <template>
@@ -175,6 +196,17 @@ defineExpose({ fit, dispose, openSearch, search, getTerminal, tmuxStatus: tmux.s
         </template>
       </div>
     </div>
+
+    <!-- AI Autocomplete popup -->
+    <AutocompletePopup
+      :suggestions="autocomplete.suggestions.value"
+      :selected-index="autocomplete.selectedIndex.value"
+      :visible="autocomplete.popupVisible.value"
+      :pos-x="autocomplete.popupPos.value.x"
+      :pos-y="autocomplete.popupPos.value.y"
+      @select="autocomplete.selectSuggestion($event)"
+      @dismiss="autocomplete.dismiss()"
+    />
   </div>
 </template>
 

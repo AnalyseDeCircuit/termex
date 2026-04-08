@@ -130,10 +130,11 @@ function openEditServer(id: string) {
 async function insertToTerminal(command: string) {
   const sid = sessionStore.activeSessionId;
   if (!sid || sid.startsWith("connecting-")) return;
-  // Append newline to execute the command
-  const text = command.trim() + "\n";
+  // Insert command text without \n — user presses Enter to execute
+  const text = command.trim();
   const bytes = new TextEncoder().encode(text);
-  await tauriInvoke("ssh_write", {
+  const writeCmd = sid.startsWith("local-") ? "local_pty_write" : "ssh_write";
+  await tauriInvoke(writeCmd, {
     sessionId: sid,
     data: Array.from(bytes),
   }).catch(() => {});

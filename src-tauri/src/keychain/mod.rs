@@ -15,6 +15,7 @@
 //! This ensures the OS never prompts more than once per session.
 
 use std::collections::HashMap;
+use std::sync::atomic::{AtomicBool, Ordering};
 use std::sync::{OnceLock, RwLock};
 
 use thiserror::Error;
@@ -35,6 +36,12 @@ pub enum KeychainError {
 
 /// Global availability flag, computed once.
 static AVAILABLE: OnceLock<bool> = OnceLock::new();
+
+/// Guard flag: when true, `flush()` actually writes to the OS keychain.
+/// Only `enable_flush()` (called by the real app startup in lib.rs) sets this to true.
+/// `init()` alone does NOT enable flushing — this prevents `cargo test` from ever
+/// writing to the real OS keychain, even if `init()` is triggered by test code.
+static FLUSH_ENABLED: AtomicBool = AtomicBool::new(false);
 
 /// Returns a reference to the global in-memory credential cache.
 fn cache() -> &'static RwLock<HashMap<String, String>> {
@@ -74,7 +81,6 @@ pub fn init() -> bool {
             }
             Err(keyring::Error::NoEntry) => {
                 eprintln!(">>> [KEYCHAIN] init: no entry found, creating empty store");
-                // First launch: create empty store
                 entry.set_password("{}").is_ok()
             }
             Err(e) => {
@@ -96,6 +102,16 @@ pub fn verify_accessible() -> Result<bool, KeychainError> {
     Ok(true)
 }
 
+/// Enables flushing to the OS keychain.
+///
+/// **MUST only be called by the real app startup** (lib.rs `run()`), never by tests.
+/// Without this call, `store()` and `delete()` only modify the in-memory cache
+/// and never write to the OS keychain — protecting production credentials from
+/// being overwritten by `cargo test`.
+pub fn enable_flush() {
+    FLUSH_ENABLED.store(true, Ordering::Release);
+}
+
 /// Returns whether the OS keychain is available. Calls `init()` lazily.
 pub fn is_available() -> bool {
     init()
@@ -108,6 +124,12 @@ pub fn is_available() -> bool {
 /// macOS will not prompt again (same entry = same authorization).
 fn flush() {
     if !*AVAILABLE.get().unwrap_or(&false) {
+        return;
+    }
+    // Guard: only write to OS keychain if init() successfully loaded the cache.
+    // This prevents cargo test (which shares the OnceLock process) from
+    // overwriting production credentials with a stale or partial cache.
+    if !FLUSH_ENABLED.load(Ordering::Acquire) {
         return;
     }
     let map = match cache().read() {
@@ -153,6 +175,16 @@ pub fn delete(key: &str) -> Result<(), KeychainError> {
     if removed {
         flush();
     }
+    Ok(())
+}
+
+/// Clears all credentials from the cache and flushes to keychain.
+/// Used by GDPR data erasure (privacy_erase_all_data).
+pub fn clear_all() -> Result<(), KeychainError> {
+    if let Ok(mut c) = cache().write() {
+        c.clear();
+    }
+    flush();
     Ok(())
 }
 

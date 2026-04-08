@@ -1,15 +1,12 @@
+// Keychain tests — operate on the IN-MEMORY CACHE only.
+//
+// IMPORTANT: These tests MUST NOT trigger flush() to the real OS keychain.
+// The FLUSH_ENABLED guard in keychain/mod.rs prevents this, but we also
+// use only termex:test:* prefixed keys to be extra safe.
+
 use termex_lib::keychain;
 
-/// Probe whether keychain actually works (not just Entry::new).
-/// On headless Linux CI, `is_available()` may return true but store/get fail.
-fn keychain_works() -> bool {
-    let probe_key = "termex:test:probe:ci";
-    if keychain::store(probe_key, "probe").is_err() {
-        return false;
-    }
-    let _ = keychain::delete(probe_key);
-    true
-}
+// ── Key format tests (pure logic, no OS interaction) ──
 
 #[test]
 fn test_key_generation() {
@@ -28,15 +25,27 @@ fn test_key_format_includes_uuid() {
 
 #[test]
 fn test_is_available() {
+    // Just verify it returns a bool without panicking
     let available = keychain::is_available();
     assert!(available || !available);
 }
 
+// ── Cache operation tests ──
+// These call store/get/delete which operate on the in-memory cache.
+// FLUSH_ENABLED is false in test binaries (init() may or may not run,
+// but the guard prevents any OS keychain writes).
+
+#[test]
+fn test_get_nonexistent_returns_error() {
+    let result = keychain::get("termex:test:definitely:missing:key");
+    assert!(result.is_err());
+}
+
 #[test]
 fn test_store_get_delete_lifecycle() {
-    if !keychain_works() { return; }
     let key = "termex:test:lifecycle:unit";
     let value = "test_secret_value_12345";
+    // Store should succeed (writes to cache, flush is guarded)
     keychain::store(key, value).expect("store should succeed");
     let retrieved = keychain::get(key).expect("get should succeed");
     assert_eq!(retrieved, value);
@@ -46,7 +55,6 @@ fn test_store_get_delete_lifecycle() {
 
 #[test]
 fn test_store_overwrite() {
-    if !keychain_works() { return; }
     let key = "termex:test:overwrite:unit";
     keychain::store(key, "first_value").expect("first store");
     keychain::store(key, "second_value").expect("overwrite store");
@@ -57,21 +65,12 @@ fn test_store_overwrite() {
 
 #[test]
 fn test_delete_nonexistent_is_ok() {
-    if !keychain_works() { return; }
     let result = keychain::delete("termex:test:nonexistent:key");
     assert!(result.is_ok());
 }
 
 #[test]
-fn test_get_nonexistent_returns_error() {
-    if !keychain_works() { return; }
-    let result = keychain::get("termex:test:definitely:missing");
-    assert!(result.is_err());
-}
-
-#[test]
 fn test_store_empty_value() {
-    if !keychain_works() { return; }
     let key = "termex:test:empty:unit";
     keychain::store(key, "").expect("store empty string");
     let retrieved = keychain::get(key).expect("get empty string");
@@ -81,7 +80,6 @@ fn test_store_empty_value() {
 
 #[test]
 fn test_store_unicode_value() {
-    if !keychain_works() { return; }
     let key = "termex:test:unicode:unit";
     let value = "密码测试🔐";
     keychain::store(key, value).expect("store unicode");
@@ -92,7 +90,6 @@ fn test_store_unicode_value() {
 
 #[test]
 fn test_ssh_and_ai_keys_independent() {
-    if !keychain_works() { return; }
     let server_id = "test-server-id-001";
     let provider_id = "test-provider-id-001";
     let pw_key = keychain::ssh_password_key(server_id);

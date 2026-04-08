@@ -1,3 +1,5 @@
+use std::time::Duration;
+
 use serde::Deserialize;
 use tauri::{AppHandle, Emitter, State};
 
@@ -680,5 +682,259 @@ async fn call_ai_provider(
                 .unwrap_or("")
                 .to_string())
         }
+    }
+}
+
+// ── Autocomplete ─────────────────────────────────────────────
+
+/// Context information for AI-powered command autocomplete.
+#[derive(Debug, Deserialize)]
+#[serde(rename_all = "camelCase")]
+pub struct AutocompleteContext {
+    pub partial_command: String,
+    pub os: Option<String>,
+    pub shell: Option<String>,
+    pub cwd: Option<String>,
+    pub recent_commands: Vec<String>,
+}
+
+/// Extracts the content between the first pair of ``` markers in the text.
+pub fn extract_code_fence(text: &str) -> Option<&str> {
+    let start = text.find("```")?;
+    let after_open = start + 3;
+    // Skip optional language tag on the same line as opening ```
+    let content_start = text[after_open..].find('\n').map(|i| after_open + i + 1)?;
+    let end = text[content_start..].find("```")?;
+    let content = &text[content_start..content_start + end];
+    let trimmed = content.trim();
+    if trimmed.is_empty() {
+        None
+    } else {
+        Some(trimmed)
+    }
+}
+
+/// Parses AI response text into a list of command suggestions with 6-layer fallback.
+///
+/// Layers:
+/// 1. Direct JSON array parse
+/// 2. Extract markdown code fence, then JSON parse
+/// 3. Find `[...]` in text via string search, then JSON parse
+/// 4. Split by newlines, trim list markers (-, *, 1., etc.), filter empty/noise
+/// 5. Single JSON string parse
+/// 6. Raw text as single command (if < 200 chars)
+///
+/// Returns at most 5 non-empty items.
+pub fn parse_suggestions(text: &str) -> Vec<String> {
+    let trimmed = text.trim();
+    if trimmed.is_empty() {
+        return Vec::new();
+    }
+
+    // Layer 1: Direct JSON array parse
+    if let Ok(arr) = serde_json::from_str::<Vec<String>>(trimmed) {
+        return finalize_suggestions(arr);
+    }
+
+    // Layer 2: Extract markdown code fence then JSON parse
+    if let Some(fenced) = extract_code_fence(trimmed) {
+        if let Ok(arr) = serde_json::from_str::<Vec<String>>(fenced) {
+            return finalize_suggestions(arr);
+        }
+    }
+
+    // Layer 3: Find [...] in text via string search, then JSON parse
+    if let Some(start) = trimmed.find('[') {
+        if let Some(end) = trimmed.rfind(']') {
+            if end > start {
+                let bracket_content = &trimmed[start..=end];
+                if let Ok(arr) = serde_json::from_str::<Vec<String>>(bracket_content) {
+                    return finalize_suggestions(arr);
+                }
+            }
+        }
+    }
+
+    // Layer 4: Split by newlines, trim list markers (-, *, 1., etc.), filter empty/noise
+    let lines: Vec<String> = trimmed
+        .lines()
+        .map(|line| {
+            let l = line.trim();
+            // Strip leading list markers: "- ", "* ", "1. ", "2) ", etc.
+            let stripped = l
+                .strip_prefix("- ")
+                .or_else(|| l.strip_prefix("* "))
+                .or_else(|| {
+                    // Handle numbered lists: "1. ", "2. ", "1) ", "2) ", etc.
+                    let bytes = l.as_bytes();
+                    let mut i = 0;
+                    while i < bytes.len() && bytes[i].is_ascii_digit() {
+                        i += 1;
+                    }
+                    if i > 0 && i < bytes.len() {
+                        if bytes[i] == b'.' || bytes[i] == b')' {
+                            let after = &l[i + 1..];
+                            Some(after.strip_prefix(' ').unwrap_or(after))
+                        } else {
+                            None
+                        }
+                    } else {
+                        None
+                    }
+                })
+                .unwrap_or(l);
+            // Remove surrounding backticks
+            let stripped = stripped.trim_matches('`').trim().to_string();
+            stripped
+        })
+        .filter(|s| !s.is_empty())
+        // Filter noise lines (explanatory text, not commands)
+        .filter(|s| !s.starts_with("Here ") && !s.starts_with("The ") && !s.starts_with("Note"))
+        .collect();
+
+    // Layer 5: Single JSON string parse (before line split — catches `"git checkout"`)
+    if let Ok(single) = serde_json::from_str::<String>(trimmed) {
+        if !single.is_empty() {
+            return finalize_suggestions(vec![single]);
+        }
+    }
+
+    if !lines.is_empty() && lines.iter().any(|l| !l.contains(' ') || l.len() < 120) {
+        return finalize_suggestions(lines);
+    }
+
+    // Layer 6: Raw text as single command (if < 200 chars)
+    if trimmed.len() < 200 {
+        return finalize_suggestions(vec![trimmed.to_string()]);
+    }
+
+    Vec::new()
+}
+
+/// Filters empty strings and truncates to at most 5 items.
+fn finalize_suggestions(items: Vec<String>) -> Vec<String> {
+    items
+        .into_iter()
+        .map(|s| s.trim().to_string())
+        .filter(|s| !s.is_empty())
+        .take(5)
+        .collect()
+}
+
+/// AI-powered command autocomplete.
+///
+/// Uses local AI first strategy: if llama-server is running, try local with 1.5s timeout.
+/// Falls back to the default cloud provider with 3s timeout.
+/// On timeout or error, returns empty vec (graceful degradation).
+#[tauri::command]
+pub async fn ai_autocomplete(
+    state: State<'_, AppState>,
+    context: AutocompleteContext,
+) -> Result<Vec<String>, String> {
+    let system = format!(
+        "You are a shell autocomplete engine. Given a partial command, suggest completions.\n\
+         Context: OS={}, Shell={}, CWD={}\n\
+         Recent commands: {}\n\
+         Rules:\n\
+         - Return a JSON array of up to 5 complete command strings\n\
+         - Each suggestion must start with the partial command\n\
+         - Order by likelihood (most probable first)\n\
+         - Output ONLY the JSON array, no explanation",
+        context.os.as_deref().unwrap_or("Linux"),
+        context.shell.as_deref().unwrap_or("bash"),
+        context.cwd.as_deref().unwrap_or("~"),
+        if context.recent_commands.is_empty() {
+            "(none)".to_string()
+        } else {
+            context.recent_commands.join(", ")
+        },
+    );
+
+    let user_msg = format!("Complete this command: {}", context.partial_command);
+
+    // Strategy: try local AI first (faster, no network), fall back to cloud provider.
+
+    // Check if local llama-server is running
+    let local_port = {
+        let server = state.llama_server.read().await;
+        server.port
+    };
+
+    if local_port.is_some() {
+        // Try local AI with 1.5s timeout
+        let local_result = tokio::time::timeout(
+            Duration::from_millis(1500),
+            call_ai_provider(
+                &state,
+                "local",
+                "",
+                None,
+                "local",
+                &system,
+                &user_msg,
+                Some(256),
+            ),
+        )
+        .await;
+
+        match local_result {
+            Ok(Ok(response)) => {
+                let suggestions = parse_suggestions(&response);
+                if !suggestions.is_empty() {
+                    return Ok(suggestions);
+                }
+                // Empty suggestions from local — fall through to cloud
+            }
+            _ => {
+                // Timeout or error from local — fall through to cloud
+            }
+        }
+    }
+
+    // Fall back to default cloud provider with 3s timeout
+    let provider_info = state
+        .db
+        .with_conn(|conn| {
+            conn.query_row(
+                "SELECT id, provider_type, api_key_enc, api_base_url, model
+                 FROM ai_providers WHERE is_default = 1 LIMIT 1",
+                [],
+                |row| {
+                    Ok((
+                        row.get::<_, String>(0)?,
+                        row.get::<_, String>(1)?,
+                        row.get::<_, Option<Vec<u8>>>(2)?,
+                        row.get::<_, Option<String>>(3)?,
+                        row.get::<_, String>(4)?,
+                    ))
+                },
+            )
+        });
+
+    let (pid, provider_type, api_key_enc, api_base_url, model) = match provider_info {
+        Ok(info) => info,
+        Err(_) => return Ok(Vec::new()), // No default provider — return empty
+    };
+
+    let api_key = resolve_api_key(&state, &pid, api_key_enc);
+
+    let cloud_result = tokio::time::timeout(
+        Duration::from_secs(3),
+        call_ai_provider(
+            &state,
+            &provider_type,
+            &api_key,
+            api_base_url.as_deref(),
+            &model,
+            &system,
+            &user_msg,
+            Some(256),
+        ),
+    )
+    .await;
+
+    match cloud_result {
+        Ok(Ok(response)) => Ok(parse_suggestions(&response)),
+        _ => Ok(Vec::new()), // Timeout or error — return empty
     }
 }

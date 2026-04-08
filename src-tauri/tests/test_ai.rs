@@ -149,3 +149,126 @@ fn test_provider_config_roundtrip() {
     assert_eq!(parsed.provider_type, "openai");
     assert_eq!(parsed.model, "gpt-4");
 }
+
+// ── parse_suggestions Tests ──────────────────────────────────
+
+use termex_lib::commands::ai::{parse_suggestions, extract_code_fence, AutocompleteContext};
+
+#[test]
+fn test_parse_suggestions_valid_json() {
+    let input = r#"["git checkout", "git cherry-pick"]"#;
+    let result = parse_suggestions(input);
+    assert_eq!(result, vec!["git checkout", "git cherry-pick"]);
+}
+
+#[test]
+fn test_parse_suggestions_empty_array() {
+    let result = parse_suggestions("[]");
+    assert!(result.is_empty());
+}
+
+#[test]
+fn test_parse_suggestions_markdown_fence() {
+    let input = "```json\n[\"git checkout\", \"git cherry-pick\"]\n```";
+    let result = parse_suggestions(input);
+    assert_eq!(result, vec!["git checkout", "git cherry-pick"]);
+}
+
+#[test]
+fn test_parse_suggestions_prefix_text() {
+    let input = "Here are suggestions:\n[\"git checkout\"]";
+    let result = parse_suggestions(input);
+    assert_eq!(result, vec!["git checkout"]);
+}
+
+#[test]
+fn test_parse_suggestions_newline_separated() {
+    let input = "git checkout\ngit cherry-pick\ngit check-ignore";
+    let result = parse_suggestions(input);
+    assert_eq!(result.len(), 3);
+    assert_eq!(result[0], "git checkout");
+    assert_eq!(result[1], "git cherry-pick");
+    assert_eq!(result[2], "git check-ignore");
+}
+
+#[test]
+fn test_parse_suggestions_single_json_string() {
+    let input = r#""git checkout""#;
+    let result = parse_suggestions(input);
+    assert_eq!(result, vec!["git checkout"]);
+}
+
+#[test]
+fn test_parse_suggestions_plain_text() {
+    let input = "git checkout main";
+    let result = parse_suggestions(input);
+    assert_eq!(result, vec!["git checkout main"]);
+}
+
+#[test]
+fn test_parse_suggestions_max_5() {
+    let input = r#"["a","b","c","d","e","f","g"]"#;
+    let result = parse_suggestions(input);
+    assert_eq!(result.len(), 5);
+}
+
+#[test]
+fn test_parse_suggestions_filter_empty() {
+    let input = r#"["git checkout", "", "git cherry-pick", ""]"#;
+    let result = parse_suggestions(input);
+    assert_eq!(result, vec!["git checkout", "git cherry-pick"]);
+}
+
+#[test]
+fn test_parse_suggestions_empty_response() {
+    let result = parse_suggestions("");
+    assert!(result.is_empty());
+}
+
+#[test]
+fn test_parse_suggestions_numbered_list() {
+    let input = "1. git checkout\n2. git cherry-pick\n3. git status";
+    let result = parse_suggestions(input);
+    assert_eq!(result.len(), 3);
+    assert_eq!(result[0], "git checkout");
+}
+
+#[test]
+fn test_parse_suggestions_bullet_list() {
+    let input = "- git checkout\n- git cherry-pick";
+    let result = parse_suggestions(input);
+    assert_eq!(result, vec!["git checkout", "git cherry-pick"]);
+}
+
+#[test]
+fn test_extract_code_fence_basic() {
+    let input = "```json\n[\"hello\"]\n```";
+    let result = extract_code_fence(input);
+    assert_eq!(result, Some("[\"hello\"]"));
+}
+
+#[test]
+fn test_extract_code_fence_no_fence() {
+    let input = "just plain text";
+    let result = extract_code_fence(input);
+    assert!(result.is_none());
+}
+
+#[test]
+fn test_autocomplete_context_deserialize() {
+    let json = r#"{"partialCommand":"git ch","os":"Linux","shell":"bash","cwd":"/home/user","recentCommands":["ls","cd /tmp"]}"#;
+    let ctx: AutocompleteContext = serde_json::from_str(json).unwrap();
+    assert_eq!(ctx.partial_command, "git ch");
+    assert_eq!(ctx.os, Some("Linux".into()));
+    assert_eq!(ctx.recent_commands.len(), 2);
+}
+
+#[test]
+fn test_autocomplete_context_minimal() {
+    let json = r#"{"partialCommand":"ls","recentCommands":[]}"#;
+    let ctx: AutocompleteContext = serde_json::from_str(json).unwrap();
+    assert_eq!(ctx.partial_command, "ls");
+    assert!(ctx.os.is_none());
+    assert!(ctx.shell.is_none());
+    assert!(ctx.cwd.is_none());
+}

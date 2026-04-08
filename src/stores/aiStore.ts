@@ -92,10 +92,14 @@ export const useAiStore = defineStore("ai", () => {
     messages.value = [];
   }
 
+  /** Global semaphore: only 1 autocomplete request at a time across all tabs. */
+  const autocompleteInFlight = ref(false);
+
   return {
     providers,
     messages,
     explaining,
+    autocompleteInFlight,
     loadProviders,
     addProvider,
     updateProvider,

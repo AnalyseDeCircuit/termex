@@ -23,9 +23,7 @@ pub fn privacy_erase_all_data(state: State<'_, AppState>) -> Result<(), String> 
 
     // 2. Clear OS Keychain entries
     if crate::keychain::is_available() {
-        // The keychain stores all credentials in a single JSON entry
-        // Storing an empty object effectively erases all credentials
-        let _ = crate::keychain::store("__termex_store__", "{}");
+        let _ = crate::keychain::clear_all();
     }
 
     // 3. Delete recording files
