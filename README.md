@@ -1,12 +1,10 @@
 <p align="center">  
   <h1 align="center">Termex</h1>  
   <p align="center"><strong>An open-source, AI-native SSH client built with Rust.</strong></p>  
-  <p align="center">Your next computer isn't a computer. It's your own Jarvis in the cloud.</p>  
-  <p align="center">Termex turns remote servers into your private AI workspace — code, deploy, </p>  
-  <p align="center">and automate with AI that runs in the cloud, free from local hardware. </p>  
-  <p align="center">SSH is just the wire. What flows through it is your entire workflow.</p>  
-  <p align="center">Connect from any device. Punch through any network. </p>  
-  <p align="center">AI keeps working while you're offline. Reconnect, and pick up right where it left off.</p>  
+  <p align="center">以 SSH 协议为底座，打造 AI 时代永不断线的云端智能工作平台。</p>  
+  <p align="center">SSH is the wire. What flows through it is your entire AI-powered workflow.</p>  
+  <p align="center">Connect from any device. Punch through any network.</p>  
+  <p align="center">AI keeps working while you're away. Reconnect, and pick up right where it left off.</p>  
   <p align="center">Devices are temporary. Your workspace is permanent.</p>  
 </p>
 
@@ -251,9 +249,9 @@ git push origin main --tags     # triggers GitHub Actions build
 
 ## Roadmap
 
-- [x] Product requirements & UI prototype
-- [x] Detailed technical design
-- [x] v0.1.0 -- MVP (SSH + Terminal + Server Management)
+### Shipped
+
+- [x] v0.1.0 -- MVP (SSH + Terminal + Server Management + Encrypted Storage)
 - [x] v0.2.0 -- SFTP File Browser
 - [x] v0.3.0 -- Port Forwarding + Config Export/Import
 - [x] v0.4.0 -- Theme System + Settings Persistence + UX Polish
@@ -263,22 +261,41 @@ git push origin main --tags     # triggers GitHub Actions build
 - [x] v0.8.0 -- Plugin System + Extensibility
 - [x] v0.9.0 -- Stable Release
 - [x] v0.10.0 -- OS Keychain Security (credential protection)
-- [x] v0.11.0 -- Local AI Models (llama-server integration, 12 models, offline-first)
-- [x] v0.12.0 -- SSH ProxyJump & Bastion (multi-level jump servers, connection pooling, SSH Agent)
+- [x] v0.11.0 -- Local AI Models (llama-server, 12 GGUF models, fully offline)
+- [x] v0.12.0 -- SSH ProxyJump & Bastion (multi-level jump, connection pooling, SSH Agent)
 - [x] v0.13.0 -- SFTP Enhancement (context menu, clipboard ops, chmod, file info)
-- [x] v0.14.0 -- Font Management (6 built-in fonts, custom upload, live terminal updates)
-- [x] v0.15.0 -- Terminal Search System (in-terminal search, keyword highlighting, cross-tab search)
-- [x] v0.16.0 -- Custom Keybindings (user-defined shortcuts, record mode, live apply)
-- [x] v0.17.0 -- Server-to-Server SFTP (direct file transfer between remote servers)
-- [x] v0.18.0 -- Network Proxy (SOCKS5/SOCKS4/HTTP CONNECT, HTTPS with mTLS, proxy + bastion chain)
-- [x] v0.19.0 -- SFTP Per-Tab (per-tab SFTP instances, drag-based layout switching, CWD sync)
-- [x] v0.20.0 -- Tor Proxy + tmux Persistent Sessions + Git Auto Sync (digital nomad remote dev workflow)
-- [x] v0.21.0 -- SSH Dynamic Port Forwarding (SOCKS5 proxy, `ssh -D` equivalent)
-- [x] v0.22.0 -- ProxyCommand Support (Cloudflare Tunnel, custom transport via `ssh -o ProxyCommand`)
-- [x] v0.23.0 -- Portable Mode (USB drive, `.portable` marker, all data relative to exe)
-- [x] v0.24.0 -- Connection Chain (multi-hop any-order chains, draggable target position, post-target exit routing via SOCKS5)
-- [x] v0.25.0 -- Security Compliance (GDPR / ISO 27001 / GB/T 22239, SSH host key TOFU, CSP, audit logging)
-- [x] v0.26.0 -- AI Smart Autocomplete (inline terminal suggestions, context-aware, local/cloud AI, ghost text UX)
+- [x] v0.14.0 -- Font Management (6 built-in fonts, custom upload, live reload)
+- [x] v0.15.0 -- Terminal Search (in-terminal + keyword highlighting + cross-tab)
+- [x] v0.16.0 -- Custom Keybindings (record mode, conflict detection, persist)
+- [x] v0.17.0 -- Server-to-Server SFTP (direct file transfer between remotes)
+- [x] v0.18.0 -- Network Proxy (SOCKS5/4, HTTP/HTTPS CONNECT, mTLS, proxy+bastion chain)
+- [x] v0.19.0 -- SFTP Per-Tab (per-tab instances, layout switching, CWD sync)
+- [x] v0.20.0 -- Tor Proxy + tmux Sessions + Git Auto Sync
+- [x] v0.21.0 -- SSH Dynamic Port Forwarding (SOCKS5 proxy, `ssh -D`)
+- [x] v0.22.0 -- ProxyCommand (Cloudflare Tunnel, custom transport)
+- [x] v0.23.0 -- Portable Mode (USB drive, data relative to exe)
+- [x] v0.24.0 -- Connection Chain (multi-hop any-order, SOCKS5 exit routing)
+- [x] v0.25.0 -- Security Compliance (GDPR / ISO 27001 / GB/T 22239, audit logging)
+- [x] v0.26.0 -- AI Smart Autocomplete (inline ghost text, context-aware, local AI priority)
+
+### Desktop — Planned
+
+- [ ] v0.27.0 -- **SSH Config Import + Snippet Manager** (one-click `~/.ssh/config` import, command snippets with variable templates, quick palette)
+- [ ] v0.28.0 -- **Server Monitoring Dashboard** (real-time CPU/Memory/Disk/Network via SSH exec, process Top N, sparkline charts, threshold alerts)
+- [ ] v0.29.0 -- **Session Recording + AI Summary** (asciicast v2 record/playback, speed control, AI-generated session summary)
+- [ ] v0.30.0 -- **Team Collaboration v1** (Git-based config sharing, team encryption, selective sharing, role-based access)
+- [ ] v0.31.0 -- **AI Operations Assistant** (context-aware chat, error auto-diagnosis, multi-turn troubleshooting, command orchestration)
+- [ ] v0.32.0 -- **Terminal Split Pane** (horizontal/vertical split, broadcast input to all panes, focus navigation)
+- [ ] v0.33.0 -- **Cloud Native Integration** (kubectl exec, AWS SSM, K8s pod browser, container log streaming)
+- [ ] v0.34.0 -- **Team Collaboration v2** (fine-grained role permissions, audit dashboard, conflict resolution UI)
+- [ ] v0.35.0 -- Desktop v1.0 Stable (performance optimization, stability polish)
+
+### Mobile — Planned
+
+- [ ] v0.40.0 -- Mobile Foundation (Tauri mobile init, minimal SSH client on iOS/Android)
+- [ ] v0.42.0 -- Mobile Server Management + SFTP + Cross-Device Sync
+- [ ] v0.44.0 -- Mobile AI + Native Keychain (iOS Keychain / Android Keystore)
+- [ ] v0.46.0 -- Mobile Polish + App Store / Google Play Release
 
 ## Contributing
 
