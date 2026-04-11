@@ -281,10 +281,10 @@ git push origin main --tags     # triggers GitHub Actions build
 - [x] v0.26.0 -- AI Smart Autocomplete (inline ghost text, context-aware, local AI priority)
 - [x] v0.27.0 -- **SSH Config Import + Snippet Manager** (one-click `~/.ssh/config` import, command snippets with variable templates, quick palette)
 - [x] v0.28.0 -- **Server Monitoring Dashboard** (real-time CPU/Memory/Disk/Network via SSH exec, process Top N, sparkline charts, threshold alerts)
+- [x] v0.29.0 -- **Session Recording + AI Summary** (asciicast v2 record/playback, speed control, AI-generated session summary)
 
 ### Desktop — Planned
 
-- [ ] v0.29.0 -- **Session Recording + AI Summary** (asciicast v2 record/playback, speed control, AI-generated session summary)
 - [ ] v0.30.0 -- **Team Collaboration v1** (Git-based config sharing, team encryption, selective sharing, role-based access)
 - [ ] v0.31.0 -- **AI Operations Assistant** (context-aware chat, error auto-diagnosis, multi-turn troubleshooting, command orchestration)
 - [ ] v0.32.0 -- **Terminal Split Pane** (horizontal/vertical split, broadcast input to all panes, focus navigation)
