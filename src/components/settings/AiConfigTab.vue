@@ -1024,6 +1024,47 @@ async function testConnection() {
           </div>
           <el-switch v-model="settingsStore.autocompletePreferLocal" size="small" />
         </div>
+
+        <!-- Local AI auto-start -->
+        <div class="flex items-center gap-3">
+          <div class="flex-1">
+            <span class="text-xs" style="color: var(--tm-text-secondary)">
+              {{ t("localAi.autoStart") }}
+            </span>
+            <div class="text-[10px]" style="color: var(--tm-text-muted)">
+              {{ t("localAi.autoStartHint") }}
+            </div>
+          </div>
+          <el-switch v-model="settingsStore.localAiAutoStart" size="small" />
+        </div>
+      </div>
+    </div>
+
+    <!-- AI Diagnosis Settings -->
+    <div class="mt-6">
+      <h4 class="text-xs font-medium mb-3" style="color: var(--tm-text-primary)">
+        {{ t("ai.diagnosisTitle") }}
+      </h4>
+      <div class="space-y-3">
+        <div class="flex items-center justify-between">
+          <div>
+            <div class="text-xs" style="color: var(--tm-text-secondary)">{{ t("ai.autoDiagnose") }}</div>
+            <div class="text-[10px]" style="color: var(--tm-text-muted)">{{ t("ai.autoDiagnoseHint") }}</div>
+          </div>
+          <el-switch v-model="settingsStore.aiDiagnoseEnabled" size="small" />
+        </div>
+        <div class="flex items-center justify-between">
+          <div class="text-xs" style="color: var(--tm-text-secondary)">{{ t("ai.alertCpuThreshold") }}</div>
+          <el-input-number v-model="settingsStore.aiAlertCpuThreshold" :min="50" :max="100" size="small" class="w-24" />
+        </div>
+        <div class="flex items-center justify-between">
+          <div class="text-xs" style="color: var(--tm-text-secondary)">{{ t("ai.alertMemoryThreshold") }}</div>
+          <el-input-number v-model="settingsStore.aiAlertMemoryThreshold" :min="50" :max="100" size="small" class="w-24" />
+        </div>
+        <div class="flex items-center justify-between">
+          <div class="text-xs" style="color: var(--tm-text-secondary)">{{ t("ai.alertDiskThreshold") }}</div>
+          <el-input-number v-model="settingsStore.aiAlertDiskThreshold" :min="50" :max="100" size="small" class="w-24" />
+        </div>
       </div>
     </div>
   </div>

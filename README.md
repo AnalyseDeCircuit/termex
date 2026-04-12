@@ -282,11 +282,11 @@ git push origin main --tags     # triggers GitHub Actions build
 - [x] v0.27.0 -- **SSH Config Import + Snippet Manager** (one-click `~/.ssh/config` import, command snippets with variable templates, quick palette)
 - [x] v0.28.0 -- **Server Monitoring Dashboard** (real-time CPU/Memory/Disk/Network via SSH exec, process Top N, sparkline charts, threshold alerts)
 - [x] v0.29.0 -- **Session Recording + AI Summary** (asciicast v2 record/playback, speed control, AI-generated session summary)
+- [x] v0.30.0 -- **Team Collaboration v1** (Git-based config sharing, team encryption, selective sharing, role-based access)
+- [x] v0.31.0 -- **AI Operations Assistant** (context-aware chat, error auto-diagnosis, multi-turn troubleshooting, command orchestration)
 
 ### Desktop — Planned
 
-- [ ] v0.30.0 -- **Team Collaboration v1** (Git-based config sharing, team encryption, selective sharing, role-based access)
-- [ ] v0.31.0 -- **AI Operations Assistant** (context-aware chat, error auto-diagnosis, multi-turn troubleshooting, command orchestration)
 - [ ] v0.32.0 -- **Terminal Split Pane** (horizontal/vertical split, broadcast input to all panes, focus navigation)
 - [ ] v0.33.0 -- **Cloud Native Integration** (kubectl exec, AWS SSM, K8s pod browser, container log streaming)
 - [ ] v0.34.0 -- **Team Collaboration v2** (fine-grained role permissions, audit dashboard, conflict resolution UI)

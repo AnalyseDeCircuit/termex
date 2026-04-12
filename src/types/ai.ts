@@ -165,3 +165,58 @@ export const PROVIDER_NAMES: Record<ProviderType, string> = {
   local: "Local AI (llama-server)",
   custom: "Custom (OpenAI Compatible)",
 };
+
+// ── v0.31.0 AI Assistant Evolution Types ─────────────────────
+
+import type { TerminalContext } from "./aiContext";
+
+/** Extended message types for multi-turn chat. */
+export type ChatRole = "user" | "assistant" | "system" | "context";
+
+export interface ChatMessage {
+  id: string;
+  role: ChatRole;
+  content: string;
+  timestamp: string;
+  streaming?: boolean;
+  context?: TerminalContext;
+  commands?: ExtractedCommand[];
+}
+
+export interface ExtractedCommand {
+  command: string;
+  description: string;
+  dangerous: boolean;
+}
+
+export interface ChatConversation {
+  sessionId: string;
+  messages: ChatMessage[];
+  systemPrompt?: string;
+  createdAt: string;
+}
+
+export interface OrchestratedStep {
+  id: string;
+  stepNumber: number;
+  description: string;
+  command: string;
+  status: "pending" | "running" | "success" | "failed" | "skipped";
+  output?: string;
+  validation?: string;
+  dangerous: boolean;
+}
+
+export interface Playbook {
+  id: string;
+  goal: string;
+  steps: OrchestratedStep[];
+  status: "generating" | "ready" | "executing" | "completed" | "failed";
+  createdAt: string;
+}
+
+/** Streaming chunk from AI provider. */
+export interface AiChunk {
+  text: string;
+  done: boolean;
+}

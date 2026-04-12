@@ -119,8 +119,23 @@ pub async fn local_ai_start_engine(
     let mut server = app_state.llama_server.write().await;
     log::warn!(">>> [COMMAND] Starting server...");
 
-    let result = server.start(binary_path, PathBuf::from(model_path)).await;
+    let result = server.start(binary_path, PathBuf::from(&model_path)).await;
     log::warn!(">>> [COMMAND] Server start result: {:?}", result);
+
+    // Save last model ID for auto-start on next launch
+    if result.is_ok() {
+        let model_id = std::path::Path::new(&model_path)
+            .file_stem()
+            .map(|s| s.to_string_lossy().to_string())
+            .unwrap_or_default();
+        let _ = app_state.db.with_conn(|conn| {
+            let now = time::OffsetDateTime::now_utc().to_string();
+            conn.execute(
+                "INSERT OR REPLACE INTO settings (key, value, updated_at) VALUES (?1, ?2, ?3)",
+                rusqlite::params!["local_ai_last_model", model_id, now],
+            )
+        });
+    }
 
     result
 }
@@ -385,6 +400,17 @@ fn get_models_dir() -> Result<PathBuf, String> {
     std::fs::create_dir_all(&models_dir)
         .map_err(|e| format!("Failed to create models directory: {}", e))?;
     Ok(models_dir)
+}
+
+/// Cancel local AI auto-start during the 3-second delay.
+#[tauri::command]
+pub async fn local_ai_cancel_auto_start(
+    app_state: State<'_, AppState>,
+) -> Result<(), String> {
+    app_state
+        .local_ai_auto_start_cancelled
+        .store(true, std::sync::atomic::Ordering::Relaxed);
+    Ok(())
 }
 
 /// Get the app data directory (portable-aware).

@@ -146,6 +146,16 @@ export const useSettingsStore = defineStore("settings", () => {
   const autocompleteMinChars = ref(2);
   const autocompletePreferLocal = ref(true);
 
+  // Local AI auto-start
+  const localAiAutoStart = ref(true);
+
+  // AI Diagnosis settings
+  const aiDiagnoseEnabled = ref(true);
+  const aiDiagnoseAutoExpand = ref(false);
+  const aiAlertCpuThreshold = ref(90);
+  const aiAlertMemoryThreshold = ref(90);
+  const aiAlertDiskThreshold = ref(95);
+
   // Monitor settings
   const monitorInterval = ref(3000);
   const monitorAutoStart = ref(true);
@@ -162,9 +172,16 @@ export const useSettingsStore = defineStore("settings", () => {
 
   /** Loads all settings from the database. */
   async function loadAll(): Promise<void> {
-    const entries = await tauriInvoke<Array<{ key: string; value: string }>>(
-      "settings_get_all",
-    );
+    let entries: Array<{ key: string; value: string }>;
+    try {
+      entries = await tauriInvoke<Array<{ key: string; value: string }>>(
+        "settings_get_all",
+      );
+    } catch (e) {
+      console.error("[Termex] settings_get_all failed, using defaults:", e);
+      applyTheme();
+      return;
+    }
 
     for (const { key, value } of entries) {
       switch (key) {
@@ -230,6 +247,24 @@ export const useSettingsStore = defineStore("settings", () => {
           break;
         case "autocompletePreferLocal":
           autocompletePreferLocal.value = value === "true";
+          break;
+        case "local_ai_auto_start":
+          localAiAutoStart.value = value !== "false";
+          break;
+        case "ai_diagnose_enabled":
+          aiDiagnoseEnabled.value = value !== "false";
+          break;
+        case "ai_diagnose_auto_expand":
+          aiDiagnoseAutoExpand.value = value === "true";
+          break;
+        case "ai_alert_cpu_threshold":
+          aiAlertCpuThreshold.value = Number(value) || 90;
+          break;
+        case "ai_alert_memory_threshold":
+          aiAlertMemoryThreshold.value = Number(value) || 90;
+          break;
+        case "ai_alert_disk_threshold":
+          aiAlertDiskThreshold.value = Number(value) || 95;
           break;
         case "monitorInterval":
           monitorInterval.value = Number(value) || 3000;
@@ -456,6 +491,12 @@ export const useSettingsStore = defineStore("settings", () => {
   watch(autocompleteDebounceMs, (v) => set("autocompleteDebounceMs", String(v)));
   watch(autocompleteMinChars, (v) => set("autocompleteMinChars", String(v)));
   watch(autocompletePreferLocal, (v) => set("autocompletePreferLocal", String(v)));
+  watch(localAiAutoStart, (v) => set("local_ai_auto_start", String(v)));
+  watch(aiDiagnoseEnabled, (v) => set("ai_diagnose_enabled", String(v)));
+  watch(aiDiagnoseAutoExpand, (v) => set("ai_diagnose_auto_expand", String(v)));
+  watch(aiAlertCpuThreshold, (v) => set("ai_alert_cpu_threshold", String(v)));
+  watch(aiAlertMemoryThreshold, (v) => set("ai_alert_memory_threshold", String(v)));
+  watch(aiAlertDiskThreshold, (v) => set("ai_alert_disk_threshold", String(v)));
   watch(monitorInterval, (v) => set("monitorInterval", String(v)));
   watch(monitorAutoStart, (v) => set("monitorAutoStart", String(v)));
   watch(monitorShowCpu, (v) => set("monitorShowCpu", String(v)));
@@ -485,6 +526,12 @@ export const useSettingsStore = defineStore("settings", () => {
     autocompleteDebounceMs,
     autocompleteMinChars,
     autocompletePreferLocal,
+    localAiAutoStart,
+    aiDiagnoseEnabled,
+    aiDiagnoseAutoExpand,
+    aiAlertCpuThreshold,
+    aiAlertMemoryThreshold,
+    aiAlertDiskThreshold,
     monitorInterval,
     monitorAutoStart,
     monitorShowCpu,

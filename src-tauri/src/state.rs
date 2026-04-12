@@ -62,6 +62,8 @@ pub struct AppState {
     pub monitor_collectors: TokioRwLock<HashMap<String, CollectorState>>,
     /// Monitor metrics history, keyed by session_id.
     pub monitor_history: TokioRwLock<HashMap<String, Arc<TokioRwLock<MetricsHistory>>>>,
+    /// Flag to cancel local AI auto-start during the 3-second delay.
+    pub local_ai_auto_start_cancelled: std::sync::atomic::AtomicBool,
     /// Team encryption key (derived from passphrase, held in memory, zeroed on exit).
     pub team_key: TokioRwLock<Option<Zeroizing<[u8; 32]>>>,
     /// Team Git repository local path.
@@ -89,6 +91,7 @@ impl AppState {
             proxy_sessions: Arc::new(TokioRwLock::new(HashMap::new())), // ProxyJump bastion pool
             reverse_forward_registry: reverse_forward::new_shared_registry(),
             pending_host_key_decisions: TokioRwLock::new(HashMap::new()),
+            local_ai_auto_start_cancelled: std::sync::atomic::AtomicBool::new(false),
             monitor_collectors: TokioRwLock::new(HashMap::new()),
             monitor_history: TokioRwLock::new(HashMap::new()),
             team_key: TokioRwLock::new(None),

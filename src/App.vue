@@ -5,6 +5,7 @@ import { ElMessage } from "element-plus";
 import { tauriInvoke, tauriListen } from "@/utils/tauri";
 import { useServerStore } from "@/stores/serverStore";
 import { useSessionStore } from "@/stores/sessionStore";
+import { useAiStore } from "@/stores/aiStore";
 import { useShortcuts } from "@/composables/useShortcuts";
 import Sidebar from "@/components/sidebar/Sidebar.vue";
 import ConnectModal from "@/components/sidebar/ConnectModal.vue";
@@ -255,11 +256,15 @@ watch(aiPanelVisible, (v) => {
 });
 
 onMounted(async () => {
-  await settingsStore.loadAll();
+  try {
+    await settingsStore.loadAll();
+  } catch (e) {
+    console.error("[Termex] Failed to load settings, using defaults:", e);
+  }
   // Sync loaded language (effective value) to i18n
   locale.value = settingsStore.effectiveLanguage;
   // Load custom fonts from ~/.termex/fonts/
-  await settingsStore.loadCustomFonts();
+  await settingsStore.loadCustomFonts().catch(() => {});
   serverStore.fetchAll();
 
   // Listen for native menu events (dedup with useShortcuts for shared accelerators)
@@ -313,8 +318,38 @@ onMounted(async () => {
     serverStore.fetchAll();
   }));
 
+  // Local AI auto-start events
+  unlisteners.push(await tauriListen<{ model: string; delayMs: number }>("local-ai://auto-start", (data) => {
+    ElMessage({
+      message: t("localAi.autoStartingMsg", { model: data.model, seconds: Math.floor(data.delayMs / 1000) }),
+      type: "info",
+      duration: data.delayMs,
+      showClose: true,
+      onClose: () => {
+        tauriInvoke("local_ai_cancel_auto_start").catch(() => {});
+      },
+    });
+  }));
+  unlisteners.push(await tauriListen<{ running: boolean; model: string; reused: boolean }>("local-ai://status", (data) => {
+    if (data.running) {
+      ElMessage.success(
+        data.reused
+          ? t("localAi.reusedInstance", { model: data.model })
+          : t("localAi.startedModel", { model: data.model }),
+      );
+      // Clear any "engine_not_running" system messages in AI panel
+      const aiStore = useAiStore();
+      aiStore.messages = aiStore.messages.filter(
+        (m) => !(m.role === "system" && m.content === "engine_not_running"),
+      );
+    }
+  }));
+  unlisteners.push(await tauriListen<{ model: string; error: string }>("local-ai://auto-start-failed", (data) => {
+    ElMessage.error(`${t("localAi.startFailed")}: ${data.error}`);
+  }));
+
   // Check local AI model catalog updates
-  await checkCatalogUpdate();
+  await checkCatalogUpdate().catch(() => {});
 
   // Auto-check for updates (once per day)
   if (shouldCheckToday(null)) {
@@ -337,6 +372,7 @@ onBeforeUnmount(() => {
       :sidebar-width="sidebarWidth"
       @settings="settingsModalVisible = true"
       @toggle-ai="aiPanelVisible = !aiPanelVisible"
+      @open-ai="aiPanelVisible = true"
       @new-host="openNewConnection"
       @reconnect="handleReconnect"
     />

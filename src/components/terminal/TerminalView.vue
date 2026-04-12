@@ -7,6 +7,8 @@ import { useKeywordHighlight } from "@/composables/useKeywordHighlight";
 import { useCommandTracker } from "@/composables/useCommandTracker";
 import { useTerminalAutocomplete } from "@/composables/useTerminalAutocomplete";
 import { useReconnect } from "@/composables/useReconnect";
+import { useAiContext, extractRecentLines } from "@/composables/useAiContext";
+import { useErrorDetection } from "@/composables/useErrorDetection";
 import { tauriInvoke } from "@/utils/tauri";
 import { useTmux } from "@/composables/useTmux";
 import { useGitSync } from "@/composables/useGitSync";
@@ -188,6 +190,10 @@ function onSelectionExplain() {
 const keywordRulesRef = toRef(settingsStore, "keywordRules");
 const highlight = useKeywordHighlight(getTerminal, keywordRulesRef);
 
+// AI context capture + error detection
+const aiContext = useAiContext(getTerminal, sessionIdRef);
+const errorDetection = useErrorDetection(getTerminal, sessionIdRef);
+
 /** Opens the search bar (called from parent via expose). */
 function openSearch() {
   search.open();
@@ -236,8 +242,20 @@ onMounted(async () => {
     await mount(containerRef.value);
     highlight.init();
     commandTracker.init();
+    errorDetection.init();
     initSelectionToolbar();
   }
+  // Register global AI context capture functions
+  window.__termexCaptureContext = (sid: string) => {
+    if (props.sessionId !== sid) return null;
+    return aiContext.captureContext();
+  };
+  window.__termexCaptureBuffer = (sid: string, lines: number) => {
+    if (props.sessionId !== sid) return "";
+    const term = getTerminal();
+    if (!term) return "";
+    return extractRecentLines(term, lines);
+  };
 });
 
 // When placeholder gets replaced with real session, mount terminal.
@@ -253,6 +271,7 @@ watch(
         await mount(containerRef.value);
         highlight.init();
         commandTracker.init();
+        errorDetection.init();
         initSelectionToolbar();
       } else if (oldId) {
         // Reconnect: old real session → new real session
@@ -290,6 +309,7 @@ watch(
 
 onUnmounted(() => {
   reconnectCtrl.cancel();
+  errorDetection.dispose();
 });
 
 defineExpose({

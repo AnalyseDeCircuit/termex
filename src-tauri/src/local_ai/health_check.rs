@@ -2,6 +2,7 @@ use std::time::Duration;
 use tokio::time::sleep;
 use crate::state::AppState;
 use std::net::TcpStream;
+use tauri::Manager;
 
 /// Check if a port is currently listening by attempting a TCP connection.
 /// Tries multiple addresses: 127.0.0.1, localhost, and 0.0.0.0
@@ -68,6 +69,73 @@ pub async fn wait_for_port(port: u16, max_wait_secs: u64) -> Result<(), String> 
         sleep(Duration::from_millis(backoff_ms)).await;
         attempt += 1;
     }
+}
+
+/// Starts the health check from a Tauri AppHandle (used by auto-start in lib.rs).
+pub fn start_health_check_from_handle(
+    handle: tauri::AppHandle,
+    check_interval: u64,
+    max_retries: u32,
+) {
+    tokio::spawn(async move {
+        let app_state = match handle.try_state::<AppState>() {
+            Some(s) => s,
+            None => return,
+        };
+
+        let mut consecutive_failures = 0u32;
+
+        loop {
+            sleep(Duration::from_secs(check_interval)).await;
+
+            let server = app_state.llama_server.read().await;
+
+            if server.process_id.is_some() && !server.is_running() {
+                drop(server);
+
+                consecutive_failures += 1;
+                log::warn!(
+                    "llama-server process died (attempt {}), attempting restart...",
+                    consecutive_failures
+                );
+
+                if consecutive_failures <= max_retries {
+                    if let Some(model_path) = {
+                        let s = app_state.llama_server.read().await;
+                        s.loaded_model.clone()
+                    } {
+                        let mut server = app_state.llama_server.write().await;
+                        let _ = server.stop().await;
+                        let backoff_secs = 2u64.pow(consecutive_failures.saturating_sub(1));
+                        sleep(Duration::from_secs(backoff_secs)).await;
+                        let binary_path = get_llama_binary_path();
+                        match server
+                            .start(binary_path, std::path::PathBuf::from(&model_path))
+                            .await
+                        {
+                            Ok(_) => {
+                                consecutive_failures = 0;
+                                log::info!("llama-server restarted successfully after health check");
+                            }
+                            Err(e) => {
+                                log::error!("Failed to restart llama-server: {}", e);
+                            }
+                        }
+                    }
+                } else {
+                    log::error!(
+                        "llama-server exceeded max retries ({}), stopping health check",
+                        max_retries
+                    );
+                    let mut server = app_state.llama_server.write().await;
+                    let _ = server.stop().await;
+                    break;
+                }
+            } else {
+                consecutive_failures = 0;
+            }
+        }
+    });
 }
 
 /// Starts a background health check task that monitors the llama-server process.

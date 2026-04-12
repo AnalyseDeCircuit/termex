@@ -4,9 +4,14 @@ import { tauriInvoke, tauriListen } from "@/utils/tauri";
 import type {
   AiProvider,
   AiMessage,
+  AiChunk,
+  ChatMessage,
+  ChatConversation,
+  ExtractedCommand,
   DangerResult,
   ProviderInput,
 } from "@/types/ai";
+import type { TerminalContext } from "@/types/aiContext";
 
 export const useAiStore = defineStore("ai", () => {
   const providers = ref<AiProvider[]>([]);
@@ -95,11 +100,165 @@ export const useAiStore = defineStore("ai", () => {
   /** Global semaphore: only 1 autocomplete request at a time across all tabs. */
   const autocompleteInFlight = ref(false);
 
+  // ── Multi-turn Chat ──────────────────────────────────────
+  const conversations = ref<Map<string, ChatConversation>>(new Map());
+
+  /** Gets or creates a conversation for a session. */
+  function getConversation(sessionId: string): ChatConversation {
+    let conv = conversations.value.get(sessionId);
+    if (!conv) {
+      conv = { sessionId, messages: [], createdAt: new Date().toISOString() };
+      conversations.value.set(sessionId, conv);
+    }
+    return conv;
+  }
+
+  /** Sends a chat message with optional terminal context. */
+  async function sendChat(
+    sessionId: string,
+    message: string,
+    context: TerminalContext | null,
+  ): Promise<void> {
+    const conv = getConversation(sessionId);
+    const requestId = crypto.randomUUID();
+
+    // Add user message
+    conv.messages.push({
+      id: crypto.randomUUID(),
+      role: "user",
+      content: message,
+      timestamp: new Date().toISOString(),
+    });
+
+    // Add context marker if provided
+    if (context) {
+      conv.messages.push({
+        id: crypto.randomUUID(),
+        role: "context",
+        content: "Terminal context attached",
+        timestamp: new Date().toISOString(),
+        context,
+      });
+    }
+
+    // Add streaming assistant placeholder
+    const assistantMsg: ChatMessage = {
+      id: requestId,
+      role: "assistant",
+      content: "",
+      timestamp: new Date().toISOString(),
+      streaming: true,
+      commands: [],
+    };
+    conv.messages.push(assistantMsg);
+
+    // Build history (last 10 turns)
+    const history = conv.messages
+      .filter((m) => m.role === "user" || m.role === "assistant")
+      .slice(-10)
+      .map((m) => ({ role: m.role, content: m.content }));
+
+    const unlisten = await tauriListen<AiChunk>(
+      `ai://chat/${requestId}`,
+      (chunk) => {
+        const target = conv.messages.find((m) => m.id === requestId);
+        if (target) {
+          target.content += chunk.text;
+          if (chunk.done) {
+            target.streaming = false;
+            target.commands = extractCommands(target.content);
+          }
+        }
+      },
+    );
+
+    try {
+      await tauriInvoke("ai_chat", {
+        input: {
+          sessionId,
+          message,
+          includeContext: !!context,
+          context,
+          history: history.slice(0, -1),
+        },
+        requestId,
+      });
+    } catch (err) {
+      assistantMsg.content = String(err);
+      assistantMsg.streaming = false;
+    }
+
+    unlisten();
+  }
+
+  /** Extracts bash commands from AI markdown response. */
+  function extractCommands(content: string): ExtractedCommand[] {
+    const commands: ExtractedCommand[] = [];
+    const regex = /```(?:bash|sh|shell)?\n([\s\S]*?)```/g;
+    let match: RegExpExecArray | null;
+    while ((match = regex.exec(content)) !== null) {
+      const cmd = match[1].trim();
+      if (cmd) {
+        commands.push({ command: cmd, description: "", dangerous: false });
+      }
+    }
+    return commands;
+  }
+
+  /** Clears conversation for a session. */
+  function clearConversation(sessionId: string): void {
+    conversations.value.delete(sessionId);
+  }
+
+  /** Generates a session summary report. */
+  async function summarizeSession(
+    sessionId: string,
+    terminalBuffer: string,
+    context: TerminalContext | null,
+  ): Promise<void> {
+    const conv = getConversation(sessionId);
+    const requestId = crypto.randomUUID();
+
+    const summaryMsg: ChatMessage = {
+      id: requestId,
+      role: "assistant",
+      content: "",
+      timestamp: new Date().toISOString(),
+      streaming: true,
+    };
+    conv.messages.push(summaryMsg);
+
+    const unlisten = await tauriListen<AiChunk>(
+      `ai://summary/${requestId}`,
+      (chunk) => {
+        const target = conv.messages.find((m) => m.id === requestId);
+        if (target) {
+          target.content += chunk.text;
+          if (chunk.done) target.streaming = false;
+        }
+      },
+    );
+
+    try {
+      await tauriInvoke("ai_session_summary", {
+        terminalBuffer,
+        context,
+        requestId,
+      });
+    } catch (err) {
+      summaryMsg.content = String(err);
+      summaryMsg.streaming = false;
+    }
+
+    unlisten();
+  }
+
   return {
     providers,
     messages,
     explaining,
     autocompleteInFlight,
+    conversations,
     loadProviders,
     addProvider,
     updateProvider,
@@ -108,5 +267,10 @@ export const useAiStore = defineStore("ai", () => {
     checkDanger,
     explainCommand,
     clearMessages,
+    getConversation,
+    sendChat,
+    extractCommands,
+    clearConversation,
+    summarizeSession,
   };
 });

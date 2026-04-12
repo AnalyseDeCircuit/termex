@@ -20,10 +20,12 @@ fn normalize_path(path: &Path) -> String {
 pub struct LlamaServerState {
     /// The llama-server subprocess, if running.
     pub process_id: Option<u32>,
-    /// The allocated port number (8000-9000 range).
+    /// The allocated port number (15000-16000 range).
     pub port: Option<u16>,
     /// The currently loaded model path.
     pub loaded_model: Option<String>,
+    /// true = this app instance started the process; false = reusing another window's instance.
+    pub is_owner: bool,
 }
 
 impl Default for LlamaServerState {
@@ -34,7 +36,11 @@ impl Default for LlamaServerState {
 
 impl Drop for LlamaServerState {
     fn drop(&mut self) {
-        // Clean up the llama-server process when AppState is dropped
+        // Only kill the process if this instance started it
+        if !self.is_owner {
+            return;
+        }
+        remove_pid_file();
         if let Some(pid) = self.process_id {
             eprintln!(">>> [MOD] Cleaning up llama-server process (PID: {}) on app shutdown", pid);
             #[cfg(target_os = "windows")]
@@ -64,6 +70,7 @@ impl LlamaServerState {
             process_id: None,
             port: None,
             loaded_model: None,
+            is_owner: false,
         }
     }
 
@@ -166,6 +173,8 @@ impl LlamaServerState {
         self.process_id = Some(pid);
         self.port = Some(port);
         self.loaded_model = Some(normalized_model.clone());
+        self.is_owner = true;
+        write_pid_file(pid, port);
 
         // Detach the child process (let it run in background)
         // We'll track it via PID only
@@ -234,6 +243,10 @@ impl LlamaServerState {
         self.process_id = None;
         self.port = None;
         self.loaded_model = None;
+        if self.is_owner {
+            remove_pid_file();
+        }
+        self.is_owner = false;
 
         Ok(())
     }
@@ -375,4 +388,35 @@ fn check_process_running(pid: u32) -> bool {
         .output()
         .map(|output| String::from_utf8_lossy(&output.stdout).contains(&pid.to_string()))
         .unwrap_or(false)
+}
+
+// ── PID file management ──
+
+const PID_FILE_NAME: &str = ".llama-server.pid";
+
+/// Writes PID + port to a file so other windows can detect the running instance.
+fn write_pid_file(pid: u32, port: u16) {
+    let path = crate::paths::data_dir().join(PID_FILE_NAME);
+    let _ = std::fs::write(&path, format!("{pid}\n{port}"));
+}
+
+/// Reads PID + port from the PID file.
+pub fn read_pid_file() -> Option<(u32, u16)> {
+    let path = crate::paths::data_dir().join(PID_FILE_NAME);
+    let content = std::fs::read_to_string(&path).ok()?;
+    let mut lines = content.lines();
+    let pid: u32 = lines.next()?.parse().ok()?;
+    let port: u16 = lines.next()?.parse().ok()?;
+    Some((pid, port))
+}
+
+/// Removes the PID file.
+fn remove_pid_file() {
+    let path = crate::paths::data_dir().join(PID_FILE_NAME);
+    let _ = std::fs::remove_file(&path);
+}
+
+/// Checks if a process with the given PID is alive.
+pub fn is_pid_alive(pid: u32) -> bool {
+    check_process_running(pid)
 }

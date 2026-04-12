@@ -1,9 +1,11 @@
 <script setup lang="ts">
-import { ref, computed, nextTick } from "vue";
+import { ref, computed, nextTick, onMounted, onUnmounted } from "vue";
 import { useI18n } from "vue-i18n";
 import { getCurrentWindow } from "@tauri-apps/api/window";
 import { Close, Setting } from "@element-plus/icons-vue";
 import { useSessionStore } from "@/stores/sessionStore";
+import { useAiStore } from "@/stores/aiStore";
+import { tauriInvoke, tauriListen } from "@/utils/tauri";
 import ContextMenu from "@/components/sidebar/ContextMenu.vue";
 import type { MenuItem } from "@/components/sidebar/ContextMenu.vue";
 
@@ -45,11 +47,99 @@ const spacerWidth = computed(() => {
 const emit = defineEmits<{
   (e: "settings"): void;
   (e: "toggle-ai"): void;
+  (e: "open-ai"): void;
   (e: "new-host"): void;
   (e: "reconnect", sessionId: string): void;
 }>();
 
+interface EngineStatus {
+  binary_ready: boolean;
+  running: boolean;
+  port: number | null;
+  loaded_model: string | null;
+}
+interface DownloadedModel { id: string; path: string; size: number }
+
 const sessionStore = useSessionStore();
+const aiStore = useAiStore();
+
+const localAiRunning = ref(false);
+const localAiAvailable = ref(false);
+const localAiStarting = ref(false);
+
+async function refreshEngineStatus() {
+  try {
+    const [status, models] = await Promise.all([
+      tauriInvoke<EngineStatus>("local_ai_engine_status"),
+      tauriInvoke<DownloadedModel[]>("local_ai_list_downloaded").catch(() => [] as DownloadedModel[]),
+    ]);
+    localAiRunning.value = status.running;
+    // Show button if: engine binary exists OR models downloaded OR a local provider is configured
+    localAiAvailable.value = status.binary_ready || models.length > 0
+      || aiStore.providers.some((p) => p.providerType === "local");
+  } catch {
+    localAiRunning.value = false;
+  }
+}
+
+async function quickStartEngine() {
+  localAiStarting.value = true;
+
+  // Immediately open AI panel
+  emit("open-ai");
+
+  const models = await tauriInvoke<DownloadedModel[]>("local_ai_list_downloaded").catch(() => [] as DownloadedModel[]);
+  if (models.length === 0) {
+    localAiStarting.value = false;
+    emit("settings");
+    return;
+  }
+
+  const model = models[0];
+  const modelName = model.id;
+  const msgId = crypto.randomUUID();
+
+  // Push "starting" system message into AI panel
+  aiStore.messages.push({
+    id: msgId,
+    role: "system",
+    content: `engine_starting:${modelName}`,
+    timestamp: new Date().toISOString(),
+  });
+
+  try {
+    await tauriInvoke("local_ai_start_engine", { modelPath: model.path });
+    await refreshEngineStatus();
+
+    // Replace starting message with success
+    const idx = aiStore.messages.findIndex((m) => m.id === msgId);
+    if (idx !== -1) {
+      aiStore.messages[idx] = {
+        ...aiStore.messages[idx],
+        content: `engine_started:${modelName}`,
+      };
+    }
+  } catch (e) {
+    // Replace starting message with error
+    const idx = aiStore.messages.findIndex((m) => m.id === msgId);
+    if (idx !== -1) {
+      aiStore.messages[idx] = {
+        ...aiStore.messages[idx],
+        content: `engine_error:${e}`,
+      };
+    }
+  } finally {
+    localAiStarting.value = false;
+  }
+}
+
+const _unlisteners: Array<() => void> = [];
+onMounted(async () => {
+  await aiStore.loadProviders();
+  await refreshEngineStatus();
+  _unlisteners.push(await tauriListen("local-ai://status", () => refreshEngineStatus()));
+});
+onUnmounted(() => _unlisteners.forEach((fn) => fn()));
 function onTabClick(sessionId: string) {
   sessionStore.setActive(sessionId);
 }
@@ -222,9 +312,24 @@ async function onCtxSelect(action: string) {
     <!-- Empty fill -->
     <div class="flex-1 h-full" />
 
+    <!-- Local AI engine indicator (available but not running) -->
+    <button
+      v-if="localAiAvailable && !localAiRunning"
+      class="flex items-center gap-1 px-2 h-full text-[10px] shrink-0 transition-colors"
+      :class="localAiStarting ? 'text-yellow-400 cursor-wait' : 'text-orange-400 hover:text-orange-300 cursor-pointer'"
+      :disabled="localAiStarting"
+      @click="quickStartEngine"
+    >
+      <span v-if="localAiStarting" class="animate-spin">&#x23F3;</span>
+      <span v-else>&#x26A0;</span>
+      <span>{{ t("localAi.engineStopped") }}</span>
+      <span class="font-medium">{{ t("localAi.start") }}</span>
+    </button>
+
     <!-- AI toggle -->
     <button
-      class="tm-icon-btn px-2 h-full transition-colors shrink-0"      :title="$t('settings.aiConfig')"
+      class="tm-icon-btn px-2 h-full transition-colors shrink-0"
+      :title="$t('settings.aiConfig')"
       @click="emit('toggle-ai')"
     >
       <span class="text-sm leading-none">&#x2728;</span>

@@ -126,6 +126,114 @@ fn build_menu(app: &tauri::App) -> Result<AppMenu, Box<dyn std::error::Error>> {
     Ok(AppMenu { menu, toggle_sidebar, toggle_ai })
 }
 
+/// Auto-starts the local AI engine if a model was previously used.
+async fn auto_start_local_ai(handle: tauri::AppHandle) {
+    let state = match handle.try_state::<AppState>() {
+        Some(s) => s,
+        None => return,
+    };
+
+    // Check if auto-start is enabled (default: true)
+    let auto_start = state
+        .db
+        .with_conn(|conn| {
+            conn.query_row(
+                "SELECT value FROM settings WHERE key = 'local_ai_auto_start'",
+                [],
+                |row| row.get::<_, String>(0),
+            )
+        })
+        .unwrap_or_else(|_| "true".to_string());
+
+    if auto_start != "true" {
+        return;
+    }
+
+    // Get last used model
+    let last_model = match state.db.with_conn(|conn| {
+        conn.query_row(
+            "SELECT value FROM settings WHERE key = 'local_ai_last_model'",
+            [],
+            |row| row.get::<_, String>(0),
+        )
+    }) {
+        Ok(m) => m,
+        Err(_) => return, // No last model — skip
+    };
+
+    // Check model file exists
+    let model_path = paths::models_dir().join(format!("{last_model}.gguf"));
+    if !model_path.exists() {
+        log::info!("[local-ai] last model file not found: {}", model_path.display());
+        return;
+    }
+
+    // Check if another instance already running (PID file or port probe)
+    if let Some((pid, port)) = local_ai::read_pid_file() {
+        if local_ai::is_pid_alive(pid) {
+            log::info!("[local-ai] reusing existing instance (PID={pid}, port={port})");
+            let mut server = state.llama_server.write().await;
+            server.process_id = Some(pid);
+            server.port = Some(port);
+            server.loaded_model = Some(model_path.to_string_lossy().to_string());
+            server.is_owner = false;
+            let _ = handle.emit("local-ai://status", serde_json::json!({
+                "running": true, "model": last_model, "reused": true,
+            }));
+            return;
+        }
+    }
+
+    // Notify frontend: auto-starting in 3 seconds
+    let _ = handle.emit("local-ai://auto-start", serde_json::json!({
+        "model": last_model, "delayMs": 3000,
+    }));
+
+    tokio::time::sleep(std::time::Duration::from_secs(3)).await;
+
+    // Check if user cancelled
+    if state
+        .local_ai_auto_start_cancelled
+        .load(std::sync::atomic::Ordering::Relaxed)
+    {
+        log::info!("[local-ai] auto-start cancelled by user");
+        return;
+    }
+
+    // Find llama-server binary
+    let default_bin = paths::bin_dir().join("llama-server");
+    let binary_path = match local_ai::binary_manager::ensure_binary_exists(&default_bin).await {
+        Ok(p) => std::path::PathBuf::from(p),
+        Err(_) => {
+            log::info!("[local-ai] llama-server binary not found, skipping auto-start");
+            return;
+        }
+    };
+
+    // Start engine
+    let mut server = state.llama_server.write().await;
+    match server
+        .start(binary_path, model_path)
+        .await
+    {
+        Ok(port) => {
+            log::info!("[local-ai] auto-started model '{last_model}' on port {port}");
+            drop(server);
+            let _ = handle.emit("local-ai://status", serde_json::json!({
+                "running": true, "model": last_model, "reused": false,
+            }));
+            // Start health check to auto-restart if llama-server crashes
+            local_ai::health_check::start_health_check_from_handle(handle.clone(), 10, 3);
+        }
+        Err(e) => {
+            log::warn!("[local-ai] auto-start failed: {e}");
+            let _ = handle.emit("local-ai://auto-start-failed", serde_json::json!({
+                "model": last_model, "error": e,
+            }));
+        }
+    }
+}
+
 /// Initializes and runs the Tauri application.
 pub fn run() {
     // Initialize logging with env_logger
@@ -223,6 +331,14 @@ pub fn run() {
                 if let Some(window) = app.get_webview_window("main") {
                     let _ = window.set_decorations(false);
                 }
+            }
+
+            // Auto-start local AI engine (if previously used)
+            {
+                let handle = app.handle().clone();
+                tauri::async_runtime::spawn(async move {
+                    auto_start_local_ai(handle).await;
+                });
             }
 
             let app_menu = build_menu(app)?;
@@ -392,6 +508,11 @@ pub fn run() {
             commands::ai::ai_provider_test,
             commands::ai::ai_provider_test_direct,
             commands::ai::ai_autocomplete,
+            commands::ai::ai_chat,
+            commands::ai::ai_diagnose,
+            commands::ai::ai_orchestrate,
+            commands::ai::ai_validate_step,
+            commands::ai::ai_session_summary,
             // Local AI
             commands::local_ai::local_ai_engine_status,
             commands::local_ai::local_ai_start_engine,
@@ -401,6 +522,7 @@ pub fn run() {
             commands::local_ai::local_ai_delete_model,
             commands::local_ai::local_ai_cancel_download,
             commands::local_ai::local_ai_start_health_check,
+            commands::local_ai::local_ai_cancel_auto_start,
             commands::local_ai::local_ai_check_disk_space,
             // Recording
             commands::recording::recording_start,

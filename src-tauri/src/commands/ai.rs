@@ -685,6 +685,239 @@ pub(crate) async fn call_ai_provider(
     }
 }
 
+// ── Multi-turn Chat & Diagnosis Commands ────────────────────
+
+/// Resolves the default AI provider's connection info for new commands.
+fn resolve_default_provider(state: &AppState) -> Result<(String, String, Option<String>, String), String> {
+    let info = state.db.with_conn(|conn| {
+        conn.query_row(
+            "SELECT id, provider_type, api_key_enc, api_base_url, model
+             FROM ai_providers WHERE is_default = 1 LIMIT 1",
+            [],
+            |row| Ok((
+                row.get::<_, String>(0)?,
+                row.get::<_, String>(1)?,
+                row.get::<_, Option<Vec<u8>>>(2)?,
+                row.get::<_, Option<String>>(3)?,
+                row.get::<_, String>(4)?,
+            )),
+        )
+    }).map_err(|_| "no default AI provider configured".to_string())?;
+
+    let (pid, pt, enc, base, model) = info;
+    // Resolve API key via keychain → legacy fallback
+    let api_key = keychain::get(&keychain::ai_apikey_key(&pid))
+        .unwrap_or_else(|_| {
+            let mk = state.master_key.read().expect("master_key lock");
+            match (&*mk, enc) {
+                (Some(k), Some(e)) => aes::decrypt(k, &e)
+                    .map(|p| String::from_utf8(p).unwrap_or_default())
+                    .unwrap_or_default(),
+                (_, Some(e)) => String::from_utf8(e).unwrap_or_default(),
+                _ => String::new(),
+            }
+        });
+
+    Ok((pt, api_key, base, model))
+}
+
+/// Input for multi-turn AI chat.
+#[derive(Debug, Deserialize)]
+#[serde(rename_all = "camelCase")]
+pub struct ChatInput {
+    pub session_id: String,
+    pub message: String,
+    pub include_context: bool,
+    pub context: Option<crate::ai::context::TerminalContext>,
+    pub history: Vec<ChatHistoryEntry>,
+}
+
+#[derive(Debug, Deserialize)]
+#[serde(rename_all = "camelCase")]
+pub struct ChatHistoryEntry {
+    pub role: String,
+    pub content: String,
+}
+
+/// Multi-turn AI chat with optional terminal context injection.
+/// Streams response chunks via `ai://chat/{request_id}` events.
+#[tauri::command]
+pub async fn ai_chat(
+    app: AppHandle,
+    state: State<'_, AppState>,
+    input: ChatInput,
+    request_id: String,
+) -> Result<(), String> {
+    let (pt, api_key, base, model) = resolve_default_provider(&state)?;
+
+    let base_prompt = "You are Termex AI, an expert Linux/Unix operations assistant. \
+        You help users diagnose issues, write commands, and manage servers. \
+        When suggesting commands, wrap each in a ```bash code block. \
+        Be concise and actionable.";
+
+    let system_prompt = if input.include_context {
+        if let Some(ref ctx) = input.context {
+            crate::ai::context::build_context_prompt(base_prompt, ctx)
+        } else {
+            base_prompt.to_string()
+        }
+    } else {
+        base_prompt.to_string()
+    };
+
+    // Build conversation: history + current message
+    let mut parts = Vec::new();
+    for entry in &input.history {
+        parts.push(format!("{}: {}", entry.role, entry.content));
+    }
+    parts.push(format!("user: {}", input.message));
+    let full_message = parts.join("\n\n");
+
+    let response = call_ai_provider(
+        &state, &pt, &api_key, base.as_deref(), &model,
+        &system_prompt, &full_message, None,
+    ).await?;
+
+    let event = format!("ai://chat/{request_id}");
+    let _ = app.emit(&event, serde_json::json!({ "text": response, "done": true }));
+    Ok(())
+}
+
+/// Input for automatic error diagnosis.
+#[derive(Debug, Deserialize)]
+#[serde(rename_all = "camelCase")]
+pub struct DiagnoseInput {
+    pub session_id: String,
+    pub command: String,
+    pub error_output: String,
+    pub context: Option<crate::ai::context::TerminalContext>,
+}
+
+/// Diagnose a command error using AI.
+/// Streams response via `ai://diagnose/{request_id}` events.
+#[tauri::command]
+pub async fn ai_diagnose(
+    app: AppHandle,
+    state: State<'_, AppState>,
+    input: DiagnoseInput,
+    request_id: String,
+) -> Result<(), String> {
+    let (pt, api_key, base, model) = resolve_default_provider(&state)?;
+
+    let base_prompt = "You are an expert Linux systems administrator. \
+        A command failed on a remote server. Analyze the error and provide: \
+        1. Root cause (one sentence) \
+        2. Fix command(s) wrapped in ```bash blocks \
+        3. Prevention tip (one sentence). \
+        Be concise.";
+
+    let system_prompt = if let Some(ref ctx) = input.context {
+        crate::ai::context::build_context_prompt(base_prompt, ctx)
+    } else {
+        base_prompt.to_string()
+    };
+
+    let user_msg = format!(
+        "Command: `{}`\n\nError output:\n```\n{}\n```",
+        input.command, input.error_output
+    );
+
+    let response = call_ai_provider(
+        &state, &pt, &api_key, base.as_deref(), &model,
+        &system_prompt, &user_msg, Some(1024),
+    ).await?;
+
+    let event = format!("ai://diagnose/{request_id}");
+    let _ = app.emit(&event, serde_json::json!({ "text": response, "done": true }));
+    Ok(())
+}
+
+/// Orchestrate a command sequence for a complex goal.
+/// Streams response via `ai://orchestrate/{request_id}` events.
+#[tauri::command]
+pub async fn ai_orchestrate(
+    app: AppHandle,
+    state: State<'_, AppState>,
+    goal: String,
+    context: Option<crate::ai::context::TerminalContext>,
+    request_id: String,
+) -> Result<(), String> {
+    let (pt, api_key, base, model) = resolve_default_provider(&state)?;
+
+    let system_prompt = if let Some(ref ctx) = context {
+        crate::ai::context::build_context_prompt(
+            crate::ai::orchestrator::ORCHESTRATION_PROMPT, ctx,
+        )
+    } else {
+        crate::ai::orchestrator::ORCHESTRATION_PROMPT.to_string()
+    };
+
+    let response = call_ai_provider(
+        &state, &pt, &api_key, base.as_deref(), &model,
+        &system_prompt, &goal, Some(4096),
+    ).await?;
+
+    let event = format!("ai://orchestrate/{request_id}");
+    let _ = app.emit(&event, serde_json::json!({ "text": response, "done": true }));
+    Ok(())
+}
+
+/// Validates a playbook step execution result using AI.
+#[tauri::command]
+pub async fn ai_validate_step(
+    state: State<'_, AppState>,
+    step_description: String,
+    step_command: String,
+    step_output: String,
+) -> Result<String, String> {
+    let (pt, api_key, base, model) = resolve_default_provider(&state)?;
+
+    let system = "You are validating a command execution. \
+        Given the step description, command, and output, respond with exactly one word: \
+        SUCCESS if the command achieved its goal, or FAILED followed by a brief reason.";
+
+    let user_msg = format!(
+        "Step: {}\nCommand: {}\nOutput:\n```\n{}\n```",
+        step_description, step_command, step_output,
+    );
+
+    call_ai_provider(
+        &state, &pt, &api_key, base.as_deref(), &model,
+        system, &user_msg, Some(256),
+    ).await
+}
+
+/// Generate a session summary report using AI.
+/// Streams response via `ai://summary/{request_id}` events.
+#[tauri::command]
+pub async fn ai_session_summary(
+    app: AppHandle,
+    state: State<'_, AppState>,
+    terminal_buffer: String,
+    context: Option<crate::ai::context::TerminalContext>,
+    request_id: String,
+) -> Result<(), String> {
+    let (pt, api_key, base, model) = resolve_default_provider(&state)?;
+
+    let system_prompt = "You are Termex AI. Summarize a terminal session. Provide:\n\
+        1. **Operations performed** - bullet list of what the user did\n\
+        2. **Configuration changes** - any files modified, services restarted\n\
+        3. **Errors encountered** - errors and how they were resolved\n\
+        4. **Recommendations** - any follow-up actions needed\n\
+        Format as markdown.";
+
+    let user_msg = format!("Terminal session buffer:\n```\n{}\n```", terminal_buffer);
+
+    let response = call_ai_provider(
+        &state, &pt, &api_key, base.as_deref(), &model,
+        system_prompt, &user_msg, Some(2048),
+    ).await?;
+
+    let event = format!("ai://summary/{request_id}");
+    let _ = app.emit(&event, serde_json::json!({ "text": response, "done": true }));
+    Ok(())
+}
+
 // ── Autocomplete ─────────────────────────────────────────────
 
 /// Context information for AI-powered command autocomplete.

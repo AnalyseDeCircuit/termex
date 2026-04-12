@@ -109,14 +109,27 @@ onMounted(() => {
 </script>
 
 <template>
-  <!-- System message for engine started successfully -->
-  <div v-if="message.role === 'system' && message.content.startsWith('engine_started:')" class="mr-8">
+  <!-- System message for engine starting (progress) -->
+  <div v-if="message.role === 'system' && message.content.startsWith('engine_starting:')" class="mr-8">
     <div class="rounded-lg p-3 text-sm" style="background: var(--tm-ai-msg-assistant-bg)">
-      <div style="color: var(--tm-text-primary)">
-        ✅ Local AI engine started successfully
+      <div class="flex items-center gap-2" style="color: var(--tm-text-primary)">
+        <el-icon class="is-loading" :size="14"><Loading /></el-icon>
+        <span>{{ $t("localAi.autoStarting") }}</span>
       </div>
       <div class="text-xs mt-1" style="color: var(--tm-text-muted)">
-        Model: {{ message.content.replace('engine_started:', '') }}
+        {{ $t("localAi.startingModel", { model: message.content.replace('engine_starting:', '') }) }}
+      </div>
+    </div>
+  </div>
+
+  <!-- System message for engine started successfully -->
+  <div v-else-if="message.role === 'system' && message.content.startsWith('engine_started:')" class="mr-8">
+    <div class="rounded-lg p-3 text-sm" style="background: var(--tm-ai-msg-assistant-bg)">
+      <div style="color: var(--tm-text-primary)">
+        ✅ {{ $t("localAi.engineRunning") }}
+      </div>
+      <div class="text-xs mt-1" style="color: var(--tm-text-muted)">
+        {{ $t("localAi.startedModel", { model: message.content.replace('engine_started:', '') }) }}
       </div>
     </div>
   </div>
