@@ -41,6 +41,9 @@ pnpm-debug.log*
 coverage/
 *.lcov
 
+# Iteration docs (local only)
+docs/iterations/
+
 # Misc
 *.tgz
 *.bak
