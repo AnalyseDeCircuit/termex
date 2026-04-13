@@ -265,7 +265,16 @@ async fn process_hop(
             // Create a TCP connection to the proxy server.
             // The actual proxy CONNECT handshake is deferred until the next hop/target,
             // because we need the next hop's address to do CONNECT.
-            let stream = create_proxy_tcp_stream(&info.config).await?;
+            //
+            // ProxyCommand is special: it spawns an external process that directly
+            // tunnels to the target. No TCP stream to the proxy itself is needed.
+            // connect_via_proxy_on_stream ignores the stream for Command type.
+            let stream: Box<dyn AsyncStream> = if info.config.proxy_type == proxy::ProxyType::Command {
+                let (s, _) = tokio::io::duplex(1);
+                Box::new(s)
+            } else {
+                create_proxy_tcp_stream(&info.config).await?
+            };
             Ok(ChainState::ProxyStream {
                 stream,
                 config: info.config.clone(),
@@ -279,49 +288,65 @@ async fn process_hop(
                 ">>> [CHAIN] Proxy after SSH: proxy={}:{} tls={} via bastion={}",
                 info.config.host, info.config.port, info.config.tls.enabled, prev_id
             );
-            // Open direct-tcpip channel from the SSH session to the proxy server
-            let proxy_sessions = state.proxy_sessions.read().await;
-            let entry = proxy_sessions.get(&prev_id).ok_or_else(|| {
-                SshError::ConnectionFailed(format!("bastion session {} not found in pool", prev_id))
-            })?;
-            let channel = entry
-                .session
-                .handle()
-                .channel_open_direct_tcpip(
-                    &info.config.host,
-                    info.config.port as u32,
-                    "127.0.0.1",
-                    0,
-                )
-                .await
-                .map_err(|e| {
-                    SshError::ProxyFailed(format!(
-                        "Failed to tunnel to proxy {}:{}: {}",
-                        info.config.host, info.config.port, e
-                    ))
+            // ProxyCommand spawns a local process — no SSH tunnel to proxy needed.
+            let stream: Box<dyn AsyncStream> = if info.config.proxy_type == proxy::ProxyType::Command {
+                let (s, _) = tokio::io::duplex(1);
+                Box::new(s)
+            } else {
+                // Open direct-tcpip channel from the SSH session to the proxy server
+                let proxy_sessions = state.proxy_sessions.read().await;
+                let entry = proxy_sessions.get(&prev_id).ok_or_else(|| {
+                    SshError::ConnectionFailed(format!("bastion session {} not found in pool", prev_id))
                 })?;
-            drop(proxy_sessions);
-            let stream: Box<dyn AsyncStream> = Box::new(channel.into_stream());
+                let channel = entry
+                    .session
+                    .handle()
+                    .channel_open_direct_tcpip(
+                        &info.config.host,
+                        info.config.port as u32,
+                        "127.0.0.1",
+                        0,
+                    )
+                    .await
+                    .map_err(|e| {
+                        SshError::ProxyFailed(format!(
+                            "Failed to tunnel to proxy {}:{}: {}",
+                            info.config.host, info.config.port, e
+                        ))
+                    })?;
+                drop(proxy_sessions);
+                Box::new(channel.into_stream())
+            };
             Ok(ChainState::ProxyStream {
                 stream,
                 config: info.config.clone(),
-                ssh_source: Some(prev_id.clone()),
+                ssh_source: if info.config.proxy_type == proxy::ProxyType::Command {
+                    None
+                } else {
+                    Some(prev_id.clone())
+                },
             })
         }
 
         // ── Proxy hop after another proxy (chain proxies) ──
         (ResolvedHop::Proxy(info), ChainState::ProxyStream { stream: prev_stream, config: prev_config, .. }) => {
-            // Perform the PREVIOUS proxy's handshake to reach THIS proxy's host:port (with 10s timeout)
-            let stream = tokio::time::timeout(
-                std::time::Duration::from_secs(10),
-                proxy::connect_via_proxy_on_stream(
-                    &prev_config, &info.config.host, info.config.port, prev_stream,
-                ),
-            )
-            .await
-            .map_err(|_| SshError::ProxyFailed(
-                format!("proxy handshake to {}:{} timed out (10s)", info.config.host, info.config.port)
-            ))??;
+            // ProxyCommand spawns a local process — skip previous proxy handshake.
+            let stream: Box<dyn AsyncStream> = if info.config.proxy_type == proxy::ProxyType::Command {
+                let (s, _) = tokio::io::duplex(1);
+                Box::new(s)
+            } else {
+                // Perform the PREVIOUS proxy's handshake to reach THIS proxy's host:port (with 10s timeout)
+                tokio::time::timeout(
+                    std::time::Duration::from_secs(10),
+                    proxy::connect_via_proxy_on_stream(
+                        &prev_config, &info.config.host, info.config.port, prev_stream,
+                    ),
+                )
+                .await
+                .map_err(|_| SshError::ProxyFailed(
+                    format!("proxy handshake to {}:{} timed out (10s)", info.config.host, info.config.port)
+                ))??
+            };
             // Now we have a raw stream to THIS proxy — store its config for deferred handshake
             Ok(ChainState::ProxyStream {
                 stream,
