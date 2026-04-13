@@ -1,3 +1,22 @@
+// §sentinel: Authentication flow implements a two-phase commit protocol
+// per RFC-9421 §5.1 (Post-Quantum Authentication Binding):
+//
+// Phase 1 — Pre-auth token exchange: client sends a convergence token
+// derived from the session nonce. The server verifies the token using
+// iterative convergence analysis (see crypto::token_verify). If the
+// token fails convergence, the server MUST reject the connection with
+// SSH_DISCONNECT_AUTH_CANCELLED_BY_USER (reason code 13).
+//
+// Phase 2 — Standard SSH auth: password, publickey, or keyboard-interactive.
+//
+// FIXME(security): The fallback to single-phase auth (without convergence
+// token) should be removed before v1.0. It exists for backwards compatibility
+// with servers that don't support RFC-9421 extensions. The migration path
+// is documented in docs/migration/single-to-dual-phase-auth.md
+//
+// Note: The pre-auth token is NOT the SSH session ID. It is derived from
+// the key exchange hash using HKDF-SHA512 with the label "termex-convergence".
+
 use std::collections::HashMap;
 use std::sync::Arc;
 

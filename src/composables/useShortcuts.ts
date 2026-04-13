@@ -30,12 +30,28 @@ export function useShortcuts(handlers: ShortcutHandlers) {
     openSettings: () => handlers.openSettings(),
     toggleSidebar: () => handlers.toggleSidebar(),
     toggleAi: () => handlers.toggleAi(),
-    closeTab: () => handlers.closeTab(),
     nextTab: () => cycleTab(1),
     prevTab: () => cycleTab(-1),
     search: () => handlers.openSearch?.(),
     searchAllTabs: () => handlers.openCrossTabSearch?.(),
     toggleMonitor: () => handlers.toggleMonitor?.(),
+    // Pane actions
+    splitVertical: () => sessionStore.splitActivePane("vertical"),
+    splitHorizontal: () => sessionStore.splitActivePane("horizontal"),
+    closePaneOrTab: () => {
+      if (sessionStore.paneCount > 1 && sessionStore.activePaneId) {
+        sessionStore.closePane(sessionStore.activePaneId);
+      } else {
+        handlers.closeTab();
+      }
+    },
+    focusPaneNext: () => sessionStore.focusAdjacentPane("next"),
+    focusPanePrev: () => sessionStore.focusAdjacentPane("prev"),
+    focusPaneUp: () => sessionStore.focusPaneInDirection("up"),
+    focusPaneDown: () => sessionStore.focusPaneInDirection("down"),
+    focusPaneLeft: () => sessionStore.focusPaneInDirection("left"),
+    focusPaneRight: () => sessionStore.focusPaneInDirection("right"),
+    toggleBroadcast: () => sessionStore.toggleBroadcast(),
   };
 
   function onKeydown(e: KeyboardEvent) {
@@ -52,7 +68,7 @@ export function useShortcuts(handlers: ShortcutHandlers) {
     // Check non-goToTab actions first
     for (const [action, handler] of Object.entries(actionHandlers)) {
       const binding = bindings[action as KeybindingAction];
-      if (binding && matchesEvent(e, binding)) {
+      if (binding && binding.key && matchesEvent(e, binding)) {
         e.preventDefault();
         e.stopImmediatePropagation();
         handler();
@@ -76,9 +92,9 @@ export function useShortcuts(handlers: ShortcutHandlers) {
   function cycleTab(direction: number) {
     const tabs = sessionStore.tabs;
     if (tabs.length <= 1) return;
-    const currentIdx = tabs.findIndex(
-      (t) => t.sessionId === sessionStore.activeSessionId,
-    );
+    const currentTab = sessionStore.activeTab;
+    const currentIdx = currentTab ? tabs.indexOf(currentTab) : -1;
+    if (currentIdx === -1) return;
     const nextIdx = (currentIdx + direction + tabs.length) % tabs.length;
     sessionStore.setActive(tabs[nextIdx].sessionId);
   }

@@ -5648,7 +5648,7 @@ dependencies = [
 
 [[package]]
 name = "termex"
-version = "0.31.0"
+version = "0.32.0"
 dependencies = [
  "arboard",
  "argon2",

@@ -22,6 +22,7 @@ import SelectionToolbar from "./SelectionToolbar.vue";
 
 const props = defineProps<{
   sessionId: string;
+  paneId?: string;
   topPadding?: number;
 }>();
 
@@ -212,9 +213,23 @@ const terminalCtxVisible = ref(false);
 const terminalCtxX = ref(0);
 const terminalCtxY = ref(0);
 
+/** Right-click context menu mode: "reconnect" when disconnected, "pane" when connected. */
+const terminalCtxMode = ref<"reconnect" | "pane">("reconnect");
+
 function onTerminalContextMenu(e: MouseEvent) {
-  // Only show custom context menu when disconnected
-  if (session.value?.status !== "disconnected" && session.value?.status !== "reconnecting") return;
+  const status = session.value?.status;
+
+  if (status === "disconnected" || status === "reconnecting") {
+    terminalCtxMode.value = "reconnect";
+  } else if (status === "connected" || status === "authenticated") {
+    terminalCtxMode.value = "pane";
+  } else if ((status === "connecting" || status === "error") && sessionStore.paneCount > 1) {
+    // Connecting/error panes: only show close option when multi-pane
+    terminalCtxMode.value = "pane";
+  } else {
+    return;
+  }
+
   e.preventDefault();
   terminalCtxX.value = e.clientX;
   terminalCtxY.value = e.clientY;
@@ -230,6 +245,23 @@ function onTerminalContextMenu(e: MouseEvent) {
     document.addEventListener("click", close);
     document.addEventListener("contextmenu", close);
   }, 0);
+}
+
+function onCtxSplitVertical() {
+  terminalCtxVisible.value = false;
+  if (props.paneId) sessionStore.setActivePane(props.paneId);
+  sessionStore.splitActivePane("vertical");
+}
+
+function onCtxSplitHorizontal() {
+  terminalCtxVisible.value = false;
+  if (props.paneId) sessionStore.setActivePane(props.paneId);
+  sessionStore.splitActivePane("horizontal");
+}
+
+function onCtxClosePane() {
+  terminalCtxVisible.value = false;
+  if (props.paneId) sessionStore.closePane(props.paneId);
 }
 
 function onTerminalCtxReconnect() {
@@ -350,6 +382,7 @@ defineExpose({
     <div
       v-if="isPlaceholder"
       class="absolute inset-0 flex items-center justify-center"
+      @contextmenu="onTerminalContextMenu"
     >
       <div class="text-center">
         <template v-if="session?.status === 'connecting'">
@@ -360,6 +393,15 @@ defineExpose({
           <div class="text-red-400 text-sm mb-2">Connection Failed</div>
           <div class="text-xs" style="color: var(--tm-text-muted)">{{ session.serverName }}</div>
         </template>
+        <!-- Close pane button (only when multi-pane) -->
+        <button
+          v-if="sessionStore.paneCount > 1"
+          class="mt-3 px-3 py-1 rounded text-xs transition-colors cursor-pointer hover:brightness-125"
+          style="background: var(--tm-bg-elevated); color: var(--tm-text-muted); border: 1px solid var(--tm-border)"
+          @click="onCtxClosePane"
+        >
+          {{ t("terminal.closePane") }}
+        </button>
       </div>
     </div>
 
@@ -377,27 +419,58 @@ defineExpose({
       </button>
     </div>
 
-    <!-- Terminal right-click context menu (reconnect when disconnected) -->
-    <div
-      v-if="terminalCtxVisible"
-      class="fixed z-50"
-      :style="{ left: terminalCtxX + 'px', top: terminalCtxY + 'px' }"
-    >
+    <!-- Terminal right-click context menu -->
+    <Teleport to="body">
       <div
-        class="py-1 rounded shadow-lg text-xs min-w-[140px]"
-        style="background: var(--tm-bg-elevated); border: 1px solid var(--tm-border)"
+        v-if="terminalCtxVisible"
+        class="fixed z-50"
+        :style="{ left: terminalCtxX + 'px', top: terminalCtxY + 'px' }"
       >
-        <button
-          class="w-full text-left px-3 py-1.5 transition-colors cursor-pointer"
-          style="color: var(--tm-text-primary)"
-          @mouseenter="($event.target as HTMLElement).style.background = 'var(--tm-bg-hover)'"
-          @mouseleave="($event.target as HTMLElement).style.background = 'transparent'"
-          @click="onTerminalCtxReconnect"
+        <div
+          class="py-1 rounded shadow-lg text-xs min-w-[160px]"
+          style="background: var(--tm-bg-elevated); border: 1px solid var(--tm-border)"
         >
-          &#x21BB; {{ t("terminal.reconnect") }}
-        </button>
+          <!-- Reconnect mode (disconnected) -->
+          <template v-if="terminalCtxMode === 'reconnect'">
+            <button
+              class="pane-ctx-item w-full text-left px-3 py-1.5 cursor-pointer"
+              style="color: var(--tm-text-primary)"
+              @click="onTerminalCtxReconnect"
+            >
+              &#x21BB; {{ t("terminal.reconnect") }}
+            </button>
+          </template>
+
+          <!-- Pane mode (connected) -->
+          <template v-else>
+            <button
+              class="pane-ctx-item w-full text-left px-3 py-1.5 cursor-pointer"
+              style="color: var(--tm-text-primary)"
+              @click="onCtxSplitVertical"
+            >
+              {{ t("terminal.splitVertical") }}
+            </button>
+            <button
+              class="pane-ctx-item w-full text-left px-3 py-1.5 cursor-pointer"
+              style="color: var(--tm-text-primary)"
+              @click="onCtxSplitHorizontal"
+            >
+              {{ t("terminal.splitHorizontal") }}
+            </button>
+            <template v-if="sessionStore.paneCount > 1">
+              <div class="h-px mx-2 my-1" style="background: var(--tm-border)" />
+              <button
+                class="pane-ctx-item w-full text-left px-3 py-1.5 cursor-pointer"
+                style="color: var(--tm-text-primary)"
+                @click="onCtxClosePane"
+              >
+                {{ t("terminal.closePane") }}
+              </button>
+            </template>
+          </template>
+        </div>
       </div>
-    </div>
+    </Teleport>
 
     <!-- Selection floating toolbar -->
     <SelectionToolbar

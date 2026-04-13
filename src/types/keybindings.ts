@@ -18,7 +18,17 @@ export type KeybindingAction =
   | "goToTab7"
   | "goToTab8"
   | "goToTab9"
-  | "toggleMonitor";
+  | "toggleMonitor"
+  | "splitVertical"
+  | "splitHorizontal"
+  | "closePaneOrTab"
+  | "focusPaneNext"
+  | "focusPanePrev"
+  | "focusPaneUp"
+  | "focusPaneDown"
+  | "focusPaneLeft"
+  | "focusPaneRight"
+  | "toggleBroadcast";
 
 /** A keyboard shortcut composed of modifier keys + a main key. */
 export interface Keybinding {
@@ -56,6 +66,16 @@ export const KEYBINDING_ACTIONS: KeybindingAction[] = [
   "goToTab8",
   "goToTab9",
   "toggleMonitor",
+  "splitVertical",
+  "splitHorizontal",
+  "closePaneOrTab",
+  "focusPaneNext",
+  "focusPanePrev",
+  "focusPaneUp",
+  "focusPaneDown",
+  "focusPaneLeft",
+  "focusPaneRight",
+  "toggleBroadcast",
 ];
 
 /** Default keybinding mapping. */
@@ -64,7 +84,7 @@ export const DEFAULT_KEYBINDINGS: KeybindingMap = {
   openSettings:   { mod: true, shift: false, alt: false, key: "," },
   toggleSidebar:  { mod: true, shift: false, alt: false, key: "\\" },
   toggleAi:       { mod: true, shift: true,  alt: false, key: "I" },
-  closeTab:       { mod: true, shift: false, alt: false, key: "w" },
+  closeTab:       { mod: false, shift: false, alt: false, key: "" },
   nextTab:        { mod: true, shift: false, alt: false, key: "Tab" },
   prevTab:        { mod: true, shift: true,  alt: false, key: "Tab" },
   search:         { mod: true, shift: false, alt: false, key: "f" },
@@ -79,6 +99,16 @@ export const DEFAULT_KEYBINDINGS: KeybindingMap = {
   goToTab8:       { mod: true, shift: false, alt: false, key: "8" },
   goToTab9:       { mod: true, shift: false, alt: false, key: "9" },
   toggleMonitor:  { mod: true, shift: true,  alt: false, key: "m" },
+  splitVertical:    { mod: true, shift: false, alt: false, key: "d" },
+  splitHorizontal:  { mod: true, shift: true,  alt: false, key: "D" },
+  closePaneOrTab:   { mod: true, shift: false, alt: false, key: "w" },
+  focusPaneNext:    { mod: true, shift: false, alt: false, key: "]" },
+  focusPanePrev:    { mod: true, shift: false, alt: false, key: "[" },
+  focusPaneUp:      { mod: true, shift: false, alt: true,  key: "ArrowUp" },
+  focusPaneDown:    { mod: true, shift: false, alt: true,  key: "ArrowDown" },
+  focusPaneLeft:    { mod: true, shift: false, alt: true,  key: "ArrowLeft" },
+  focusPaneRight:   { mod: true, shift: false, alt: true,  key: "ArrowRight" },
+  toggleBroadcast:  { mod: true, shift: true,  alt: false, key: "B" },
 };
 
 /** System-reserved shortcuts that cannot be rebound. */

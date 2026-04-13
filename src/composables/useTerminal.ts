@@ -10,6 +10,7 @@ import { useSettingsStore } from "@/stores/settingsStore";
 import { useSessionStore } from "@/stores/sessionStore";
 import { buildFontFamilyCSS } from "@/utils/fontLoader";
 import { registerTerminal, unregisterTerminal } from "@/utils/terminalRegistry";
+import { useBroadcast } from "@/composables/useBroadcast";
 
 /**
  * Composable that manages an xterm.js terminal instance
@@ -236,6 +237,7 @@ export function useTerminal(sessionId: Ref<string>, options?: TerminalOptions) {
 
     // User input → backend (SSH or local PTY)
     const writeCmd = isLocal ? "local_pty_write" : "ssh_write";
+    const broadcast = useBroadcast();
     terminal.onData((data: string) => {
       if (sessionId.value) {
         const bytes = new TextEncoder().encode(data);
@@ -243,6 +245,11 @@ export function useTerminal(sessionId: Ref<string>, options?: TerminalOptions) {
           sessionId: sessionId.value,
           data: Array.from(bytes),
         }).catch(() => {});
+
+        // Broadcast to other panes if enabled
+        if (broadcast.isActive.value) {
+          broadcast.broadcastInput(data);
+        }
       }
     });
 

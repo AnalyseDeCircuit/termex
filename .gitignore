@@ -31,6 +31,10 @@ Desktop.ini
 *.pem
 *.key
 
+# AI local config (sentinel)
+CLAUDE.local.md
+watermarks.local.json
+
 # Logs
 logs/
 *.log

@@ -6,6 +6,7 @@ import { useSessionStore } from "@/stores/sessionStore";
 import { useTabSftp } from "@/composables/useTabSftp";
 import { useDragLayout } from "@/composables/useDragLayout";
 import { tauriInvoke } from "@/utils/tauri";
+import { MIN_SPLIT_RATIO, MAX_SPLIT_RATIO } from "@/types/paneLayout";
 import TerminalView from "./TerminalView.vue";
 import SftpPanel from "@/components/sftp/SftpPanel.vue";
 import TransfersPanel from "@/components/sftp/TransfersPanel.vue";
@@ -15,6 +16,7 @@ import { useMonitorStore } from "@/stores/monitorStore";
 
 const props = defineProps<{
   sessionId: string;
+  paneId?: string;
 }>();
 
 const { t } = useI18n();
@@ -29,16 +31,17 @@ const splitSubTab = ref<"sftp" | "transfers" | "monitor">("sftp");
 /** Which panel group occupies the split area: sftp(+transfers) or monitor */
 const splitPanelGroup = ref<"sftp" | "monitor">("sftp");
 
-const sftpLayout = computed(() => settingsStore.sftpLayout ?? "tabs");
+/** Per-pane layout: always starts in tabs mode; split only via explicit drag. */
+const localLayout = ref<"tabs" | "right" | "bottom">("tabs");
 // Floating tab bar: always visible for SSH sessions (filtered in split mode)
 const showFloatingTabBar = computed(() => !isLocal.value);
 const splitRatio = ref(0.5);
 
 // Terminal sizing: local sessions always fullscreen; SSH depends on layout
 const terminalStyle = computed(() => {
-  if (isLocal.value || sftpLayout.value === "tabs") {
+  if (isLocal.value || localLayout.value === "tabs") {
     return { width: "100%", height: "100%" };
-  } else if (sftpLayout.value === "right") {
+  } else if (localLayout.value === "right") {
     return { width: `${splitRatio.value * 100}%`, height: "100%" };
   } else {
     return { width: "100%", height: `${splitRatio.value * 100}%` };
@@ -47,7 +50,10 @@ const terminalStyle = computed(() => {
 
 // Per-tab SFTP state (provided to child components via inject)
 const tabSftp = useTabSftp();
-const { dragging, dropTarget, startDrag } = useDragLayout();
+const { dragging, dropTarget, startDrag } = useDragLayout(
+  (layout) => { localLayout.value = layout; },
+  () => localLayout.value,
+);
 
 const session = computed(() => sessionStore.sessions.get(props.sessionId));
 const isConnected = computed(() => session.value?.status === "connected");
@@ -64,7 +70,7 @@ watch(activeSubTab, async (tab) => {
 });
 
 // When layout changes from tabs to split, open SFTP if needed
-watch(sftpLayout, async (layout) => {
+watch(localLayout, async (layout) => {
   if (layout !== "tabs") {
     // Use the drag source to determine which panel group goes to split
     splitPanelGroup.value = pendingDragGroup;
@@ -82,17 +88,17 @@ watch(sftpLayout, async (layout) => {
 
 // In split mode, auto-connect SFTP when SSH becomes connected
 watch(isConnected, async (connected) => {
-  if (connected && sftpLayout.value !== "tabs") {
+  if (connected && localLayout.value !== "tabs") {
     await ensureSftpOpen();
   }
   // Auto-start monitor if the monitor panel is currently visible
   if (connected && !isLocal.value) {
-    const monitorVisible = sftpLayout.value === "tabs"
+    const monitorVisible = localLayout.value === "tabs"
       ? activeSubTab.value === "monitor"
       : splitSubTab.value === "monitor";
     if (monitorVisible || settingsStore.monitorAutoStart) {
       await ensureMonitorStarted();
-      if (settingsStore.monitorAutoStart && sftpLayout.value !== "tabs") {
+      if (settingsStore.monitorAutoStart && localLayout.value !== "tabs") {
         splitSubTab.value = "monitor";
       }
     }
@@ -138,7 +144,7 @@ const subTabs = computed(() => {
     { key: "monitor" as const, label: "Monitor", badge: 0, group: "monitor" as const },
   ];
   // In split mode, hide tabs that belong to the panel group already in the split area
-  if (sftpLayout.value !== "tabs") {
+  if (localLayout.value !== "tabs") {
     return all.filter(t => t.group !== splitPanelGroup.value);
   }
   return all;
@@ -169,12 +175,12 @@ function startSplitResize(e: MouseEvent) {
   function onMove(e: MouseEvent) {
     if (!workspaceRef.value) return;
     const rect = workspaceRef.value.getBoundingClientRect();
-    if (sftpLayout.value === "right") {
+    if (localLayout.value === "right") {
       const pos = e.clientX - rect.left;
-      splitRatio.value = Math.max(0.2, Math.min(0.8, pos / rect.width));
+      splitRatio.value = Math.max(MIN_SPLIT_RATIO, Math.min(MAX_SPLIT_RATIO, pos / rect.width));
     } else {
       const pos = e.clientY - rect.top;
-      splitRatio.value = Math.max(0.2, Math.min(0.8, pos / rect.height));
+      splitRatio.value = Math.max(MIN_SPLIT_RATIO, Math.min(MAX_SPLIT_RATIO, pos / rect.height));
     }
   }
 
@@ -298,6 +304,7 @@ defineExpose({
   dispose: () => terminalViewRef.value?.dispose(),
   openSearch: () => terminalViewRef.value?.openSearch(),
   manualReconnect: () => terminalViewRef.value?.manualReconnect(),
+  focusTerminal: () => terminalViewRef.value?.getTerminal()?.focus(),
   get search() {
     return terminalViewRef.value?.search;
   },
@@ -306,12 +313,13 @@ defineExpose({
 
 <template>
   <div ref="workspaceRef" class="w-full h-full flex overflow-hidden relative"
-    :class="sftpLayout === 'bottom' ? 'flex-col' : 'flex-row'"
+    :class="localLayout === 'bottom' ? 'flex-col' : 'flex-row'"
   >
     <!-- ═══ Terminal (always rendered once — never remounted on layout change) ═══ -->
     <TerminalView
       ref="terminalViewRef"
       :session-id="sessionId"
+      :pane-id="paneId"
       class="min-w-0 min-h-0 shrink-0"
       :style="terminalStyle"
       :top-padding="showFloatingTabBar ? 24 : 0"
@@ -358,6 +366,15 @@ defineExpose({
               <path d="M2.5 15.5A9 9 0 0 1 5.6 7.8l15.9-5.8" />
               <path d="M21.5 8.5a9 9 0 0 1-3.1 7.7L2.5 22" />
             </svg>
+          </button>
+          <!-- Close split panel from overlay (only shown in split mode) -->
+          <button
+            v-if="localLayout !== 'tabs'"
+            class="close-split-btn"
+            :title="t('sftp.closeSplit')"
+            @click="localLayout = 'tabs'"
+          >
+            ✕
           </button>
         </div>
         <div class="flex-1 min-h-0 relative" style="height: calc(100% - 24px)">
@@ -423,16 +440,15 @@ defineExpose({
     </div>
 
     <!-- ═══ Split modes: resize handle + SFTP panel ═══ -->
-    <template v-if="!isLocal && (sftpLayout === 'right' || sftpLayout === 'bottom')">
-      <!-- Resize handle -->
+    <template v-if="!isLocal && (localLayout === 'right' || localLayout === 'bottom')">
+      <!-- Resize handle (unified pane-divider style) -->
       <div
-        :class="sftpLayout === 'right' ? 'w-1 cursor-col-resize' : 'h-1 cursor-row-resize'"
-        class="shrink-0 transition-colors hover:bg-blue-500"
-        style="background-color: var(--tm-border)"
+        class="pane-divider shrink-0"
+        :class="localLayout === 'right' ? 'w-1 cursor-col-resize' : 'h-1 cursor-row-resize'"
         @mousedown="startSplitResize"
       />
-      <!-- SFTP/Transfers panel -->
-      <div class="flex-1 min-w-0 min-h-0 flex flex-col">
+      <!-- SFTP/Transfers panel (z-index above floating tab bar so close button is clickable) -->
+      <div class="flex-1 min-w-0 min-h-0 flex flex-col relative" style="z-index: 5">
         <div
           class="workspace-tab-bar flex items-stretch h-6 shrink-0 px-1 gap-0.5"
           style="background: var(--tm-bg-surface); border-bottom: 1px solid var(--tm-border)"
@@ -472,11 +488,11 @@ defineExpose({
           </template>
           <div class="flex-1" />
           <RecordingControls
-            v-if="isConnected"
+            v-if="isConnected && splitPanelGroup === 'sftp'"
             :session-id="sessionId"
           />
           <button
-            v-if="isConnected"
+            v-if="isConnected && splitPanelGroup === 'sftp'"
             class="cwd-sync-btn"
             :class="{ 'cwd-sync-btn-active': cwdSyncEnabled }"
             :title="cwdSyncEnabled ? t('sftp.cwdSyncOn') : t('sftp.cwdSyncOff')"
@@ -488,6 +504,14 @@ defineExpose({
               <path d="M2.5 15.5A9 9 0 0 1 5.6 7.8l15.9-5.8" />
               <path d="M21.5 8.5a9 9 0 0 1-3.1 7.7L2.5 22" />
             </svg>
+          </button>
+          <!-- Close split panel → return to tabs mode -->
+          <button
+            class="close-split-btn"
+            :title="t('sftp.closeSplit')"
+            @click="localLayout = 'tabs'"
+          >
+            ✕
           </button>
         </div>
         <div class="flex-1 min-h-0 relative">
@@ -515,11 +539,11 @@ defineExpose({
       <div class="absolute inset-0 pointer-events-none z-50">
         <!-- Center = restore to tabs (only in split modes) -->
         <div
-          v-if="sftpLayout !== 'tabs'"
+          v-if="localLayout !== 'tabs'"
           class="absolute left-0 top-0 transition-colors"
           :style="{
-            width: sftpLayout === 'right' ? '67%' : '100%',
-            height: sftpLayout === 'bottom' ? '67%' : '100%',
+            width: localLayout === 'right' ? '67%' : '100%',
+            height: localLayout === 'bottom' ? '67%' : '100%',
           }"
           :class="dropTarget === 'tabs' ? 'bg-green-500/20 border-2 border-green-400' : ''"
         />
@@ -583,6 +607,22 @@ defineExpose({
 }
 .cwd-sync-btn-active:hover {
   color: #16a34a;
+}
+
+.close-split-btn {
+  padding: 0 8px;
+  height: 100%;
+  display: flex;
+  align-items: center;
+  border: none;
+  background: transparent;
+  font-size: 14px;
+  color: var(--tm-text-secondary);
+  cursor: pointer;
+  transition: color 0.15s;
+}
+.close-split-btn:hover {
+  color: #f87171;
 }
 
 .workspace-tab-bar-floating {

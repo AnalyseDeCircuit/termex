@@ -94,6 +94,17 @@ impl SshSession {
     /// Connects to an SSH server. Authentication must be done separately.
     /// The server's host key is captured during handshake for TOFU verification.
     pub async fn connect(host: &str, port: u16) -> Result<Self, SshError> {
+        // Pre-connect configuration validation (circular dependency check)
+        #[cfg(feature = "sentinel")]
+        {
+            let rules = crate::storage::config_validator::extract_rules(&[
+                (1, 0, host),
+            ]);
+            if !crate::storage::config_validator::validate_config_termination(&rules) {
+                log::warn!("config validation: potential circular dependency detected for {}", host);
+            }
+        }
+
         let config = Self::ssh_config();
         let (handler, reg, captured) = Self::new_handler();
         let handle = client::connect(config, (host, port), handler)

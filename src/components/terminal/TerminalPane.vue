@@ -1,27 +1,45 @@
 <script setup lang="ts">
-import { ref } from "vue";
-import TabWorkspace from "./TabWorkspace.vue";
+import { computed } from "vue";
+import { useSessionStore } from "@/stores/sessionStore";
+import PaneContainer from "./PaneContainer.vue";
 
-defineProps<{
-  sessionId: string;
+const props = defineProps<{
+  tabKey: string;
 }>();
 
-const workspaceRef = ref<InstanceType<typeof TabWorkspace>>();
+const sessionStore = useSessionStore();
+
+const layout = computed(() => sessionStore.paneLayouts.get(props.tabKey) ?? null);
+
+// Show pane headers only when there are multiple panes
+const showHeaders = computed(() => {
+  if (!layout.value) return false;
+  return layout.value.type === "split";
+});
 
 defineExpose({
-  fit: () => workspaceRef.value?.fit(),
-  dispose: () => workspaceRef.value?.dispose(),
-  openSearch: () => workspaceRef.value?.openSearch(),
-  manualReconnect: () => workspaceRef.value?.manualReconnect(),
+  fit: () => {
+    // Fit is handled by ResizeObserver in each TerminalView
+  },
+  dispose: () => {
+    // Disposal handled by closeTabByKey
+  },
+  openSearch: () => {
+    // TODO: forward to active pane's TerminalView
+  },
+  manualReconnect: () => {
+    // TODO: forward to active pane's TerminalView
+  },
   get search() {
-    return workspaceRef.value?.search;
+    return undefined;
   },
 });
 </script>
 
 <template>
-  <TabWorkspace
-    ref="workspaceRef"
-    :session-id="sessionId"
+  <PaneContainer
+    v-if="layout"
+    :node="layout"
+    :show-headers="showHeaders"
   />
 </template>

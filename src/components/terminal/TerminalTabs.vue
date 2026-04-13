@@ -8,6 +8,8 @@ import { useAiStore } from "@/stores/aiStore";
 import { tauriInvoke, tauriListen } from "@/utils/tauri";
 import ContextMenu from "@/components/sidebar/ContextMenu.vue";
 import type { MenuItem } from "@/components/sidebar/ContextMenu.vue";
+import BroadcastIndicator from "./BroadcastIndicator.vue";
+import * as paneTree from "@/utils/paneTree";
 
 const { t } = useI18n();
 const appWindow = getCurrentWindow();
@@ -140,6 +142,12 @@ onMounted(async () => {
   _unlisteners.push(await tauriListen("local-ai://status", () => refreshEngineStatus()));
 });
 onUnmounted(() => _unlisteners.forEach((fn) => fn()));
+function getPaneCount(tabKey: string): number {
+  const layout = sessionStore.paneLayouts.get(tabKey);
+  if (!layout) return 1;
+  return paneTree.countLeaves(layout);
+}
+
 function onTabClick(sessionId: string) {
   sessionStore.setActive(sessionId);
 }
@@ -192,6 +200,8 @@ const ctxItems = computed<MenuItem[]>(() => [
   { label: t("tab.closeOthers"), action: "close-others" },
   { label: t("sidebar.newConnection"), action: "new-host", divided: true },
   { label: t("tab.duplicate"), action: "duplicate" },
+  { label: t("tab.splitVertical"), action: "split-vertical" },
+  { label: t("tab.splitHorizontal"), action: "split-horizontal" },
   { label: t("tab.rename"), action: "rename", divided: true },
   { label: t("tab.reconnect"), action: "reconnect" },
   { label: t("tab.reconnectAll"), action: "reconnect-all" },
@@ -228,6 +238,16 @@ async function onCtxSelect(action: string) {
   } else if (action === "rename") {
     if (!tab) return;
     startRename(tab.tabKey);
+  } else if (action === "split-vertical") {
+    if (tab) {
+      sessionStore.setActive(sid);
+      sessionStore.splitActivePane("vertical");
+    }
+  } else if (action === "split-horizontal") {
+    if (tab) {
+      sessionStore.setActive(sid);
+      sessionStore.splitActivePane("horizontal");
+    }
   } else if (action === "reconnect") {
     emit("reconnect", sid);
   } else if (action === "reconnect-all") {
@@ -287,6 +307,12 @@ async function onCtxSelect(action: string) {
         @dblclick.stop
       />
       <span v-else class="truncate flex-1 text-left">{{ tab.title }}</span>
+      <!-- Pane count badge -->
+      <span
+        v-if="getPaneCount(tab.tabKey) > 1"
+        class="ml-0.5 px-1 rounded text-[9px] font-mono shrink-0"
+        style="background: var(--tm-bg-hover); color: var(--tm-text-muted)"
+      >{{ getPaneCount(tab.tabKey) }}</span>
 
       <!-- Close button -->
       <el-icon
@@ -308,6 +334,9 @@ async function onCtxSelect(action: string) {
         <path d="M12 5v14M5 12h14" />
       </svg>
     </button>
+
+    <!-- Broadcast indicator -->
+    <BroadcastIndicator />
 
     <!-- Empty fill -->
     <div class="flex-1 h-full" />

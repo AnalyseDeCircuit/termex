@@ -12,9 +12,9 @@ import type { Keybinding, KeybindingAction } from "@/types/keybindings";
 
 describe("Keybindings Types", () => {
   describe("DEFAULT_KEYBINDINGS", () => {
-    it("has all 19 actions defined", () => {
+    it("has all 29 actions defined", () => {
       const actions = Object.keys(DEFAULT_KEYBINDINGS);
-      expect(actions).toHaveLength(19);
+      expect(actions).toHaveLength(29);
     });
 
     it("includes v0.15.0 search actions", () => {
@@ -25,8 +25,10 @@ describe("Keybindings Types", () => {
       expect(DEFAULT_KEYBINDINGS.searchAllTabs.shift).toBe(true);
     });
 
-    it("all bindings require mod key", () => {
-      for (const binding of Object.values(DEFAULT_KEYBINDINGS)) {
+    it("all active bindings require mod key", () => {
+      for (const [, binding] of Object.entries(DEFAULT_KEYBINDINGS)) {
+        // Skip disabled bindings (empty key = unbound)
+        if (!binding.key) continue;
         expect(binding.mod).toBe(true);
       }
     });
@@ -40,10 +42,10 @@ describe("Keybindings Types", () => {
   });
 
   describe("KEYBINDING_ACTIONS", () => {
-    it("contains all 19 actions in order", () => {
-      expect(KEYBINDING_ACTIONS).toHaveLength(19);
+    it("contains all 29 actions in order", () => {
+      expect(KEYBINDING_ACTIONS).toHaveLength(29);
       expect(KEYBINDING_ACTIONS[0]).toBe("newConnection");
-      expect(KEYBINDING_ACTIONS[KEYBINDING_ACTIONS.length - 1]).toBe("toggleMonitor");
+      expect(KEYBINDING_ACTIONS[KEYBINDING_ACTIONS.length - 1]).toBe("toggleBroadcast");
     });
 
     it("matches the keys in DEFAULT_KEYBINDINGS", () => {

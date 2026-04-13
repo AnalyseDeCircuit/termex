@@ -7,6 +7,7 @@ import App from "./App.vue";
 import "./assets/styles/tailwind.css";
 import "./assets/styles/monitor.css";
 import "./assets/styles/fonts.css";
+import "./assets/styles/pane.css";
 
 // Set platform class before mount for CSS layout
 const platform = navigator.platform.toUpperCase();

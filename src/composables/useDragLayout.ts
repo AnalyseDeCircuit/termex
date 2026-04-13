@@ -1,5 +1,4 @@
 import { ref, onUnmounted } from "vue";
-import { useSettingsStore } from "@/stores/settingsStore";
 
 export type DropTarget = "right" | "bottom" | "tabs" | null;
 
@@ -10,9 +9,14 @@ export type DropTarget = "right" | "bottom" | "tabs" | null;
  *   - Right 1/3 → "right" split
  *   - Bottom 1/3 → "bottom" split
  *   - Center area → "tabs" mode (restore)
+ *
+ * @param onLayoutChange Callback invoked when a layout change is committed.
+ * @param getCurrentLayout Returns the current layout for drop target filtering.
  */
-export function useDragLayout() {
-  const settingsStore = useSettingsStore();
+export function useDragLayout(
+  onLayoutChange: (layout: "tabs" | "right" | "bottom") => void,
+  getCurrentLayout: () => string,
+) {
   const dragging = ref(false);
   const dropTarget = ref<DropTarget>(null);
 
@@ -25,7 +29,7 @@ export function useDragLayout() {
     startX = e.clientX;
     startY = e.clientY;
     workspaceEl = workspace;
-    currentLayout = settingsStore.sftpLayout ?? "tabs";
+    currentLayout = getCurrentLayout();
 
     window.addEventListener("mousemove", onMove);
     window.addEventListener("mouseup", onEnd);
@@ -67,7 +71,7 @@ export function useDragLayout() {
     window.removeEventListener("mouseup", onEnd);
 
     if (dragging.value && dropTarget.value) {
-      settingsStore.sftpLayout = dropTarget.value as "tabs" | "right" | "bottom";
+      onLayoutChange(dropTarget.value as "tabs" | "right" | "bottom");
     }
 
     dragging.value = false;

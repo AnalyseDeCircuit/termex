@@ -404,10 +404,10 @@ onBeforeUnmount(() => {
           <div class="flex-1 min-w-0 relative">
             <TerminalPane
               v-for="tab in sessionStore.tabs"
-              v-show="tab.sessionId === sessionStore.activeSessionId"
+              v-show="tab.tabKey === sessionStore.activeTab?.tabKey"
               :ref="(el: any) => setTerminalPaneRef(tab.tabKey, el)"
               :key="tab.tabKey"
-              :session-id="tab.sessionId"
+              :tab-key="tab.tabKey"
               class="absolute inset-0"
             />
 
