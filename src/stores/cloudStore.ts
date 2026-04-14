@@ -1,0 +1,161 @@
+import { defineStore } from "pinia";
+import { ref, computed } from "vue";
+import { tauriInvoke } from "@/utils/tauri";
+import type {
+  ToolStatus,
+  KubeContext,
+  PodInfo,
+  SsmInstance,
+} from "@/types/cloud";
+
+export const useCloudStore = defineStore("cloud", () => {
+  // ── Tool detection ────────────────────────────────────────
+
+  const tools = ref<ToolStatus[]>([]);
+  const toolsLoaded = ref(false);
+
+  const kubeAvailable = computed(
+    () => tools.value.find((t) => t.name === "kubectl")?.available ?? false,
+  );
+  const ssmAvailable = computed(() => {
+    const aws = tools.value.find((t) => t.name === "aws");
+    const ssm = tools.value.find((t) => t.name === "session-manager-plugin");
+    return (aws?.available ?? false) && (ssm?.available ?? false);
+  });
+
+  async function detectTools() {
+    tools.value = await tauriInvoke<ToolStatus[]>("cloud_detect_tools");
+    toolsLoaded.value = true;
+  }
+
+  // ── K8s ───────────────────────────────────────────────────
+
+  const kubeContexts = ref<KubeContext[]>([]);
+  const namespaces = ref<Record<string, string[]>>({});
+  const pods = ref<Record<string, PodInfo[]>>({});
+  const loading = ref<Record<string, boolean>>({});
+
+  async function loadContexts() {
+    loading.value["contexts"] = true;
+    try {
+      kubeContexts.value = await tauriInvoke<KubeContext[]>(
+        "cloud_kube_list_contexts",
+      );
+    } finally {
+      loading.value["contexts"] = false;
+    }
+  }
+
+  async function loadNamespaces(context: string) {
+    const key = `ns:${context}`;
+    loading.value[key] = true;
+    try {
+      namespaces.value[context] = await tauriInvoke<string[]>(
+        "cloud_kube_list_namespaces",
+        { context },
+      );
+    } finally {
+      loading.value[key] = false;
+    }
+  }
+
+  async function loadPods(context: string, namespace: string) {
+    const key = `${context}/${namespace}`;
+    loading.value[key] = true;
+    try {
+      pods.value[key] = await tauriInvoke<PodInfo[]>(
+        "cloud_kube_list_pods",
+        { context, namespace },
+      );
+    } finally {
+      loading.value[key] = false;
+    }
+  }
+
+  function getPods(context: string, namespace: string): PodInfo[] {
+    return pods.value[`${context}/${namespace}`] ?? [];
+  }
+
+  function isLoading(key: string): boolean {
+    return loading.value[key] ?? false;
+  }
+
+  // ── AWS SSM ───────────────────────────────────────────────
+
+  const ssmProfiles = ref<string[]>([]);
+  const ssmInstances = ref<Record<string, SsmInstance[]>>({});
+
+  async function loadSsmProfiles() {
+    loading.value["ssm-profiles"] = true;
+    try {
+      ssmProfiles.value = await tauriInvoke<string[]>(
+        "cloud_ssm_list_profiles",
+      );
+    } finally {
+      loading.value["ssm-profiles"] = false;
+    }
+  }
+
+  async function loadSsmInstances(profile?: string, region?: string) {
+    const key = `ssm:${profile ?? "default"}/${region ?? "default"}`;
+    loading.value[key] = true;
+    try {
+      ssmInstances.value[key] = await tauriInvoke<SsmInstance[]>(
+        "cloud_ssm_list_instances",
+        { profile: profile ?? null, region: region ?? null },
+      );
+    } finally {
+      loading.value[key] = false;
+    }
+  }
+
+  function getSsmInstances(profile?: string, region?: string): SsmInstance[] {
+    const key = `ssm:${profile ?? "default"}/${region ?? "default"}`;
+    return ssmInstances.value[key] ?? [];
+  }
+
+  // ── UI state ──────────────────────────────────────────────
+
+  const expandedNodes = ref<Set<string>>(new Set());
+  const podFilter = ref("");
+  const ssmFilter = ref("");
+
+  function toggleNode(key: string) {
+    if (expandedNodes.value.has(key)) {
+      expandedNodes.value.delete(key);
+    } else {
+      expandedNodes.value.add(key);
+    }
+  }
+
+  function isExpanded(key: string): boolean {
+    return expandedNodes.value.has(key);
+  }
+
+  return {
+    tools,
+    toolsLoaded,
+    kubeAvailable,
+    ssmAvailable,
+    detectTools,
+    kubeContexts,
+    namespaces,
+    pods,
+    loading,
+    loadContexts,
+    loadNamespaces,
+    loadPods,
+    getPods,
+    isLoading,
+    ssmProfiles,
+    ssmInstances,
+    loadSsmProfiles,
+    loadSsmInstances,
+    getSsmInstances,
+    expandedNodes,
+    podFilter,
+    ssmFilter,
+    toggleNode,
+    isExpanded,
+  };
+});

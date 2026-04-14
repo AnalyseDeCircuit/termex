@@ -24,11 +24,27 @@ const activeForwardCount = computed(() => portForwardStore.activeForwards.size);
 const statusText = computed(() => {
   const session = sessionStore.activeSession;
   if (!session) return "Ready";
+
+  const cloudInfo = (() => {
+    const meta = session.cloudMeta;
+    if (!meta) return null;
+    if (session.type === "kube-exec") {
+      return `\u2388 ${meta.pod} \u00B7 ${meta.namespace} \u00B7 ${meta.context}`;
+    }
+    if (session.type === "ssm") {
+      return `\u2B21 ${meta.instanceName ?? meta.instanceId} \u00B7 ${meta.region ?? ""}`;
+    }
+    if (session.type === "kube-logs") {
+      return `\uD83D\uDCC4 ${meta.pod} [logs] \u00B7 ${meta.namespace}`;
+    }
+    return null;
+  })();
+
   switch (session.status) {
     case "connecting":
       return "Connecting...";
     case "connected":
-      return `Connected | ${session.serverName}`;
+      return cloudInfo ?? `Connected | ${session.serverName}`;
     case "reconnecting":
       return "Reconnecting...";
     case "disconnected":

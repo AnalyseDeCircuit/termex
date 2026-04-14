@@ -1,6 +1,17 @@
 export type SessionStatus = "connecting" | "authenticated" | "connected" | "disconnected" | "reconnecting" | "error";
 
-export type SessionType = "ssh" | "local";
+export type SessionType = "ssh" | "local" | "kube-exec" | "ssm" | "kube-logs";
+
+export interface CloudMeta {
+  context?: string;
+  namespace?: string;
+  pod?: string;
+  container?: string;
+  instanceId?: string;
+  instanceName?: string;
+  profile?: string;
+  region?: string;
+}
 
 export interface Session {
   id: string;
@@ -9,6 +20,7 @@ export interface Session {
   status: SessionStatus;
   startedAt: string;
   type: SessionType;
+  cloudMeta?: CloudMeta;
 }
 
 export interface Tab {

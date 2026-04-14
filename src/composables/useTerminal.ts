@@ -209,61 +209,102 @@ export function useTerminal(sessionId: Ref<string>, options?: TerminalOptions) {
     // Bind data events BEFORE opening shell/PTY so no initial output is lost
     await bindSession();
 
-    const isLocal = sessionId.value.startsWith("local-");
+    // Determine session type from store
+    const session = sessionStore.sessions.get(sessionId.value);
+    const sessionType = session?.type ?? (sessionId.value.startsWith("local-") ? "local" : "ssh");
     const { cols, rows } = terminal;
 
-    if (isLocal) {
-      // Open local PTY
-      try {
-        await tauriInvoke("local_pty_open", {
+    // kube-logs: read-only terminal, no user input
+    const isReadOnly = sessionType === "kube-logs";
+    if (isReadOnly) {
+      terminal.options.disableStdin = true;
+      terminal.options.cursorBlink = false;
+    }
+
+    // Open the appropriate backend session
+    try {
+      if (sessionType === "local") {
+        await tauriInvoke("local_pty_open", { sessionId: sessionId.value, cols, rows });
+      } else if (sessionType === "kube-exec") {
+        const meta = session?.cloudMeta;
+        await tauriInvoke("cloud_kube_exec", {
           sessionId: sessionId.value,
+          context: meta?.context ?? "",
+          namespace: meta?.namespace ?? "",
+          pod: meta?.pod ?? "",
+          container: meta?.container ?? null,
+          shell: null,
           cols,
           rows,
         });
-      } catch (err) {
-        terminal.write(`\r\n\x1b[31m[PTY error: ${err}]\x1b[0m\r\n`);
-      }
-    } else {
-      // Open SSH shell with actual terminal dimensions
-      try {
+        sessionStore.updateStatus(sessionId.value, "connected");
+      } else if (sessionType === "ssm") {
+        const meta = session?.cloudMeta;
+        await tauriInvoke("cloud_ssm_connect", {
+          sessionId: sessionId.value,
+          instanceId: meta?.instanceId ?? "",
+          profile: meta?.profile ?? null,
+          region: meta?.region ?? null,
+          cols,
+          rows,
+        });
+        sessionStore.updateStatus(sessionId.value, "connected");
+      } else if (sessionType === "kube-logs") {
+        const meta = session?.cloudMeta;
+        await tauriInvoke("cloud_kube_logs", {
+          sessionId: sessionId.value,
+          context: meta?.context ?? "",
+          namespace: meta?.namespace ?? "",
+          pod: meta?.pod ?? "",
+          container: meta?.container ?? null,
+          tailLines: 100,
+          follow: true,
+        });
+      } else {
+        // SSH
         await sessionStore.openShell(sessionId.value, cols, rows);
         if (options?.onShellReady) {
           await options.onShellReady(sessionId.value).catch(() => {});
         }
-      } catch (err) {
-        terminal.write(`\r\n\x1b[31m[Shell error: ${err}]\x1b[0m\r\n`);
       }
+    } catch (err) {
+      terminal.write(`\r\n\x1b[31m[Error: ${err}]\x1b[0m\r\n`);
     }
 
-    // User input → backend (SSH or local PTY)
-    const writeCmd = isLocal ? "local_pty_write" : "ssh_write";
-    const broadcast = useBroadcast();
-    terminal.onData((data: string) => {
-      if (sessionId.value) {
-        const bytes = new TextEncoder().encode(data);
-        tauriInvoke(writeCmd, {
-          sessionId: sessionId.value,
-          data: Array.from(bytes),
-        }).catch(() => {});
+    // User input → backend (skip for read-only sessions)
+    if (!isReadOnly) {
+      const isPty = sessionType === "local" || sessionType === "kube-exec" || sessionType === "ssm";
+      const writeCmd = isPty ? "local_pty_write" : "ssh_write";
+      const broadcast = useBroadcast();
+      terminal.onData((data: string) => {
+        if (sessionId.value) {
+          const bytes = new TextEncoder().encode(data);
+          tauriInvoke(writeCmd, {
+            sessionId: sessionId.value,
+            data: Array.from(bytes),
+          }).catch(() => {});
 
-        // Broadcast to other panes if enabled
-        if (broadcast.isActive.value) {
-          broadcast.broadcastInput(data);
+          if (broadcast.isActive.value) {
+            broadcast.broadcastInput(data);
+          }
         }
-      }
-    });
+      });
+    }
 
-    // Terminal resize → backend
-    const resizeCmd = isLocal ? "local_pty_resize" : "ssh_resize";
-    terminal.onResize(({ cols, rows }) => {
-      if (sessionId.value) {
-        tauriInvoke(resizeCmd, {
-          sessionId: sessionId.value,
-          cols,
-          rows,
-        }).catch(() => {});
-      }
-    });
+    // Terminal resize → backend (skip for log streams)
+    if (!isReadOnly) {
+      const isPty = sessionType === "local" || sessionType === "kube-exec" || sessionType === "ssm";
+      const resizeCmd = isPty ? "local_pty_resize" : "ssh_resize";
+      terminal.onResize(({ cols, rows }) => {
+        if (sessionId.value) {
+          tauriInvoke(resizeCmd, {
+            sessionId: sessionId.value,
+            cols,
+            rows,
+          }).catch(() => {});
+        }
+      });
+    }
 
     // Container resize → fit terminal (debounced to avoid v-show transition flicker)
     let resizeTimer: ReturnType<typeof setTimeout> | null = null;

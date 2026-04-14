@@ -24,6 +24,20 @@ impl PtyRegistry {
         }
     }
 
+    /// Inserts a PTY session into the registry (used by cloud exec commands).
+    pub fn insert(
+        &self,
+        session_id: String,
+        master: Box<dyn MasterPty + Send>,
+        child: Box<dyn Child + Send + Sync>,
+        writer: Box<dyn Write + Send>,
+    ) {
+        self.sessions
+            .lock()
+            .unwrap()
+            .insert(session_id, PtySession { master, child, writer });
+    }
+
     /// Closes all active PTY sessions. Called on app shutdown.
     pub fn close_all(&self) {
         let mut sessions = self.sessions.lock().unwrap();

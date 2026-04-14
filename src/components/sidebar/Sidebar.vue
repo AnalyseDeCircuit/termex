@@ -9,6 +9,7 @@ import ServerTree from "./ServerTree.vue";
 import ProxyTree from "./ProxyTree.vue";
 import SnippetPanel from "@/components/snippet/SnippetPanel.vue";
 import RecordingList from "@/components/recording/RecordingList.vue";
+import CloudPanel from "@/components/cloud/CloudPanel.vue";
 import SshConfigImportDialog from "./SshConfigImportDialog.vue";
 
 const emit = defineEmits<{
@@ -27,7 +28,7 @@ onMounted(() => {
 });
 
 // View mode: "servers", "proxies", "snippets", or "recordings"
-const sidebarView = ref<"servers" | "proxies" | "snippets" | "recordings">("servers");
+const sidebarView = ref<"servers" | "proxies" | "snippets" | "recordings" | "cloud">("servers");
 
 
 function onSshConfigImported() {
@@ -113,6 +114,18 @@ const transitionName = computed(() => {
             </svg>
           </button>
         </el-tooltip>
+        <!-- Cloud -->
+        <el-tooltip :content="$t('sidebar.cloud')" placement="bottom" :show-after="0" :hide-after="0">
+          <button
+            class="sidebar-view-btn"
+            :class="{ 'sidebar-view-btn-active': sidebarView === 'cloud' }"
+            @click="sidebarView = 'cloud'"
+          >
+            <svg class="w-3.5 h-3.5" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+              <path d="M18 10h-1.26A8 8 0 109 20h9a5 5 0 000-10z" />
+            </svg>
+          </button>
+        </el-tooltip>
     </div>
 
     <!-- Content with animated view transition -->
@@ -132,6 +145,9 @@ const transitionName = computed(() => {
         </div>
         <div v-else-if="sidebarView === 'recordings'" key="recordings" style="min-height: 100%">
           <RecordingList />
+        </div>
+        <div v-else-if="sidebarView === 'cloud'" key="cloud" style="min-height: 100%">
+          <CloudPanel />
         </div>
       </transition>
     </div>

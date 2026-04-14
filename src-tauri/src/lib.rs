@@ -1,5 +1,6 @@
 pub mod ai;
 pub mod audit;
+pub mod cloud;
 pub mod commands;
 pub mod crypto;
 pub mod keychain;
@@ -274,6 +275,7 @@ pub fn run() {
     tauri::Builder::default()
         .manage(app_state)
         .manage(local_pty::PtyRegistry::new())
+        .manage(commands::cloud::LogRegistry::new())
         .setup(|app| {
             let app_handle = app.handle();
             let state = app.state::<AppState>();
@@ -437,6 +439,11 @@ pub fn run() {
                         // Close all local PTY sessions
                         if let Some(pty_reg) = handle.try_state::<local_pty::PtyRegistry>() {
                             pty_reg.close_all();
+                        }
+
+                        // Close all cloud log streams
+                        if let Some(log_reg) = handle.try_state::<commands::cloud::LogRegistry>() {
+                            log_reg.close_all();
                         }
                     });
                 });
@@ -632,6 +639,19 @@ pub fn run() {
             commands::monitor::monitor_stop,
             commands::monitor::monitor_get_latest,
             commands::monitor::monitor_get_history,
+            // Cloud
+            commands::cloud::cloud_detect_tools,
+            commands::cloud::cloud_kube_available,
+            commands::cloud::cloud_ssm_available,
+            commands::cloud::cloud_kube_list_contexts,
+            commands::cloud::cloud_kube_list_namespaces,
+            commands::cloud::cloud_kube_list_pods,
+            commands::cloud::cloud_kube_exec,
+            commands::cloud::cloud_ssm_list_profiles,
+            commands::cloud::cloud_ssm_list_instances,
+            commands::cloud::cloud_ssm_connect,
+            commands::cloud::cloud_kube_logs,
+            commands::cloud::cloud_kube_logs_stop,
         ])
         .run(tauri::generate_context!())
         .expect("error while running Termex");

@@ -1,7 +1,7 @@
 import { defineStore } from "pinia";
 import { ref, computed } from "vue";
 import { tauriInvoke } from "@/utils/tauri";
-import type { Session, SessionStatus, Tab } from "@/types/session";
+import type { Session, SessionStatus, Tab, CloudMeta } from "@/types/session";
 import type { PaneNode, BroadcastState } from "@/types/paneLayout";
 import * as paneTree from "@/utils/paneTree";
 
@@ -203,15 +203,18 @@ export const useSessionStore = defineStore("session", () => {
       useMonitorStore().cleanup(sessionId);
     } catch { /* ignore if monitor store not available */ }
 
-    if (sessionId.startsWith("local-")) {
-      try {
+    const session = sessions.value.get(sessionId);
+    const sessionType = session?.type ?? (sessionId.startsWith("local-") ? "local" : "ssh");
+
+    try {
+      if (sessionType === "local" || sessionType === "kube-exec" || sessionType === "ssm") {
         await tauriInvoke("local_pty_close", { sessionId });
-      } catch { /* ignore */ }
-    } else {
-      try {
+      } else if (sessionType === "kube-logs") {
+        await tauriInvoke("cloud_kube_logs_stop", { sessionId });
+      } else {
         await tauriInvoke("ssh_disconnect", { sessionId });
-      } catch { /* ignore */ }
-    }
+      }
+    } catch { /* ignore */ }
 
     // Find tab containing this session and close it
     const tab = tabs.value.find((t) => t.sessionId === sessionId);
@@ -472,8 +475,11 @@ export const useSessionStore = defineStore("session", () => {
     // Disconnect the session
     if (leaf.sessionId && !leaf.sessionId.startsWith("connecting-")) {
       const session = sessions.value.get(leaf.sessionId);
-      if (session?.type === "local") {
+      const sType = session?.type ?? "ssh";
+      if (sType === "local" || sType === "kube-exec" || sType === "ssm") {
         tauriInvoke("local_pty_close", { sessionId: leaf.sessionId }).catch(() => {});
+      } else if (sType === "kube-logs") {
+        tauriInvoke("cloud_kube_logs_stop", { sessionId: leaf.sessionId }).catch(() => {});
       } else {
         tauriInvoke("ssh_disconnect", { sessionId: leaf.sessionId }).catch(() => {});
       }
@@ -569,6 +575,145 @@ export const useSessionStore = defineStore("session", () => {
     }
   }
 
+  // ── Cloud session entry points ──────────────────────────────
+
+  /** Opens a kubectl exec session tab. */
+  function openKubeExec(params: {
+    context: string;
+    namespace: string;
+    pod: string;
+    container?: string;
+    shell?: string;
+  }): string {
+    const tabKey = `tab-${Date.now()}-${Math.random().toString(36).slice(2, 6)}`;
+    const sessionId = `kube-${tabKey}`;
+
+    const cloudMeta: CloudMeta = {
+      context: params.context,
+      namespace: params.namespace,
+      pod: params.pod,
+      container: params.container,
+    };
+
+    const session: Session = {
+      id: sessionId,
+      serverId: "",
+      serverName: params.pod,
+      status: "connecting",
+      startedAt: new Date().toISOString(),
+      type: "kube-exec",
+      cloudMeta,
+    };
+    sessions.value.set(sessionId, session);
+
+    const tab: Tab = {
+      tabKey,
+      id: sessionId,
+      sessionId,
+      title: `${params.pod} [k8s]`,
+      active: true,
+    };
+    tabs.value.forEach((t) => (t.active = false));
+    tabs.value.push(tab);
+
+    const initialLeaf = paneTree.createLeaf(sessionId, "", params.pod);
+    paneLayouts.value.set(tabKey, initialLeaf);
+    activePaneId.value = initialLeaf.id;
+
+    return sessionId;
+  }
+
+  /** Opens an AWS SSM session tab. */
+  function openSsmSession(params: {
+    instanceId: string;
+    instanceName: string;
+    profile?: string;
+    region?: string;
+  }): string {
+    const tabKey = `tab-${Date.now()}-${Math.random().toString(36).slice(2, 6)}`;
+    const sessionId = `ssm-${tabKey}`;
+
+    const cloudMeta: CloudMeta = {
+      instanceId: params.instanceId,
+      instanceName: params.instanceName,
+      profile: params.profile,
+      region: params.region,
+    };
+
+    const session: Session = {
+      id: sessionId,
+      serverId: "",
+      serverName: params.instanceName,
+      status: "connecting",
+      startedAt: new Date().toISOString(),
+      type: "ssm",
+      cloudMeta,
+    };
+    sessions.value.set(sessionId, session);
+
+    const tab: Tab = {
+      tabKey,
+      id: sessionId,
+      sessionId,
+      title: `${params.instanceName} [ssm]`,
+      active: true,
+    };
+    tabs.value.forEach((t) => (t.active = false));
+    tabs.value.push(tab);
+
+    const initialLeaf = paneTree.createLeaf(sessionId, "", params.instanceName);
+    paneLayouts.value.set(tabKey, initialLeaf);
+    activePaneId.value = initialLeaf.id;
+
+    return sessionId;
+  }
+
+  /** Opens a kubectl logs stream tab (read-only). */
+  function openKubeLogs(params: {
+    context: string;
+    namespace: string;
+    pod: string;
+    container?: string;
+    tailLines?: number;
+  }): string {
+    const tabKey = `tab-${Date.now()}-${Math.random().toString(36).slice(2, 6)}`;
+    const sessionId = `kube-logs-${tabKey}`;
+
+    const cloudMeta: CloudMeta = {
+      context: params.context,
+      namespace: params.namespace,
+      pod: params.pod,
+      container: params.container,
+    };
+
+    const session: Session = {
+      id: sessionId,
+      serverId: "",
+      serverName: params.pod,
+      status: "connected",
+      startedAt: new Date().toISOString(),
+      type: "kube-logs",
+      cloudMeta,
+    };
+    sessions.value.set(sessionId, session);
+
+    const tab: Tab = {
+      tabKey,
+      id: sessionId,
+      sessionId,
+      title: `${params.pod} [logs]`,
+      active: true,
+    };
+    tabs.value.forEach((t) => (t.active = false));
+    tabs.value.push(tab);
+
+    const initialLeaf = paneTree.createLeaf(sessionId, "", params.pod);
+    paneLayouts.value.set(tabKey, initialLeaf);
+    activePaneId.value = initialLeaf.id;
+
+    return sessionId;
+  }
+
   /** Sets the active pane ID directly (used by PaneContainer on click). */
   function setActivePane(paneId: string): void {
     activePaneId.value = paneId;
@@ -588,6 +733,9 @@ export const useSessionStore = defineStore("session", () => {
     activeTab,
     connect,
     openLocalTerminal,
+    openKubeExec,
+    openSsmSession,
+    openKubeLogs,
     openShell,
     disconnect,
     isDeliberateDisconnect,
