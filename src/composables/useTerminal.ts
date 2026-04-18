@@ -43,6 +43,10 @@ export function useTerminal(sessionId: Ref<string>, options?: TerminalOptions) {
   let unlistenStatus: (() => void) | null = null;
   let resizeObserver: ResizeObserver | null = null;
 
+  /** Whether the remote application has enabled mouse reporting (e.g. zellij, tmux, vim). */
+  const mouseReporting = ref(false);
+  let lastModeCheck = 0;
+
   /**
    * Safe fit: uses getBoundingClientRect for accurate container measurement and
    * ensures the calculated rows never exceed what the visible area can display.
@@ -97,6 +101,10 @@ export function useTerminal(sessionId: Ref<string>, options?: TerminalOptions) {
       scrollback: settingsStore.scrollbackLines,
       theme: getTerminalTheme(),
       allowProposedApi: true,
+      // Rescale glyphs wider than a single cell (Nerd Font icons, powerline symbols)
+      rescaleOverlappingGlyphs: true,
+      // Prevent bold text from shifting to bright ANSI colors
+      drawBoldTextInBrightColors: false,
     });
 
     fitAddon = new FitAddon();
@@ -199,6 +207,24 @@ export function useTerminal(sessionId: Ref<string>, options?: TerminalOptions) {
       }
 
       return true;
+    });
+
+    // OSC 52: remote clipboard write — used by zellij, tmux, vim, neovim, etc.
+    // When the user copies text inside a remote multiplexer, it sends:
+    //   ESC ] 52 ; c ; <base64-text> BEL
+    // Without this handler the sequence is silently dropped and nothing is copied.
+    terminal.parser.registerOscHandler(52, (data) => {
+      const semi = data.indexOf(";");
+      if (semi === -1) return false;
+      const payload = data.slice(semi + 1);
+      if (!payload || payload === "?") return false; // '?' = clipboard query, ignore
+      try {
+        const text = atob(payload);
+        if (text) navigator.clipboard.writeText(text).catch(() => {});
+        return true;
+      } catch {
+        return false;
+      }
     });
 
     safeFit();
@@ -332,6 +358,17 @@ export function useTerminal(sessionId: Ref<string>, options?: TerminalOptions) {
       (payload) => {
         if (terminal) {
           terminal.write(new Uint8Array(payload));
+          // Throttled check: detect mouse reporting mode changes (zellij, tmux, vim, etc.)
+          const now = Date.now();
+          if (now - lastModeCheck > 1000) {
+            lastModeCheck = now;
+            // eslint-disable-next-line @typescript-eslint/no-explicit-any
+            const mode = (terminal as any).modes?.mouseTrackingMode ?? "none";
+            const isActive = mode !== "none";
+            if (isActive !== mouseReporting.value) {
+              mouseReporting.value = isActive;
+            }
+          }
         }
       },
     );
@@ -463,5 +500,5 @@ export function useTerminal(sessionId: Ref<string>, options?: TerminalOptions) {
 
   onUnmounted(dispose);
 
-  return { terminalRef, mount, getDimensions, fit, setTheme, setFont, getTerminal, getSearchAddon, rebindSession, dispose };
+  return { terminalRef, mount, getDimensions, fit, setTheme, setFont, getTerminal, getSearchAddon, rebindSession, dispose, mouseReporting };
 }

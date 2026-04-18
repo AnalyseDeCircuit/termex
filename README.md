@@ -285,10 +285,10 @@ git push origin main --tags     # triggers GitHub Actions build
 - [x] v0.30.0 -- **Team Collaboration v1** (Git-based config sharing, team encryption, selective sharing, role-based access)
 - [x] v0.31.0 -- **AI Operations Assistant** (context-aware chat, error auto-diagnosis, multi-turn troubleshooting, command orchestration)
 - [x] v0.32.0 -- **Terminal Split Pane** (horizontal/vertical split, broadcast input to all panes, focus navigation)
+- [x] v0.33.0 -- **Cloud Native Integration** (kubectl exec, AWS SSM, K8s pod browser, container log streaming)
 
 ### Desktop — Planned
 
-- [ ] v0.33.0 -- **Cloud Native Integration** (kubectl exec, AWS SSM, K8s pod browser, container log streaming)
 - [ ] v0.34.0 -- **Team Collaboration v2** (fine-grained role permissions, audit dashboard, conflict resolution UI)
 - [ ] v0.35.0 -- Desktop v1.0 Stable (performance optimization, stability polish)
 

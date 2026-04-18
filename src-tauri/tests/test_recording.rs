@@ -193,7 +193,8 @@ fn test_recording_db_crud() {
             server_name TEXT NOT NULL, file_path TEXT NOT NULL, file_size INTEGER DEFAULT 0,
             duration_ms INTEGER DEFAULT 0, cols INTEGER NOT NULL, rows INTEGER NOT NULL,
             event_count INTEGER DEFAULT 0, summary TEXT, auto_recorded INTEGER DEFAULT 0,
-            started_at TEXT NOT NULL, ended_at TEXT, created_at TEXT NOT NULL
+            started_at TEXT NOT NULL, ended_at TEXT, created_at TEXT NOT NULL,
+            shared INTEGER DEFAULT 0, team_id TEXT, shared_by TEXT
         )"
     ).unwrap();
 
@@ -213,6 +214,9 @@ fn test_recording_db_crud() {
         started_at: "2026-04-10T10:00:00Z".to_string(),
         ended_at: None,
         created_at: "2026-04-10T10:00:00Z".to_string(),
+        shared: false,
+        team_id: None,
+        shared_by: None,
     };
 
     // Insert
@@ -269,6 +273,9 @@ fn test_recording_db_crud() {
         started_at: "2026-04-10T11:00:00Z".to_string(),
         ended_at: None,
         created_at: "2026-04-10T11:00:00Z".to_string(),
+        shared: false,
+        team_id: None,
+        shared_by: None,
     };
     insert(&conn, &meta2).unwrap();
     let active = find_active_by_session(&conn, "sid-1").unwrap();
@@ -294,7 +301,8 @@ fn test_recording_cleanup_expired() {
             server_name TEXT NOT NULL, file_path TEXT NOT NULL, file_size INTEGER DEFAULT 0,
             duration_ms INTEGER DEFAULT 0, cols INTEGER NOT NULL, rows INTEGER NOT NULL,
             event_count INTEGER DEFAULT 0, summary TEXT, auto_recorded INTEGER DEFAULT 0,
-            started_at TEXT NOT NULL, ended_at TEXT, created_at TEXT NOT NULL
+            started_at TEXT NOT NULL, ended_at TEXT, created_at TEXT NOT NULL,
+            shared INTEGER DEFAULT 0, team_id TEXT, shared_by TEXT
         )"
     ).unwrap();
 
@@ -315,6 +323,9 @@ fn test_recording_cleanup_expired() {
         started_at: "2025-01-01T00:00:00Z".to_string(),
         ended_at: Some("2025-01-01T00:01:00Z".to_string()),
         created_at: "2025-01-01T00:00:00Z".to_string(),
+        shared: false,
+        team_id: None,
+        shared_by: None,
     };
     insert(&conn, &meta).unwrap();
 
@@ -335,6 +346,9 @@ fn test_recording_cleanup_expired() {
         started_at: "2026-04-10T00:00:00Z".to_string(),
         ended_at: Some("2026-04-10T00:02:00Z".to_string()),
         created_at: "2026-04-10T00:00:00Z".to_string(),
+        shared: false,
+        team_id: None,
+        shared_by: None,
     };
     insert(&conn, &meta2).unwrap();
 

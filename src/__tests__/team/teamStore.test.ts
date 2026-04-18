@@ -25,14 +25,27 @@ describe("teamStore", () => {
 
   describe("loadStatus", () => {
     it("loads joined status from backend", async () => {
-      mockInvoke.mockResolvedValue({
-        joined: true,
-        name: "DevOps Alpha",
-        role: "admin",
-        memberCount: 3,
-        lastSync: "2026-04-10T10:00:00Z",
-        hasPendingChanges: false,
-        repoUrl: "git@github.com:team/config.git",
+      mockInvoke.mockImplementation((cmd: string) => {
+        if (cmd === "team_get_status") {
+          return Promise.resolve({
+            joined: true,
+            name: "DevOps Alpha",
+            role: "admin",
+            memberCount: 3,
+            lastSync: "2026-04-10T10:00:00Z",
+            hasPendingChanges: false,
+            repoUrl: "git@github.com:team/config.git",
+          });
+        }
+        if (cmd === "team_my_capabilities") {
+          return Promise.resolve([
+            "ServerConnect", "ServerCreate", "ServerEdit", "ServerDelete",
+            "ServerViewCredentials", "SyncPush", "SyncPull", "AuditView", "AuditExport",
+            "TeamInvite", "TeamRemove", "TeamRoleAssign", "TeamSettingsEdit",
+            "SnippetCreate", "SnippetEdit", "SnippetDelete", "SnippetExecute",
+          ]);
+        }
+        return Promise.resolve(undefined);
       });
 
       const store = useTeamStore();
@@ -62,7 +75,7 @@ describe("teamStore", () => {
           return Promise.resolve({
             imported: 2,
             exported: 1,
-            conflicts: 0,
+            conflicts: [],
             deletedRemote: 0,
           });
         }
@@ -106,21 +119,24 @@ describe("teamStore", () => {
   });
 
   describe("computed properties", () => {
-    it("canPush is true for admin", () => {
+    it("canPush is true when SyncPush capability present", () => {
       const store = useTeamStore();
       store.status.role = "admin";
+      store.myCapabilities = ["SyncPush", "SyncPull"];
       expect(store.canPush).toBe(true);
     });
 
-    it("canPush is true for member", () => {
+    it("canPush is true for ops role with SyncPush", () => {
       const store = useTeamStore();
-      store.status.role = "member";
+      store.status.role = "ops";
+      store.myCapabilities = ["ServerConnect", "SyncPush", "SyncPull"];
       expect(store.canPush).toBe(true);
     });
 
-    it("canPush is false for readonly", () => {
+    it("canPush is false without SyncPush capability", () => {
       const store = useTeamStore();
-      store.status.role = "readonly";
+      store.status.role = "viewer";
+      store.myCapabilities = ["SyncPull", "AuditView"];
       expect(store.canPush).toBe(false);
     });
   });

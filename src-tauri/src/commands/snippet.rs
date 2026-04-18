@@ -70,6 +70,37 @@ pub fn snippet_delete(
         .map_err(|e| e.to_string())
 }
 
+/// Sets whether a snippet is shared with the team.
+#[tauri::command]
+pub fn snippet_set_shared(
+    state: tauri::State<'_, AppState>,
+    id: String,
+    shared: bool,
+) -> Result<(), String> {
+    state
+        .db
+        .with_conn(|conn| {
+            snippet::set_shared(conn, &id, shared)
+                .map_err(|e| rusqlite::Error::InvalidParameterName(e))
+        })
+        .map_err(|e| e.to_string())
+}
+
+/// Converts a team-received snippet to a locally-owned private snippet.
+#[tauri::command]
+pub fn snippet_make_local(
+    state: tauri::State<'_, AppState>,
+    id: String,
+) -> Result<(), String> {
+    state
+        .db
+        .with_conn(|conn| {
+            snippet::make_local(conn, &id)
+                .map_err(|e| rusqlite::Error::InvalidParameterName(e))
+        })
+        .map_err(|e| e.to_string())
+}
+
 /// Executes a snippet: resolves variables, sends the command to the active SSH session.
 #[tauri::command]
 pub async fn snippet_execute(

@@ -19,6 +19,9 @@ pub struct RecordingMeta {
     pub started_at: String,
     pub ended_at: Option<String>,
     pub created_at: String,
+    pub shared: bool,
+    pub team_id: Option<String>,
+    pub shared_by: Option<String>,
 }
 
 /// Inserts a recording record (called when recording starts).
@@ -26,8 +29,8 @@ pub fn insert(conn: &Connection, meta: &RecordingMeta) -> Result<(), rusqlite::E
     conn.execute(
         "INSERT INTO recordings (id, session_id, server_id, server_name, file_path,
          file_size, duration_ms, cols, rows, event_count, summary, auto_recorded,
-         started_at, ended_at, created_at)
-         VALUES (?1, ?2, ?3, ?4, ?5, ?6, ?7, ?8, ?9, ?10, ?11, ?12, ?13, ?14, ?15)",
+         started_at, ended_at, created_at, shared, team_id, shared_by)
+         VALUES (?1, ?2, ?3, ?4, ?5, ?6, ?7, ?8, ?9, ?10, ?11, ?12, ?13, ?14, ?15, ?16, ?17, ?18)",
         rusqlite::params![
             meta.id,
             meta.session_id,
@@ -44,6 +47,9 @@ pub fn insert(conn: &Connection, meta: &RecordingMeta) -> Result<(), rusqlite::E
             meta.started_at,
             meta.ended_at,
             meta.created_at,
+            meta.shared as i32,
+            meta.team_id,
+            meta.shared_by,
         ],
     )?;
     Ok(())
@@ -54,7 +60,8 @@ pub fn get(conn: &Connection, id: &str) -> Result<Option<RecordingMeta>, rusqlit
     let mut stmt = conn.prepare(
         "SELECT id, session_id, server_id, server_name, file_path,
                 file_size, duration_ms, cols, rows, event_count, summary,
-                auto_recorded, started_at, ended_at, created_at
+                auto_recorded, started_at, ended_at, created_at,
+                COALESCE(shared, 0), team_id, shared_by
          FROM recordings WHERE id = ?1",
     )?;
 
@@ -94,7 +101,8 @@ pub fn list_by_server(
     let mut stmt = conn.prepare(
         "SELECT id, session_id, server_id, server_name, file_path,
                 file_size, duration_ms, cols, rows, event_count, summary,
-                auto_recorded, started_at, ended_at, created_at
+                auto_recorded, started_at, ended_at, created_at,
+                COALESCE(shared, 0), team_id, shared_by
          FROM recordings WHERE server_id = ?1
          ORDER BY started_at DESC LIMIT ?2 OFFSET ?3",
     )?;
@@ -117,7 +125,8 @@ pub fn list_all(
     let mut stmt = conn.prepare(
         "SELECT id, session_id, server_id, server_name, file_path,
                 file_size, duration_ms, cols, rows, event_count, summary,
-                auto_recorded, started_at, ended_at, created_at
+                auto_recorded, started_at, ended_at, created_at,
+                COALESCE(shared, 0), team_id, shared_by
          FROM recordings ORDER BY started_at DESC LIMIT ?1 OFFSET ?2",
     )?;
 
@@ -210,5 +219,26 @@ fn row_to_meta(row: &rusqlite::Row<'_>) -> Result<RecordingMeta, rusqlite::Error
         started_at: row.get(12)?,
         ended_at: row.get(13)?,
         created_at: row.get(14)?,
+        shared: row.get::<_, i32>(15)? != 0,
+        team_id: row.get(16)?,
+        shared_by: row.get(17)?,
     })
+}
+
+/// Sets whether a recording is shared with the team.
+pub fn set_shared(conn: &Connection, id: &str, shared: bool) -> Result<(), rusqlite::Error> {
+    conn.execute(
+        "UPDATE recordings SET shared = ?1 WHERE id = ?2",
+        rusqlite::params![shared as i32, id],
+    )?;
+    Ok(())
+}
+
+/// Converts a team-received recording to a locally-owned private recording.
+pub fn make_local(conn: &Connection, id: &str) -> Result<(), rusqlite::Error> {
+    conn.execute(
+        "UPDATE recordings SET shared = 0, team_id = NULL, shared_by = NULL WHERE id = ?1",
+        rusqlite::params![id],
+    )?;
+    Ok(())
 }

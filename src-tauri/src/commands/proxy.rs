@@ -69,6 +69,7 @@ pub fn proxy_create(
         client_key_path: input.client_key_path,
         command: input.command,
         created_at: now.clone(), updated_at: now,
+        shared: false, team_id: None, shared_by: None,
     })
 }
 
@@ -104,6 +105,7 @@ pub fn proxy_update(
         client_key_path: input.client_key_path,
         command: input.command,
         created_at: String::new(), updated_at: now,
+        shared: false, team_id: None, shared_by: None,
     })
 }
 
@@ -137,6 +139,28 @@ pub fn proxy_get_password(
         }
         _ => Ok(String::new()),
     }
+}
+
+/// Sets whether a proxy is shared with the team.
+#[tauri::command]
+pub fn proxy_set_shared(
+    state: State<'_, AppState>,
+    id: String,
+    shared: bool,
+) -> Result<(), String> {
+    let now = time::OffsetDateTime::now_utc().to_string();
+    proxies::set_shared(&state.db, &id, shared, &now)
+}
+
+/// Converts a team-received proxy to a locally-owned private proxy
+/// by clearing both the shared flag and team_id.
+#[tauri::command]
+pub fn proxy_make_local(
+    state: State<'_, AppState>,
+    id: String,
+) -> Result<(), String> {
+    let now = time::OffsetDateTime::now_utc().to_string();
+    proxies::make_local(&state.db, &id, &now)
 }
 
 // ── Helpers ─────────────────────────────────────────────────

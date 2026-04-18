@@ -7,6 +7,8 @@ use tauri::{AppHandle, Emitter};
 
 use crate::cloud::{detection, kube, ssm};
 use crate::local_pty::PtyRegistry;
+use crate::state::AppState;
+use crate::storage::cloud_favorites::{CloudFavorite, CloudFavoriteInput};
 
 // ── Detection ────────────────────────────────────────────────
 
@@ -275,4 +277,76 @@ pub fn cloud_kube_logs_stop(
         handle.abort();
     }
     Ok(())
+}
+
+// ── Cloud Favorites ──────────────────────────────────────────
+
+/// Lists all cloud favorites.
+#[tauri::command]
+pub fn cloud_favorite_list(
+    state: tauri::State<'_, AppState>,
+) -> Result<Vec<CloudFavorite>, String> {
+    state
+        .db
+        .with_conn(|conn| crate::storage::cloud_favorites::list(conn))
+        .map_err(|e| e.to_string())
+}
+
+/// Creates a new cloud favorite (or returns existing one if same ref already exists).
+#[tauri::command]
+pub fn cloud_favorite_create(
+    state: tauri::State<'_, AppState>,
+    input: CloudFavoriteInput,
+) -> Result<CloudFavorite, String> {
+    // Idempotent: return existing if already saved
+    let existing = state
+        .db
+        .with_conn(|conn| {
+            crate::storage::cloud_favorites::find_by_ref(conn, &input.resource_type, &input.context_or_profile)
+        })
+        .map_err(|e| e.to_string())?;
+    if let Some(fav) = existing {
+        return Ok(fav);
+    }
+    state
+        .db
+        .with_conn(|conn| crate::storage::cloud_favorites::create(conn, &input))
+        .map_err(|e| e.to_string())
+}
+
+/// Deletes a cloud favorite.
+#[tauri::command]
+pub fn cloud_favorite_delete(
+    state: tauri::State<'_, AppState>,
+    id: String,
+) -> Result<(), String> {
+    state
+        .db
+        .with_conn(|conn| crate::storage::cloud_favorites::delete(conn, &id))
+        .map_err(|e| e.to_string())
+}
+
+/// Sets whether a cloud favorite is shared with the team.
+#[tauri::command]
+pub fn cloud_favorite_set_shared(
+    state: tauri::State<'_, AppState>,
+    id: String,
+    shared: bool,
+) -> Result<(), String> {
+    state
+        .db
+        .with_conn(|conn| crate::storage::cloud_favorites::set_shared(conn, &id, shared))
+        .map_err(|e| e.to_string())
+}
+
+/// Converts a team-received favorite to a locally-owned private favorite.
+#[tauri::command]
+pub fn cloud_favorite_make_local(
+    state: tauri::State<'_, AppState>,
+    id: String,
+) -> Result<(), String> {
+    state
+        .db
+        .with_conn(|conn| crate::storage::cloud_favorites::make_local(conn, &id))
+        .map_err(|e| e.to_string())
 }

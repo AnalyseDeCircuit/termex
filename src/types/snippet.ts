@@ -11,6 +11,12 @@ export interface Snippet {
   lastUsedAt?: string;
   createdAt: string;
   updatedAt: string;
+  /** Whether this snippet is shared with the team. */
+  shared?: boolean;
+  /** Team identifier (set when received from team sync). */
+  teamId?: string;
+  /** Username of the team member who shared this snippet. */
+  sharedBy?: string;
 }
 
 /** Input for creating or updating a snippet. */

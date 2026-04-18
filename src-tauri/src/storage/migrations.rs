@@ -17,6 +17,10 @@ const MIGRATIONS: &[(i32, &str, &str)] = &[
     (12, "snippet manager", MIGRATION_V12),
     (13, "session recording metadata", MIGRATION_V13),
     (14, "team collaboration", ""),
+    (15, "team collaboration v2", MIGRATION_V15),
+    (16, "team mode for proxies and snippets", ""),
+    (17, "team mode for recordings", ""),
+    (18, "cloud favorites", MIGRATION_V18),
 ];
 
 /// Runs all pending migrations in order.
@@ -106,6 +110,21 @@ pub fn run_migrations(conn: &Connection) -> Result<(), rusqlite::Error> {
                 add_column_if_missing(conn, "servers", "team_id", "TEXT");
                 add_column_if_missing(conn, "servers", "shared_by", "TEXT");
                 add_column_if_missing(conn, "servers", "shared_at", "TEXT");
+            }
+            if version == 16 {
+                // Migration v16: team mode for proxies and snippets
+                add_column_if_missing(conn, "proxies", "shared", "INTEGER DEFAULT 0");
+                add_column_if_missing(conn, "proxies", "team_id", "TEXT");
+                add_column_if_missing(conn, "proxies", "shared_by", "TEXT");
+                add_column_if_missing(conn, "snippets", "shared", "INTEGER DEFAULT 0");
+                add_column_if_missing(conn, "snippets", "team_id", "TEXT");
+                add_column_if_missing(conn, "snippets", "shared_by", "TEXT");
+            }
+            if version == 17 {
+                // Migration v17: team mode for recordings
+                add_column_if_missing(conn, "recordings", "shared", "INTEGER DEFAULT 0");
+                add_column_if_missing(conn, "recordings", "team_id", "TEXT");
+                add_column_if_missing(conn, "recordings", "shared_by", "TEXT");
             }
             conn.execute(
                 "INSERT INTO _migrations (version, description, applied_at) VALUES (?1, ?2, ?3)",
@@ -408,4 +427,37 @@ CREATE TABLE IF NOT EXISTS recordings (
 );
 CREATE INDEX IF NOT EXISTS idx_recordings_server ON recordings(server_id, started_at);
 CREATE INDEX IF NOT EXISTS idx_recordings_date ON recordings(started_at);
+";
+
+const MIGRATION_V15: &str = "
+CREATE TABLE IF NOT EXISTS team_pending_conflicts (
+    entity_type TEXT NOT NULL,
+    entity_id   TEXT NOT NULL,
+    local_value TEXT NOT NULL,
+    remote_value TEXT NOT NULL,
+    detected_at TEXT NOT NULL,
+    PRIMARY KEY (entity_type, entity_id)
+);
+";
+
+// ============================================================
+// V18: Cloud favorites (team-shareable cloud resource references)
+// ============================================================
+
+const MIGRATION_V18: &str = "
+CREATE TABLE IF NOT EXISTS cloud_favorites (
+    id                  TEXT PRIMARY KEY,
+    name                TEXT NOT NULL,
+    resource_type       TEXT NOT NULL,
+    context_or_profile  TEXT NOT NULL,
+    namespace           TEXT,
+    region              TEXT,
+    shared              INTEGER DEFAULT 0,
+    team_id             TEXT,
+    shared_by           TEXT,
+    created_at          TEXT NOT NULL,
+    updated_at          TEXT NOT NULL
+);
+CREATE INDEX IF NOT EXISTS idx_cloud_favorites_type ON cloud_favorites(resource_type);
+CREATE INDEX IF NOT EXISTS idx_cloud_favorites_shared ON cloud_favorites(shared);
 ";

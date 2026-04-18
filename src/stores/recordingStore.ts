@@ -10,6 +10,19 @@ export const useRecordingStore = defineStore("recording", () => {
   /** Per-session recording status. */
   const activeRecordings = ref<Map<string, RecordingStatus>>(new Map());
 
+  /** Whether a recording belongs to the team section (shared by me or received). */
+  const isTeamRecording = (r: Recording) => !!r.shared || !!r.teamId;
+
+  /** Private recordings (not shared, not received). */
+  const privateRecordings = computed(() =>
+    recordings.value.filter((r) => !isTeamRecording(r)),
+  );
+
+  /** Team recordings (shared by me or received from team). */
+  const teamRecordings = computed(() =>
+    recordings.value.filter((r) => isTeamRecording(r)),
+  );
+
   /** Grouped by server. */
   const recordingsByServer = computed(() => {
     const map = new Map<string, Recording[]>();
@@ -86,15 +99,33 @@ export const useRecordingStore = defineStore("recording", () => {
     return activeRecordings.value.get(sessionId)?.active ?? false;
   }
 
+  /** Set whether a recording is shared with the team. */
+  async function setShared(recordingId: string, shared: boolean): Promise<void> {
+    await tauriInvoke("recording_set_shared", { recordingId, shared });
+    const rec = recordings.value.find((r) => r.id === recordingId);
+    if (rec) rec.shared = shared;
+  }
+
+  /** Convert a team-received recording to a locally-owned private recording. */
+  async function makeLocal(recordingId: string): Promise<void> {
+    await tauriInvoke("recording_make_local", { recordingId });
+    const rec = recordings.value.find((r) => r.id === recordingId);
+    if (rec) { rec.shared = false; rec.teamId = undefined; rec.sharedBy = undefined; }
+  }
+
   return {
     recordings,
     activeRecordings,
     recordingsByServer,
+    privateRecordings,
+    teamRecordings,
     loadRecordings,
     startRecording,
     stopRecording,
     deleteRecording,
     cleanup,
     isRecording,
+    setShared,
+    makeLocal,
   };
 });

@@ -7,7 +7,8 @@ const SELECT_COLS: &str =
     "id, name, proxy_type, host, port, username,
      password_enc, password_keychain_id,
      tls_enabled, tls_verify, ca_cert_path, client_cert_path, client_key_path,
-     command, created_at, updated_at";
+     command, created_at, updated_at,
+     COALESCE(shared, 0), team_id, shared_by";
 
 fn row_to_proxy(row: &rusqlite::Row) -> rusqlite::Result<Proxy> {
     Ok(Proxy {
@@ -27,6 +28,9 @@ fn row_to_proxy(row: &rusqlite::Row) -> rusqlite::Result<Proxy> {
         command: row.get(13)?,
         created_at: row.get(14)?,
         updated_at: row.get(15)?,
+        shared: row.get::<_, i32>(16).unwrap_or(0) != 0,
+        team_id: row.get(17)?,
+        shared_by: row.get(18)?,
     })
 }
 
@@ -155,6 +159,32 @@ pub fn usage_count(db: &Database, proxy_id: &str) -> Result<i32, String> {
             rusqlite::params![proxy_id],
             |row| row.get(0),
         )
+    })
+    .map_err(|e| e.to_string())
+}
+
+
+/// Sets the shared flag for a proxy.
+pub fn set_shared(db: &Database, id: &str, shared: bool, now: &str) -> Result<(), String> {
+    db.with_conn(|conn| {
+        conn.execute(
+            "UPDATE proxies SET shared = ?1, updated_at = ?2 WHERE id = ?3",
+            rusqlite::params![shared as i32, now, id],
+        )?;
+        Ok(())
+    })
+    .map_err(|e| e.to_string())
+}
+
+/// Converts a team-received proxy to a locally-owned private proxy
+/// by clearing both the shared flag and team_id.
+pub fn make_local(db: &Database, id: &str, now: &str) -> Result<(), String> {
+    db.with_conn(|conn| {
+        conn.execute(
+            "UPDATE proxies SET shared = 0, team_id = NULL, shared_by = NULL, updated_at = ?1 WHERE id = ?2",
+            rusqlite::params![now, id],
+        )?;
+        Ok(())
     })
     .map_err(|e| e.to_string())
 }

@@ -1,6 +1,5 @@
 <script setup lang="ts">
 import { ref, computed, onMounted } from "vue";
-import { Refresh } from "@element-plus/icons-vue";
 import { useServerStore } from "@/stores/serverStore";
 import { useSettingsStore } from "@/stores/settingsStore";
 import { useTeamStore } from "@/stores/teamStore";
@@ -11,6 +10,7 @@ import SnippetPanel from "@/components/snippet/SnippetPanel.vue";
 import RecordingList from "@/components/recording/RecordingList.vue";
 import CloudPanel from "@/components/cloud/CloudPanel.vue";
 import SshConfigImportDialog from "./SshConfigImportDialog.vue";
+import TeamPassphraseDialog from "@/components/settings/TeamPassphraseDialog.vue";
 
 const emit = defineEmits<{
   (e: "new-host"): void;
@@ -23,8 +23,12 @@ const settingsStore = useSettingsStore();
 const teamStore = useTeamStore();
 const sshConfigDialogVisible = ref(false);
 
-onMounted(() => {
-  teamStore.loadStatus();
+onMounted(async () => {
+  await teamStore.loadStatus();
+  // Proactively prompt for passphrase if key was not restored from keychain
+  if (teamStore.needsPassphrase) {
+    teamStore.passphraseDialogVisible = true;
+  }
 });
 
 // View mode: "servers", "proxies", "snippets", or "recordings"
@@ -49,15 +53,6 @@ const transitionName = computed(() => {
     <div class="h-9 flex items-center px-2 gap-1 shrink-0" style="border-bottom: 1px solid var(--tm-border)">
         <SidebarMenu @new-host="emit('new-host')" @settings="emit('settings')" @import-ssh-config="sshConfigDialogVisible = true" />
         <div class="flex-1" />
-        <!-- Team sync button -->
-        <el-tooltip v-if="teamStore.isJoined" :content="$t('team.sync')" placement="bottom" :show-after="0" :hide-after="0">
-          <button
-            class="sidebar-view-btn"
-            @click="teamStore.sync()"
-          >
-            <el-icon :size="14" :class="{ 'animate-spin': teamStore.syncing }"><Refresh /></el-icon>
-          </button>
-        </el-tooltip>
         <!-- View tabs: flat mutually exclusive icons -->
         <!-- Servers -->
         <el-tooltip :content="$t('sidebar.servers')" placement="bottom" :show-after="0" :hide-after="0">
@@ -129,9 +124,9 @@ const transitionName = computed(() => {
     </div>
 
     <!-- Content with animated view transition -->
-    <div class="flex-1 overflow-y-auto overflow-x-hidden relative">
+    <div class="flex-1 overflow-y-auto overflow-x-hidden relative flex flex-col">
       <transition :name="transitionName" mode="out-in">
-        <div v-if="sidebarView === 'servers'" key="servers" class="py-1" style="min-height: 100%">
+        <div v-if="sidebarView === 'servers'" key="servers" class="py-1 flex-1 flex flex-col">
           <ServerTree
             @new-host="emit('new-host')"
             @edit-server="(id: string) => emit('edit-server', id)"
@@ -156,6 +151,13 @@ const transitionName = computed(() => {
     <SshConfigImportDialog
       v-model="sshConfigDialogVisible"
       @imported="onSshConfigImported"
+    />
+
+    <!-- Global team passphrase dialog (shown when key not in keychain) -->
+    <TeamPassphraseDialog
+      v-if="teamStore.isJoined"
+      v-model="teamStore.passphraseDialogVisible"
+      @verified="teamStore.onPassphraseVerified()"
     />
   </aside>
 </template>

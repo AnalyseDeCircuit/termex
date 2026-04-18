@@ -21,7 +21,7 @@ const dialogVisible = computed({
 });
 
 const passphrase = ref("");
-const remember = ref(false);
+const remember = ref(true);
 const verifying = ref(false);
 
 async function handleSubmit() {

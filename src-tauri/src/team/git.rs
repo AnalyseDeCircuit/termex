@@ -3,6 +3,7 @@ use git2::{
     Signature,
 };
 use std::path::{Path, PathBuf};
+use dirs;
 
 use super::types::GitAuthConfig;
 
@@ -88,6 +89,11 @@ impl TeamRepo {
         auth: &GitAuthConfig,
     ) -> Result<Self, TeamGitError> {
         let repo = Repository::init(path).map_err(|e| TeamGitError::Init(e.to_string()))?;
+
+        // Explicitly point HEAD at refs/heads/main so the first commit lands on
+        // 'main' regardless of the system's init.defaultBranch setting.
+        repo.set_head("refs/heads/main")
+            .map_err(|e| TeamGitError::Init(e.to_string()))?;
 
         // Add remote
         repo.remote("origin", url)
@@ -257,31 +263,56 @@ impl TeamRepo {
     }
 }
 
+/// Expands a leading `~` to the user's home directory.
+fn expand_tilde(path: &str) -> String {
+    if let Some(rest) = path.strip_prefix("~/") {
+        if let Some(home) = dirs::home_dir() {
+            return home.join(rest).to_string_lossy().to_string();
+        }
+    } else if path == "~" {
+        if let Some(home) = dirs::home_dir() {
+            return home.to_string_lossy().to_string();
+        }
+    }
+    path.to_string()
+}
+
 /// Sets up git2 authentication callbacks from GitAuthConfig.
 fn setup_credentials(callbacks: &mut RemoteCallbacks, auth: &GitAuthConfig) {
     let auth = auth.clone();
-    callbacks.credentials(move |_url, username_from_url, _allowed| match auth.auth_type.as_str() {
-        "ssh_key" => {
-            let key_path = auth
-                .ssh_key_path
-                .as_deref()
-                .unwrap_or("~/.ssh/id_ed25519");
-            Cred::ssh_key(
-                username_from_url.unwrap_or("git"),
-                None,
-                Path::new(key_path),
-                auth.ssh_passphrase.as_deref(),
-            )
+    callbacks.credentials(move |_url, username_from_url, allowed| {
+        // git2 first calls with CredentialType::USERNAME when the URL has no user;
+        // returning any other credential type at that point causes a session error.
+        if allowed.contains(git2::CredentialType::USERNAME) {
+            return Cred::username(username_from_url.unwrap_or("git"));
         }
-        "https_token" => {
-            let token = auth.token.as_deref().unwrap_or("");
-            Cred::userpass_plaintext(token, "")
+
+        match auth.auth_type.as_str() {
+            "ssh_key" => {
+                let git_user = username_from_url.unwrap_or("git");
+                let key_path = auth
+                    .ssh_key_path
+                    .as_deref()
+                    .unwrap_or("~/.ssh/id_ed25519");
+                let expanded = expand_tilde(key_path);
+                let key_file = Path::new(&expanded);
+                // Use the explicit key file when it exists, otherwise fall back to ssh-agent.
+                if key_file.exists() {
+                    Cred::ssh_key(git_user, None, key_file, auth.ssh_passphrase.as_deref())
+                } else {
+                    Cred::ssh_key_from_agent(git_user)
+                }
+            }
+            "https_token" => {
+                let token = auth.token.as_deref().unwrap_or("");
+                Cred::userpass_plaintext(token, "")
+            }
+            "https_userpass" => {
+                let user = auth.username.as_deref().unwrap_or("");
+                let pass = auth.password.as_deref().unwrap_or("");
+                Cred::userpass_plaintext(user, pass)
+            }
+            _ => Cred::default(),
         }
-        "https_userpass" => {
-            let user = auth.username.as_deref().unwrap_or("");
-            let pass = auth.password.as_deref().unwrap_or("");
-            Cred::userpass_plaintext(user, pass)
-        }
-        _ => Cred::default(),
     });
 }

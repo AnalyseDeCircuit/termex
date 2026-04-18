@@ -311,6 +311,7 @@ pub async fn ssh_open_shell(
                     file_size: 0, duration_ms: 0, cols, rows,
                     event_count: 0, summary: None, auto_recorded: true,
                     started_at: now.clone(), ended_at: None, created_at: now,
+                    shared: false, team_id: None, shared_by: None,
                 };
                 let _ = state.db.with_conn(|conn| crate::storage::recording::insert(conn, &meta));
                 let _ = app.emit(&format!("recording://started/{session_id}"), &rec_id);

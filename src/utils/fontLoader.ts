@@ -44,7 +44,13 @@ export async function loadAllCustomFonts(
   await Promise.allSettled(fonts.map((f) => loadCustomFont(f)));
 }
 
-/** Build CSS font-family string for xterm.js from a font name. */
+/** Build CSS font-family string for xterm.js from a font name.
+ *  When a Nerd Font is detected, adds 'Symbols Nerd Font Mono' as a fallback
+ *  to ensure powerline / icon glyphs render correctly. */
 export function buildFontFamilyCSS(fontName: string): string {
+  const isNerdFont = /nerd\s*font/i.test(fontName);
+  if (isNerdFont) {
+    return `'${fontName}', 'Symbols Nerd Font Mono', monospace`;
+  }
   return `'${fontName}', monospace`;
 }

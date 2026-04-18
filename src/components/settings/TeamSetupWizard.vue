@@ -3,6 +3,7 @@ import { ref, computed, watch } from "vue";
 import { useI18n } from "vue-i18n";
 import { ElMessage } from "element-plus";
 import { useTeamStore } from "@/stores/teamStore";
+import { tauriInvoke } from "@/utils/tauri";
 import type { GitAuthConfig } from "@/types/team";
 
 const { t } = useI18n();
@@ -31,6 +32,9 @@ const passphrase = ref("");
 const passphraseConfirm = ref("");
 const repoUrl = ref("");
 const username = ref("");
+const joinMode = ref<"url" | "invite">("url");
+const inviteToken = ref("");
+const inviteInfo = ref<{ teamName: string; repoUrl: string; invitedBy: string; role: string } | null>(null);
 const gitAuthType = ref<"ssh_key" | "https_token" | "https_userpass">("ssh_key");
 const sshKeyPath = ref("~/.ssh/id_ed25519");
 const token = ref("");
@@ -49,6 +53,9 @@ watch(
       passphraseConfirm.value = "";
       repoUrl.value = "";
       username.value = "";
+      joinMode.value = "url";
+      inviteToken.value = "";
+      inviteInfo.value = null;
       gitAuthType.value = "ssh_key";
       sshKeyPath.value = "~/.ssh/id_ed25519";
       token.value = "";
@@ -68,15 +75,16 @@ const canNext = computed(() => {
         username.value.trim().length > 0
       );
     }
-    return (
-      repoUrl.value.trim().length > 0 &&
-      passphrase.value.length >= 8 &&
-      username.value.trim().length > 0
-    );
+    // Join mode
+    const hasPassAndUser = passphrase.value.length >= 8 && username.value.trim().length > 0;
+    if (joinMode.value === "invite") {
+      return inviteInfo.value !== null && hasPassAndUser;
+    }
+    return repoUrl.value.trim().length > 0 && hasPassAndUser;
   }
   if (step.value === 1) {
     if (props.mode === "create") return repoUrl.value.trim().length > 0;
-    return true; // git auth is optional defaults
+    return true;
   }
   return false;
 });
@@ -91,15 +99,33 @@ function buildGitAuth(): GitAuthConfig {
   };
 }
 
+async function decodeInvite() {
+  if (!inviteToken.value.trim()) return;
+  try {
+    const info = await tauriInvoke<{ teamName: string; repoUrl: string; invitedBy: string; role: string }>(
+      "team_decode_invite",
+      { token: inviteToken.value.trim() },
+    );
+    inviteInfo.value = info;
+    repoUrl.value = info.repoUrl;
+  } catch (err) {
+    inviteInfo.value = null;
+    ElMessage.error(String(err));
+  }
+}
+
 async function handleNext() {
   if (step.value < 1) {
     step.value++;
     return;
   }
-  // Final step — execute
   loading.value = true;
   try {
     const auth = buildGitAuth();
+    const joinUrl = joinMode.value === "invite" && inviteInfo.value
+      ? inviteInfo.value.repoUrl
+      : repoUrl.value.trim();
+
     if (props.mode === "create") {
       await teamStore.create(
         teamName.value.trim(),
@@ -110,7 +136,7 @@ async function handleNext() {
       );
     } else {
       await teamStore.join(
-        repoUrl.value.trim(),
+        joinUrl,
         passphrase.value,
         username.value.trim(),
         auth,
@@ -154,11 +180,27 @@ function handleDone() {
         </label>
         <el-input v-model="teamName" size="small" />
       </div>
-      <div v-if="mode === 'join'" class="space-y-1">
-        <label class="text-xs" style="color: var(--tm-text-secondary)">
-          {{ t("team.repoUrl") }}
-        </label>
-        <el-input v-model="repoUrl" size="small" :placeholder="t('team.repoUrlHint')" />
+      <div v-if="mode === 'join'" class="space-y-2">
+        <!-- Toggle: URL vs Invite Token -->
+        <el-radio-group v-model="joinMode" size="small">
+          <el-radio-button value="url">{{ t("team.repoUrl") }}</el-radio-button>
+          <el-radio-button value="invite">{{ t("teamV2.joinViaInvite") }}</el-radio-button>
+        </el-radio-group>
+
+        <div v-if="joinMode === 'url'" class="space-y-1">
+          <el-input v-model="repoUrl" size="small" :placeholder="t('team.repoUrlHint')" />
+        </div>
+        <div v-else class="space-y-1">
+          <el-input
+            v-model="inviteToken"
+            size="small"
+            :placeholder="t('teamV2.inviteCode')"
+            @blur="decodeInvite"
+          />
+          <div v-if="inviteInfo" class="text-[10px] px-1 py-0.5 rounded" style="background: var(--tm-bg-secondary); color: var(--tm-text-muted)">
+            {{ inviteInfo.teamName }} &middot; {{ t("teamV2.inviteRole") }}: {{ inviteInfo.role }} &middot; {{ inviteInfo.invitedBy }}
+          </div>
+        </div>
       </div>
       <div class="space-y-1">
         <label class="text-xs" style="color: var(--tm-text-secondary)">

@@ -5,6 +5,7 @@ import { ElMessage, ElMessageBox } from "element-plus";
 import {} from "@element-plus/icons-vue";
 import { useProxyStore } from "@/stores/proxyStore";
 import { useServerStore } from "@/stores/serverStore";
+import { useTeamStore } from "@/stores/teamStore";
 import { tauriInvoke } from "@/utils/tauri";
 import ContextMenu from "./ContextMenu.vue";
 import type { MenuItem } from "./ContextMenu.vue";
@@ -13,6 +14,29 @@ import type { ProxyType, ProxyInput } from "@/types/proxy";
 const { t } = useI18n();
 const proxyStore = useProxyStore();
 const serverStore = useServerStore();
+const teamStore = useTeamStore();
+
+// ── Filter state ──
+const proxyFilter = ref<"all" | "private" | "team">("all");
+
+const visibleProxies = computed(() => {
+  if (!teamStore.isJoined || proxyFilter.value === "all") return proxyStore.proxies;
+  if (proxyFilter.value === "private") return proxyStore.privateProxies;
+  return proxyStore.teamProxies;
+});
+
+const showPrivateSection = computed(() =>
+  teamStore.isJoined &&
+  proxyFilter.value === "all" &&
+  proxyStore.privateProxies.length > 0 &&
+  proxyStore.teamProxies.length > 0,
+);
+
+const showTeamSection = computed(() =>
+  teamStore.isJoined &&
+  (proxyFilter.value === "all" || proxyFilter.value === "team") &&
+  proxyStore.teamProxies.length > 0,
+);
 
 // ── Dialog state ──
 const dialogVisible = ref(false);
@@ -163,11 +187,26 @@ const blankCtxItems = computed<MenuItem[]>(() => [
   { label: t("connection.proxyAdd"), action: "add" },
 ]);
 
-const itemCtxItems = computed<MenuItem[]>(() => [
-  { label: t("connection.proxyEdit"), action: "edit" },
-  { label: t("connection.proxyDelete"), action: "delete", danger: true, divided: true },
-  { label: t("connection.proxyAdd"), action: "add", divided: true },
-]);
+const itemCtxItems = computed<MenuItem[]>(() => {
+  const items: MenuItem[] = [
+    { label: t("connection.proxyEdit"), action: "edit" },
+    { label: t("connection.proxyDelete"), action: "delete", danger: true, divided: true },
+  ];
+  if (teamStore.isJoined) {
+    const proxy = ctxProxyId.value
+      ? proxyStore.proxies.find((p) => p.id === ctxProxyId.value)
+      : null;
+    if (proxy && !proxy.teamId) {
+      if (proxy.shared) {
+        items.push({ label: t("team.makePrivate"), action: "make-private", divided: true });
+      } else {
+        items.push({ label: t("team.shareServer"), action: "share-team", divided: true });
+      }
+    }
+  }
+  items.push({ label: t("connection.proxyAdd"), action: "add", divided: true });
+  return items;
+});
 
 const ctxItems = computed(() =>
   ctxProxyId.value ? itemCtxItems.value : blankCtxItems.value,
@@ -199,6 +238,10 @@ function onCtxSelect(action: string) {
     openEditDialog(ctxProxyId.value);
   } else if (action === "delete" && ctxProxyId.value) {
     deleteProxy(ctxProxyId.value);
+  } else if (action === "share-team" && ctxProxyId.value) {
+    proxyStore.setShared(ctxProxyId.value, true);
+  } else if (action === "make-private" && ctxProxyId.value) {
+    proxyStore.setShared(ctxProxyId.value, false);
   }
 }
 
@@ -209,59 +252,187 @@ onMounted(() => {
 
 <template>
   <div
-    class="px-2 py-1"
     style="min-height: 100%"
     @contextmenu="onRootContextMenu"
   >
-    <!-- Proxy list -->
-    <div v-if="proxyStore.proxies.length > 0" class="space-y-0.5">
-      <div
-        v-for="proxy in proxyStore.proxies"
-        :key="proxy.id"
-        class="proxy-item flex items-center gap-1.5 px-2 py-1.5 rounded text-xs group transition-colors tm-tree-item cursor-default"
-        style="color: var(--tm-text-primary)"
-        @contextmenu="onItemContextMenu($event, proxy.id)"
-        @dblclick="openEditDialog(proxy.id)"
+    <!-- Filter tabs (only when joined a team) -->
+    <div
+      v-if="teamStore.isJoined"
+      class="flex items-center gap-1 px-2 py-1"
+      style="border-bottom: 1px solid var(--tm-border)"
+    >
+      <button
+        v-for="f in (['all', 'private', 'team'] as const)"
+        :key="f"
+        class="px-2 py-0.5 rounded text-[10px] transition-colors"
+        :class="proxyFilter === f ? 'bg-primary-500/20 text-primary-400' : 'text-gray-500 hover:text-gray-300'"
+        @click="proxyFilter = f"
       >
-        <!-- Protocol icon -->
-        <svg v-if="proxy.proxyType === 'tor'" class="shrink-0" width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="#a855f7" stroke-width="1.5">
-          <circle cx="12" cy="12" r="10" />
-          <circle cx="12" cy="12" r="6" />
-          <circle cx="12" cy="12" r="2.5" fill="#a855f7" />
-        </svg>
-        <svg v-else-if="proxy.proxyType === 'socks5'" class="shrink-0" width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="#f59e0b" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
-          <circle cx="12" cy="12" r="10" />
-          <ellipse cx="12" cy="12" rx="4" ry="10" />
-          <path d="M2 12h20" />
-          <path d="M4.9 5h14.2" opacity="0.5" />
-          <path d="M4.9 19h14.2" opacity="0.5" />
-        </svg>
-        <svg v-else-if="proxy.proxyType === 'socks4'" class="shrink-0" width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="#fb923c" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
-          <circle cx="12" cy="12" r="10" />
-          <ellipse cx="12" cy="12" rx="4" ry="10" />
-          <path d="M2 12h20" />
-        </svg>
-        <svg v-else class="shrink-0" width="14" height="14" viewBox="0 0 24 24" fill="none" :stroke="proxy.tlsEnabled ? '#16a34a' : '#60a5fa'" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round">
-          <polyline points="8 6 2 12 8 18" />
-          <polyline points="16 6 22 12 16 18" />
-          <line v-if="proxy.tlsEnabled" x1="14" y1="4" x2="10" y2="20" opacity="0.4" />
-        </svg>
-        <span class="truncate font-medium">{{ proxy.name }}</span>
-        <span class="text-[10px] truncate" style="color: var(--tm-text-muted)">{{ proxy.host }}:{{ proxy.port }}</span>
-
-        <span class="ml-auto shrink-0 text-[10px]" style="color: var(--tm-text-muted)">
-          {{ usageCount(proxy.id) }}
-        </span>
-      </div>
+        {{ t(`sidebar.filter_${f}`) }}
+      </button>
     </div>
 
-    <!-- Empty state -->
-    <div
-      v-else
-      class="text-xs py-8 text-center"
-      style="color: var(--tm-text-muted)"
-    >
-      {{ t("connection.proxyNoConfig") }}
+    <div class="px-2 py-1">
+      <!-- Empty state -->
+      <div
+        v-if="visibleProxies.length === 0"
+        class="text-xs py-8 text-center"
+        style="color: var(--tm-text-muted)"
+      >
+        {{ t("connection.proxyNoConfig") }}
+      </div>
+
+      <template v-else>
+        <!-- Private section header (shown when both sections are visible) -->
+        <div v-if="showPrivateSection" class="flex items-center gap-1 px-1 py-1 text-[10px] font-medium" style="color: var(--tm-text-muted)">
+          <svg class="w-3 h-3 shrink-0" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+            <rect x="3" y="11" width="18" height="11" rx="2" /><path d="M7 11V7a5 5 0 0 1 10 0v4" />
+          </svg>
+          {{ t("sidebar.privateServers") }}
+        </div>
+
+        <!-- Private proxies -->
+        <div v-if="proxyFilter !== 'team'" class="space-y-0.5">
+          <div
+            v-for="proxy in (teamStore.isJoined ? proxyStore.privateProxies : proxyStore.proxies)"
+            :key="proxy.id"
+            class="proxy-item tm-tree-item w-full flex items-center gap-1.5 px-2 py-1.5 transition-colors rounded-sm cursor-default group text-xs"
+            style="color: var(--tm-text-primary)"
+            @contextmenu="onItemContextMenu($event, proxy.id)"
+            @dblclick="openEditDialog(proxy.id)"
+          >
+            <!-- Proxy type icon -->
+            <svg v-if="proxy.proxyType === 'tor'" class="shrink-0" width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="#a855f7" stroke-width="1.5">
+              <circle cx="12" cy="12" r="10" /><circle cx="12" cy="12" r="6" /><circle cx="12" cy="12" r="2.5" fill="#a855f7" />
+            </svg>
+            <svg v-else-if="proxy.proxyType === 'socks5'" class="shrink-0" width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="#f59e0b" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+              <circle cx="12" cy="12" r="10" /><ellipse cx="12" cy="12" rx="4" ry="10" /><path d="M2 12h20" /><path d="M4.9 5h14.2" opacity="0.5" /><path d="M4.9 19h14.2" opacity="0.5" />
+            </svg>
+            <svg v-else-if="proxy.proxyType === 'socks4'" class="shrink-0" width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="#fb923c" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+              <circle cx="12" cy="12" r="10" /><ellipse cx="12" cy="12" rx="4" ry="10" /><path d="M2 12h20" />
+            </svg>
+            <svg v-else class="shrink-0" width="12" height="12" viewBox="0 0 24 24" fill="none" :stroke="proxy.tlsEnabled ? '#16a34a' : '#60a5fa'" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round">
+              <polyline points="8 6 2 12 8 18" /><polyline points="16 6 22 12 16 18" />
+              <line v-if="proxy.tlsEnabled" x1="14" y1="4" x2="10" y2="20" opacity="0.4" />
+            </svg>
+
+            <!-- Name + share indicator -->
+            <span class="flex-1 min-w-0 flex items-center gap-0.5">
+              <span class="truncate">{{ proxy.name }}</span>
+              <el-tooltip
+                v-if="proxy.shared || proxy.teamId"
+                :content="proxy.teamId && !proxy.shared
+                  ? t('team.receivedFrom', { name: proxy.sharedBy || '?' })
+                  : t('team.sharedWithTeam')"
+                :show-after="0"
+              >
+                <svg
+                  class="w-3 h-3 shrink-0 ml-0.5"
+                  :style="{ color: proxy.shared && !proxy.teamId ? 'var(--el-color-success)' : 'var(--el-color-primary)' }"
+                  viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"
+                >
+                  <path d="M17 21v-2a4 4 0 0 0-4-4H5a4 4 0 0 0-4 4v2" />
+                  <circle cx="9" cy="7" r="4" />
+                  <path d="M23 21v-2a4 4 0 0 0-3-3.87" />
+                  <path d="M16 3.13a4 4 0 0 1 0 7.75" />
+                </svg>
+              </el-tooltip>
+            </span>
+
+            <!-- Hover share toggle button -->
+            <button
+              v-if="teamStore.isJoined && !proxy.teamId"
+              class="shrink-0 p-0.5 rounded transition-all"
+              :class="proxy.shared ? 'opacity-100' : 'opacity-0 group-hover:opacity-100'"
+              :title="proxy.shared ? t('team.makePrivate') : t('context.shareWithTeam')"
+              :style="{ color: proxy.shared ? 'var(--el-color-success)' : 'var(--tm-text-muted)', background: 'transparent' }"
+              @click.stop="proxyStore.setShared(proxy.id, !proxy.shared)"
+            >
+              <svg class="w-3 h-3" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round">
+                <path d="M17 21v-2a4 4 0 0 0-4-4H5a4 4 0 0 0-4 4v2" />
+                <circle cx="9" cy="7" r="4" />
+                <path d="M23 21v-2a4 4 0 0 0-3-3.87" />
+                <path d="M16 3.13a4 4 0 0 1 0 7.75" />
+              </svg>
+            </button>
+
+            <!-- Usage count badge -->
+            <div
+              v-if="usageCount(proxy.id) > 0"
+              class="shrink-0 px-1.5 py-0.5 rounded text-[10px] font-medium"
+              style="background: rgba(96,165,250,0.12); color: #60a5fa"
+            >
+              ⇄ {{ usageCount(proxy.id) }}
+            </div>
+          </div>
+        </div>
+
+        <!-- Divider between sections -->
+        <div
+          v-if="showPrivateSection"
+          class="mx-1 my-1"
+          style="border-top: 1px solid var(--tm-border)"
+        />
+
+        <!-- Team section -->
+        <template v-if="showTeamSection">
+          <div class="flex items-center gap-1.5 px-1 py-1 text-[10px] font-medium" style="color: #60a5fa">
+            <svg class="w-3 h-3 shrink-0" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+              <path d="M17 21v-2a4 4 0 0 0-4-4H5a4 4 0 0 0-4 4v2" /><circle cx="9" cy="7" r="4" />
+              <path d="M23 21v-2a4 4 0 0 0-3-3.87" /><path d="M16 3.13a4 4 0 0 1 0 7.75" />
+            </svg>
+            {{ t("sidebar.teamServers") }}
+          </div>
+          <div class="space-y-0.5">
+            <div
+              v-for="proxy in proxyStore.teamProxies"
+              :key="proxy.id"
+              class="proxy-item tm-tree-item w-full flex items-center gap-1.5 px-2 py-1.5 transition-colors rounded-sm cursor-default text-xs group"
+              style="color: var(--tm-text-primary)"
+              @contextmenu="onItemContextMenu($event, proxy.id)"
+              @dblclick="openEditDialog(proxy.id)"
+            >
+              <!-- Proxy type icon -->
+              <svg v-if="proxy.proxyType === 'tor'" class="shrink-0" width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="#a855f7" stroke-width="1.5">
+                <circle cx="12" cy="12" r="10" /><circle cx="12" cy="12" r="6" /><circle cx="12" cy="12" r="2.5" fill="#a855f7" />
+              </svg>
+              <svg v-else-if="proxy.proxyType === 'socks5'" class="shrink-0" width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="#f59e0b" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                <circle cx="12" cy="12" r="10" /><ellipse cx="12" cy="12" rx="4" ry="10" /><path d="M2 12h20" />
+              </svg>
+              <svg v-else class="shrink-0" width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="#60a5fa" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round">
+                <polyline points="8 6 2 12 8 18" /><polyline points="16 6 22 12 16 18" />
+              </svg>
+
+              <!-- Name only (no left indicator — right button is sufficient) -->
+              <span class="flex-1 min-w-0 truncate">{{ proxy.name }}</span>
+
+              <!-- Make-private button (always visible for team nodes) -->
+              <button
+                class="shrink-0 p-0.5 rounded transition-all"
+                :title="proxy.teamId ? t('team.makePrivate') : t('team.makePrivate')"
+                :style="{ color: 'var(--el-color-primary)', background: 'transparent' }"
+                @click.stop="proxy.teamId ? proxyStore.makeLocal(proxy.id) : proxyStore.setShared(proxy.id, false)"
+              >
+                <svg class="w-3 h-3" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round">
+                  <path d="M17 21v-2a4 4 0 0 0-4-4H5a4 4 0 0 0-4 4v2" />
+                  <circle cx="9" cy="7" r="4" />
+                  <path d="M23 21v-2a4 4 0 0 0-3-3.87" />
+                  <path d="M16 3.13a4 4 0 0 1 0 7.75" />
+                </svg>
+              </button>
+
+              <!-- Usage count badge -->
+              <div
+                v-if="usageCount(proxy.id) > 0"
+                class="shrink-0 px-1.5 py-0.5 rounded text-[10px] font-medium"
+                style="background: rgba(96,165,250,0.12); color: #60a5fa"
+              >
+                ⇄ {{ usageCount(proxy.id) }}
+              </div>
+            </div>
+          </div>
+        </template>
+      </template>
     </div>
 
     <!-- Context menu -->

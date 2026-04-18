@@ -465,6 +465,7 @@ pub fn run() {
             commands::server::server_delete,
             commands::server::server_get_credentials,
             commands::server::server_touch,
+            commands::server::server_set_shared,
             commands::server::server_reorder,
             commands::server::group_list,
             commands::server::group_create,
@@ -477,6 +478,8 @@ pub fn run() {
             commands::proxy::proxy_update,
             commands::proxy::proxy_delete,
             commands::proxy::proxy_get_password,
+            commands::proxy::proxy_set_shared,
+            commands::proxy::proxy_make_local,
             // SSH
             commands::ssh::ssh_connect,
             commands::ssh::ssh_open_shell,
@@ -543,6 +546,8 @@ pub fn run() {
             commands::recording::recording_summarize,
             commands::recording::recording_get_dir,
             commands::recording::recording_open_dir,
+            commands::recording::recording_set_shared,
+            commands::recording::recording_make_local,
             // Team
             commands::team::team_create,
             commands::team::team_join,
@@ -555,6 +560,16 @@ pub fn run() {
             commands::team::team_verify_passphrase,
             commands::team::team_toggle_share,
             commands::team::team_rotate_key,
+            commands::team_ext::team_check_permission,
+            commands::team_ext::team_list_roles,
+            commands::team_ext::team_my_capabilities,
+            commands::team::team_resolve_conflicts,
+            commands::team_ext::team_generate_invite_token,
+            commands::team_ext::team_decode_invite,
+            commands::team_ext::team_get_credentials,
+            commands::team_ext::team_role_create,
+            commands::team_ext::team_role_update,
+            commands::team_ext::team_role_delete,
             // Plugins
             commands::plugin::plugin_list,
             commands::plugin::plugin_install,
@@ -614,6 +629,8 @@ pub fn run() {
             commands::clipboard::clipboard_read_text,
             // Audit
             commands::audit::audit_log_list,
+            commands::audit::audit_log_summary,
+            commands::audit::audit_export_report,
             commands::audit::audit_log_cleanup,
             // Privacy (GDPR)
             commands::privacy::privacy_erase_all_data,
@@ -623,6 +640,8 @@ pub fn run() {
             commands::snippet::snippet_create,
             commands::snippet::snippet_update,
             commands::snippet::snippet_delete,
+            commands::snippet::snippet_set_shared,
+            commands::snippet::snippet_make_local,
             commands::snippet::snippet_execute,
             commands::snippet::snippet_extract_variables,
             commands::snippet::snippet_folder_list,
@@ -652,6 +671,11 @@ pub fn run() {
             commands::cloud::cloud_ssm_connect,
             commands::cloud::cloud_kube_logs,
             commands::cloud::cloud_kube_logs_stop,
+            commands::cloud::cloud_favorite_list,
+            commands::cloud::cloud_favorite_create,
+            commands::cloud::cloud_favorite_delete,
+            commands::cloud::cloud_favorite_set_shared,
+            commands::cloud::cloud_favorite_make_local,
         ])
         .run(tauri::generate_context!())
         .expect("error while running Termex");

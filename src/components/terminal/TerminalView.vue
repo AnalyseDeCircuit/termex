@@ -1,6 +1,7 @@
 <script setup lang="ts">
 import { ref, computed, onMounted, onUnmounted, watch, toRef, nextTick } from "vue";
 import { useI18n } from "vue-i18n";
+import { ElMessage } from "element-plus";
 import { useTerminal } from "@/composables/useTerminal";
 import { useTerminalSearch } from "@/composables/useTerminalSearch";
 import { useKeywordHighlight } from "@/composables/useKeywordHighlight";
@@ -81,7 +82,7 @@ async function onShellReady(sid: string) {
   }
 }
 
-const { mount, fit, setTheme, setFont, getSearchAddon, getTerminal, rebindSession, getDimensions, dispose } =
+const { mount, fit, setTheme, setFont, getSearchAddon, getTerminal, rebindSession, getDimensions, dispose, mouseReporting } =
   useTerminal(sessionIdRef, {
     getAutocomplete: () => autocomplete,
     onShellReady,
@@ -186,6 +187,20 @@ function onSelectionExplain() {
   emit("explain-command", selectionToolbar.value.text);
   selectionToolbar.value.visible = false;
 }
+
+// Mouse reporting hint: one-time notification when first detected
+const MOUSE_HINT_KEY = "termex:mouse-reporting-hint-shown";
+watch(mouseReporting, (active) => {
+  if (active && !localStorage.getItem(MOUSE_HINT_KEY)) {
+    localStorage.setItem(MOUSE_HINT_KEY, "1");
+    const isMac = navigator.platform.startsWith("Mac");
+    ElMessage.info({
+      message: t("terminal.mouseReportingHint", { key: isMac ? "Shift" : "Shift" }),
+      duration: 6000,
+      showClose: true,
+    });
+  }
+});
 
 // Keyword highlight integration
 const keywordRulesRef = toRef(settingsStore, "keywordRules");
@@ -472,6 +487,20 @@ defineExpose({
       </div>
     </Teleport>
 
+    <!-- Mouse reporting mode indicator -->
+    <Transition name="mouse-hint-fade">
+      <div
+        v-if="mouseReporting"
+        class="absolute bottom-1.5 right-2 z-10 flex items-center gap-1 px-2 py-0.5 rounded text-[10px] select-none pointer-events-none"
+        style="background: rgba(0, 0, 0, 0.55); color: var(--tm-text-muted); backdrop-filter: blur(4px)"
+      >
+        <svg class="w-3 h-3 shrink-0 opacity-70" viewBox="0 0 24 24" fill="currentColor">
+          <path d="M4 0l16 12.279-6.951 1.17 4.325 8.817-3.596 1.734-4.35-8.879-5.428 4.702z" />
+        </svg>
+        {{ t("terminal.mouseReportingActive", { key: "Shift" }) }}
+      </div>
+    </Transition>
+
     <!-- Selection floating toolbar -->
     <SelectionToolbar
       :visible="selectionToolbar.visible"
@@ -498,5 +527,18 @@ defineExpose({
 <style scoped>
 .terminal-container :deep(.xterm) {
   padding: 6px;
+  /* Improve font rendering on Windows (ClearType) and macOS (subpixel) */
+  -webkit-font-smoothing: antialiased;
+  -moz-osx-font-smoothing: grayscale;
+  text-rendering: optimizeLegibility;
+}
+
+.mouse-hint-fade-enter-active,
+.mouse-hint-fade-leave-active {
+  transition: opacity 0.25s ease;
+}
+.mouse-hint-fade-enter-from,
+.mouse-hint-fade-leave-to {
+  opacity: 0;
 }
 </style>

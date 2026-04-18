@@ -12,9 +12,13 @@ import type { Server, ServerInput } from "@/types/server";
 import { tauriInvoke } from "@/utils/tauri";
 import ContextMenu from "./ContextMenu.vue";
 import type { MenuItem } from "./ContextMenu.vue";
+import { useTeamPermission } from "@/composables/useTeamPermission";
+import { useTeamStore } from "@/stores/teamStore";
 
 const { t } = useI18n();
+const { can } = useTeamPermission();
 const serverStore = useServerStore();
+const teamStore = useTeamStore();
 const sessionStore = useSessionStore();
 const monitorStore = useMonitorStore();
 const { exportConfig } = useConfigExport();
@@ -104,9 +108,11 @@ function cancelRename() {
 const tipVisible = ref(false);
 const tipX = ref(0);
 const tipY = ref(0);
+const isHovered = ref(false);
 let showTimer: ReturnType<typeof setTimeout> | null = null;
 
 function onMouseEnter() {
+  isHovered.value = true;
   if (renaming.value) return;
   showTimer = setTimeout(() => { tipVisible.value = true; }, 500);
 }
@@ -117,9 +123,14 @@ function onMouseMove(e: MouseEvent) {
 }
 
 function onMouseLeave() {
+  isHovered.value = false;
   if (showTimer) clearTimeout(showTimer);
   showTimer = null;
   tipVisible.value = false;
+}
+
+async function toggleShare() {
+  await serverStore.setShared(props.server.id, !props.server.shared);
 }
 
 // ── Context menu ──
@@ -128,14 +139,26 @@ const ctxX = ref(0);
 const ctxY = ref(0);
 
 const ctxItems = computed<MenuItem[]>(() => {
+  const gid = props.server.groupId ?? undefined;
+  // Private = owned by the current user; team = received from sync (read-only)
+  const isOwned = !props.server.teamId;
+  const canEdit = isOwned || can("ServerEdit", gid);
+  const canDelete = isOwned || can("ServerDelete", gid);
+
   const items: MenuItem[] = [
     { label: t("context.connect"), action: "connect" },
-    { label: t("context.edit"), action: "edit" },
-    { label: t("context.duplicate"), action: "duplicate" },
-    { label: t("context.rename"), action: "rename" },
   ];
 
-  if (serverStore.groups.length > 0) {
+  if (canEdit) {
+    items.push({ label: t("context.edit"), action: "edit" });
+    items.push({ label: t("context.duplicate"), action: "duplicate" });
+    items.push({ label: t("context.rename"), action: "rename" });
+  } else if (!isOwned) {
+    // Team-received server: allow duplicating to a private copy
+    items.push({ label: t("context.duplicate"), action: "duplicate" });
+  }
+
+  if (canEdit && serverStore.groups.length > 0) {
     const groupChildren: MenuItem[] = serverStore.groups
       .filter((g) => g.id !== props.server.groupId)
       .map((g) => ({ label: g.name, action: `move:${g.id}` }));
@@ -153,11 +176,23 @@ const ctxItems = computed<MenuItem[]>(() => {
   }
 
   items.push({ label: t("sidebar.exportConfig"), action: "export", divided: true });
-  items.push({
-    label: t("context.delete"),
-    action: "delete",
-    danger: true,
-  });
+
+  // Team share toggle — always available for owned servers when in a team
+  if (teamStore.isJoined && isOwned) {
+    if (props.server.shared) {
+      items.push({ label: t("context.makePrivate"), action: "make-private", divided: true });
+    } else {
+      items.push({ label: t("context.shareWithTeam"), action: "share-team", divided: true });
+    }
+  }
+
+  if (canDelete) {
+    items.push({
+      label: t("context.delete"),
+      action: "delete",
+      danger: true,
+    });
+  }
 
   return items;
 });
@@ -233,6 +268,10 @@ async function onCtxSelect(action: string) {
     await serverStore.updateServer(props.server.id, toInput({ groupId }));
   } else if (action === "export") {
     exportConfig([props.server.id], `${props.server.name}.termex`);
+  } else if (action === "share-team") {
+    await serverStore.setShared(props.server.id, true);
+  } else if (action === "make-private") {
+    await serverStore.setShared(props.server.id, false);
   } else if (action === "delete") {
     try {
       await ElMessageBox.confirm(
@@ -329,14 +368,19 @@ function handleDblClick() {
         [⋙]
       </span>
       <span class="truncate">{{ server.name }}</span>
-      <!-- Team shared indicator -->
+      <!-- Team shared / received indicator -->
       <el-tooltip
-        v-if="server.teamId"
-        :content="t('team.sharedBy', { name: server.sharedBy || '?' })"
+        v-if="server.shared || server.teamId"
+        :content="server.teamId && !server.shared
+          ? t('team.receivedFrom', { name: server.sharedBy || '?' })
+          : t('team.sharedWithTeam')"
         :show-after="0"
       >
-        <svg class="w-3 h-3 shrink-0 ml-0.5" style="color: var(--el-color-primary)"
-             viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round">
+        <svg
+          class="w-3 h-3 shrink-0 ml-0.5"
+          :style="{ color: server.shared && !server.teamId ? 'var(--el-color-success)' : 'var(--el-color-primary)' }"
+          viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"
+        >
           <path d="M17 21v-2a4 4 0 0 0-4-4H5a4 4 0 0 0-4 4v2" />
           <circle cx="9" cy="7" r="4" />
           <path d="M23 21v-2a4 4 0 0 0-3-3.87" />
@@ -344,6 +388,23 @@ function handleDblClick() {
         </svg>
       </el-tooltip>
     </span>
+
+    <!-- Share toggle button (visible on hover when team joined and server is mine) -->
+    <button
+      v-if="teamStore.isJoined && !server.teamId"
+      class="shrink-0 p-0.5 rounded transition-all"
+      :class="(isHovered || server.shared) ? 'opacity-100' : 'opacity-0'"
+      :title="server.shared ? t('context.makePrivate') : t('context.shareWithTeam')"
+      :style="{ color: server.shared ? 'var(--el-color-success)' : 'var(--tm-text-muted)', background: 'transparent' }"
+      @click.stop="toggleShare"
+    >
+      <svg class="w-3 h-3" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round">
+        <path d="M17 21v-2a4 4 0 0 0-4-4H5a4 4 0 0 0-4 4v2" />
+        <circle cx="9" cy="7" r="4" />
+        <path d="M23 21v-2a4 4 0 0 0-3-3.87" />
+        <path d="M16 3.13a4 4 0 0 1 0 7.75" />
+      </svg>
+    </button>
 
     <!-- Method A: Badge for bastion servers (amber badge + ref count) -->
     <div

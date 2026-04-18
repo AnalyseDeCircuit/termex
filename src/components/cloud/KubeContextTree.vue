@@ -2,12 +2,14 @@
 import { useI18n } from "vue-i18n";
 import { useCloudStore } from "@/stores/cloudStore";
 import { useSessionStore } from "@/stores/sessionStore";
+import { useTeamStore } from "@/stores/teamStore";
 import { ElMessage, ElMessageBox } from "element-plus";
 import type { PodInfo } from "@/types/cloud";
 
 const { t } = useI18n();
 const cloudStore = useCloudStore();
 const sessionStore = useSessionStore();
+const teamStore = useTeamStore();
 
 async function toggleContext(name: string) {
   const key = `ctx:${name}`;
@@ -142,15 +144,33 @@ async function refreshPods(context: string, ns: string) {
       <div v-for="ctx in cloudStore.kubeContexts" :key="ctx.name">
         <!-- Context node -->
         <div
-          class="flex items-center gap-1.5 pl-5 pr-2 py-1 text-xs cursor-pointer hover:bg-[var(--tm-bg-hover)]"
+          class="group flex items-center gap-1.5 pl-5 pr-2 py-1 text-xs cursor-pointer hover:bg-[var(--tm-bg-hover)]"
           style="color: var(--tm-text-primary)"
           @click="toggleContext(ctx.name)"
         >
           <svg class="w-2.5 h-2.5 transition-transform shrink-0" :class="{ 'rotate-90': cloudStore.isExpanded(`ctx:${ctx.name}`) }" viewBox="0 0 24 24" fill="currentColor">
             <path d="M10 6L16 12L10 18Z" />
           </svg>
-          <span class="truncate">{{ ctx.name }}</span>
-          <span v-if="ctx.isCurrent" class="ml-auto text-green-500 text-[10px]">*</span>
+          <span class="truncate flex-1">{{ ctx.name }}</span>
+          <span v-if="ctx.isCurrent" class="text-green-500 text-[10px] shrink-0">*</span>
+          <!-- Team share toggle -->
+          <el-tooltip
+            v-if="teamStore.isJoined"
+            :content="cloudStore.isFavoriteShared('kube', ctx.name) ? t('context.makePrivate') : t('context.shareWithTeam')"
+            :show-after="0"
+          >
+            <button
+              class="shrink-0 p-0.5 rounded transition-all"
+              :class="cloudStore.isFavoriteShared('kube', ctx.name) ? 'opacity-100' : 'opacity-0 group-hover:opacity-100'"
+              :style="{ color: cloudStore.isFavoriteShared('kube', ctx.name) ? 'var(--el-color-success)' : 'var(--tm-text-muted)', background: 'transparent' }"
+              @click.stop="cloudStore.toggleFavoriteShare('kube', ctx.name, ctx.name, ctx.namespace)"
+            >
+              <svg class="w-3 h-3" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round">
+                <path d="M17 21v-2a4 4 0 0 0-4-4H5a4 4 0 0 0-4 4v2" /><circle cx="9" cy="7" r="4" />
+                <path d="M23 21v-2a4 4 0 0 0-3-3.87" /><path d="M16 3.13a4 4 0 0 1 0 7.75" />
+              </svg>
+            </button>
+          </el-tooltip>
         </div>
 
         <!-- Namespaces -->

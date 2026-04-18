@@ -8,6 +8,7 @@ import { useSessionStore } from "@/stores/sessionStore";
 import { useProxyStore } from "@/stores/proxyStore";
 import { usePortForwardStore } from "@/stores/portForwardStore";
 import { useTeamStore } from "@/stores/teamStore";
+import { useTeamPermission } from "@/composables/useTeamPermission";
 import { tauriInvoke, tauriListen } from "@/utils/tauri";
 import type { ServerInput, ChainHopInput } from "@/types/server";
 import type { ForwardInput } from "@/types/portForward";
@@ -15,6 +16,7 @@ import type { ForwardInput } from "@/types/portForward";
 const { t } = useI18n();
 const serverStore = useServerStore();
 const teamStore = useTeamStore();
+const { can } = useTeamPermission();
 const sessionStore = useSessionStore();
 const proxyStore = useProxyStore();
 const portForwardStore = usePortForwardStore();
@@ -614,7 +616,15 @@ async function handleTest() {
           </el-form-item>
 
           <el-form-item v-if="form.authType === 'password'" :label="t('connection.password')">
-            <el-input v-model="form.password" type="password" show-password />
+            <template v-if="form.shared && !can('ServerViewCredentials')">
+              <el-input model-value="••••••••" disabled>
+                <template #suffix>
+                  <svg class="w-3.5 h-3.5" style="color: var(--tm-text-muted)" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="3" y="11" width="18" height="11" rx="2"/><path d="M7 11V7a5 5 0 0110 0v4"/></svg>
+                </template>
+              </el-input>
+              <p class="text-[10px] mt-0.5" style="color: var(--tm-text-muted)">{{ t("teamV2.credProtected") }}</p>
+            </template>
+            <el-input v-else v-model="form.password" type="password" show-password />
           </el-form-item>
 
           <template v-if="form.authType === 'key'">
@@ -647,7 +657,10 @@ async function handleTest() {
               />
             </el-form-item>
             <el-form-item label="Passphrase">
-              <el-input v-model="form.passphrase" type="password" show-password />
+              <template v-if="form.shared && !can('ServerViewCredentials')">
+                <el-input model-value="••••••••" disabled />
+              </template>
+              <el-input v-else v-model="form.passphrase" type="password" show-password />
             </el-form-item>
           </template>
 

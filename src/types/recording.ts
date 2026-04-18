@@ -22,6 +22,9 @@ export interface Recording {
   startedAt: string;
   endedAt: string | null;
   createdAt: string;
+  shared?: boolean;
+  teamId?: string;
+  sharedBy?: string;
 }
 
 /** AI-generated session summary. */

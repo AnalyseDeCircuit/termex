@@ -79,6 +79,34 @@ fn test_server_with_group() {
 }
 
 #[test]
+fn test_server_set_shared_toggle() {
+    let conn = setup_db();
+    conn.execute(
+        "INSERT INTO servers (id, name, host, port, username, auth_type, encoding, tags, created_at, updated_at)
+         VALUES ('s1', 'MyServer', '10.0.0.1', 22, 'admin', 'password', 'UTF-8', '[]', '2026-01-01', '2026-01-01')",
+        [],
+    ).unwrap();
+
+    // Default: shared = 0
+    let shared: i32 = conn.query_row("SELECT COALESCE(shared, 0) FROM servers WHERE id='s1'", [], |r| r.get(0)).unwrap();
+    assert_eq!(shared, 0, "new servers should not be shared by default");
+
+    // Set shared = 1
+    conn.execute("UPDATE servers SET shared = 1, updated_at = '2026-02-01' WHERE id = 's1'", []).unwrap();
+    let shared: i32 = conn.query_row("SELECT shared FROM servers WHERE id='s1'", [], |r| r.get(0)).unwrap();
+    assert_eq!(shared, 1, "server should be shared after toggling on");
+
+    // Verify export query only returns shared servers
+    let count: i32 = conn.query_row("SELECT COUNT(*) FROM servers WHERE shared = 1", [], |r| r.get(0)).unwrap();
+    assert_eq!(count, 1);
+
+    // Set shared = 0 (make private)
+    conn.execute("UPDATE servers SET shared = 0, updated_at = '2026-02-02' WHERE id = 's1'", []).unwrap();
+    let count: i32 = conn.query_row("SELECT COUNT(*) FROM servers WHERE shared = 1", [], |r| r.get(0)).unwrap();
+    assert_eq!(count, 0, "private servers should not appear in shared export query");
+}
+
+#[test]
 fn test_server_delete_group_cascades_null() {
     let conn = setup_db();
     conn.execute(

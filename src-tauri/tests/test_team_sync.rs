@@ -58,6 +58,8 @@ fn test_team_json_serialize_roundtrip() {
             },
         ],
         settings: TeamSettings::default(),
+        roles: std::collections::HashMap::new(),
+        role_overrides: std::collections::HashMap::new(),
     };
 
     let json = serde_json::to_string_pretty(&team).unwrap();

@@ -6,6 +6,8 @@ import type {
   KubeContext,
   PodInfo,
   SsmInstance,
+  CloudFavorite,
+  CloudFavoriteInput,
 } from "@/types/cloud";
 
 export const useCloudStore = defineStore("cloud", () => {
@@ -114,6 +116,76 @@ export const useCloudStore = defineStore("cloud", () => {
     return ssmInstances.value[key] ?? [];
   }
 
+  // ── Cloud Favorites ───────────────────────────────────────
+
+  const favorites = ref<CloudFavorite[]>([]);
+
+  const isTeamFavorite = (f: CloudFavorite) => !!f.shared || !!f.teamId;
+  const privateFavorites = computed(() => favorites.value.filter((f) => !isTeamFavorite(f)));
+  const teamFavorites = computed(() => favorites.value.filter((f) => isTeamFavorite(f)));
+
+  async function loadFavorites() {
+    favorites.value = await tauriInvoke<CloudFavorite[]>("cloud_favorite_list");
+  }
+
+  /** Toggle share state for a context/profile. Creates favorite if not exists. */
+  async function toggleFavoriteShare(
+    resourceType: string,
+    contextOrProfile: string,
+    name: string,
+    namespace?: string,
+    region?: string,
+  ) {
+    const existing = favorites.value.find(
+      (f) => f.resourceType === resourceType && f.contextOrProfile === contextOrProfile,
+    );
+    if (existing) {
+      // Toggle shared
+      await tauriInvoke("cloud_favorite_set_shared", { id: existing.id, shared: !existing.shared });
+      if (!existing.shared) {
+        // Was false → now true
+        existing.shared = true;
+      } else {
+        // Was true → now false: remove if not team-received, else keep
+        if (!existing.teamId) {
+          // Private favorite that was shared — just unshare, keep as private favorite
+          existing.shared = false;
+        }
+      }
+    } else {
+      const input: CloudFavoriteInput = { name, resourceType, contextOrProfile, namespace, region };
+      const created = await tauriInvoke<CloudFavorite>("cloud_favorite_create", { input });
+      await tauriInvoke("cloud_favorite_set_shared", { id: created.id, shared: true });
+      created.shared = true;
+      favorites.value.push(created);
+    }
+  }
+
+  /** Returns true if the given context/profile has a shared favorite. */
+  function isFavoriteShared(resourceType: string, contextOrProfile: string): boolean {
+    return favorites.value.some(
+      (f) => f.resourceType === resourceType && f.contextOrProfile === contextOrProfile && f.shared,
+    );
+  }
+
+  /** Returns the favorite for a given context/profile (any state). */
+  function getFavorite(resourceType: string, contextOrProfile: string): CloudFavorite | undefined {
+    return favorites.value.find(
+      (f) => f.resourceType === resourceType && f.contextOrProfile === contextOrProfile,
+    );
+  }
+
+  async function makeLocalFavorite(id: string) {
+    await tauriInvoke("cloud_favorite_make_local", { id });
+    const fav = favorites.value.find((f) => f.id === id);
+    if (fav) { fav.shared = false; fav.teamId = undefined; fav.sharedBy = undefined; }
+  }
+
+  async function deleteFavorite(id: string) {
+    await tauriInvoke("cloud_favorite_delete", { id });
+    favorites.value = favorites.value.filter((f) => f.id !== id);
+  }
+
   // ── UI state ──────────────────────────────────────────────
 
   const expandedNodes = ref<Set<string>>(new Set());
@@ -157,5 +229,14 @@ export const useCloudStore = defineStore("cloud", () => {
     ssmFilter,
     toggleNode,
     isExpanded,
+    favorites,
+    privateFavorites,
+    teamFavorites,
+    loadFavorites,
+    toggleFavoriteShare,
+    isFavoriteShared,
+    getFavorite,
+    makeLocalFavorite,
+    deleteFavorite,
   };
 });

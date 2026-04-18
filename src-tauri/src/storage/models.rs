@@ -129,6 +129,12 @@ pub struct Proxy {
     pub command: Option<String>,
     pub created_at: String,
     pub updated_at: String,
+    /// Whether this proxy is shared with the team.
+    pub shared: bool,
+    /// Team identifier (set when received from team sync).
+    pub team_id: Option<String>,
+    /// Username of the team member who shared this proxy.
+    pub shared_by: Option<String>,
 }
 
 // ============================================================
@@ -315,6 +321,12 @@ pub struct Snippet {
     pub last_used_at: Option<String>,
     pub created_at: String,
     pub updated_at: String,
+    /// Whether this snippet is shared with the team.
+    pub shared: bool,
+    /// Team identifier (set when received from team sync).
+    pub team_id: Option<String>,
+    /// Username of the team member who shared this snippet.
+    pub shared_by: Option<String>,
 }
 
 /// Input for creating or updating a snippet.

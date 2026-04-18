@@ -35,6 +35,9 @@ pub enum AuditEvent {
     TeamMemberRoleChange { target: String, role: String },
     TeamMemberRemove { target: String },
     TeamKeyRotated,
+    TeamCredentialAccess { server_id: String, server_name: String },
+    TeamConflictResolved { count: usize },
+    TeamServerShared { server_id: String, shared: bool },
 }
 
 impl AuditEvent {
@@ -58,6 +61,9 @@ impl AuditEvent {
             Self::TeamMemberRoleChange { .. } => "team_member_role_change",
             Self::TeamMemberRemove { .. } => "team_member_remove",
             Self::TeamKeyRotated => "team_key_rotated",
+            Self::TeamCredentialAccess { .. } => "team_credential_access",
+            Self::TeamConflictResolved { .. } => "team_conflict_resolved",
+            Self::TeamServerShared { .. } => "team_server_shared",
             Self::ServerCreated { .. } => "server_created",
             Self::ServerDeleted { .. } => "server_deleted",
             Self::ConfigExported => "config_exported",
@@ -99,6 +105,12 @@ impl AuditEvent {
             Self::TeamMemberRemove { target } =>
                 serde_json::json!({"target": target}),
             Self::TeamKeyRotated => serde_json::json!({}),
+            Self::TeamCredentialAccess { server_id, server_name } =>
+                serde_json::json!({"server_id": server_id, "server_name": server_name}),
+            Self::TeamConflictResolved { count } =>
+                serde_json::json!({"count": count}),
+            Self::TeamServerShared { server_id, shared } =>
+                serde_json::json!({"server_id": server_id, "shared": shared}),
             _ => return None,
         };
         Some(val.to_string())

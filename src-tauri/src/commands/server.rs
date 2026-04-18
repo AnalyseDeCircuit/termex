@@ -473,6 +473,29 @@ pub fn server_touch(state: State<'_, AppState>, id: String) -> Result<(), String
         .map_err(|e| e.to_string())
 }
 
+/// Toggles team-sharing for a server.
+///
+/// When `shared = true` the server will be included in the next team sync push.
+/// When `shared = false` the server is treated as private and excluded from sync.
+#[tauri::command]
+pub fn server_set_shared(
+    state: State<'_, AppState>,
+    id: String,
+    shared: bool,
+) -> Result<(), String> {
+    let now = time::OffsetDateTime::now_utc().to_string();
+    state
+        .db
+        .with_conn(|conn| {
+            conn.execute(
+                "UPDATE servers SET shared = ?1, updated_at = ?2 WHERE id = ?3",
+                rusqlite::params![shared as i32, now, id],
+            )?;
+            Ok(())
+        })
+        .map_err(|e| e.to_string())
+}
+
 /// Reorders servers/groups by updating sort_order.
 #[tauri::command]
 pub fn server_reorder(

@@ -15,7 +15,8 @@ pub fn list(
 ) -> Result<Vec<Snippet>, String> {
     let mut sql = String::from(
         "SELECT id, title, description, command, tags, folder_id, is_favorite,
-                usage_count, last_used_at, created_at, updated_at
+                usage_count, last_used_at, created_at, updated_at,
+                COALESCE(shared, 0), team_id, shared_by
          FROM snippets WHERE 1=1",
     );
     let mut params: Vec<Box<dyn rusqlite::types::ToSql>> = Vec::new();
@@ -58,7 +59,8 @@ pub fn get(conn: &Connection, id: &str) -> Result<Option<Snippet>, String> {
     let mut stmt = conn
         .prepare(
             "SELECT id, title, description, command, tags, folder_id, is_favorite,
-                    usage_count, last_used_at, created_at, updated_at
+                    usage_count, last_used_at, created_at, updated_at,
+                    COALESCE(shared, 0), team_id, shared_by
              FROM snippets WHERE id = ?1",
         )
         .map_err(|e| e.to_string())?;
@@ -310,7 +312,33 @@ fn row_to_snippet(row: &rusqlite::Row) -> Snippet {
         last_used_at: row.get(8).unwrap_or_default(),
         created_at: row.get(9).unwrap_or_default(),
         updated_at: row.get(10).unwrap_or_default(),
+        shared: row.get::<_, i32>(11).unwrap_or(0) != 0,
+        team_id: row.get(12).unwrap_or_default(),
+        shared_by: row.get(13).unwrap_or_default(),
     }
+}
+
+/// Sets the shared flag for a snippet.
+pub fn set_shared(conn: &Connection, id: &str, shared: bool) -> Result<(), String> {
+    let now = time::OffsetDateTime::now_utc().to_string();
+    conn.execute(
+        "UPDATE snippets SET shared = ?1, updated_at = ?2 WHERE id = ?3",
+        rusqlite::params![shared as i32, now, id],
+    )
+    .map_err(|e| e.to_string())?;
+    Ok(())
+}
+
+/// Converts a team-received snippet to a locally-owned private snippet
+/// by clearing both the shared flag and team_id.
+pub fn make_local(conn: &Connection, id: &str) -> Result<(), String> {
+    let now = time::OffsetDateTime::now_utc().to_string();
+    conn.execute(
+        "UPDATE snippets SET shared = 0, team_id = NULL, shared_by = NULL, updated_at = ?1 WHERE id = ?2",
+        rusqlite::params![now, id],
+    )
+    .map_err(|e| e.to_string())?;
+    Ok(())
 }
 
 use rusqlite::OptionalExtension;

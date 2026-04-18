@@ -1,19 +1,21 @@
 use std::path::PathBuf;
 
+use base64::Engine;
 use tauri::{Emitter, State};
 
 use crate::state::AppState;
 use crate::storage;
 use crate::team::crypto::{
     create_verify_token, derive_team_key, generate_team_salt, re_encrypt,
-    team_encrypt, verify_passphrase,
+    team_decrypt, team_encrypt, verify_passphrase,
 };
 use crate::team::git::{PullResult, TeamRepo};
+use crate::team::permission;
 use crate::team::sync;
 use crate::team::types::*;
 
 /// Helper: get current team username from settings.
-fn get_team_username(state: &AppState) -> Result<String, String> {
+pub(crate) fn get_team_username(state: &AppState) -> Result<String, String> {
     state
         .db
         .with_conn(|conn| {
@@ -64,8 +66,26 @@ fn check_role(state: &AppState, required: &str) -> Result<(), String> {
     }
 }
 
+/// Helper: capability-based permission check (v2).
+pub(crate) async fn check_capability(
+    state: &AppState,
+    capability: &Capability,
+    group_id: Option<&str>,
+) -> Result<(), String> {
+    let username = get_team_username(state)?;
+    let repo_path = state.team_repo_path.read().await.clone()
+        .ok_or("not in a team")?;
+    let team = sync::read_team_json(&repo_path).map_err(|e| e.to_string())?;
+
+    if permission::check_permission(&team, &username, capability, group_id) {
+        Ok(())
+    } else {
+        Err(format!("insufficient permissions: requires {:?}", capability))
+    }
+}
+
 /// Helper: load git auth config from settings.
-fn load_git_auth(state: &AppState) -> Result<GitAuthConfig, String> {
+pub(crate) fn load_git_auth(state: &AppState) -> Result<GitAuthConfig, String> {
     let get = |key: &str| -> Option<String> {
         state
             .db
@@ -134,7 +154,33 @@ fn default_repo_path() -> PathBuf {
     crate::paths::data_dir().join("team-repo")
 }
 
-fn now_rfc3339() -> String {
+/// Check whether a team_name setting exists in the database.
+fn has_team_in_db(state: &AppState) -> bool {
+    state
+        .db
+        .with_conn(|conn| {
+            conn.query_row(
+                "SELECT value FROM settings WHERE key = 'team_name'",
+                [],
+                |row| row.get::<_, String>(0),
+            )
+        })
+        .is_ok()
+}
+
+/// Remove orphaned team-repo directory left by a previously failed create/join.
+/// Returns Ok(()) if the directory was cleaned up or didn't exist.
+fn cleanup_orphaned_repo(state: &AppState, repo_path: &std::path::Path) -> Result<(), String> {
+    if repo_path.exists() && !has_team_in_db(state) {
+        log::warn!("cleaning up orphaned team-repo at {}", repo_path.display());
+        std::fs::remove_dir_all(repo_path).map_err(|e| {
+            format!("failed to clean up orphaned team-repo: {e}")
+        })?;
+    }
+    Ok(())
+}
+
+pub(crate) fn now_rfc3339() -> String {
     time::OffsetDateTime::now_utc()
         .format(&time::format_description::well_known::Rfc3339)
         .unwrap_or_default()
@@ -157,6 +203,8 @@ pub async fn team_create(
     }
 
     let repo_path = default_repo_path();
+    // Clean up orphaned directory from a previously failed create/join
+    cleanup_orphaned_repo(&state, &repo_path)?;
     if repo_path.exists() {
         return Err("team repo already exists — leave current team first".to_string());
     }
@@ -170,9 +218,9 @@ pub async fn team_create(
     let now = now_rfc3339();
     let device_id = uuid::Uuid::new_v4().to_string();
 
-    // Create team.json
+    // Create team.json (v2 with capability-based roles)
     let team = TeamJson {
-        version: 1,
+        version: 2,
         name: name.clone(),
         salt: hex::encode(salt),
         verify,
@@ -183,12 +231,14 @@ pub async fn team_create(
             device_id,
         }],
         settings: TeamSettings::default(),
+        roles: default_preset_roles(),
+        role_overrides: std::collections::HashMap::new(),
     };
 
     sync::write_team_json(&repo_path, &team).map_err(|e| e.to_string())?;
 
     // Create directory structure
-    for dir in &["servers", "groups", "snippets", "proxies"] {
+    for dir in &["servers", "groups", "snippets", "proxies", "cloud_favorites", "recordings"] {
         let d = repo_path.join(dir);
         std::fs::create_dir_all(&d).map_err(|e| e.to_string())?;
         std::fs::write(d.join(".gitkeep"), "").map_err(|e| e.to_string())?;
@@ -200,9 +250,10 @@ pub async fn team_create(
     TeamRepo::init_and_push(&repo_path, &repo_url, &username, &git_auth)
         .map_err(|e| e.to_string())?;
 
-    // Store team key in memory
+    // Store team key in memory + keychain (so cold-start can restore it)
     *state.team_key.write().await = Some(key);
     *state.team_repo_path.write().await = Some(repo_path);
+    let _ = crate::keychain::store("team_passphrase", &passphrase);
 
     // Save settings
     set_setting(&state, "team_name", &name);
@@ -233,6 +284,8 @@ pub async fn team_join(
     git_auth: GitAuthConfig,
 ) -> Result<TeamInfo, String> {
     let repo_path = default_repo_path();
+    // Clean up orphaned directory from a previously failed create/join
+    cleanup_orphaned_repo(&state, &repo_path)?;
     if repo_path.exists() {
         return Err("team repo already exists — leave current team first".to_string());
     }
@@ -299,9 +352,10 @@ pub async fn team_join(
         })
         .map_err(|e| e.to_string())?;
 
-    // Store state
+    // Store state + keychain (so cold-start can restore the key)
     *state.team_key.write().await = Some(key);
     *state.team_repo_path.write().await = Some(repo_path);
+    let _ = crate::keychain::store("team_passphrase", &passphrase);
 
     set_setting(&state, "team_name", &team.name);
     set_setting(&state, "team_repo_url", &repo_url);
@@ -334,6 +388,46 @@ pub async fn team_sync(
     state: State<'_, AppState>,
     app: tauri::AppHandle,
 ) -> Result<TeamSyncResult, String> {
+    // ── Cold-start restoration ──────────────────────────────────────────────
+    // team_repo_path and team_key are None after app restart.  team_sync may be
+    // triggered before team_get_status is awaited, so we restore inline here.
+    if state.team_repo_path.read().await.is_none() {
+        let stored = state
+            .db
+            .with_conn(|conn| {
+                conn.query_row(
+                    "SELECT value FROM settings WHERE key='team_repo_path'",
+                    [],
+                    |r| r.get::<_, String>(0),
+                )
+            })
+            .ok()
+            .map(PathBuf::from)
+            .unwrap_or_else(default_repo_path);
+        if stored.exists() {
+            *state.team_repo_path.write().await = Some(stored);
+        }
+    }
+    if state.team_key.read().await.is_none() {
+        if let Ok(passphrase) = crate::keychain::get("team_passphrase") {
+            let maybe_path = state.team_repo_path.read().await.clone();
+            if let Some(path) = maybe_path {
+                if let Ok(team_json) = sync::read_team_json(&path) {
+                    if let Ok(salt_bytes) = hex::decode(&team_json.salt) {
+                        let mut salt_arr = [0u8; 16];
+                        if salt_bytes.len() == 16 {
+                            salt_arr.copy_from_slice(&salt_bytes);
+                            if let Ok(key) = derive_team_key(&passphrase, &salt_arr) {
+                                *state.team_key.write().await = Some(key);
+                            }
+                        }
+                    }
+                }
+            }
+        }
+    }
+    // ───────────────────────────────────────────────────────────────────────
+
     let repo_path = state.team_repo_path.read().await.clone()
         .ok_or("not in a team")?;
     let key = state.team_key.read().await.clone()
@@ -357,30 +451,64 @@ pub async fn team_sync(
         return Err("remote has diverged — manual resolution required".to_string());
     }
 
-    // Import remote changes
+    // Detect conflicts first
+    let last_sync: Option<String> = state.db.with_conn(|conn| {
+        conn.query_row("SELECT value FROM settings WHERE key='team_last_sync'", [], |r| r.get(0))
+    }).ok();
+    let conflicts = state
+        .db
+        .with_conn(|conn| {
+            sync::detect_server_conflicts(conn, &repo_path, last_sync.as_deref())
+                .map_err(|e| rusqlite::Error::ToSqlConversionFailure(Box::new(e)))
+        })
+        .map_err(|e| e.to_string())?;
+
+    // ── Import remote changes ──
     let imported = state
         .db
         .with_conn(|conn| {
-            sync::import_remote_servers(conn, &repo_path, &key, &team_id)
-                .map_err(|e| rusqlite::Error::ToSqlConversionFailure(Box::new(e)))
+            let wrap = |r: Result<usize, _>| r.map_err(|e| rusqlite::Error::ToSqlConversionFailure(Box::new(e)));
+
+            let servers = wrap(sync::import_remote_servers(conn, &repo_path, &key, &team_id))?;
+            wrap(sync::sync_groups(conn, &repo_path))?;
+            let snippets = wrap(sync::import_remote_snippets(conn, &repo_path, &team_id))?;
+            let proxies = wrap(sync::import_remote_proxies(conn, &repo_path, &key, &team_id))?;
+            let cloud_favs = wrap(sync::import_remote_cloud_favorites(conn, &repo_path, &team_id))?;
+            let recordings = wrap(sync::import_remote_recordings(conn, &repo_path, &team_id))?;
+
+            Ok(servers + snippets + proxies + cloud_favs + recordings)
         })
         .map_err(|e| e.to_string())?;
 
-    // Detect remote deletions
+    // ── Detect remote deletions ──
     let deleted = state
         .db
         .with_conn(|conn| {
-            sync::detect_remote_deletions(conn, &repo_path, &team_id)
-                .map_err(|e| rusqlite::Error::ToSqlConversionFailure(Box::new(e)))
+            let wrap = |r: Result<usize, _>| r.map_err(|e| rusqlite::Error::ToSqlConversionFailure(Box::new(e)));
+
+            let servers = wrap(sync::detect_remote_deletions(conn, &repo_path, &team_id))?;
+            let snippets = wrap(sync::detect_remote_deletions_snippets(conn, &repo_path, &team_id))?;
+            let proxies = wrap(sync::detect_remote_deletions_proxies(conn, &repo_path, &team_id))?;
+            let cloud_favs = wrap(sync::detect_remote_deletions_cloud_favorites(conn, &repo_path, &team_id))?;
+            let recordings = wrap(sync::detect_remote_deletions_recordings(conn, &repo_path, &team_id))?;
+
+            Ok(servers + snippets + proxies + cloud_favs + recordings)
         })
         .map_err(|e| e.to_string())?;
 
-    // Export local shared
+    // ── Export local shared ──
     let exported = state
         .db
         .with_conn(|conn| {
-            sync::export_local_shared(conn, &repo_path, &key, &username)
-                .map_err(|e| rusqlite::Error::ToSqlConversionFailure(Box::new(e)))
+            let wrap = |r: Result<usize, _>| r.map_err(|e| rusqlite::Error::ToSqlConversionFailure(Box::new(e)));
+
+            let servers = wrap(sync::export_local_shared(conn, &repo_path, &key, &username))?;
+            let snippets = wrap(sync::export_local_shared_snippets(conn, &repo_path, &username))?;
+            let proxies = wrap(sync::export_local_shared_proxies(conn, &repo_path, &key, &username))?;
+            let cloud_favs = wrap(sync::export_local_shared_cloud_favorites(conn, &repo_path, &username))?;
+            let recordings = wrap(sync::export_local_shared_recordings(conn, &repo_path, &username))?;
+
+            Ok(servers + snippets + proxies + cloud_favs + recordings)
         })
         .map_err(|e| e.to_string())?;
 
@@ -398,7 +526,7 @@ pub async fn team_sync(
     let result = TeamSyncResult {
         imported,
         exported,
-        conflicts: 0,
+        conflicts,
         deleted_remote: deleted,
     };
 
@@ -486,6 +614,53 @@ pub async fn team_get_status(state: State<'_, AppState>) -> Result<TeamStatus, S
     let name = get("team_name");
     let joined = name.is_some();
 
+    // Restore team_repo_path from settings after app restart (it's always None on cold start).
+    if joined && state.team_repo_path.read().await.is_none() {
+        let stored_path = get("team_repo_path")
+            .map(PathBuf::from)
+            .unwrap_or_else(default_repo_path);
+        eprintln!(">>> [TEAM] cold-start: repo_path={:?} exists={}", stored_path, stored_path.exists());
+        if stored_path.exists() {
+            *state.team_repo_path.write().await = Some(stored_path);
+        }
+    }
+
+    // Restore team_key from keychain + team.json after app restart.
+    if joined && state.team_key.read().await.is_none() {
+        match crate::keychain::get("team_passphrase") {
+            Ok(passphrase) => {
+                eprintln!(">>> [TEAM] cold-start: team_passphrase found in keychain (len={})", passphrase.len());
+                let maybe_path = state.team_repo_path.read().await.clone();
+                match maybe_path {
+                    Some(path) => {
+                        match sync::read_team_json(&path) {
+                            Ok(team_json) => {
+                                match hex::decode(&team_json.salt) {
+                                    Ok(salt_bytes) if salt_bytes.len() == 16 => {
+                                        let mut salt_arr = [0u8; 16];
+                                        salt_arr.copy_from_slice(&salt_bytes);
+                                        match derive_team_key(&passphrase, &salt_arr) {
+                                            Ok(key) => {
+                                                eprintln!(">>> [TEAM] cold-start: key derived OK — restoration complete");
+                                                *state.team_key.write().await = Some(key);
+                                            }
+                                            Err(e) => eprintln!(">>> [TEAM] cold-start: derive_team_key FAILED: {e}"),
+                                        }
+                                    }
+                                    Ok(salt_bytes) => eprintln!(">>> [TEAM] cold-start: salt wrong length: {} (expected 16)", salt_bytes.len()),
+                                    Err(e) => eprintln!(">>> [TEAM] cold-start: hex::decode salt FAILED: {e}"),
+                                }
+                            }
+                            Err(e) => eprintln!(">>> [TEAM] cold-start: read_team_json FAILED: {e}"),
+                        }
+                    }
+                    None => eprintln!(">>> [TEAM] cold-start: team_repo_path is None, cannot read team.json"),
+                }
+            }
+            Err(e) => eprintln!(">>> [TEAM] cold-start: team_passphrase NOT in keychain: {e}"),
+        }
+    }
+
     let has_pending = if let Some(ref path) = *state.team_repo_path.read().await {
         TeamRepo::open(path)
             .and_then(|r| r.status())
@@ -503,6 +678,8 @@ pub async fn team_get_status(state: State<'_, AppState>) -> Result<TeamStatus, S
         0
     };
 
+    let needs_passphrase = joined && state.team_key.read().await.is_none();
+
     Ok(TeamStatus {
         joined,
         name,
@@ -511,6 +688,7 @@ pub async fn team_get_status(state: State<'_, AppState>) -> Result<TeamStatus, S
         last_sync: get("team_last_sync"),
         has_pending_changes: has_pending,
         repo_url: get("team_repo_url"),
+        needs_passphrase,
     })
 }
 
@@ -523,14 +701,14 @@ pub async fn team_list_members(state: State<'_, AppState>) -> Result<Vec<TeamMem
     Ok(team.members)
 }
 
-/// Sets a member's role (admin only).
+/// Sets a member's role (requires TeamRoleAssign capability).
 #[tauri::command]
 pub async fn team_set_role(
     state: State<'_, AppState>,
     target_username: String,
     role: String,
 ) -> Result<(), String> {
-    check_role(&state, "admin")?;
+    check_capability(&state, &Capability::TeamRoleAssign, None).await?;
 
     let repo_path = state.team_repo_path.read().await.clone()
         .ok_or("not in a team")?;
@@ -561,13 +739,13 @@ pub async fn team_set_role(
     Ok(())
 }
 
-/// Removes a member (admin only).
+/// Removes a member (requires TeamRemove capability).
 #[tauri::command]
 pub async fn team_remove_member(
     state: State<'_, AppState>,
     target_username: String,
 ) -> Result<(), String> {
-    check_role(&state, "admin")?;
+    check_capability(&state, &Capability::TeamRemove, None).await?;
 
     let repo_path = state.team_repo_path.read().await.clone()
         .ok_or("not in a team")?;
@@ -597,7 +775,7 @@ pub async fn team_remove_member(
 pub async fn team_verify_passphrase(
     state: State<'_, AppState>,
     passphrase: String,
-    remember: bool,
+    _remember: bool,
 ) -> Result<bool, String> {
     let repo_path = state.team_repo_path.read().await.clone()
         .ok_or("not in a team")?;
@@ -613,21 +791,30 @@ pub async fn team_verify_passphrase(
 
     *state.team_key.write().await = Some(key);
 
-    if remember {
-        let _ = crate::keychain::store("team_passphrase", &passphrase);
+    // Always persist to keychain so cold-start restoration works on next launch.
+    // Without this, the user would have to re-enter the passphrase every restart.
+    match crate::keychain::store("team_passphrase", &passphrase) {
+        Ok(()) => eprintln!(">>> [TEAM] verify_passphrase: stored team_passphrase to keychain OK"),
+        Err(e) => eprintln!(">>> [TEAM] verify_passphrase: FAILED to store team_passphrase: {e}"),
+    }
+
+    // Verify the store by reading it back immediately
+    match crate::keychain::get("team_passphrase") {
+        Ok(_) => eprintln!(">>> [TEAM] verify_passphrase: read-back confirmed — passphrase in cache"),
+        Err(e) => eprintln!(">>> [TEAM] verify_passphrase: read-back FAILED: {e}"),
     }
 
     Ok(true)
 }
 
-/// Toggles a server's shared status.
+/// Toggles a server's shared status (requires ServerEdit capability).
 #[tauri::command]
 pub async fn team_toggle_share(
     state: State<'_, AppState>,
     server_id: String,
     shared: bool,
 ) -> Result<(), String> {
-    check_role(&state, "member")?;
+    check_capability(&state, &Capability::ServerEdit, None).await?;
 
     let username = get_team_username(&state)?;
     let now = now_rfc3339();
@@ -657,17 +844,24 @@ pub async fn team_toggle_share(
         }
     }
 
+    crate::audit::log(&state.db, crate::audit::AuditEvent::TeamServerShared {
+        server_id,
+        shared,
+    });
+
     Ok(())
 }
 
-/// Rotates the team passphrase (admin only).
+// team_get_credentials → moved to commands/team_ext.rs
+
+/// Rotates the team passphrase (requires TeamSettingsEdit capability).
 #[tauri::command]
 pub async fn team_rotate_key(
     state: State<'_, AppState>,
     old_passphrase: String,
     new_passphrase: String,
 ) -> Result<(), String> {
-    check_role(&state, "admin")?;
+    check_capability(&state, &Capability::TeamSettingsEdit, None).await?;
 
     if new_passphrase.len() < 8 {
         return Err("new passphrase must be at least 8 characters".to_string());
@@ -712,6 +906,7 @@ pub async fn team_rotate_key(
     // Update team.json
     team.salt = hex::encode(new_salt);
     team.verify = create_verify_token(&new_key).map_err(|e| e.to_string())?;
+    team.settings.password_rotated_at = Some(now_rfc3339());
     sync::write_team_json(&repo_path, &team).map_err(|e| e.to_string())?;
 
     // Commit + push
@@ -730,6 +925,59 @@ pub async fn team_rotate_key(
     }
 
     crate::audit::log(&state.db, crate::audit::AuditEvent::TeamKeyRotated);
+
+    Ok(())
+}
+
+// team_check_permission, team_list_roles, team_my_capabilities,
+// team_role_create, team_role_update, team_role_delete → moved to commands/team_ext.rs
+
+// ── Conflict Resolution ──
+
+/// Resolves detected conflicts by applying user-selected strategies.
+#[tauri::command]
+pub async fn team_resolve_conflicts(
+    state: State<'_, AppState>,
+    resolutions: Vec<ConflictResolution>,
+) -> Result<(), String> {
+    check_capability(&state, &Capability::SyncPush, None).await?;
+
+    let repo_path = state.team_repo_path.read().await.clone()
+        .ok_or("not in a team")?;
+    let key = state.team_key.read().await.clone()
+        .ok_or("team key not loaded")?;
+    let team_name = state.db.with_conn(|conn| {
+        conn.query_row("SELECT value FROM settings WHERE key='team_name'", [], |r| r.get::<_, String>(0))
+    }).unwrap_or_default();
+    let team_id = format!("team:{team_name}");
+
+    state.db.with_conn(|conn| {
+        sync::apply_resolutions(conn, &repo_path, &key, &team_id, &resolutions)
+            .map_err(|e| rusqlite::Error::ToSqlConversionFailure(Box::new(e)))
+    }).map_err(|e| e.to_string())?;
+
+    // Re-export after resolving (KeepLocal needs to push)
+    let username = get_team_username(&state)?;
+    let _ = state.db.with_conn(|conn| {
+        sync::export_local_shared(conn, &repo_path, &key, &username)
+            .map_err(|e| rusqlite::Error::ToSqlConversionFailure(Box::new(e)))
+    });
+
+    // Commit + push
+    let auth = load_git_auth(&state)?;
+    let repo = TeamRepo::open(&repo_path).map_err(|e| e.to_string())?;
+    let status = repo.status().map_err(|e| e.to_string())?;
+    if status.has_changes {
+        repo.commit_and_push(
+            &format!("resolve {} conflict(s)", resolutions.len()),
+            &username,
+            &auth,
+        ).map_err(|e| e.to_string())?;
+    }
+
+    crate::audit::log(&state.db, crate::audit::AuditEvent::TeamConflictResolved {
+        count: resolutions.len(),
+    });
 
     Ok(())
 }

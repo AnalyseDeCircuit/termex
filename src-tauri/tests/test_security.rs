@@ -838,21 +838,21 @@ fn test_lockout_not_triggered_under_5() {
 // ══════════════════════════════════════════════════════════════
 
 #[test]
-fn test_migration_count_is_14() {
+fn test_migration_count_is_16() {
     let conn = fresh_db();
     run_migrations(&conn).unwrap();
     let count: i32 = conn
         .query_row("SELECT COUNT(*) FROM _migrations", [], |r| r.get(0))
         .unwrap();
-    assert_eq!(count, 14);
+    assert_eq!(count, 18);
 }
 
 #[test]
-fn test_max_migration_version_is_14() {
+fn test_max_migration_version_is_16() {
     let conn = fresh_db();
     run_migrations(&conn).unwrap();
     let version: i32 = conn
         .query_row("SELECT MAX(version) FROM _migrations", [], |r| r.get(0))
         .unwrap();
-    assert_eq!(version, 14);
+    assert_eq!(version, 18);
 }

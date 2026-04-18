@@ -40,3 +40,28 @@ export interface SsmInstance {
   agentVersion: string;
   pingStatus: string;
 }
+
+/** A saved reference to a cloud resource that can be shared with the team. */
+export interface CloudFavorite {
+  id: string;
+  name: string;
+  /** "kube" or "ssm" */
+  resourceType: string;
+  /** K8s context name or AWS profile name */
+  contextOrProfile: string;
+  namespace?: string;
+  region?: string;
+  shared: boolean;
+  teamId?: string;
+  sharedBy?: string;
+  createdAt: string;
+  updatedAt: string;
+}
+
+export interface CloudFavoriteInput {
+  name: string;
+  resourceType: string;
+  contextOrProfile: string;
+  namespace?: string;
+  region?: string;
+}

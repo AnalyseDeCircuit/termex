@@ -9,6 +9,21 @@ import type { GitAuthConfig } from "@/types/team";
 const { t } = useI18n();
 const teamStore = useTeamStore();
 
+import { useTeamPermission } from "@/composables/useTeamPermission";
+import AuditDashboard from "./AuditDashboard.vue";
+import InviteDialog from "@/components/team/InviteDialog.vue";
+import ConflictResolver from "@/components/team/ConflictResolver.vue";
+import RoleEditor from "@/components/team/RoleEditor.vue";
+import MemberManager from "@/components/team/MemberManager.vue";
+import type { ConflictItem } from "@/types/team";
+const { can } = useTeamPermission();
+
+const showAudit = ref(false);
+const inviteDialogVisible = ref(false);
+const roleEditorVisible = ref(false);
+const conflictDialogVisible = ref(false);
+const pendingConflicts = ref<ConflictItem[]>([]);
+
 // ── Form state ──
 const formMode = ref<"idle" | "create" | "join">("idle");
 const loading = ref(false);
@@ -94,10 +109,25 @@ async function handleSubmit() {
 async function handleSync() {
   try {
     const result = await teamStore.sync();
-    ElMessage.success(t("team.syncSuccess", { imported: result.imported, exported: result.exported }));
+    if (result.conflicts.length > 0) {
+      pendingConflicts.value = result.conflicts;
+      conflictDialogVisible.value = true;
+      ElMessage.warning(t("teamV2.conflictPending", { count: result.conflicts.length }));
+    } else {
+      ElMessage.success(t("team.syncSuccess", { imported: result.imported, exported: result.exported }));
+    }
   } catch (e) {
-    ElMessage.error(String(e));
+    const msg = String(e);
+    // "team key not loaded" is handled centrally by teamStore (shows passphrase dialog)
+    if (!msg.includes("team key not loaded")) {
+      ElMessage.error(msg);
+    }
   }
+}
+
+function onConflictsResolved() {
+  pendingConflicts.value = [];
+  teamStore.loadStatus();
 }
 
 async function handleLeave() {
@@ -108,14 +138,20 @@ async function handleLeave() {
   } catch { /* cancelled */ }
 }
 
-async function handleRoleChange(uname: string, role: string) {
-  await teamStore.setMemberRole(uname, role);
-}
-
-async function handleRemoveMember(uname: string) {
+async function handleRotateKey() {
   try {
-    await ElMessageBox.confirm(t("team.memberRemoveConfirm", { name: uname }), t("team.memberRemove"), { type: "warning" });
-    await teamStore.removeMember(uname);
+    const { value: oldPass } = await ElMessageBox.prompt(t("team.currentPassphrase"), {
+      inputType: "password",
+    });
+    const { value: newPass } = await ElMessageBox.prompt(t("team.newPassphrase"), {
+      inputType: "password",
+    });
+    if (newPass.length < 8) {
+      ElMessage.warning(t("team.passphraseTooShort"));
+      return;
+    }
+    await teamStore.rotateKey(oldPass, newPass);
+    ElMessage.success(t("team.rotateKeySuccess"));
   } catch { /* cancelled */ }
 }
 
@@ -128,9 +164,15 @@ function formatLastSync(ts: string | null): string {
   return d.toLocaleString();
 }
 
-onMounted(() => {
-  teamStore.loadStatus();
-  if (teamStore.isJoined) teamStore.loadMembers();
+onMounted(async () => {
+  await teamStore.loadStatus();
+  if (teamStore.isJoined) {
+    teamStore.loadMembers();
+    // Proactively prompt for passphrase if key was not restored from keychain
+    if (teamStore.needsPassphrase) {
+      teamStore.passphraseDialogVisible = true;
+    }
+  }
 });
 </script>
 
@@ -209,12 +251,26 @@ onMounted(() => {
             <label class="text-xs" style="color: var(--tm-text-secondary)">{{ t("team.passphrase") }}</label>
             <el-input v-model="passphrase" type="password" show-password size="small" />
             <p class="text-[10px]" style="color: var(--tm-text-muted)">{{ t("team.passphraseHint") }}</p>
+            <p
+              v-if="passphrase.length > 0 && passphrase.length < 8"
+              class="text-[10px]"
+              style="color: var(--el-color-danger)"
+            >
+              {{ t("team.passphraseTooShort") }}
+            </p>
           </div>
 
           <!-- Confirm passphrase (create only) -->
           <div v-if="formMode === 'create'" class="space-y-1">
             <label class="text-xs" style="color: var(--tm-text-secondary)">{{ t("team.passphraseConfirm") }}</label>
             <el-input v-model="passphraseConfirm" type="password" show-password size="small" />
+            <p
+              v-if="passphraseConfirm.length > 0 && passphrase !== passphraseConfirm"
+              class="text-[10px]"
+              style="color: var(--el-color-danger)"
+            >
+              {{ t("team.passphraseMismatch") }}
+            </p>
           </div>
 
           <!-- Git auth -->
@@ -292,42 +348,56 @@ onMounted(() => {
         </el-button>
       </div>
 
+      <!-- Pending conflicts hint -->
+      <button
+        v-if="pendingConflicts.length > 0"
+        class="text-xs px-2 py-1 rounded transition-colors"
+        style="background: var(--el-color-warning-light-9); color: var(--el-color-warning)"
+        @click="conflictDialogVisible = true"
+      >
+        {{ t("teamV2.conflictPending", { count: pendingConflicts.length }) }}
+      </button>
+
       <!-- Member list -->
-      <div class="space-y-1">
-        <label class="text-xs" style="color: var(--tm-text-secondary)">
-          {{ t("team.members") }}
-        </label>
-        <div
-          v-for="member in teamStore.members"
-          :key="member.username"
-          class="flex items-center gap-2 px-2 py-1 rounded text-xs"
-          style="background: var(--tm-bg-hover)"
+      <MemberManager />
+
+      <!-- Invite + Security actions -->
+      <div class="flex flex-wrap gap-2">
+        <el-button v-if="can('TeamInvite')" size="small" @click="inviteDialogVisible = true">
+          {{ t("teamV2.inviteMember") }}
+        </el-button>
+        <el-button v-if="can('TeamSettingsEdit')" size="small" @click="roleEditorVisible = true">
+          {{ t("teamV2.manageRoles") }}
+        </el-button>
+        <el-button v-if="can('TeamSettingsEdit')" size="small" @click="handleRotateKey">
+          {{ t("team.rotateKey") }}
+        </el-button>
+      </div>
+
+      <!-- Invite dialog -->
+      <InviteDialog v-model="inviteDialogVisible" />
+
+      <!-- Role editor -->
+      <RoleEditor v-model="roleEditorVisible" />
+
+      <!-- Conflict resolver -->
+      <ConflictResolver
+        v-model="conflictDialogVisible"
+        :conflicts="pendingConflicts"
+        @resolved="onConflictsResolved"
+      />
+
+      <!-- Audit section -->
+      <div v-if="can('AuditView')" class="space-y-2">
+        <button
+          class="text-xs flex items-center gap-1 transition-colors"
+          style="color: var(--tm-text-secondary)"
+          @click="showAudit = !showAudit"
         >
-          <span class="flex-1" style="color: var(--tm-text-primary)">
-            {{ member.username }}
-          </span>
-          <el-select
-            v-if="teamStore.isAdmin && member.role !== 'admin'"
-            :model-value="member.role"
-            size="small"
-            style="width: 100px"
-            @change="(val: string) => handleRoleChange(member.username, val)"
-          >
-            <el-option value="member" label="Member" />
-            <el-option value="readonly" label="Read-only" />
-          </el-select>
-          <span v-else class="text-[10px]" style="color: var(--tm-text-muted)">
-            {{ member.role }}
-          </span>
-          <button
-            v-if="teamStore.isAdmin && member.role !== 'admin'"
-            class="text-[10px] hover:text-red-400 transition-colors"
-            style="color: var(--tm-text-muted)"
-            @click="handleRemoveMember(member.username)"
-          >
-            &times;
-          </button>
-        </div>
+          <svg class="w-3 h-3 transition-transform" :class="{ 'rotate-90': showAudit }" viewBox="0 0 24 24" fill="currentColor"><path d="M10 6L16 12L10 18Z" /></svg>
+          {{ t("teamV2.auditDashboard") }}
+        </button>
+        <AuditDashboard v-if="showAudit" />
       </div>
     </template>
   </div>

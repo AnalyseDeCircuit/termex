@@ -26,4 +26,5 @@ pub mod snippet;
 pub mod ssh_config;
 pub mod monitor;
 pub mod team;
+pub mod team_ext;
 pub mod cloud;

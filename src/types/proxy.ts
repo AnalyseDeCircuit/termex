@@ -18,6 +18,12 @@ export interface Proxy {
   command?: string;
   createdAt: string;
   updatedAt: string;
+  /** Whether this proxy is shared with the team. */
+  shared?: boolean;
+  /** Team identifier (set when received from team sync). */
+  teamId?: string;
+  /** Username of the team member who shared this proxy. */
+  sharedBy?: string;
 }
 
 /** Input for creating or updating a proxy. */

@@ -102,6 +102,12 @@ export const useServerStore = defineStore("server", () => {
     if (server) server.lastConnected = new Date().toISOString();
   }
 
+  async function setShared(id: string, shared: boolean): Promise<void> {
+    await tauriInvoke("server_set_shared", { id, shared });
+    const server = servers.value.find((s) => s.id === id);
+    if (server) server.shared = shared;
+  }
+
   async function reorderServers(orders: ReorderItem[]): Promise<void> {
     await tauriInvoke("server_reorder", { orders });
     for (const item of orders) {
@@ -161,6 +167,7 @@ export const useServerStore = defineStore("server", () => {
     updateServer,
     deleteServer,
     touchServer,
+    setShared,
     reorderServers,
     createGroup,
     updateGroup,

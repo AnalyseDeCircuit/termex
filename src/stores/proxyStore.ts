@@ -1,11 +1,20 @@
 import { defineStore } from "pinia";
-import { ref } from "vue";
+import { ref, computed } from "vue";
 import { tauriInvoke } from "@/utils/tauri";
 import type { Proxy, ProxyInput } from "@/types/proxy";
 
 export const useProxyStore = defineStore("proxy", () => {
   const proxies = ref<Proxy[]>([]);
   const loading = ref(false);
+
+  /** A proxy belongs to the "team" view if it is shared (by me) or received from team. */
+  const isTeamProxy = (p: Proxy) => !!p.shared || !!p.teamId;
+
+  /** Proxies that are purely private (not shared, not received). */
+  const privateProxies = computed(() => proxies.value.filter((p) => !isTeamProxy(p)));
+
+  /** Proxies shared by me or received from team sync. */
+  const teamProxies = computed(() => proxies.value.filter((p) => isTeamProxy(p)));
 
   async function fetchAll() {
     loading.value = true;
@@ -38,5 +47,20 @@ export const useProxyStore = defineStore("proxy", () => {
     return tauriInvoke<string>("proxy_get_password", { id });
   }
 
-  return { proxies, loading, fetchAll, create, update, remove, getPassword };
+  async function setShared(id: string, shared: boolean): Promise<void> {
+    await tauriInvoke("proxy_set_shared", { id, shared });
+    const proxy = proxies.value.find((p) => p.id === id);
+    if (proxy) proxy.shared = shared;
+  }
+
+  async function makeLocal(id: string): Promise<void> {
+    await tauriInvoke("proxy_make_local", { id });
+    const proxy = proxies.value.find((p) => p.id === id);
+    if (proxy) { proxy.shared = false; proxy.teamId = undefined; proxy.sharedBy = undefined; }
+  }
+
+  return {
+    proxies, loading, privateProxies, teamProxies,
+    fetchAll, create, update, remove, getPassword, setShared, makeLocal,
+  };
 });

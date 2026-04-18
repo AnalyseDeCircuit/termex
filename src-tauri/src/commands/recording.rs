@@ -49,6 +49,9 @@ pub async fn recording_start(
         started_at: now.clone(),
         ended_at: None,
         created_at: now,
+        shared: false,
+        team_id: None,
+        shared_by: None,
     };
     state
         .db
@@ -328,6 +331,31 @@ fn redact_sensitive(text: &str) -> String {
         }
     }
     result
+}
+
+/// Sets whether a recording is shared with the team.
+#[tauri::command]
+pub fn recording_set_shared(
+    state: State<'_, AppState>,
+    recording_id: String,
+    shared: bool,
+) -> Result<(), String> {
+    state
+        .db
+        .with_conn(|conn| storage::recording::set_shared(conn, &recording_id, shared))
+        .map_err(|e| e.to_string())
+}
+
+/// Converts a team-received recording to a locally-owned private recording.
+#[tauri::command]
+pub fn recording_make_local(
+    state: State<'_, AppState>,
+    recording_id: String,
+) -> Result<(), String> {
+    state
+        .db
+        .with_conn(|conn| storage::recording::make_local(conn, &recording_id))
+        .map_err(|e| e.to_string())
 }
 
 /// Returns the recordings directory path.

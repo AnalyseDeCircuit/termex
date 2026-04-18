@@ -38,6 +38,19 @@ export const useSnippetStore = defineStore("snippet", () => {
     return list;
   });
 
+  /** A snippet belongs to the "team" view if shared by me or received from team. */
+  const isTeamSnippet = (s: Snippet) => !!s.shared || !!s.teamId;
+
+  /** Private snippets (not shared, not received). */
+  const privateSnippets = computed(() =>
+    filteredSnippets.value.filter((s) => !isTeamSnippet(s)),
+  );
+
+  /** Team snippets (shared by me or received from team). */
+  const teamSnippets = computed(() =>
+    filteredSnippets.value.filter((s) => isTeamSnippet(s)),
+  );
+
   // ── Actions ────────────────────────────────────────────────
 
   async function loadSnippets() {
@@ -112,6 +125,18 @@ export const useSnippetStore = defineStore("snippet", () => {
     currentFolderId.value = folderId;
   }
 
+  async function setShared(id: string, shared: boolean): Promise<void> {
+    await tauriInvoke("snippet_set_shared", { id, shared });
+    const snippet = snippets.value.find((s) => s.id === id);
+    if (snippet) snippet.shared = shared;
+  }
+
+  async function makeLocal(id: string): Promise<void> {
+    await tauriInvoke("snippet_make_local", { id });
+    const snippet = snippets.value.find((s) => s.id === id);
+    if (snippet) { snippet.shared = false; snippet.teamId = undefined; snippet.sharedBy = undefined; }
+  }
+
   return {
     // state
     snippets,
@@ -121,6 +146,8 @@ export const useSnippetStore = defineStore("snippet", () => {
     searchQuery,
     // getters
     filteredSnippets,
+    privateSnippets,
+    teamSnippets,
     // actions
     loadSnippets,
     loadFolders,
@@ -133,5 +160,7 @@ export const useSnippetStore = defineStore("snippet", () => {
     updateFolder,
     deleteFolder,
     setFolder,
+    setShared,
+    makeLocal,
   };
 });

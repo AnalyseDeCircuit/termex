@@ -2,6 +2,7 @@
 import { computed, ref, onMounted } from "vue";
 import { useSessionStore } from "@/stores/sessionStore";
 import { usePortForwardStore } from "@/stores/portForwardStore";
+import { useTeamStore } from "@/stores/teamStore";
 import { checkStatus as updateCheckStatus } from "@/utils/update";
 import { tmuxStatusMap } from "@/composables/useTmux";
 import { gitSyncStatusMap } from "@/composables/useGitSync";
@@ -13,6 +14,7 @@ const emit = defineEmits<{
 
 const sessionStore = useSessionStore();
 const portForwardStore = usePortForwardStore();
+const teamStore = useTeamStore();
 const portable = ref(false);
 
 onMounted(async () => {
@@ -97,6 +99,21 @@ const statusColor = computed(() => {
       style="background: rgba(245, 158, 11, 0.15)"
     >USB</span>
     <span :class="statusColor">{{ statusText }}</span>
+
+    <!-- Team sync indicator -->
+    <span
+      v-if="teamStore.syncing"
+      class="ml-2 text-[10px] px-1.5 py-0.5 rounded font-mono text-blue-400 animate-pulse"
+      style="background: rgba(96, 165, 250, 0.15)"
+    >&#x21BB; {{ $t("team.syncing") }}</span>
+    <span
+      v-else-if="teamStore.syncStatusMessage"
+      class="ml-2 text-[10px] px-1.5 py-0.5 rounded font-mono"
+      :class="teamStore.syncStatusMessage.startsWith('\u2717') ? 'text-red-400' : 'text-green-400'"
+      :style="teamStore.syncStatusMessage.startsWith('\u2717')
+        ? 'background: rgba(248, 113, 113, 0.15)'
+        : 'background: rgba(34, 197, 94, 0.15)'"
+    >{{ teamStore.syncStatusMessage }}</span>
 
     <!-- tmux indicator -->
     <span
