@@ -1,0 +1,37 @@
+[package]
+name        = "termex-flutter-bridge"
+version = "0.53.0"
+edition     = "2021"
+license     = "MIT"
+description = "flutter_rust_bridge v2 binding layer for Termex"
+
+[lib]
+name       = "termex_flutter_bridge"
+crate-type = ["cdylib", "staticlib", "lib"]
+
+[dependencies]
+termex-core.workspace = true
+anyhow.workspace      = true
+tokio.workspace       = true
+serde.workspace       = true
+serde_json.workspace  = true
+uuid.workspace        = true
+async-trait.workspace = true
+flutter_rust_bridge   = "=2.12.0"
+dashmap               = "5"
+once_cell             = "1"
+chrono                = { version = "0.4", features = ["serde"] }
+rusqlite              = { version = "0.32", features = ["bundled-sqlcipher"] }
+dirs                  = "6"
+open                  = "5"
+base64                = "0.22"
+ring                  = "0.17"
+regex                 = "1"
+
+[features]
+default  = []
+sentinel = ["termex-core/sentinel"]
+
+[dev-dependencies]
+tempfile.workspace = true
+tokio = { version = "1", features = ["rt", "macros"] }

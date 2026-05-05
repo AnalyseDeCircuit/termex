@@ -1,32 +1,9 @@
-pub mod session;
+//! Tauri integration shim for the SFTP module now hosted in `termex-core`.
+//!
+//! This file exists only to provide the legacy `crate::sftp::...` import
+//! paths used by `src-tauri/src/commands/sftp.rs` and `state.rs`. All
+//! business logic lives in `termex_core::sftp`.
 
-/// SFTP error types.
-#[derive(Debug, thiserror::Error)]
-pub enum SftpError {
-    #[error("SFTP session not found: {0}")]
-    SessionNotFound(String),
+pub use termex_core::sftp::{SftpError, event_emitter, session};
 
-    #[error("SSH session not found: {0}")]
-    SshSessionNotFound(String),
-
-    #[error("SFTP error: {0}")]
-    Sftp(String),
-
-    #[error("channel error: {0}")]
-    ChannelError(String),
-
-    #[error("IO error: {0}")]
-    Io(#[from] std::io::Error),
-}
-
-impl From<russh_sftp::client::error::Error> for SftpError {
-    fn from(e: russh_sftp::client::error::Error) -> Self {
-        Self::Sftp(e.to_string())
-    }
-}
-
-impl From<russh::Error> for SftpError {
-    fn from(e: russh::Error) -> Self {
-        Self::ChannelError(e.to_string())
-    }
-}
+pub mod tauri_emitter;

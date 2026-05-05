@@ -1,0 +1,109 @@
+{
+  "@@locale": "zh",
+  "@@last_modified": "2026-04-19",
+
+  "commonConfirm": "确认",
+  "@commonConfirm": { "description": "Confirm button label" },
+
+  "commonCancel": "取消",
+  "@commonCancel": { "description": "Cancel button label" },
+
+  "commonClose": "关闭",
+  "@commonClose": { "description": "Close button label" },
+
+  "commonSearch": "搜索...",
+  "@commonSearch": { "description": "Search input placeholder" },
+
+  "commonEmpty": "暂无数据",
+  "@commonEmpty": { "description": "Empty list placeholder" },
+
+  "commonLoading": "加载中...",
+  "@commonLoading": { "description": "Loading state text" },
+
+  "commonError": "出错了",
+  "@commonError": { "description": "Generic error message" },
+
+  "commonSave": "保存",
+  "@commonSave": { "description": "Save button label" },
+
+  "commonDelete": "删除",
+  "@commonDelete": { "description": "Delete button label" },
+
+  "commonEdit": "编辑",
+  "@commonEdit": { "description": "Edit button label" },
+
+  "commonRetry": "重试",
+  "@commonRetry": { "description": "Retry button label" },
+
+  "validatorRequired": "此项为必填",
+  "@validatorRequired": { "description": "Required field validation error" },
+
+  "validatorEmail": "邮箱格式不正确",
+  "@validatorEmail": { "description": "Email format validation error" },
+
+  "validatorMinLength": "至少 {n} 个字符",
+  "@validatorMinLength": {
+    "description": "Minimum length validation error",
+    "placeholders": { "n": { "type": "int" } }
+  },
+
+  "validatorMaxLength": "最多 {n} 个字符",
+  "@validatorMaxLength": {
+    "description": "Maximum length validation error",
+    "placeholders": { "n": { "type": "int" } }
+  },
+
+  "themeSaveError": "主题保存失败",
+  "@themeSaveError": { "description": "Theme config write failure toast" },
+
+  "selectNoOptions": "暂无选项",
+  "@selectNoOptions": { "description": "Select dropdown empty state" },
+
+  "dialogDefaultConfirm": "确认",
+  "@dialogDefaultConfirm": { "description": "Default dialog confirm button" },
+
+  "dialogDefaultCancel": "取消",
+  "@dialogDefaultCancel": { "description": "Default dialog cancel button" },
+
+  "shortcutsHintTitle": "当前可用快捷键",
+  "@shortcutsHintTitle": { "description": "Title of the shortcut hint overlay" },
+
+  "crossTabSearchPlaceholder": "在所有 Tab 中搜索...",
+  "@crossTabSearchPlaceholder": { "description": "Placeholder for cross-tab search input" },
+
+  "crossTabSearchNoMatches": "无命中",
+  "@crossTabSearchNoMatches": { "description": "Cross-tab search empty result" },
+
+  "crossTabSearchMatchesFound": "{count} 处命中",
+  "@crossTabSearchMatchesFound": {
+    "description": "Cross-tab search result count",
+    "placeholders": { "count": { "type": "int" } }
+  },
+
+  "idleLockTitle": "已锁定",
+  "@idleLockTitle": { "description": "Idle lock screen title" },
+
+  "idleLockHint": "长时间未活动，请输入主密码继续",
+  "@idleLockHint": { "description": "Idle lock screen hint message" },
+
+  "pluginsTitle": "插件",
+  "@pluginsTitle": { "description": "Plugins panel title" },
+
+  "pluginsInstall": "从 .zip 安装",
+  "@pluginsInstall": { "description": "Install plugin from zip button label" },
+
+  "pluginsDeveloperMode": "开发者模式",
+  "@pluginsDeveloperMode": { "description": "Developer mode toggle label" },
+
+  "pluginsPermissionTitle": "插件权限请求",
+  "@pluginsPermissionTitle": { "description": "Plugin permission dialog title" },
+
+  "pluginsPermissionDeny": "拒绝",
+  "@pluginsPermissionDeny": { "description": "Deny permission button" },
+
+  "pluginsPermissionGrantOnce": "仅本次",
+  "@pluginsPermissionGrantOnce": { "description": "Grant permission for this session only" },
+
+  "pluginsPermissionGrant": "授予",
+  "@pluginsPermissionGrant": { "description": "Grant permission permanently button" }
+}

@@ -17,7 +17,8 @@ fn test_migrations_idempotent() {
     let version: i32 = conn
         .query_row("SELECT MAX(version) FROM _migrations", [], |row| row.get(0))
         .unwrap();
-    assert_eq!(version, 18);
+    // Updated for v0.52 gap coverage: V24 adds team_members + team_invites tables.
+    assert_eq!(version, 24);
 }
 
 #[test]
@@ -27,7 +28,40 @@ fn test_all_migrations_applied() {
     let count: i32 = conn
         .query_row("SELECT COUNT(*) FROM _migrations", [], |row| row.get(0))
         .unwrap();
-    assert_eq!(count, 18);
+    assert_eq!(count, 24);
+}
+
+#[test]
+fn test_v23_tables_and_columns_exist() {
+    let conn = fresh_db();
+    run_migrations(&conn).unwrap();
+
+    // git_sync_repos table
+    let tables: Vec<String> = {
+        let mut stmt = conn
+            .prepare("SELECT name FROM sqlite_master WHERE type='table'")
+            .unwrap();
+        stmt.query_map([], |row| row.get(0))
+            .unwrap()
+            .filter_map(|r| r.ok())
+            .collect()
+    };
+    assert!(tables.contains(&"git_sync_repos".to_string()), "V23 git_sync_repos missing");
+
+    // recordings.parent_id + recordings.is_encrypted
+    let has_col = |table: &str, col: &str| -> bool {
+        conn.prepare(&format!(
+            "SELECT COUNT(*) FROM pragma_table_info('{table}') WHERE name='{col}'"
+        ))
+        .and_then(|mut s| s.query_row([], |r| r.get::<_, i32>(0)))
+        .map(|c| c > 0)
+        .unwrap_or(false)
+    };
+    assert!(has_col("recordings", "parent_id"), "recordings.parent_id missing");
+    assert!(has_col("recordings", "is_encrypted"), "recordings.is_encrypted missing");
+
+    // port_forwards.bind_ip
+    assert!(has_col("port_forwards", "bind_ip"), "port_forwards.bind_ip missing");
 }
 
 #[test]

@@ -1,0 +1,51 @@
+{
+  "@@locale": "en",
+  "@@last_modified": "2026-04-19",
+
+  "commonConfirm": "Confirm",
+  "commonCancel": "Cancel",
+  "commonClose": "Close",
+  "commonSearch": "Search...",
+  "commonEmpty": "No data",
+  "commonLoading": "Loading...",
+  "commonError": "Something went wrong",
+  "commonSave": "Save",
+  "commonDelete": "Delete",
+  "commonEdit": "Edit",
+  "commonRetry": "Retry",
+
+  "validatorRequired": "This field is required",
+  "validatorEmail": "Invalid email format",
+  "validatorMinLength": "At least {n} characters",
+  "@validatorMinLength": {
+    "placeholders": { "n": { "type": "int" } }
+  },
+  "validatorMaxLength": "At most {n} characters",
+  "@validatorMaxLength": {
+    "placeholders": { "n": { "type": "int" } }
+  },
+
+  "themeSaveError": "Failed to save theme",
+  "selectNoOptions": "No options",
+  "dialogDefaultConfirm": "Confirm",
+  "dialogDefaultCancel": "Cancel",
+
+  "shortcutsHintTitle": "Available Shortcuts",
+  "crossTabSearchPlaceholder": "Search across all tabs...",
+  "crossTabSearchNoMatches": "No matches",
+  "crossTabSearchMatchesFound": "{count} match(es) found",
+  "@crossTabSearchMatchesFound": {
+    "placeholders": { "count": { "type": "int" } }
+  },
+
+  "idleLockTitle": "Locked",
+  "idleLockHint": "You have been idle. Enter your master password to continue.",
+
+  "pluginsTitle": "Plugins",
+  "pluginsInstall": "Install from .zip",
+  "pluginsDeveloperMode": "Developer Mode",
+  "pluginsPermissionTitle": "Plugin Permission Request",
+  "pluginsPermissionDeny": "Deny",
+  "pluginsPermissionGrantOnce": "Grant Once",
+  "pluginsPermissionGrant": "Grant"
+}

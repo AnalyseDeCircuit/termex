@@ -1,0 +1,50 @@
+name: termex
+description: AI-native SSH client — Always-on cloud AI workspace powered by SSH
+version: 0.53.0+1
+
+environment:
+  sdk: ">=3.3.0 <4.0.0"
+  flutter: ">=3.22.0"
+
+dependencies:
+  flutter:
+    sdk: flutter
+  flutter_riverpod: ^2.5.1
+  riverpod_annotation: ^2.3.5
+  termex_bridge:
+    path: ../crates/termex-flutter-bridge
+  flutter_svg: ^2.0.0
+  timeago: ^3.6.0
+  uuid: ^4.4.0
+  desktop_drop: ^0.4.0
+  file_picker: ^8.0.0
+  highlight: ^0.7.0
+  flutter_highlight: ^0.7.0
+  url_launcher: ^6.3.0
+  tray_manager: ^0.2.3
+  freezed_annotation: ^2.4.0
+  meta: ^1.12.0
+  flutter_rust_bridge: 2.12.0
+
+dev_dependencies:
+  flutter_test:
+    sdk: flutter
+  flutter_lints: ^4.0.0
+  riverpod_generator: ^2.4.0
+  build_runner: ^2.4.0
+  freezed: ^2.5.0
+  json_serializable: ^6.7.0
+  integration_test:
+    sdk: flutter
+  golden_toolkit: ^0.15.0
+
+flutter:
+  uses-material-design: false
+  generate: true
+  fonts:
+    - family: JetBrainsMono
+      fonts:
+        # Font files must be placed at app/fonts/ before building
+        - asset: fonts/JetBrainsMono-Regular.ttf
+        - asset: fonts/JetBrainsMono-Bold.ttf
+          weight: 700

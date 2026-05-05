@@ -1,0 +1,20 @@
+[workspace]
+resolver = "2"
+members = [
+    "src-tauri",
+    "crates/termex-core",
+    "crates/termex-flutter-bridge",
+]
+
+[workspace.dependencies]
+serde        = { version = "1", features = ["derive"] }
+serde_json   = "1"
+tokio        = { version = "1", features = ["full"] }
+thiserror    = "2"
+uuid         = { version = "1", features = ["v4"] }
+anyhow       = "1"
+log          = "0.4"
+async-trait  = "0.1"
+zeroize      = { version = "1", features = ["zeroize_derive"] }
+tempfile     = "3"
+termex-core  = { path = "crates/termex-core" }

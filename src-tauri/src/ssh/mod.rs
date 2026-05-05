@@ -1,49 +1,18 @@
-pub mod auth;
+// Re-export pure SSH core from termex-core
+pub use termex_core::ssh::auth;
+pub use termex_core::ssh::channel;
+pub use termex_core::ssh::config_parser;
+pub use termex_core::ssh::event_emitter;
+pub use termex_core::ssh::host_key;
+pub use termex_core::ssh::proxy;
+pub use termex_core::ssh::proxy_command;
+pub use termex_core::ssh::reverse_forward;
+pub use termex_core::ssh::session;
+pub use termex_core::ssh::socks5;
+pub use termex_core::ssh::SshError;
+
+// Tauri-specific modules
 pub mod chain_connect;
-pub mod channel;
-pub mod config_parser;
 pub mod exit_proxy;
 pub mod forward;
-pub mod host_key;
-pub mod proxy;
-pub mod proxy_command;
-pub mod reverse_forward;
-pub mod session;
-pub mod socks5;
-
-/// SSH error types.
-#[derive(Debug, thiserror::Error)]
-pub enum SshError {
-    #[error("connection failed: {0}")]
-    ConnectionFailed(String),
-
-    #[error("authentication failed: {0}")]
-    AuthFailed(String),
-
-    #[error("channel error: {0}")]
-    ChannelError(String),
-
-    #[error("session not found: {0}")]
-    SessionNotFound(String),
-
-    #[error("session already disconnected")]
-    AlreadyDisconnected,
-
-    #[error("server not found: {0}")]
-    ServerNotFound(String),
-
-    #[error("russh error: {0}")]
-    Russh(#[from] russh::Error),
-
-    #[error("key error: {0}")]
-    KeyError(#[from] russh_keys::Error),
-
-    #[error("IO error: {0}")]
-    Io(#[from] std::io::Error),
-
-    #[error("crypto error: {0}")]
-    Crypto(String),
-
-    #[error("proxy connection failed: {0}")]
-    ProxyFailed(String),
-}
+pub mod tauri_emitter;

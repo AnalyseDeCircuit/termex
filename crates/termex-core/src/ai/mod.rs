@@ -1,0 +1,18 @@
+pub mod context;
+pub mod danger;
+pub mod orchestrator;
+pub mod provider;
+pub mod provider_client;
+
+/// AI module error types.
+#[derive(Debug, thiserror::Error)]
+pub enum AiModuleError {
+    #[error("provider error: {0}")]
+    Provider(#[from] provider::AiError),
+
+    #[error("no default provider configured")]
+    NoDefaultProvider,
+
+    #[error("database error: {0}")]
+    Database(String),
+}

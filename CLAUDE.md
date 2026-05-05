@@ -4,37 +4,69 @@
 
 ## Project Overview
 
-Termex is an open-source, AI-native SSH client built with Tauri v2 (Rust backend) + Vue 3 (TypeScript frontend). Built on SSH as the foundation, it creates an always-on cloud AI workspace for the AI era. It targets developers and ops engineers who need a beautiful, fast, intelligent, and free SSH client.
+Termex is an open-source, AI-native SSH client. Built on SSH as the foundation, it creates an always-on cloud AI workspace for the AI era. It targets developers and ops engineers who need a beautiful, fast, intelligent, and free SSH client.
+
+**Repository state (as of v0.34.0 + v0.51.0 remediation)**: this repo hosts **two co-existing implementations** during a long-running migration — the production Tauri/Vue app and an in-progress Flutter rewrite. See [docs/iterations/v0.51.0-remediation.md](docs/iterations/v0.51.0-remediation.md) for status.
 
 ## Tech Stack
 
+### A. Tauri/Vue stack (production, current v0.34.x)
+
 - **Runtime**: Tauri v2
-- **Backend**: Rust (russh, ring, SQLCipher, tokio)
+- **Backend**: Rust (russh, ring, SQLCipher, tokio) — in `src-tauri/`
 - **Frontend**: Vue 3 + Vite + TypeScript
 - **UI**: Element Plus + Tailwind CSS
 - **Terminal**: xterm.js (WebGL renderer)
 - **State**: Pinia
 - **Database**: SQLite + SQLCipher (encrypted)
 
+### B. Flutter stack (migration target, WIP — target v0.49+)
+
+- **Runtime**: Flutter 3.24+ (Dart)
+- **UI**: Self-drawn widgets (no Material / Cupertino) under `app/lib/widgets/`
+- **Terminal**: Custom VT100/xterm emulator under `app/lib/terminal/`
+- **Bridge**: flutter_rust_bridge v2 (`crates/termex-flutter-bridge/`)
+- **Backend**: Rust core extracted to `crates/termex-core/` — same russh/ring/SQLCipher
+- **State**: Riverpod
+- **Database**: unchanged (same SQLCipher file; cross-stack compatible)
+
 ## Architecture
 
 ```
-src-tauri/src/           # Rust backend
+# Tauri/Vue stack (production)
+src-tauri/src/           # Rust backend (Tauri commands + integrations)
 ├── commands/            # Tauri IPC command handlers
-├── ssh/                 # SSH protocol (russh)
-├── sftp/                # SFTP operations
-├── crypto/              # AES-256-GCM encryption, Argon2id KDF
-├── storage/             # SQLCipher database
-├── ai/                  # AI provider abstraction (Claude/OpenAI/Ollama)
+├── ssh/  sftp/  crypto/  storage/  ai/  team/  ...
 └── state.rs             # Global AppState
 
 src/                     # Vue 3 frontend
-├── components/          # Vue components (sidebar/, terminal/, ai/, sftp/, settings/)
-├── composables/         # Composition API hooks (useSSH, useTerminal, useAi, etc.)
-├── stores/              # Pinia stores (serverStore, sessionStore, settingsStore, aiStore)
-├── types/               # TypeScript type definitions
-└── utils/               # Utility functions
+├── components/  composables/  stores/  types/  utils/
+
+# Flutter stack (migration WIP)
+crates/
+├── termex-core/         # Shared Rust business logic (extracted from src-tauri)
+└── termex-flutter-bridge/ # flutter_rust_bridge v2 bindings
+    ├── src/api/         # 29 API modules (server, ssh, sftp, ai, team, ...)
+    └── lib/src/         # Hand-written Dart stubs (replaced by FRB codegen)
+
+app/                     # Flutter app
+├── lib/
+│   ├── features/        # Feature modules (server_list, ai, sftp, team, cloud, ...)
+│   ├── terminal/        # Custom terminal emulator
+│   ├── widgets/         # Design system (self-drawn)
+│   ├── design/          # Theme tokens
+│   ├── system/          # sentinel_flag.dart, auto_updater, crash_reporter
+│   ├── services/        # Service layer
+│   └── main.dart
+├── test/  integration_test/
+├── pubspec.yaml
+└── distribute_options.yaml  # flutter_distributor config (used at v0.49+ release)
+
+flutter_rust_bridge.yaml # FRB codegen config (root)
+scripts/frb-codegen.sh   # Regenerate Dart bindings from Rust API
 ```
+
+**Key rule**: any change to `crates/termex-core/src/api/*.rs` requires running `./scripts/frb-codegen.sh` to keep Dart bindings in sync. CI enforces idempotency.
 
 ## Code Conventions
 
@@ -153,23 +185,50 @@ src/                     # Vue 3 frontend
 
 ## Common Commands
 
+### Tauri/Vue stack (production)
+
 ```bash
 pnpm tauri dev                    # Full-stack dev (frontend + Rust, hot reload)
 pnpm dev                          # Frontend only (Vite)
 pnpm run build                    # Type-check + build frontend
 pnpm tauri build                  # Build production binary
 pnpm tauri build --debug          # Build debug binary (faster compile)
-cd src-tauri && cargo test        # Run Rust tests (45 tests)
+cd src-tauri && cargo test        # Run Rust tests
 cd src-tauri && cargo clippy      # Lint Rust code
 RUST_LOG=debug pnpm tauri dev     # Dev with verbose Rust logging
 ```
 
+### Flutter stack (migration target)
+
+```bash
+# Workspace tests (termex-core + termex-flutter-bridge + termex-tauri)
+cargo test --workspace                      # run all 400+ Rust tests
+
+# FRB codegen (regenerate Dart bindings after any change to crates/termex-flutter-bridge/src/api/)
+./scripts/frb-codegen.sh                    # local regenerate
+./scripts/frb-codegen.sh --check            # CI: verify bindings up-to-date
+
+# Flutter (requires flutter SDK 3.24+ on PATH)
+cd app && flutter pub get                   # resolve dependencies
+cd app && flutter test                      # unit + widget tests
+cd app && flutter test integration_test/    # integration tests
+cd app && flutter run -d macos              # dev run on macOS
+cd app && flutter build macos --release     # production macOS build
+
+# Sentinel / anti-RE builds
+cargo check -p termex-core --features sentinel   # verify sentinel compiles
+flutter build macos --release --dart-define=SENTINEL=true   # with sentinel checks
+```
+
 ### Version Bump
 
-`pnpm version:bump <patch|minor|major|x.y.z>` syncs version across three files:
+`pnpm version:bump <patch|minor|major|x.y.z>` syncs version across files. During dual-stack period (v0.34–v0.49) it must sync:
 - `package.json`
 - `src-tauri/Cargo.toml`
 - `src-tauri/tauri.conf.json`
+- `crates/termex-core/Cargo.toml`
+- `crates/termex-flutter-bridge/Cargo.toml`
+- `app/pubspec.yaml`
 
 ```bash
 pnpm version:bump patch           # 0.1.0 → 0.1.1

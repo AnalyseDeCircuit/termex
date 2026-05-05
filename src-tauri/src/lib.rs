@@ -1,19 +1,22 @@
-pub mod ai;
-pub mod audit;
-pub mod cloud;
+// Modules moved to termex-core; re-exported here so existing commands/ imports are unchanged.
+pub use termex_core::ai;
+pub use termex_core::audit;
+pub use termex_core::cloud;
+pub use termex_core::crypto;
+pub use termex_core::keychain;
+pub mod monitor;
+pub use termex_core::paths;
+pub use termex_core::plugin;
+pub use termex_core::recording;
+pub use termex_core::storage;
+pub use termex_core::team;
+
+// Tauri-coupled modules remain in this crate.
 pub mod commands;
-pub mod crypto;
-pub mod keychain;
 pub mod local_ai;
 pub mod local_pty;
-pub mod monitor;
-pub mod paths;
-pub mod plugin;
-pub mod recording;
-pub mod team;
 pub mod sftp;
 pub mod ssh;
-pub mod storage;
 mod state;
 
 use tauri::menu::{CheckMenuItem, CheckMenuItemBuilder, Menu, MenuBuilder, MenuItemBuilder, SubmenuBuilder};

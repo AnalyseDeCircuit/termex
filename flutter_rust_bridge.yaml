@@ -1,0 +1,17 @@
+# flutter_rust_bridge codegen configuration (v2 syntax)
+#
+# Usage:
+#   cargo install flutter_rust_bridge_codegen --version '^2.0'
+#   flutter_rust_bridge_codegen generate
+#
+# The generated Dart file is checked into git; CI verifies idempotency.
+
+rust_input: crate::api
+rust_root: crates/termex-flutter-bridge
+dart_output: app/lib/src/frb_generated
+c_output: crates/termex-flutter-bridge/include/frb_api.h
+dart_entrypoint_class_name: TermexBridge
+
+# Watermark alignment: Dart and Rust constants must match.
+# See crates/termex-core/src/crypto/aes.rs AEAD_BUFFER_ALIGN (0x5445_524D)
+# and  app/lib/system/sentinel_flag.dart  kBuildSignature (0x5445524D)

@@ -1,6 +1,7 @@
 pub mod collector;
-pub mod parser;
-pub mod types;
+
+pub use termex_core::monitor::parser;
+pub use termex_core::monitor::types;
 
 pub use collector::{CollectorCommand, CollectorState, MetricsHistory};
 pub use types::*;

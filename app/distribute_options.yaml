@@ -1,0 +1,49 @@
+output: ./release/
+releases:
+  - name: stable
+    jobs:
+      - name: macos-dmg-arm64
+        package:
+          platform: macos
+          target: dmg
+          build_args:
+            target-platform: darwin-arm64
+      - name: macos-dmg-x64
+        package:
+          platform: macos
+          target: dmg
+          build_args:
+            target-platform: darwin-x64
+      - name: windows-msix
+        package:
+          platform: windows
+          target: msix
+      - name: linux-appimage
+        package:
+          platform: linux
+          target: appimage
+      - name: linux-deb
+        package:
+          platform: linux
+          target: deb
+      - name: linux-rpm
+        package:
+          platform: linux
+          target: rpm
+
+  - name: beta
+    jobs:
+      - name: macos-dmg-arm64
+        package:
+          platform: macos
+          target: dmg
+          build_args:
+            target-platform: darwin-arm64
+      - name: windows-msix
+        package:
+          platform: windows
+          target: msix
+      - name: linux-appimage
+        package:
+          platform: linux
+          target: appimage

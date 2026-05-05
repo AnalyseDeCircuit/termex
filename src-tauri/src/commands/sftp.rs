@@ -2,7 +2,9 @@ use std::sync::Arc;
 
 use tauri::{AppHandle, State};
 
-use crate::sftp::session::{FileEntry, TransferProgress, transfer_between};
+use crate::sftp::event_emitter::BoxedSftpEmitter;
+use crate::sftp::session::{FileEntry, SftpHandle, TransferProgress, transfer_between};
+use crate::sftp::tauri_emitter::TauriSftpEmitter;
 use crate::sftp::SftpError;
 use crate::state::AppState;
 
@@ -18,7 +20,7 @@ pub async fn sftp_open(
         let ssh = sessions
             .get(&session_id)
             .ok_or_else(|| SftpError::SshSessionNotFound(session_id.clone()).to_string())?;
-        ssh.open_sftp()
+        SftpHandle::open(ssh.handle())
             .await
             .map_err(|e| e.to_string())?
     };
@@ -168,8 +170,11 @@ pub async fn sftp_download(
     let local_path_clone = local_path.clone();
 
     // Return the transfer_id immediately, spawn the actual download in the background
+    let emitter: BoxedSftpEmitter = Arc::new(TauriSftpEmitter(app.clone()));
     tokio::spawn(async move {
-        let _ = sftp_clone.download(&remote_path_clone, &local_path_clone, &transfer_id_clone, &app).await;
+        let _ = sftp_clone
+            .download(&remote_path_clone, &local_path_clone, &transfer_id_clone, &emitter)
+            .await;
     });
 
     Ok(transfer_id)
@@ -197,8 +202,11 @@ pub async fn sftp_upload(
     let remote_path_clone = remote_path.clone();
 
     // Return the transfer_id immediately, spawn the actual upload in the background
+    let emitter: BoxedSftpEmitter = Arc::new(TauriSftpEmitter(app.clone()));
     tokio::spawn(async move {
-        let _ = sftp_clone.upload(&local_path_clone, &remote_path_clone, &transfer_id_clone, &app).await;
+        let _ = sftp_clone
+            .upload(&local_path_clone, &remote_path_clone, &transfer_id_clone, &emitter)
+            .await;
     });
 
     Ok(transfer_id)
@@ -245,21 +253,19 @@ pub async fn sftp_transfer(
     let src_path_clone = src_path.clone();
     let dst_path_clone = dst_path.clone();
 
+    let emitter: BoxedSftpEmitter = Arc::new(TauriSftpEmitter(app.clone()));
     tokio::spawn(async move {
-        if let Err(e) = transfer_between(&src, &src_path_clone, &dst, &dst_path_clone, &transfer_id_clone, &app).await {
-            use tauri::Emitter;
-            let event = format!("sftp://progress/{}", transfer_id_clone);
-            let _ = app.emit(
-                &event,
-                TransferProgress {
-                    transfer_id: transfer_id_clone,
-                    remote_path: src_path_clone,
-                    transferred: 0,
-                    total: 0,
-                    done: true,
-                    error: Some(e.to_string()),
-                },
-            );
+        if let Err(e) = transfer_between(
+            &src,
+            &src_path_clone,
+            &dst,
+            &dst_path_clone,
+            &transfer_id_clone,
+            &emitter,
+        )
+        .await
+        {
+            emitter.emit_error(&transfer_id_clone, &e.to_string());
         }
     });
 

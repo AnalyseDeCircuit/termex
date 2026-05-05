@@ -259,7 +259,12 @@ pub async fn ssh_open_shell(
     let exit_proxy_url = session.exit_proxy_url.clone();
 
     session
-        .open_shell(app.clone(), session_id.clone(), cols, rows)
+        .open_shell(
+            std::sync::Arc::new(crate::ssh::tauri_emitter::TauriSshEmitter(app.clone())),
+            session_id.clone(),
+            cols,
+            rows,
+        )
         .await
         .map_err(|e| e.to_string())?;
 

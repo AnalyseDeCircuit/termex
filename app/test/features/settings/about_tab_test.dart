@@ -1,0 +1,74 @@
+import 'package:flutter/material.dart';
+import 'package:flutter_riverpod/flutter_riverpod.dart';
+import 'package:flutter_test/flutter_test.dart';
+
+import 'package:termex/features/settings/tabs/about_tab.dart';
+import 'package:termex/system/update_service.dart';
+import 'package:termex/system/state/update_provider.dart';
+
+const _xmlWithUpdate = '''
+  <rss><channel><item>
+    <sparkle:version>0.49.0</sparkle:version>
+    <enclosure url="https://termex.app/dl/t-0.49.0.dmg" length="1"/>
+  </item></channel></rss>''';
+
+UpdateService _svc(String xml) => UpdateService(
+      currentVersion: '0.48.0',
+      channel: 'stable',
+      baseUrl: 'https://termex.app/updates',
+      fetchAppcast: (_) async => xml,
+    );
+
+Widget _wrap(UpdateService svc) => ProviderScope(
+      overrides: [updateServiceProvider.overrideWithValue(svc)],
+      child: const MaterialApp(home: Scaffold(body: AboutTab())),
+    );
+
+void main() {
+  testWidgets('renders current version header', (tester) async {
+    final svc = _svc(_xmlWithUpdate);
+    addTearDown(svc.dispose);
+    await tester.pumpWidget(_wrap(svc));
+    await tester.pump();
+
+    expect(find.text('Termex'), findsOneWidget);
+    expect(find.textContaining('0.49.0'), findsWidgets);
+  });
+
+  testWidgets('check button triggers fetch and shows new version',
+      (tester) async {
+    final svc = _svc(_xmlWithUpdate);
+    addTearDown(svc.dispose);
+
+    await tester.pumpWidget(_wrap(svc));
+    await tester.pump();
+
+    // Default state = idle → "已是最新版本"
+    expect(find.text('已是最新版本'), findsOneWidget);
+
+    // Tap check
+    await tester.tap(find.widgetWithText(TextButton, '立即检查'));
+    await tester.pump();
+    await tester.pump(const Duration(milliseconds: 50));
+
+    expect(find.textContaining('有可用更新'), findsOneWidget);
+  });
+
+  testWidgets('auto-download toggle flips preference', (tester) async {
+    final svc = _svc(_xmlWithUpdate);
+    addTearDown(svc.dispose);
+
+    await tester.pumpWidget(_wrap(svc));
+    await tester.pump();
+
+    final switchFinder = find.byType(SwitchListTile);
+    expect(switchFinder, findsOneWidget);
+    final before = tester.widget<SwitchListTile>(switchFinder).value;
+    expect(before, isFalse);
+
+    await tester.tap(switchFinder);
+    await tester.pump();
+    final after = tester.widget<SwitchListTile>(switchFinder).value;
+    expect(after, isTrue);
+  });
+}
