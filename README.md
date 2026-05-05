@@ -50,18 +50,6 @@ Download the latest release for your platform from [GitHub Releases](https://git
 | Linux | x86_64 | `.deb` / `.rpm` / `.AppImage` |
 | Linux | aarch64 | `.deb` / `.rpm` |
 
-### macOS GateKeeper Issue
-
-If you see an error like **"Termex is damaged and cannot be opened"** on macOS, run this command in Terminal:
-
-```bash
-xattr -cr /Applications/Termex.app
-```
-
-This removes the quarantine attribute that macOS adds to unsigned apps. After running this command, you can open Termex normally.
-
-> **Note:** A `fix-macos-gatekeeper.command` script is included in each release for convenience. You can download and run it instead of typing the command manually.
-
 ### Build from Source
 
 ```bash
@@ -87,6 +75,10 @@ pnpm tauri build
 
 ## Tech Stack
 
+> **Repository state**: Termex is currently in a dual-stack migration period. The production app ships on the Tauri/Vue stack (v0.34.x). A parallel Flutter rewrite targets v0.49.0 and lives in `app/` + `crates/`. See [`docs/iterations/v0.51.0-remediation.md`](docs/iterations/v0.51.0-remediation.md) for current status.
+
+### Production stack (v0.34.x — Tauri/Vue)
+
 ```text
 Tauri v2 + Rust          Backend, SSH, encryption, storage
 Vue 3 + TypeScript       Frontend framework
@@ -96,6 +88,16 @@ xterm.js (WebGL)         Terminal rendering
 SQLCipher                Encrypted local database
 russh                    Pure-Rust SSH2 protocol
 ring + Argon2id          AES-256-GCM encryption & key derivation
+```
+
+### Migration stack (WIP — target v0.49+ — Flutter/Rust)
+
+```text
+Flutter 3.24+ (Dart)     Self-drawn UI, no Material/Cupertino
+flutter_rust_bridge v2   FRB bindings (Dart <-> Rust)
+Riverpod                 State management
+Custom VT100 emulator    Terminal rendering (Dart, no xterm.js)
+Rust core (shared)       Same russh/ring/SQLCipher, extracted to crates/termex-core/
 ```
 
 ## Keyboard Shortcuts
@@ -161,37 +163,53 @@ Termex uses the operating system's native credential manager to protect all sens
 termex/
 ├── .github/workflows/         # CI + cross-platform release
 ├── docs/                      # Requirements, design, prototype
-│   └── iterations/            #   Version iteration plans (v0.1.0 ~ v0.9.0)
-├── scripts/                   # Version bump utilities
-├── src-tauri/src/             # Rust backend
-│   ├── commands/              #   Tauri IPC handlers (58 commands)
-│   ├── ssh/                   #   SSH session, auth, port forwarding
-│   ├── sftp/                  #   SFTP file operations
-│   ├── crypto/                #   AES-256-GCM, Argon2id KDF
-│   ├── storage/               #   SQLCipher database, migrations, models
-│   ├── ai/                    #   AI provider abstraction, danger detection
-│   ├── recording/             #   Session recording (asciicast v2)
-│   ├── plugin/                #   Plugin manifest & registry
-│   └── state.rs               #   Global AppState
-└── src/                       # Vue 3 frontend
-    ├── components/            #   sidebar/, terminal/, settings/, sftp/, ai/
-    ├── composables/           #   useTerminal, useShortcuts
-    ├── stores/                #   server, session, settings, sftp, ai, portForward
-    ├── i18n/                  #   zh-CN, en-US
-    ├── types/                 #   TypeScript definitions
-    └── utils/                 #   Tauri IPC wrappers
+│   ├── iterations/            #   Version iteration plans (v0.1.0 ~ v0.51.0)
+│   └── migration/             #   Flutter migration roadmap
+├── scripts/                   # Version bump + FRB codegen utilities
+│   └── frb-codegen.sh         #   Regenerate Flutter bindings from Rust API
+├── flutter_rust_bridge.yaml   # FRB codegen config
+│
+├── src-tauri/src/             # ── Production (Tauri/Vue v0.34.x) ──
+│   ├── commands/              #   Tauri IPC handlers
+│   ├── ssh/  sftp/  crypto/  storage/  ai/  team/  recording/
+│   └── state.rs
+├── src/                       #   Vue 3 frontend
+│   ├── components/  composables/  stores/  i18n/  types/  utils/
+│
+├── crates/                    # ── Migration (Flutter/Rust WIP) ──
+│   ├── termex-core/           #   Shared Rust business logic
+│   │   └── src/ (14 modules: ssh, sftp, crypto, storage, ai, team, ...)
+│   └── termex-flutter-bridge/ #   flutter_rust_bridge v2 layer
+│       ├── src/api/           #     29 API modules (≈7,200 LOC)
+│       └── lib/src/           #     Dart bindings (stub until codegen runs)
+└── app/                       #   Flutter app
+    ├── lib/
+    │   ├── features/          #     server_list, ai, sftp, team, cloud, ...
+    │   ├── terminal/          #     Custom VT100 emulator
+    │   ├── widgets/           #     Self-drawn design system
+    │   ├── design/  system/   #     Theme tokens, sentinel flags, updater
+    │   └── main.dart
+    ├── test/  integration_test/
+    ├── pubspec.yaml
+    └── distribute_options.yaml
 ```
 
 ## Development
 
 ### Prerequisites
 
+**Production stack (Tauri/Vue)**:
 - [Rust](https://rustup.rs/) (stable)
 - [Node.js](https://nodejs.org/) (22+)
 - [pnpm](https://pnpm.io/) (10+)
 - Platform-specific [Tauri v2 dependencies](https://v2.tauri.app/start/prerequisites/)
 
-### Setup
+**Migration stack (Flutter)**:
+- Rust (stable)
+- [Flutter SDK](https://docs.flutter.dev/get-started/install) (3.24+)
+- `cargo install flutter_rust_bridge_codegen --version '^2.0'`
+
+### Setup — Production stack
 
 ```bash
 git clone https://github.com/user/termex.git
@@ -200,17 +218,34 @@ pnpm install
 pnpm tauri dev
 ```
 
+### Setup — Migration stack (Flutter, WIP)
+
+```bash
+git clone https://github.com/user/termex.git
+cd termex
+./scripts/frb-codegen.sh          # generate Dart bindings from Rust API
+cd app
+flutter pub get
+flutter run -d macos              # or -d windows / -d linux
+```
+
 ### Commands
 
-| Command | Description |
-| --- | --- |
-| `pnpm tauri dev` | Start dev server with hot reload |
-| `pnpm tauri build` | Build production app |
-| `pnpm dev` | Start frontend dev server only (Vite) |
-| `pnpm run build` | Type-check + build frontend |
-| `cd src-tauri && cargo test` | Run Rust tests (45 tests) |
-| `cd src-tauri && cargo clippy` | Lint Rust code |
-| `pnpm version:bump patch` | Bump version (patch/minor/major/x.y.z) |
+| Command | Stack | Description |
+| --- | --- | --- |
+| `pnpm tauri dev` | Tauri | Start dev server with hot reload |
+| `pnpm tauri build` | Tauri | Build production app |
+| `pnpm dev` | Tauri | Start frontend dev server only (Vite) |
+| `pnpm run build` | Tauri | Type-check + build frontend |
+| `cd src-tauri && cargo test` | Tauri | Run Rust tests |
+| `cd src-tauri && cargo clippy` | Tauri | Lint Rust code |
+| `cargo test --workspace` | Both | Run all Rust tests across workspace |
+| `./scripts/frb-codegen.sh` | Flutter | Regenerate Flutter <-> Rust bindings |
+| `./scripts/frb-codegen.sh --check` | Flutter | CI: verify bindings up-to-date |
+| `cd app && flutter test` | Flutter | Run Flutter unit/widget tests |
+| `cd app && flutter analyze` | Flutter | Static analysis |
+| `cd app && flutter build macos --release` | Flutter | Build Flutter production binary |
+| `pnpm version:bump patch` | Both | Bump version (patch/minor/major/x.y.z) |
 
 ### Debug & Launch
 
@@ -291,6 +326,7 @@ git push origin main --tags     # triggers GitHub Actions build
 
 - [ ] v0.34.0 -- **Team Collaboration v2** (fine-grained role permissions, audit dashboard, conflict resolution UI)
 - [ ] v0.35.0 -- Desktop v1.0 Stable (performance optimization, stability polish)
+- [ ] v0.53.0 -- **macOS Code Signing & Notarization** (signed/notarized DMG via Apple Developer ID, no xattr workaround needed)
 
 ### Mobile — Planned
 

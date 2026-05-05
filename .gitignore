@@ -4,6 +4,7 @@ node_modules/
 
 # Build output
 dist/
+target/
 src-tauri/target/
 
 # Tauri build artifacts
@@ -30,6 +31,12 @@ Desktop.ini
 !.env.example
 *.pem
 *.key
+*.csr
+*.p12
+*.p8
+*.pfx
+*.jks
+*.keystore
 
 # AI local config (sentinel)
 CLAUDE.local.md

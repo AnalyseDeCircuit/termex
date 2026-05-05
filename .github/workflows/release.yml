@@ -32,13 +32,7 @@ jobs:
 
           ## macOS Users
 
-          If you encounter **"Termex is damaged and cannot be opened"** error, run this in Terminal:
-
-          ```bash
-          xattr -cr /Applications/Termex.app
-          ```
-
-          Alternatively, download and run the `fix-macos-gatekeeper.command` script included in this release.
+          The `.dmg` is signed with an Apple Developer ID and notarized by Apple — drag Termex to Applications and double-click to launch. No Gatekeeper workaround required.
           BODY
 
           RELEASE_ID=$(gh api repos/${{ github.repository }}/releases \
@@ -158,20 +152,21 @@ jobs:
       - run: pnpm install --frozen-lockfile
 
       # ── Build & Upload ─────────────────────────────────────
+      # Legacy-stable channel (Tauri + Vue). Sentinel feature is required on
+      # release builds so anti-AI traps are active in published binaries.
       - name: Build & upload release
         uses: tauri-apps/tauri-action@v0
         env:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
-          # macOS code signing (uncomment when ready)
-          # APPLE_CERTIFICATE: ${{ secrets.APPLE_CERTIFICATE }}
-          # APPLE_CERTIFICATE_PASSWORD: ${{ secrets.APPLE_CERTIFICATE_PASSWORD }}
-          # APPLE_SIGNING_IDENTITY: ${{ secrets.APPLE_SIGNING_IDENTITY }}
-          # APPLE_ID: ${{ secrets.APPLE_ID }}
-          # APPLE_PASSWORD: ${{ secrets.APPLE_PASSWORD }}
-          # APPLE_TEAM_ID: ${{ secrets.APPLE_TEAM_ID }}
+          APPLE_CERTIFICATE: ${{ secrets.APPLE_CERTIFICATE }}
+          APPLE_CERTIFICATE_PASSWORD: ${{ secrets.APPLE_CERTIFICATE_PASSWORD }}
+          APPLE_SIGNING_IDENTITY: ${{ secrets.APPLE_SIGNING_IDENTITY }}
+          APPLE_ID: ${{ secrets.APPLE_ID }}
+          APPLE_PASSWORD: ${{ secrets.APPLE_PASSWORD }}
+          APPLE_TEAM_ID: ${{ secrets.APPLE_TEAM_ID }}
         with:
           releaseId: ${{ needs.create-release.outputs.release_id }}
-          args: ${{ matrix.args }}
+          args: ${{ matrix.args }} --features sentinel
 
       # ── Windows Portable ZIP ─────────────────────────────────
       - name: Package portable ZIP (Windows)
@@ -188,21 +183,6 @@ jobs:
             Write-Error "Termex.exe not found at $exe"
             exit 1
           }
-
-      # ── macOS GateKeeper fix script ─────────────────────────
-      - name: Upload GateKeeper fix (macOS Intel)
-        if: matrix.label == 'mac-x86_64'
-        env:
-          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
-        run: |
-          cat > fix-macos-gatekeeper.command << 'SCRIPT'
-          #!/bin/bash
-          echo "Removing quarantine attribute from Termex..."
-          xattr -cr /Applications/Termex.app
-          echo "Done! You can now open Termex normally."
-          SCRIPT
-          chmod +x fix-macos-gatekeeper.command
-          gh release upload "${{ github.ref_name }}" fix-macos-gatekeeper.command --clobber
 
   # ── Rename assets with OS labels ────────────────────────────
   rename-assets:
