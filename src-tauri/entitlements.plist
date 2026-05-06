@@ -22,10 +22,11 @@
   <key>com.apple.security.files.downloads.read-write</key>
   <true/>
 
-  <!-- Keychain — credential storage (see CLAUDE.md keychain single-prompt rule) -->
-  <key>keychain-access-groups</key>
-  <array>
-    <string>$(AppIdentifierPrefix)com.termex.app</string>
-  </array>
+  <!-- NOTE: do NOT add `keychain-access-groups` here. `$(AppIdentifierPrefix)`
+       is an Xcode-only build variable that codesign does not expand, so a literal
+       "$(AppIdentifierPrefix)..." entitlement gets embedded and AMFI kills the
+       process at launch with SIGKILL. The app already gets its default keychain
+       access group (`<team-id>.<bundle-id>`) from being signed, which is what
+       the `keyring` crate uses for SSH/AI credential storage. -->
 </dict>
 </plist>

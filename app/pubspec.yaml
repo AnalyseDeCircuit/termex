@@ -1,6 +1,6 @@
 name: termex
 description: AI-native SSH client — Always-on cloud AI workspace powered by SSH
-version: 0.53.5+1
+version: 0.53.6+1
 
 environment:
   sdk: ">=3.3.0 <4.0.0"
