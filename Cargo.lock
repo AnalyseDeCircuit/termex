@@ -5870,7 +5870,7 @@ dependencies = [
 
 [[package]]
 name = "termex"
-version = "0.53.3"
+version = "0.53.5"
 dependencies = [
  "arboard",
  "argon2",
@@ -5917,7 +5917,7 @@ dependencies = [
 
 [[package]]
 name = "termex-core"
-version = "0.53.3"
+version = "0.53.5"
 dependencies = [
  "anyhow",
  "argon2",
@@ -5959,7 +5959,7 @@ dependencies = [
 
 [[package]]
 name = "termex-flutter-bridge"
-version = "0.53.3"
+version = "0.53.5"
 dependencies = [
  "anyhow",
  "async-trait",

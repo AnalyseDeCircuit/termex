@@ -169,18 +169,21 @@ jobs:
           args: ${{ matrix.args }} --features sentinel
 
       # ── Windows Portable ZIP ─────────────────────────────────
+      # NOTE: target/ lives at the cargo workspace root after the
+      # core/bridge extraction (commit 38a4ec1), not under src-tauri/.
+      # Cargo's bin name is "termex" (lowercase) per src-tauri/Cargo.toml.
       - name: Package portable ZIP (Windows)
         if: matrix.label == 'win-x64'
         env:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
         shell: pwsh
         run: |
-          $exe = "src-tauri\target\release\Termex.exe"
+          $exe = "target\release\termex.exe"
           if (Test-Path $exe) {
             Compress-Archive -Path $exe -DestinationPath "Termex_portable_win_x64.zip"
             gh release upload "${{ github.ref_name }}" "Termex_portable_win_x64.zip" --clobber
           } else {
-            Write-Error "Termex.exe not found at $exe"
+            Write-Error "termex.exe not found at $exe"
             exit 1
           }
 

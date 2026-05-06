@@ -1,11 +1,11 @@
 name: Flutter Release
 
+# Manual-only until the Flutter migration is ready to ship:
+#   - app/{linux,macos,windows}/ platform dirs not yet scaffolded
+#   - termex-flutter-bridge has open TODOs (see docs/iterations/v0.52.0-gap-coverage.md)
+# Tauri/Vue (release.yml) is the production stack and fires on v* tags.
+# Re-add a tag trigger here once platform folders + cutover are complete.
 on:
-  push:
-    tags:
-      - 'v0.4[0-9].*'
-      - 'v0.5[0-9].*'
-      - 'v1.*'
   workflow_dispatch:
     inputs:
       version:
