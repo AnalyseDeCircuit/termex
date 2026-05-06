@@ -1,6 +1,6 @@
 [package]
 name        = "termex-core"
-version = "0.53.1"
+version = "0.53.2"
 edition     = "2021"
 license     = "MIT"
 description = "Termex core business logic — no Tauri dependency"

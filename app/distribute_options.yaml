@@ -6,14 +6,10 @@ releases:
         package:
           platform: macos
           target: dmg
-          build_args:
-            target-platform: darwin-arm64
       - name: macos-dmg-x64
         package:
           platform: macos
           target: dmg
-          build_args:
-            target-platform: darwin-x64
       - name: windows-msix
         package:
           platform: windows
@@ -37,8 +33,6 @@ releases:
         package:
           platform: macos
           target: dmg
-          build_args:
-            target-platform: darwin-arm64
       - name: windows-msix
         package:
           platform: windows
