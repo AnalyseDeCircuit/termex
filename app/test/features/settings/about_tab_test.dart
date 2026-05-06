@@ -46,8 +46,9 @@ void main() {
     // Default state = idle → "已是最新版本"
     expect(find.text('已是最新版本'), findsOneWidget);
 
-    // Tap check
-    await tester.tap(find.widgetWithText(TextButton, '立即检查'));
+    // Tap check (TextButton.icon wraps in a subclass on some Flutter versions,
+    // so target the label text directly — hit-testing bubbles up to the button)
+    await tester.tap(find.text('立即检查'));
     await tester.pump();
     await tester.pump(const Duration(milliseconds: 50));
 
