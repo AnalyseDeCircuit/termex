@@ -5,6 +5,7 @@ pub mod cloud;
 pub mod cost;
 pub mod crypto;
 pub mod egress;
+pub mod handoff;
 pub mod keychain;
 pub mod local_ai;
 pub mod monitor;
