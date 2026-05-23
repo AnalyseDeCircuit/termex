@@ -7,6 +7,59 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ---
 
+## [Unreleased — v0.69.0] — Restructure Stabilization + Tauri Retirement Announcement
+
+### Deprecated
+
+- 🪦 **Tauri/Vue desktop stack enters formal retirement.** A 4-phase plan over the next 24 months drives the legacy stack to physical removal at v0.80:
+  - **v0.69** (this release) — Deprecation announcement: in-app banner + MIGRATION.md chapter
+  - **v0.70** — Default installs switch to Flutter; AppCast critical update nudges existing Tauri users
+  - **v0.75** — CI stops building Tauri release artifacts
+  - **v0.80** — `src-tauri/` and `src/` (Vue) directories physically deleted
+- New feature development happens exclusively in the Flutter stack (`packages/termex_shared/` + `app/` + `termex-mobile/`). The Tauri stack accepts critical security PRs only.
+
+### Added
+
+- `packages/termex_shared/lib/system/tauri_retirement_banner.dart` — in-app deprecation widget (`TauriRetirementBanner` inline + `showTauriRetirementDialog` modal). Banner is dismissible via SharedPreferences `termex.tauri_retire_dismissed` so it appears at most once per install.
+- `docs/MIGRATION.md` — new chapter "v0.69 起：从 Tauri 桌面切换到 Flutter 桌面" with 4-phase timeline table, data-compatibility matrix (all 5 categories share zero-migration), known behavior differences, and rollback path to stable-legacy channel.
+- `docs/iterations/v0.70.0-pc-tauri-retirement.md` — full retirement plan with phase deliverables, risk/mitigation matrix, and 5 user-confirmable decision points.
+- `docs/iterations/v0.69.0-pc-restructure-stabilization.md` — restructure stabilization record covering the desktop/mobile package split, build-blocker fix runbook, and i18n batch survival audit.
+
+### Changed
+
+- `README.md` top banner — updated from "dual-stack migration period" to explicit retirement announcement with link to MIGRATION.md §v0.69.
+- `src-tauri/README.md` + `src/README.md` — retirement banners promoted from "Deprecated" to "🪦 退役进行中 (4 阶段 → v0.80)" with phase timeline inline.
+- `docs/architecture.md` — top-level retirement banner; "一句话定位" updated to "Tauri/Vue (老栈，退役中) 与 Flutter (新栈，生产主推)".
+- `CLAUDE.md` Repository state — updated to reflect v0.68.0 functional parity completion; new explicit "for new feature development, write Flutter only" guidance.
+- Repository structure split into three top-level packages:
+  - `app/` — desktop PC shell only
+  - `termex-mobile/app/` — iOS/Android shell (new)
+  - `packages/termex_shared/` — cross-platform shared business logic and widgets
+- `flutter analyze` baseline restored to 0 errors after structural cleanup (was 201 pre-restructure).
+
+### Fixed
+
+- Stabilized 14 broken cross-package imports in `packages/termex_shared/lib/widgets/*.dart` (`package:termex/design/tokens.dart` → `package:termex_shared/design/tokens.dart`).
+- Migrated entire `features/team/` directory (20 files) from `app/lib/` to `packages/termex_shared/lib/features/team/` (subsequently relocated again during the desktop/mobile split — see v0.69 restructure doc §6).
+- Restored macOS release build (was failing at Dart kernel snapshot with missing `MonitorPanel` + `showTeamPassphraseDialog` references after the second-wave restructure deleted those modules). Minimal stubs in `tab_workspace.dart` and `team_tab.dart` keep the build green until the team/cloud/monitor features land in their final package locations.
+- `crates/termex-core/src/lib.rs` — added missing `pub mod sync;` registration that was blocking aarch64-apple-darwin Cargo target builds.
+- `about_tab_test.dart` — added `localizationsDelegates` + `Locale('zh')` to test `MaterialApp` so post-i18n migration assertions resolve correctly; updated `find.text('已是最新版本')` to `find.textContaining(...)` to match the `updateUpToDate` ARB value (`'已是最新版本！'` with punctuation).
+
+### Internationalization (i18n)
+
+- ARB key set grew from 804 → **997 keys** (zh + en, +193 keys this iteration).
+- Eight high-impact widget files completed full i18n migration with `AppLocalizations.of(context)`:
+  - `about_tab.dart` (21 strings → 0)
+  - `settings_page.dart` (29 → 0, including `kSettingsIndex` const list → `buildSettingsIndex(l)` builder)
+  - `backup_tab.dart` (20 → 0)
+  - `privacy_policy_dialog.dart` (30 → 0)
+  - `proxies_tab.dart` (22 → 0)
+  - `git_sync_panel.dart` (20 → 0)
+  - `file_list.dart` (19 → 0)
+- One file (`cloud_panel.dart`, 22 strings) was lost in the second-wave restructure and will be re-migrated when the cloud panel reappears in its new package location.
+
+---
+
 ## [Unreleased — v0.52.0] — Gap Coverage
 
 ### Added

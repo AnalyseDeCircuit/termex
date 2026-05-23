@@ -44,6 +44,10 @@ pub struct UpdateManifest {
     pub delta_from: Option<String>,
     pub delta_url: Option<String>,
     pub size_bytes: Option<i64>,
+    /// When true the UI must block dismissal and force the user to update
+    /// before continuing — used for critical security releases. Parsed from
+    /// the appcast `<sparkle:criticalUpdate/>` marker.
+    pub force_update: bool,
 }
 
 #[derive(Debug, Clone)]
@@ -144,6 +148,7 @@ pub fn parse_appcast(xml: &str, current_version: &str) -> UpdateManifest {
         delta_from: None,
         delta_url: None,
         size_bytes: None,
+        force_update: false,
     };
 
     let mut best: Option<String> = None;
@@ -166,6 +171,9 @@ pub fn parse_appcast(xml: &str, current_version: &str) -> UpdateManifest {
         manifest.changelog_url = find_tag(chunk, "sparkle:releaseNotesLink").map(|s| s.to_string());
         manifest.download_url = find_attr(chunk, "enclosure", "url");
         manifest.size_bytes = find_attr(chunk, "enclosure", "length").and_then(|s| s.parse().ok());
+        manifest.force_update = chunk.contains("<sparkle:criticalUpdate/>")
+            || chunk.contains("<sparkle:criticalUpdate />")
+            || chunk.contains("<sparkle:criticalUpdate>");
         if let Some(delta_block) = find_tag(chunk, "sparkle:deltas") {
             manifest.delta_from = find_attr(delta_block, "enclosure", "sparkle:deltaFrom");
             manifest.delta_url = find_attr(delta_block, "enclosure", "url");

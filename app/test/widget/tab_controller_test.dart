@@ -1,6 +1,6 @@
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:flutter_test/flutter_test.dart';
-import 'package:termex/features/tabs/state/tab_controller.dart';
+import 'package:termex_shared/features/tabs/state/tab_controller.dart';
 
 void main() {
   ProviderContainer makeContainer() => ProviderContainer();

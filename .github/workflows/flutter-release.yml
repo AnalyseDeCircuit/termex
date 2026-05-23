@@ -215,10 +215,60 @@ jobs:
         working-directory: release-flat
         run: shasum -a 256 * > "termex-${GITHUB_REF_NAME#v}-SHA256SUMS.txt"
 
+      - name: Compose release notes
+        env:
+          REF_NAME: ${{ github.ref_name }}
+        run: |
+          VERSION="${REF_NAME#v}"
+          cat > release-notes.md <<'EOF'
+          # Termex __VERSION__
+
+          > ⚠️ **Tauri/Vue desktop stack is retiring.** New installs should use the Flutter desktop packages below (DMG / MSIX / AppImage). The legacy Tauri build is still available from the `stable-legacy` channel until v0.75 (CI cutoff) / v0.80 (source removal). See the [Tauri retirement plan](https://github.com/termex/termex/blob/main/docs/iterations/v0.70.0-pc-tauri-retirement.md) and [switch guide](https://github.com/termex/termex/blob/main/docs/MIGRATION.md#v069-起从-tauri-桌面切换到-flutter-桌面).
+          >
+          > Data and credentials (SQLCipher DB, OS Keychain entries, recordings, config files) are fully shared between the two stacks — switching to Flutter requires **no manual migration**.
+
+          ## What's in this release
+
+          See the full changelog at [CHANGELOG.md](https://github.com/termex/termex/blob/main/CHANGELOG.md).
+
+          ## Downloads
+
+          - **macOS** (Apple silicon + Intel): `termex-__VERSION__-macos-*.dmg`
+          - **Windows** (x64): `termex-__VERSION__-windows-x64.msix`
+          - **Linux** (x64): `termex-__VERSION__-linux-x64.AppImage` / `*.deb` / `*.rpm`
+
+          ## Integrity verification
+
+          SHA-256 checksums: `termex-__VERSION__-SHA256SUMS.txt`
+
+          ```bash
+          shasum -a 256 -c termex-__VERSION__-SHA256SUMS.txt
+          ```
+
+          ## Migration from Tauri
+
+          Upgrading from a Tauri v0.34.x install:
+          1. Download the Flutter package for your platform above
+          2. Quit any running Tauri Termex instance
+          3. Replace the `.app` / `.exe` / AppImage in place
+          4. Launch — your master password unlocks the same database
+
+          All servers, SSH keys, AI configs, team settings, and session recordings are immediately available. See [MIGRATION.md §v0.69](https://github.com/termex/termex/blob/main/docs/MIGRATION.md#v069-起从-tauri-桌面切换到-flutter-桌面) for behaviour differences and rollback steps.
+
+          ## Feedback
+
+          - 🐛 Issues: https://github.com/termex/termex/issues
+          - 💬 Discord: https://discord.gg/termex
+          - ✉️ Email: feedback@termex.app
+          EOF
+          sed -i.bak "s/__VERSION__/${VERSION}/g" release-notes.md
+          rm -f release-notes.md.bak
+
       - name: Upload to GitHub Releases
         uses: softprops/action-gh-release@v2
         with:
           files: release-flat/*
+          body_path: release-notes.md
           draft: false
           prerelease: ${{ contains(github.ref_name, '-beta') }}
 

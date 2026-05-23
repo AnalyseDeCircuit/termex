@@ -1,6 +1,5 @@
-import 'package:flutter/widgets.dart';
 import 'package:flutter_test/flutter_test.dart';
-import 'package:termex/widgets/tabs.dart';
+import 'package:termex_shared/widgets/tabs.dart';
 
 import 'test_helpers.dart';
 

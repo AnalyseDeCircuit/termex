@@ -2,9 +2,9 @@ import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:flutter_test/flutter_test.dart';
 
-import 'package:termex/system/update_notification_banner.dart';
-import 'package:termex/system/update_service.dart';
-import 'package:termex/system/state/update_provider.dart';
+import 'package:termex_shared/system/update_notification_banner.dart';
+import 'package:termex_shared/system/update_service.dart';
+import 'package:termex_shared/system/state/update_provider.dart';
 
 const _xmlWithUpdate = '''
   <rss><channel><item>

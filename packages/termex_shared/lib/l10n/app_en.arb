@@ -1,0 +1,1634 @@
+{
+  "@@locale": "en",
+  "@@last_modified": "2026-05-18",
+  "commonConfirm": "Confirm",
+  "commonCancel": "Cancel",
+  "commonClose": "Close",
+  "commonSearch": "Search...",
+  "commonEmpty": "No data",
+  "commonLoading": "Loading...",
+  "commonError": "Something went wrong",
+  "commonSave": "Save",
+  "commonDelete": "Delete",
+  "commonEdit": "Edit",
+  "commonRetry": "Retry",
+  "validatorRequired": "This field is required",
+  "validatorEmail": "Invalid email format",
+  "validatorMinLength": "At least {n} characters",
+  "@validatorMinLength": {
+    "placeholders": {
+      "n": {
+        "type": "int"
+      }
+    }
+  },
+  "validatorMaxLength": "At most {n} characters",
+  "@validatorMaxLength": {
+    "placeholders": {
+      "n": {
+        "type": "int"
+      }
+    }
+  },
+  "themeSaveError": "Failed to save theme",
+  "selectNoOptions": "No options",
+  "dialogDefaultConfirm": "Confirm",
+  "dialogDefaultCancel": "Cancel",
+  "shortcutsHintTitle": "Available Shortcuts",
+  "crossTabSearchPlaceholder": "Search across all tabs...",
+  "crossTabSearchNoMatches": "No matches",
+  "crossTabSearchMatchesFound": "{count} match(es) found",
+  "@crossTabSearchMatchesFound": {
+    "placeholders": {
+      "count": {
+        "type": "int"
+      }
+    }
+  },
+  "idleLockTitle": "Locked",
+  "idleLockHint": "You have been idle. Enter your master password to continue.",
+  "pluginsTitle": "Plugins",
+  "pluginsInstall": "Install from .zip",
+  "pluginsDeveloperMode": "Developer Mode",
+  "pluginsPermissionTitle": "Plugin Permission Request",
+  "pluginsPermissionDeny": "Deny",
+  "pluginsPermissionGrantOnce": "Grant Once",
+  "pluginsPermissionGrant": "Grant",
+  "appName": "Termex",
+  "appSlogan": "Open-source AI-powered local SSH client",
+  "sidebarServers": "Servers",
+  "sidebarSearch": "Search servers...",
+  "sidebarNewConnection": "New Connection",
+  "sidebarNewGroup": "New Group",
+  "sidebarGroupNameHint": "Enter group name",
+  "sidebarGroupNameRequired": "Group name is required",
+  "sidebarQuickConnect": "Quick Connect",
+  "sidebarImportConfig": "Import Config",
+  "sidebarExportConfig": "Export Config",
+  "sidebarBastionUsedBy": "Used as bastion by {count} connection(s)",
+  "@sidebarBastionUsedBy": {
+    "description": "Auto-imported from Tauri sidebar.bastionUsedBy",
+    "placeholders": {
+      "count": {
+        "type": "String"
+      }
+    }
+  },
+  "sidebarImportSshConfig": "Import SSH Config",
+  "sidebarSnippets": "Snippets",
+  "sidebarRecordings": "Recordings",
+  "sidebarCloud": "Cloud",
+  "sidebarFilterall": "All",
+  "sidebarFilterprivate": "Private",
+  "sidebarFilterteam": "Team",
+  "sidebarPrivateServers": "Private",
+  "sidebarTeamServers": "Team Nodes",
+  "sidebarTeamEmptyHint": "Team nodes are synced from your team — they can't be created directly.",
+  "sidebarTeamEmptySync": "Share a private node first, then run a sync to push it to teammates.",
+  "sidebarGoToPrivate": "View Private Nodes",
+  "terminalNewTab": "New Tab",
+  "terminalCloseTab": "Close Tab",
+  "terminalDisconnect": "Disconnect",
+  "terminalReconnect": "Reconnect",
+  "terminalReconnecting": "Reconnecting...",
+  "terminalReconnected": "Reconnected",
+  "terminalReconnectFailed": "Reconnect failed",
+  "terminalReconnectAttempt": "Reconnecting... attempt {attempt}/{max}",
+  "@terminalReconnectAttempt": {
+    "description": "Auto-imported from Tauri terminal.reconnectAttempt",
+    "placeholders": {
+      "attempt": {
+        "type": "String"
+      },
+      "max": {
+        "type": "String"
+      }
+    }
+  },
+  "terminalReconnectAttemptFailed": "Attempt {attempt} failed",
+  "@terminalReconnectAttemptFailed": {
+    "description": "Auto-imported from Tauri terminal.reconnectAttemptFailed",
+    "placeholders": {
+      "attempt": {
+        "type": "String"
+      }
+    }
+  },
+  "terminalReconnectGaveUp": "Reconnect failed after {max} attempts",
+  "@terminalReconnectGaveUp": {
+    "description": "Auto-imported from Tauri terminal.reconnectGaveUp",
+    "placeholders": {
+      "max": {
+        "type": "String"
+      }
+    }
+  },
+  "terminalOpenLocalTerminal": "Open Local Terminal",
+  "terminalOpenLocalTerminalError": "Failed to open terminal",
+  "terminalSplitVertical": "Split Right",
+  "terminalSplitHorizontal": "Split Down",
+  "terminalClosePane": "Close Pane",
+  "terminalMaxSplitDepth": "Maximum split depth reached",
+  "terminalBroadcastOn": "Broadcast ON",
+  "terminalBroadcastOff": "Broadcast",
+  "terminalBroadcastHintOn": "Input sent to all panes",
+  "terminalBroadcastToggle": "Toggle pane broadcast",
+  "terminalBroadcastHintOff": "Enable broadcast mode",
+  "terminalPaneCount": "{count} panes",
+  "@terminalPaneCount": {
+    "description": "Auto-imported from Tauri terminal.paneCount",
+    "placeholders": {
+      "count": {
+        "type": "String"
+      }
+    }
+  },
+  "terminalMouseReportingHint": "Mouse captured by remote app. Hold {key}+drag to select and copy text locally.",
+  "@terminalMouseReportingHint": {
+    "description": "Auto-imported from Tauri terminal.mouseReportingHint",
+    "placeholders": {
+      "key": {
+        "type": "String"
+      }
+    }
+  },
+  "terminalMouseReportingActive": "Mouse captured · {key}+drag to select",
+  "@terminalMouseReportingActive": {
+    "description": "Auto-imported from Tauri terminal.mouseReportingActive",
+    "placeholders": {
+      "key": {
+        "type": "String"
+      }
+    }
+  },
+  "settingsTitle": "Settings",
+  "settingsAppearance": "Appearance",
+  "settingsTerminal": "Terminal",
+  "settingsKeybindings": "Keybindings",
+  "settingsSecurity": "Security",
+  "settingsAiConfig": "AI Config",
+  "settingsBackup": "Backup",
+  "settingsHighlights": "Highlights",
+  "settingsProxies": "Proxies",
+  "settingsMonitor": "Monitor",
+  "settingsTeam": "Team",
+  "settingsData": "Data",
+  "fontsFontFamily": "Font Family",
+  "fontsFontSize": "Font Size",
+  "fontsUploadFont": "Upload Font",
+  "fontsBuiltIn": "Built-in Fonts",
+  "fontsCustom": "Custom Fonts",
+  "fontsDeleteConfirm": "Delete font \"{name}\"?",
+  "@fontsDeleteConfirm": {
+    "description": "Auto-imported from Tauri fonts.deleteConfirm",
+    "placeholders": {
+      "name": {
+        "type": "String"
+      }
+    }
+  },
+  "fontsDeleteTitle": "Delete Font",
+  "fontsUploaded": "Font uploaded successfully",
+  "fontsDeleted": "Font deleted",
+  "fontsInvalidFormat": "Unsupported format. Use .ttf, .otf, .woff, or .woff2",
+  "fontsUploadFailed": "Failed to upload font",
+  "tabClose": "Close",
+  "tabCloseOthers": "Close Others",
+  "tabDuplicate": "Duplicate",
+  "tabSplitVertical": "Split Left/Right",
+  "tabSplitHorizontal": "Split Top/Bottom",
+  "tabRename": "Rename",
+  "tabRenameHint": "Enter new name",
+  "tabReconnect": "Reconnect",
+  "tabReconnectAll": "Reconnect All",
+  "appearanceTheme": "Theme",
+  "appearanceLanguage": "Language",
+  "appearanceFollowSystem": "Follow System",
+  "appearanceSidebarTransition": "Sidebar Transition",
+  "appearanceTransFlip": "Flip (3D Door)",
+  "appearanceTransSlide": "Slide",
+  "appearanceTransFade": "Fade",
+  "appearanceTransScale": "Scale",
+  "appearanceTransSlideUp": "Slide Up",
+  "appearanceTransNone": "None",
+  "sftpTitle": "SFTP",
+  "sftpName": "Name",
+  "sftpSize": "Size",
+  "sftpPermissions": "Permissions",
+  "sftpModified": "Modified",
+  "sftpGoUp": "Go Up",
+  "sftpRefresh": "Refresh",
+  "sftpNewFolder": "New Folder",
+  "sftpNewFolderPrompt": "Enter folder name",
+  "sftpClose": "Close",
+  "sftpDelete": "Delete",
+  "sftpDeleteConfirm": "Delete {name}?",
+  "@sftpDeleteConfirm": {
+    "description": "Auto-imported from Tauri sftp.deleteConfirm",
+    "placeholders": {
+      "name": {
+        "type": "String"
+      }
+    }
+  },
+  "sftpDeleted": "Deleted",
+  "sftpRename": "Rename",
+  "sftpRenamePrompt": "Enter new name",
+  "sftpDownload": "Download",
+  "sftpDownloadPrompt": "Save to local path",
+  "sftpDownloadStarted": "Download started",
+  "sftpUpload": "Upload",
+  "sftpUploadStarted": "Upload started",
+  "sftpUploadError": "Upload error",
+  "sftpTransfers": "Transfers",
+  "sftpFiles": "Files",
+  "sftpCompleted": "Completed",
+  "sftpConnecting": "Connecting",
+  "sftpClearCompleted": "Clear completed",
+  "sftpNoTransfers": "No transfers",
+  "sftpConfirm": "OK",
+  "sftpCancel": "Cancel",
+  "sftpEmpty": "Empty directory",
+  "sftpLocal": "Local",
+  "sftpRemote": "Remote",
+  "sftpOpenSftp": "Open SFTP",
+  "sftpDropToUpload": "Drop files to upload",
+  "sftpDropToDownload": "Drop to download here",
+  "sftpCwdSyncOn": "Sync ON — following terminal CWD",
+  "sftpCwdSyncOff": "Sync SFTP path with terminal CWD",
+  "sftpCloseSplit": "Close split panel",
+  "sftpNotConnected": "SFTP not connected",
+  "sftpDownloadError": "Download error",
+  "sftpCleared": "Cleared completed transfers",
+  "sftpCopy": "Copy",
+  "sftpCut": "Cut",
+  "sftpPaste": "Paste",
+  "sftpMore": "More",
+  "sftpCopyPath": "Copy Path",
+  "sftpEditPath": "Edit Path",
+  "sftpNewFile": "New File",
+  "sftpMkdir": "New Folder",
+  "sftpSelectAll": "Select All",
+  "sftpChmod": "Edit Permissions",
+  "sftpFileInfo": "File Info",
+  "sftpEdit": "Edit",
+  "sftpType": "Type",
+  "sftpDirectory": "Directory",
+  "sftpFile": "File",
+  "sftpUid": "UID",
+  "sftpGid": "GID",
+  "sftpSymlink": "Symbolic Link",
+  "sftpYes": "Yes",
+  "sftpNo": "No",
+  "sftpChmodFile": "File",
+  "sftpChmodOctal": "Octal Permissions (e.g., 755)",
+  "sftpChmodExample": "e.g. 755",
+  "sftpChmodHelp": "Octal notation: read=4, write=2, execute=1. Example: 755 = rwxr-xr-x",
+  "sftpChmodRequired": "Please enter permissions",
+  "sftpChmodInvalid": "Invalid octal value (0-7777)",
+  "sftpPermissionsUpdated": "Permissions updated",
+  "sftpCopied": "Copied",
+  "sftpPathCopied": "Path copied to clipboard",
+  "sftpFileCreated": "File created",
+  "sftpFolderCreated": "Folder created",
+  "sftpNewFilePrompt": "Enter file name",
+  "sftpSelectAllTodo": "Multi-select coming soon",
+  "sftpEditTodo": "File editing coming soon",
+  "sftpPreparing": "Preparing",
+  "sftpRemove": "Remove",
+  "sftpError": "Error",
+  "sftpServerTransfer": "Server transfer started",
+  "sftpTransferError": "Transfer failed: {error}",
+  "@sftpTransferError": {
+    "description": "Auto-imported from Tauri sftp.transferError",
+    "placeholders": {
+      "error": {
+        "type": "String"
+      }
+    }
+  },
+  "sftpServerDisconnected": "Server disconnected",
+  "sftpDirTransferTodo": "Directory transfer coming soon",
+  "aiPanelTitle": "AI Assistant",
+  "aiInputPlaceholder": "Describe what you want to do...",
+  "aiSend": "Send",
+  "aiCopy": "Copy",
+  "aiInsert": "Insert to Terminal",
+  "aiCopied": "Copied",
+  "aiEmptyHint": "Describe in natural language, AI will generate the command",
+  "aiExplain": "Explain Command",
+  "aiDanger": "Dangerous Command",
+  "aiDangerWarning": "⚠️ This command may be risky: {desc}",
+  "@aiDangerWarning": {
+    "description": "Auto-imported from Tauri ai.dangerWarning",
+    "placeholders": {
+      "desc": {
+        "type": "String"
+      }
+    }
+  },
+  "aiDangerCritical": "🚫 Critical danger: {desc}",
+  "@aiDangerCritical": {
+    "description": "Auto-imported from Tauri ai.dangerCritical",
+    "placeholders": {
+      "desc": {
+        "type": "String"
+      }
+    }
+  },
+  "aiConfirm": "Confirm",
+  "aiCancel": "Cancel",
+  "aiClear": "Clear Chat",
+  "aiNoProviderHint": "No AI provider configured yet. Please set up one first.",
+  "aiNoProviderShort": "Configure AI first",
+  "aiGoConfig": "Go to Settings",
+  "aiSaveAsSnippet": "Save as Snippet",
+  "aiIncludeContext": "Include terminal context",
+  "aiThinking": "Thinking...",
+  "aiErrorDetected": "Error Detected",
+  "aiAnalyzing": "Analyzing error...",
+  "aiDismiss": "Dismiss",
+  "aiCommand": "Command",
+  "aiRunFix": "Run fix",
+  "aiRunAll": "Run All",
+  "aiRun": "Run",
+  "aiConfirmRun": "Confirm & Run",
+  "aiPlaybook": "Playbook",
+  "aiPlaybookGenerating": "Generating steps...",
+  "aiPlaybookReady": "Ready ({count} steps)",
+  "@aiPlaybookReady": {
+    "description": "Auto-imported from Tauri ai.playbookReady",
+    "placeholders": {
+      "count": {
+        "type": "String"
+      }
+    }
+  },
+  "aiStepSuccess": "Success",
+  "aiStepFailed": "Failed",
+  "aiSummarize": "Summarize",
+  "aiSummarizing": "Generating summary...",
+  "aiExportMarkdown": "Export as Markdown",
+  "aiDiagnosisTitle": "AI Diagnosis",
+  "aiAlertCpuThreshold": "CPU alert threshold (%)",
+  "aiAlertMemoryThreshold": "Memory alert threshold (%)",
+  "aiAlertDiskThreshold": "Disk alert threshold (%)",
+  "aiAutoDiagnose": "Auto-diagnose errors",
+  "aiAutoDiagnoseHint": "AI automatically analyzes command errors",
+  "portForwardTitle": "Port Forwarding",
+  "portForwardLocal": "Local Forward",
+  "portForwardRemote": "Remote Forward",
+  "portForwardDynamic": "Dynamic Forward",
+  "portForwardLocalHost": "Local Host",
+  "portForwardLocalPort": "Local Port",
+  "portForwardRemoteHost": "Remote Host",
+  "portForwardRemotePort": "Remote Port",
+  "portForwardAutoStart": "Auto Start",
+  "portForwardStart": "Start",
+  "portForwardStop": "Stop",
+  "portForwardAdd": "Add Rule",
+  "portForwardDelete": "Delete",
+  "portForwardRunning": "Running",
+  "portForwardStopped": "Stopped",
+  "configExportTitle": "Export Config",
+  "configImportTitle": "Import Config",
+  "configPassword": "Export Password",
+  "configPasswordHint": "Set a separate export password",
+  "configFilePath": "File Path",
+  "configOnConflict": "On Conflict",
+  "configSkip": "Skip Existing",
+  "configOverwrite": "Overwrite",
+  "configExportSuccess": "Export successful",
+  "configImportSuccess": "Import complete: {imported} imported, {skipped} skipped",
+  "@configImportSuccess": {
+    "description": "Auto-imported from Tauri config.importSuccess",
+    "placeholders": {
+      "imported": {
+        "type": "String"
+      },
+      "skipped": {
+        "type": "String"
+      }
+    }
+  },
+  "connectionEditConnection": "Edit Connection",
+  "connectionName": "Name",
+  "connectionHost": "Host",
+  "connectionPort": "Port",
+  "connectionUsername": "Username",
+  "connectionPassword": "Password",
+  "connectionAuthType": "Auth Type",
+  "connectionPrivateKey": "Private Key",
+  "connectionBrowseKey": "Browse File",
+  "connectionSshAgent": "SSH Agent",
+  "connectionSshAgentInfo": "Use system SSH Agent ($SSH_AUTH_SOCK) for authentication. No private key credentials stored in Termex.",
+  "connectionGroup": "Group",
+  "connectionAuthorizationInfo": "Authorization",
+  "connectionSshTunnel": "SSH Tunnel",
+  "connectionBastion": "Bastion / Jump Host",
+  "connectionBastionHint": "Bastion servers are managed in the sidebar server list. Any saved server can be used as a bastion.",
+  "connectionSelectBastion": "Search or select bastion server...",
+  "connectionConnectionPath": "Connection Path",
+  "connectionNoProxyConfigured": "No bastion configured. Will connect directly to target server.",
+  "connectionRemoveTunnel": "Remove",
+  "connectionSave": "Save",
+  "connectionCancel": "Cancel",
+  "connectionConnect": "Connect",
+  "connectionTest": "Test Connection",
+  "connectionTestSuccess": "Connection test successful",
+  "connectionProxy": "Proxy",
+  "connectionNetworkProxy": "Network Proxy",
+  "connectionNetworkProxyHint": "Proxies are managed in the sidebar Proxy panel. Switch to the Proxy tab in the sidebar to add or edit proxies.",
+  "connectionProxyNone": "None (Direct)",
+  "connectionProxyName": "Proxy Name",
+  "connectionProxyType": "Proxy Type",
+  "connectionProxySocks5": "SOCKS5",
+  "connectionProxySocks4": "SOCKS4",
+  "connectionProxyHttp": "HTTP CONNECT",
+  "connectionProxyHost": "Proxy Host",
+  "connectionProxyPort": "Proxy Port",
+  "connectionProxyUsername": "Username",
+  "connectionProxyPassword": "Password",
+  "connectionProxyAdd": "Add Proxy",
+  "connectionProxyEdit": "Edit Proxy",
+  "connectionProxyDelete": "Delete Proxy",
+  "connectionProxyDeleteConfirm": "Delete proxy \"{name}\"? Servers using it will switch to direct connection.",
+  "@connectionProxyDeleteConfirm": {
+    "description": "Auto-imported from Tauri connection.proxyDeleteConfirm",
+    "placeholders": {
+      "name": {
+        "type": "String"
+      }
+    }
+  },
+  "connectionProxyUsedBy": "Used by {count} server(s)",
+  "@connectionProxyUsedBy": {
+    "description": "Auto-imported from Tauri connection.proxyUsedBy",
+    "placeholders": {
+      "count": {
+        "type": "String"
+      }
+    }
+  },
+  "connectionProxyNoConfig": "No proxy configured yet.",
+  "connectionProxyGoSettings": "Go to Settings → Proxies to add one.",
+  "connectionProxyTestReachable": "Proxy is reachable",
+  "connectionProxyTor": "Tor",
+  "connectionProxyTorRunning": "Tor service detected on port {port}",
+  "@connectionProxyTorRunning": {
+    "description": "Auto-imported from Tauri connection.proxyTorRunning",
+    "placeholders": {
+      "port": {
+        "type": "String"
+      }
+    }
+  },
+  "connectionProxyTorNotFound": "Tor service not detected (install and start Tor first)",
+  "connectionProxyTlsEnable": "Enable TLS (HTTPS)",
+  "connectionProxyTlsVerify": "Verify Certificate",
+  "connectionProxyCaCert": "CA Certificate path (.pem)",
+  "connectionProxyClientCert": "Client Certificate path (.pem/.crt)",
+  "connectionProxyClientKey": "Client Key path (.pem/.key)",
+  "connectionProxyCommand": "ProxyCommand",
+  "connectionProxyCommandPlaceholder": "e.g. cloudflared access ssh --hostname %h",
+  "connectionProxyCommandHint": "Variables: %h = hostname, %p = port, %r = username. Executed via sh -c.",
+  "connectionSync": "Sync",
+  "connectionTmuxMode": "tmux Mode",
+  "connectionTmuxDisabled": "Disabled — Normal shell",
+  "connectionTmuxAuto": "Auto — Detect and use if available",
+  "connectionTmuxAlways": "Always — Require tmux (error if unavailable)",
+  "connectionTmuxCloseAction": "On Tab Close",
+  "connectionTmuxDetach": "Detach — Keep remote session running",
+  "connectionTmuxKill": "Kill — Destroy remote session",
+  "connectionGitSyncEnable": "Enable Git Auto Sync",
+  "connectionGitSyncRemotePath": "Remote Repository Path",
+  "connectionGitSyncLocalPath": "Local Repository Path",
+  "connectionGitSyncMode": "Sync Mode",
+  "connectionGitSyncNotify": "Notify Only — Desktop notification on push",
+  "connectionGitSyncAutoPull": "Auto Pull — Automatically pull to local",
+  "connectionGitSyncHint": "Ensure your remote .gitignore excludes .env and sensitive files.",
+  "connectionForwarding": "Forwarding",
+  "connectionForwardAdd": "Add Forward",
+  "connectionForwardLocal": "Local Forward",
+  "connectionForwardDynamic": "Dynamic Forward (SOCKS5)",
+  "connectionForwardDynamicHint": "SOCKS5 proxy — all browser traffic routed through remote server",
+  "connectionForwardNone": "No forwarding rules configured.",
+  "contextConnect": "Connect",
+  "contextEdit": "Edit",
+  "contextDuplicate": "Duplicate",
+  "contextRename": "Rename",
+  "contextRenameHint": "Enter new name",
+  "contextNameRequired": "Name is required",
+  "contextMoveTo": "Move to Group",
+  "contextUngroup": "Remove from Group",
+  "contextDelete": "Delete",
+  "contextDeleteConfirm": "Delete server \"{name}\"?",
+  "@contextDeleteConfirm": {
+    "description": "Auto-imported from Tauri context.deleteConfirm",
+    "placeholders": {
+      "name": {
+        "type": "String"
+      }
+    }
+  },
+  "contextShareWithTeam": "Share with Team",
+  "contextMakePrivate": "Make Private",
+  "contextDeleteGroupConfirm": "Delete group \"{name}\"? Servers in this group will become ungrouped.",
+  "@contextDeleteGroupConfirm": {
+    "description": "Auto-imported from Tauri context.deleteGroupConfirm",
+    "placeholders": {
+      "name": {
+        "type": "String"
+      }
+    }
+  },
+  "contextNewSubgroup": "New Subgroup",
+  "securityProtectionMode": "Credential Protection",
+  "securityKeychainActive": "Using {platform}. All passwords and keys are securely stored in the OS credential manager.",
+  "@securityKeychainActive": {
+    "description": "Auto-imported from Tauri security.keychainActive",
+    "placeholders": {
+      "platform": {
+        "type": "String"
+      }
+    }
+  },
+  "securityKeychainUnavailable": "OS keychain is not available. Using local encrypted storage.",
+  "securityStoredCredentials": "Protected Credentials",
+  "securityCredentialHint": "SSH passwords, passphrases, AI API keys",
+  "securityHowItWorks": "How it works",
+  "securityHint1": "Passwords and keys are stored in the OS credential manager, not in termex.db",
+  "securityHint2": "termex.db only stores keychain reference IDs",
+  "securityHint3": "Even if termex.db is leaked, no credentials can be extracted",
+  "hostKeyTitle": "Host Key Verification",
+  "hostKeyWarningTitle": "WARNING: HOST KEY HAS CHANGED!",
+  "hostKeyWarningDesc": "The host key for this server has changed. This could indicate a man-in-the-middle attack, or the server may have been reconfigured.",
+  "hostKeyHost": "Host",
+  "hostKeyKeyType": "Type",
+  "hostKeyFingerprint": "Fingerprint",
+  "hostKeyOldFingerprint": "Previous fingerprint",
+  "hostKeyNewFingerprint": "New fingerprint",
+  "hostKeyAccept": "Trust",
+  "hostKeyAcceptChanged": "Trust Anyway",
+  "hostKeyReject": "Reject",
+  "keybindingsNewConnection": "New Connection",
+  "keybindingsOpenSettings": "Open Settings",
+  "keybindingsToggleSidebar": "Toggle Sidebar",
+  "keybindingsToggleAi": "Toggle AI Panel",
+  "keybindingsCloseTab": "Close Current Tab",
+  "keybindingsNextTab": "Next Tab",
+  "keybindingsPrevTab": "Previous Tab",
+  "keybindingsGoToTab": "Go to Tab N",
+  "keybindingsGoToTab1": "Go to Tab 1",
+  "keybindingsGoToTab2": "Go to Tab 2",
+  "keybindingsGoToTab3": "Go to Tab 3",
+  "keybindingsGoToTab4": "Go to Tab 4",
+  "keybindingsGoToTab5": "Go to Tab 5",
+  "keybindingsGoToTab6": "Go to Tab 6",
+  "keybindingsGoToTab7": "Go to Tab 7",
+  "keybindingsGoToTab8": "Go to Tab 8",
+  "keybindingsGoToTab9": "Go to Tab 9",
+  "keybindingsSearch": "Search Terminal",
+  "keybindingsSearchAllTabs": "Search All Tabs",
+  "keybindingsSplitVertical": "Split Vertical",
+  "keybindingsSplitHorizontal": "Split Horizontal",
+  "keybindingsClosePaneOrTab": "Close Pane / Tab",
+  "keybindingsFocusPaneNext": "Focus Next Pane",
+  "keybindingsFocusPanePrev": "Focus Previous Pane",
+  "keybindingsFocusPaneUp": "Focus Pane Above",
+  "keybindingsFocusPaneDown": "Focus Pane Below",
+  "keybindingsFocusPaneLeft": "Focus Pane Left",
+  "keybindingsFocusPaneRight": "Focus Pane Right",
+  "keybindingsToggleBroadcast": "Toggle Broadcast",
+  "keybindingsRecording": "Press shortcut...",
+  "keybindingsConflict": "Already used by \"{action}\"",
+  "@keybindingsConflict": {
+    "description": "Auto-imported from Tauri keybindings.conflict",
+    "placeholders": {
+      "action": {
+        "type": "String"
+      }
+    }
+  },
+  "keybindingsResetOne": "Reset to default",
+  "keybindingsResetAll": "Reset All",
+  "keybindingsResetAllConfirm": "Reset all keybindings to defaults?",
+  "keybindingsRequireModifier": "Shortcut must include Cmd/Ctrl",
+  "keybindingsReserved": "This shortcut is reserved by the system",
+  "searchPlaceholder": "Search...",
+  "searchNoResults": "No results",
+  "searchMatchCount": "{current} of {total}",
+  "@searchMatchCount": {
+    "description": "Auto-imported from Tauri search.matchCount",
+    "placeholders": {
+      "current": {
+        "type": "String"
+      },
+      "total": {
+        "type": "String"
+      }
+    }
+  },
+  "searchCaseSensitive": "Match Case",
+  "searchRegex": "Regular Expression",
+  "searchWholeWord": "Whole Word",
+  "searchClose": "Close",
+  "searchPreviousMatch": "Previous Match",
+  "searchNextMatch": "Next Match",
+  "searchSearchAllTabs": "Search All Tabs",
+  "searchSearchBtn": "Search",
+  "searchSearching": "Searching...",
+  "searchTotalMatches": "{count} match(es) in {tabs} tab(s)",
+  "@searchTotalMatches": {
+    "description": "Auto-imported from Tauri search.totalMatches",
+    "placeholders": {
+      "count": {
+        "type": "String"
+      },
+      "tabs": {
+        "type": "String"
+      }
+    }
+  },
+  "searchNoMatches": "No matches found",
+  "searchMoreMatches": "... and {count} more match(es)",
+  "@searchMoreMatches": {
+    "description": "Auto-imported from Tauri search.moreMatches",
+    "placeholders": {
+      "count": {
+        "type": "String"
+      }
+    }
+  },
+  "searchLine": "L",
+  "searchJumpToMatch": "Jump to match",
+  "highlightsTitle": "Keyword Highlights",
+  "highlightsPattern": "Pattern",
+  "highlightsRegex": "Regex",
+  "highlightsCaseSensitive": "Case",
+  "highlightsBgColor": "BG Color",
+  "highlightsFgColor": "FG Color",
+  "highlightsEnabled": "On",
+  "highlightsAddRule": "Add Rule",
+  "highlightsLoadPresets": "Load Presets",
+  "highlightsDeleteRule": "Delete",
+  "highlightsDeleteConfirm": "Delete this highlight rule?",
+  "highlightsNoRules": "No keyword highlight rules. Click \"Add Rule\" or \"Load Presets\" to get started.",
+  "highlightsPresetsLoaded": "Preset rules loaded",
+  "highlightsPatternRequired": "Pattern is required",
+  "highlightsInvalidRegex": "Invalid regular expression",
+  "aiConfigAddProvider": "Add Provider",
+  "aiConfigNoProviders": "No AI providers yet. Click above to add one.",
+  "aiConfigProviderName": "Name",
+  "aiConfigProviderType": "Type",
+  "aiConfigModel": "Model",
+  "aiConfigSetDefault": "Set Default",
+  "aiConfigDefault": "Default",
+  "aiConfigDeleteConfirm": "Delete this AI provider?",
+  "aiConfigTest": "Test",
+  "aiConfigTestSuccess": "Connection test successful",
+  "aiConfigTestFailed": "Connection test failed",
+  "aiConfigLanOllama": "LAN",
+  "backupTitle": "Backup & Restore",
+  "backupExport": "Export Config",
+  "backupExportDesc": "Export servers, groups, and settings as an encrypted .termex file",
+  "backupExportBtn": "Export",
+  "backupExportPasswordHint": "Set export password (at least 4 chars)",
+  "backupExportSuccess": "Export successful",
+  "backupPasswordTooShort": "Password must be at least 4 characters",
+  "backupImport": "Import Config",
+  "backupImportDesc": "Restore config data from an encrypted .termex file",
+  "backupImportBtn": "Import",
+  "backupImportPasswordHint": "Enter the password used during export",
+  "backupImportSuccess": "Import successful",
+  "backupRecordingDir": "Recording Directory",
+  "backupRecordingDirDesc": "Terminal session recordings are stored here",
+  "backupOpenDir": "Open Directory",
+  "updateTitle": "Version Info",
+  "updateCurrentVersion": "Current Version",
+  "updateLatestVersion": "Latest Version",
+  "updateChecking": "Checking for updates...",
+  "updateUpToDate": "You're running the latest version!",
+  "updateCheckFailed": "Update check failed",
+  "updateReleaseNotes": "What's new",
+  "updateNoAsset": "No installer available for your platform. Please download manually.",
+  "updateUpgrade": "Upgrade",
+  "updateRetry": "Retry",
+  "updateViewRelease": "View Release",
+  "updateDownloading": "Downloading...",
+  "updateDownloadFailed": "Download failed",
+  "updateInstallLaunched": "Installer launched. Termex will close shortly.",
+  "updateNewVersion": "New version available",
+  "keychainVerificationTitle": "Verify Credentials",
+  "keychainVerificationMessage": "Your system password may have changed. Please verify to access your saved credentials.",
+  "keychainVerificationVerify": "Verify",
+  "keychainVerificationFailed": "Verification failed. Some credentials may be temporarily inaccessible. You can still use Termex, but you may need to re-enter passwords.",
+  "autocompleteTitle": "Smart Autocomplete",
+  "autocompleteEnabled": "Enable terminal inline autocomplete",
+  "autocompleteDebounce": "Trigger delay",
+  "autocompleteDebounceUnit": "ms",
+  "autocompleteMinChars": "Minimum characters",
+  "autocompletePreferLocal": "Prefer local AI model",
+  "autocompletePreferLocalHint": "Use local engine when running, lower latency",
+  "localAiTitle": "Local AI Models",
+  "localAiEngineRunning": "Engine Running",
+  "localAiEngineStopped": "Engine Stopped",
+  "localAiMicroTier": "Micro (~200MB, 2GB RAM)",
+  "localAiMicroDesc": "Ultra-lightweight models for minimal resource usage",
+  "localAiSmallTier": "Small (~400MB, 4GB RAM)",
+  "localAiSmallDesc": "Lightweight models for basic command explanation, ideal for low-resource environments",
+  "localAiMediumTier": "Medium (~2GB, 8GB RAM)",
+  "localAiMediumDesc": "Balanced performance and quality, suitable for daily use",
+  "localAiLargeTier": "Large (~5GB, 16GB RAM) ⭐ Recommended",
+  "localAiLargeDesc": "Best quality and capabilities, recommended for optimal experience",
+  "localAiNotDownloaded": "Not Downloaded",
+  "localAiDownloading": "Downloading",
+  "localAiDownloaded": "Downloaded",
+  "localAiError": "Error",
+  "localAiVerifying": "Verifying",
+  "localAiSize": "Size",
+  "localAiMinRam": "Min RAM",
+  "localAiContextLength": "Context",
+  "localAiLocalModels": "Local Models",
+  "localAiDownload": "Download",
+  "localAiCancel": "Cancel",
+  "localAiDelete": "Delete",
+  "localAiRetry": "Retry",
+  "localAiUseAsProvider": "Use as Provider",
+  "localAiRecommended": "Recommended",
+  "localAiDownloadStarted": "Download started for {name}",
+  "@localAiDownloadStarted": {
+    "description": "Auto-imported from Tauri localAi.downloadStarted",
+    "placeholders": {
+      "name": {
+        "type": "String"
+      }
+    }
+  },
+  "localAiDownloadFailed": "Download failed: {error}",
+  "@localAiDownloadFailed": {
+    "description": "Auto-imported from Tauri localAi.downloadFailed",
+    "placeholders": {
+      "error": {
+        "type": "String"
+      }
+    }
+  },
+  "localAiDownloadCancelled": "Download cancelled",
+  "localAiDeleted": "Model deleted",
+  "localAiAddedAsProvider": "Added as AI provider",
+  "localAiDeleteConfirm": "Delete {name}? This cannot be undone.",
+  "@localAiDeleteConfirm": {
+    "description": "Auto-imported from Tauri localAi.deleteConfirm",
+    "placeholders": {
+      "name": {
+        "type": "String"
+      }
+    }
+  },
+  "localAiWarning": "Warning",
+  "localAiCatalogUpdated": "The model catalog has been updated. Check the Local AI Models section for new models.",
+  "localAiNoModels": "No local models downloaded yet. Please download a model in the Local AI Models panel.",
+  "localAiOk": "OK",
+  "localAiAutoStarting": "Starting Local AI",
+  "localAiAutoStartingMsg": "Auto-starting {model} in {seconds}s... Close to cancel.",
+  "@localAiAutoStartingMsg": {
+    "description": "Auto-imported from Tauri localAi.autoStartingMsg",
+    "placeholders": {
+      "model": {
+        "type": "String"
+      },
+      "seconds": {
+        "type": "String"
+      }
+    }
+  },
+  "localAiStartingModel": "Loading model {model}, please wait...",
+  "@localAiStartingModel": {
+    "description": "Auto-imported from Tauri localAi.startingModel",
+    "placeholders": {
+      "model": {
+        "type": "String"
+      }
+    }
+  },
+  "localAiStartedModel": "Local AI started: {model}",
+  "@localAiStartedModel": {
+    "description": "Auto-imported from Tauri localAi.startedModel",
+    "placeholders": {
+      "model": {
+        "type": "String"
+      }
+    }
+  },
+  "localAiReusedInstance": "Reusing existing instance: {model}",
+  "@localAiReusedInstance": {
+    "description": "Auto-imported from Tauri localAi.reusedInstance",
+    "placeholders": {
+      "model": {
+        "type": "String"
+      }
+    }
+  },
+  "localAiStartFailed": "Failed to start local AI",
+  "localAiSwitchModel": "Switch",
+  "localAiAutoStart": "Auto-start on launch",
+  "localAiAutoStartHint": "Automatically start the last used model when Termex opens",
+  "sshConfigImportTitle": "Import SSH Config",
+  "sshConfigImportDescription": "Import servers from ~/.ssh/config",
+  "sshConfigPreview": "Preview",
+  "sshConfigImporting": "Importing...",
+  "sshConfigSelectAll": "Select All",
+  "sshConfigDeselectAll": "Deselect All",
+  "sshConfigImportButton": "Import Selected",
+  "sshConfigImported": "Imported",
+  "sshConfigSkipped": "Skipped",
+  "sshConfigErrors": "Errors",
+  "sshConfigHostAlias": "Host Alias",
+  "sshConfigHostname": "Hostname",
+  "sshConfigPort": "Port",
+  "sshConfigUser": "User",
+  "sshConfigAuthType": "Auth",
+  "sshConfigAuthKey": "Key Authentication",
+  "sshConfigAuthPassword": "Password Authentication",
+  "sshConfigNoEntries": "No SSH config entries found",
+  "sshConfigParseWarnings": "Parse Warnings",
+  "sshConfigSelectedCount": "{count} of {total} selected",
+  "@sshConfigSelectedCount": {
+    "description": "Auto-imported from Tauri sshConfig.selectedCount",
+    "placeholders": {
+      "count": {
+        "type": "String"
+      },
+      "total": {
+        "type": "String"
+      }
+    }
+  },
+  "sshConfigImport": "Import",
+  "sshConfigResultSummary": "{imported} imported, {skipped} skipped, {errors} error(s)",
+  "@sshConfigResultSummary": {
+    "description": "Auto-imported from Tauri sshConfig.resultSummary",
+    "placeholders": {
+      "imported": {
+        "type": "String"
+      },
+      "skipped": {
+        "type": "String"
+      },
+      "errors": {
+        "type": "String"
+      }
+    }
+  },
+  "sshConfigErrorDetails": "Error Details",
+  "sshConfigDone": "Done",
+  "sshConfigNonInteractive": "Non-SSH",
+  "snippetTitle": "Snippets",
+  "snippetSearch": "Search snippets...",
+  "snippetCreate": "New Snippet",
+  "snippetCreateTitle": "New Snippet",
+  "snippetEditTitle": "Edit Snippet",
+  "snippetEdit": "Edit Snippet",
+  "snippetDelete": "Delete Snippet",
+  "snippetDeleteConfirm": "Are you sure you want to delete this snippet?",
+  "snippetExecute": "Execute",
+  "snippetSaveAsSnippet": "Save as Snippet",
+  "snippetSave": "Save",
+  "snippetCancel": "Cancel",
+  "snippetName": "Title",
+  "snippetTitleLabel": "Title",
+  "snippetTitlePlaceholder": "Enter snippet title",
+  "snippetCommand": "Command",
+  "snippetCommandLabel": "Command",
+  "snippetCommandPlaceholder": "Enter command...",
+  "snippetDescription": "Description",
+  "snippetDescriptionLabel": "Description",
+  "snippetDescriptionPlaceholder": "Optional description",
+  "snippetTags": "Tags",
+  "snippetTagsLabel": "Tags",
+  "snippetTagsPlaceholder": "Comma-separated tags",
+  "snippetTagsHint": "Comma-separated tags",
+  "snippetFolder": "Folder",
+  "snippetFolderLabel": "Folder",
+  "snippetFolderNone": "No folder",
+  "snippetFavorite": "Favorite",
+  "snippetFavoriteLabel": "Favorite",
+  "snippetUnfavorite": "Unfavorite",
+  "snippetNoSnippets": "No snippets yet",
+  "snippetEmpty": "No snippets yet",
+  "snippetCreateFirst": "Create your first snippet",
+  "snippetNoResults": "No matching snippets",
+  "snippetPalette": "Snippet Palette",
+  "snippetPaletteSearch": "Search snippets...",
+  "snippetVariableTitle": "Fill Variables",
+  "snippetVariablesTitle": "Fill Variables",
+  "snippetVariableHint": "Enter values for template variables",
+  "snippetUsageCount": "Used {count} times",
+  "@snippetUsageCount": {
+    "description": "Auto-imported from Tauri snippet.usageCount",
+    "placeholders": {
+      "count": {
+        "type": "String"
+      }
+    }
+  },
+  "snippetAllFolders": "All",
+  "snippetAllFolder": "All",
+  "snippetNewFolder": "New Folder",
+  "snippetFolderName": "Folder name",
+  "snippetNavigate": "Navigate",
+  "snippetRun": "Run",
+  "snippetClose": "Close",
+  "monitorTitle": "Server Monitor",
+  "monitorCollectionInterval": "Collection Interval",
+  "monitorAutoStart": "Auto-start monitoring on connect",
+  "monitorVisiblePanels": "Visible Panels",
+  "teamTitle": "Team Collaboration",
+  "teamDescription": "Share server configs via Git repo. All credentials are encrypted with a team key.",
+  "teamCreate": "Create Team",
+  "teamJoin": "Join Team",
+  "teamLeave": "Leave Team",
+  "teamLeaveConfirm": "Leave this team? Imported servers will be kept locally but won't sync.",
+  "teamLeftSuccess": "Left the team",
+  "teamSync": "Sync to Cloud",
+  "teamSyncing": "Syncing to Cloud...",
+  "teamSyncSuccess": "Synced: imported {imported}, exported {exported}",
+  "@teamSyncSuccess": {
+    "description": "Auto-imported from Tauri team.syncSuccess",
+    "placeholders": {
+      "imported": {
+        "type": "String"
+      },
+      "exported": {
+        "type": "String"
+      }
+    }
+  },
+  "teamSyncUpToDate": "Already up to date",
+  "teamTeamName": "Team Name",
+  "teamPassphrase": "Team Passphrase",
+  "teamPassphraseConfirm": "Confirm Passphrase",
+  "teamPassphraseHint": "All members need the same passphrase. Share it securely.",
+  "teamRepoUrl": "Git Repository URL",
+  "teamRepoUrlHint": "SSH (git@...) or HTTPS (https://...)",
+  "teamGitAuth": "Git Authentication",
+  "teamGitAuthSsh": "SSH Key",
+  "teamGitAuthToken": "HTTPS Token",
+  "teamGitAuthUserPass": "HTTPS User/Pass",
+  "teamUsername": "Your Username",
+  "teamUsernameHint": "Display name in the team",
+  "teamRole": "Role",
+  "teamRoleAdmin": "Admin",
+  "teamRoleMember": "Member",
+  "teamRoleReadonly": "Read-only",
+  "teamMembers": "Members",
+  "teamMemberManage": "Manage Members",
+  "teamMemberRemove": "Remove Member",
+  "teamMemberRemoveConfirm": "Remove {name} from the team?",
+  "@teamMemberRemoveConfirm": {
+    "description": "Auto-imported from Tauri team.memberRemoveConfirm",
+    "placeholders": {
+      "name": {
+        "type": "String"
+      }
+    }
+  },
+  "teamShareServer": "Share with Team",
+  "teamShareServerHint": "Sync this server config to all team members",
+  "teamSharedBy": "Shared by {name}",
+  "@teamSharedBy": {
+    "description": "Auto-imported from Tauri team.sharedBy",
+    "placeholders": {
+      "name": {
+        "type": "String"
+      }
+    }
+  },
+  "teamSharedWithTeam": "Shared with team · will sync on next push",
+  "teamMakePrivate": "Make Private",
+  "teamReceivedFrom": "Received from {name}",
+  "@teamReceivedFrom": {
+    "description": "Auto-imported from Tauri team.receivedFrom",
+    "placeholders": {
+      "name": {
+        "type": "String"
+      }
+    }
+  },
+  "teamTeamServers": "Team Nodes",
+  "teamLastSync": "Last sync",
+  "teamNeverSynced": "Never synced",
+  "teamJustNow": "Just now",
+  "teamMinutesAgo": "min ago",
+  "teamPendingChanges": "Pending changes",
+  "teamCreateSuccess": "Team created successfully",
+  "teamJoinSuccess": "Joined team successfully",
+  "teamStep1Info": "Info",
+  "teamStep2Repo": "Repository",
+  "teamStep3Done": "Done",
+  "teamNext": "Next",
+  "teamDone": "Done",
+  "teamEnterPassphrase": "Enter Team Passphrase",
+  "teamPassphraseRequired": "Team passphrase is required to sync shared configurations.",
+  "teamPassphraseWrong": "Incorrect team passphrase",
+  "teamRememberPassphrase": "Remember passphrase",
+  "teamRotateKey": "Rotate Password",
+  "teamCurrentPassphrase": "Current passphrase",
+  "teamNewPassphrase": "New passphrase",
+  "teamPassphraseTooShort": "Passphrase must be at least 8 characters",
+  "teamPassphraseMismatch": "Passphrases do not match",
+  "teamRotateKeySuccess": "Team password rotated successfully",
+  "recordingTitle": "Session Recording",
+  "recordingRetentionPeriod": "Retention Period",
+  "recordingRetentionDesc": "Recordings older than this will be cleaned up on startup.",
+  "recordingDays30": "30 days",
+  "recordingDays60": "60 days",
+  "recordingDays90": "90 days",
+  "recordingKeepForever": "Keep forever",
+  "recordingCleanup": "Clean up expired",
+  "recordingCleanupResult": "Cleaned up {count} recordings",
+  "@recordingCleanupResult": {
+    "description": "Auto-imported from Tauri recording.cleanupResult",
+    "placeholders": {
+      "count": {
+        "type": "String"
+      }
+    }
+  },
+  "recordingStartRecording": "Start Recording",
+  "recordingStopRecording": "Stop Recording",
+  "cloudTitle": "Cloud Resources",
+  "cloudRefresh": "Refresh",
+  "cloudFilterPods": "Filter pods...",
+  "cloudFilterInstances": "Filter instances...",
+  "cloudKubeClusters": "K8s Clusters",
+  "cloudKubeConnect": "Connect",
+  "cloudKubeViewLogs": "View Logs",
+  "cloudKubePodDetail": "Pod Details",
+  "cloudKubeSelectContainer": "Select container",
+  "cloudKubeSelectShell": "Shell",
+  "cloudKubeNoContexts": "No clusters configured",
+  "cloudKubeNoPods": "No pods in this namespace",
+  "cloudKubeExecFailed": "Failed to exec into pod",
+  "cloudKubeRbacDenied": "Permission denied. Required: pods/exec",
+  "cloudSsmTitle": "AWS SSM",
+  "cloudSsmConnect": "Connect",
+  "cloudSsmNoInstances": "No reachable instances",
+  "cloudSsmAgentOffline": "SSM Agent offline",
+  "cloudSsmCredExpired": "AWS credentials expired. Run: aws sso login",
+  "cloudLogsTailLines": "Tail lines",
+  "cloudLogsSince": "Since",
+  "cloudLogsFollow": "Follow",
+  "cloudLogsStreamEnded": "Log stream ended",
+  "cloudSetupTitle": "Cloud Native Setup",
+  "cloudSetupDesc": "Connect to K8s clusters and AWS EC2 instances",
+  "cloudSetupDetected": "Detected",
+  "cloudSetupNotInstalled": "Not installed",
+  "cloudSetupRefresh": "Refresh Detection",
+  "cloudSetupSkip": "Skip for now",
+  "cloudInstallCopy": "Copy install command",
+  "cloudTimeout": "Connection timed out",
+  "cloudToolNotFound": "{tool} not found",
+  "@cloudToolNotFound": {
+    "description": "Auto-imported from Tauri cloud.toolNotFound",
+    "placeholders": {
+      "tool": {
+        "type": "String"
+      }
+    }
+  },
+  "cloudTeamFavorites": "Team Cloud Resources",
+  "cloudNoTeamFavorites": "No team cloud resources yet. Share a K8s context or AWS profile from the private section.",
+  "teamV2RoleOps": "Ops",
+  "teamV2RoleDeveloper": "Developer",
+  "teamV2RoleViewer": "Viewer",
+  "teamV2RoleCustom": "Custom Role",
+  "teamV2ManageRoles": "Manage Roles",
+  "teamV2CreateRole": "Create Role",
+  "teamV2DeleteRole": "Delete",
+  "teamV2DeleteRoleConfirm": "Delete this custom role?",
+  "teamV2PresetRoleReadonly": "preset",
+  "teamV2CapServerConnect": "Connect",
+  "teamV2CapServerCreate": "Create Server",
+  "teamV2CapServerEdit": "Edit Server",
+  "teamV2CapServerDelete": "Delete Server",
+  "teamV2CapServerViewCredentials": "View Credentials",
+  "teamV2CapSnippetCreate": "Create Snippet",
+  "teamV2CapSnippetEdit": "Edit Snippet",
+  "teamV2CapSnippetDelete": "Delete Snippet",
+  "teamV2CapSnippetExecute": "Execute Snippet",
+  "teamV2CapTeamInvite": "Invite",
+  "teamV2CapTeamRemove": "Remove Member",
+  "teamV2CapTeamRoleAssign": "Assign Role",
+  "teamV2CapTeamSettingsEdit": "Team Settings",
+  "teamV2CapSyncPush": "Push",
+  "teamV2CapSyncPull": "Pull",
+  "teamV2CapAuditView": "View Audit",
+  "teamV2CapAuditExport": "Export Audit",
+  "teamV2EditRole": "Edit Role",
+  "teamV2RoleInUse": "This role is in use by {count} member(s)",
+  "@teamV2RoleInUse": {
+    "description": "Auto-imported from Tauri teamV2.roleInUse",
+    "placeholders": {
+      "count": {
+        "type": "String"
+      }
+    }
+  },
+  "teamV2CredProtected": "Credentials protected by team permissions.",
+  "teamV2CredContactAdmin": "Contact your admin for access.",
+  "teamV2PasswordUpdated": "Team password was updated. Please enter the new password.",
+  "teamV2PasswordPendingUpdate": "Team password needs update",
+  "teamV2ConflictResolved": "Resolved {count} conflict(s)",
+  "@teamV2ConflictResolved": {
+    "description": "Auto-imported from Tauri teamV2.conflictResolved",
+    "placeholders": {
+      "count": {
+        "type": "String"
+      }
+    }
+  },
+  "teamV2NoPermission": "You don't have permission for this action.",
+  "teamV2NoPermissionDetail": "Required: {capability}",
+  "@teamV2NoPermissionDetail": {
+    "description": "Auto-imported from Tauri teamV2.noPermissionDetail",
+    "placeholders": {
+      "capability": {
+        "type": "String"
+      }
+    }
+  },
+  "teamV2AuditDashboard": "Audit Dashboard",
+  "teamV2AuditExportReport": "Export...",
+  "teamV2AuditConnections": "Connections",
+  "teamV2AuditCredAccess": "Credentials",
+  "teamV2AuditConfigChanges": "Changes",
+  "teamV2AuditMemberOps": "Members",
+  "teamV2AuditRecentOps": "Recent",
+  "teamV2AuditViewAll": "View All",
+  "teamV2AuditFilterAll": "All Events",
+  "teamV2AuditDateRange": "Date Range",
+  "teamV2AuditThisWeek": "This Week",
+  "teamV2AuditThisMonth": "This Month",
+  "teamV2AuditAll": "All Time",
+  "teamV2AuditFormatJson": "JSON",
+  "teamV2AuditFormatCsv": "CSV",
+  "teamV2AuditFormatHtml": "HTML",
+  "teamV2InviteMember": "Invite Member",
+  "teamV2InviteRole": "Invite as",
+  "teamV2InviteExpiry": "Expires in",
+  "teamV2InviteGenerate": "Generate Invite Code",
+  "teamV2InviteCode": "Invite Code",
+  "teamV2InviteCopied": "Copied",
+  "teamV2InviteHint": "Send this code and team password separately to the invitee.",
+  "teamV2InviteExpired": "Invite code expired",
+  "teamV2InviteInvalid": "Invalid invite code",
+  "teamV2InviteDays": "{n} days",
+  "@teamV2InviteDays": {
+    "description": "Auto-imported from Tauri teamV2.inviteDays",
+    "placeholders": {
+      "n": {
+        "type": "String"
+      }
+    }
+  },
+  "teamV2JoinViaInvite": "Invite Code",
+  "teamV2ConflictTitle": "Sync Conflicts",
+  "teamV2ConflictDesc": "The following items have conflicting changes between local and remote:",
+  "teamV2ConflictLocalVersion": "Local (You)",
+  "teamV2ConflictRemoteVersion": "Remote ({user})",
+  "@teamV2ConflictRemoteVersion": {
+    "description": "Auto-imported from Tauri teamV2.conflictRemoteVersion",
+    "placeholders": {
+      "user": {
+        "type": "String"
+      }
+    }
+  },
+  "teamV2ConflictKeepLocal": "Keep Local",
+  "teamV2ConflictUseRemote": "Use Remote",
+  "teamV2ConflictSkip": "Skip",
+  "teamV2ConflictApply": "Apply",
+  "teamV2ConflictAllLocal": "All Local",
+  "teamV2ConflictAllRemote": "All Remote",
+  "teamV2ConflictPending": "{count} conflict(s) need resolution",
+  "@teamV2ConflictPending": {
+    "description": "Auto-imported from Tauri teamV2.conflictPending",
+    "placeholders": {
+      "count": {
+        "type": "String"
+      }
+    }
+  },
+  "aboutTagline": "Your always-on cloud AI workspace in the AI era",
+  "aboutUpdateAvailable": "Update available v{version}",
+  "@aboutUpdateAvailable": {
+    "description": "Auto-added for about_tab.dart i18n pilot",
+    "placeholders": {
+      "version": {
+        "type": "String"
+      }
+    }
+  },
+  "aboutUpdateReady": "Ready to install v{version}",
+  "@aboutUpdateReady": {
+    "description": "Auto-added for about_tab.dart i18n pilot",
+    "placeholders": {
+      "version": {
+        "type": "String"
+      }
+    }
+  },
+  "aboutUpdateFailed": "Update failed: {error}",
+  "@aboutUpdateFailed": {
+    "description": "Auto-added for about_tab.dart i18n pilot",
+    "placeholders": {
+      "error": {
+        "type": "String"
+      }
+    }
+  },
+  "aboutAutoDownload": "Auto-download updates",
+  "aboutCheckFrequencyLabel": "Check frequency:",
+  "aboutFrequencyHourly": "Every hour",
+  "aboutFrequencyDaily": "Every day",
+  "aboutFrequencyWeekly": "Every week",
+  "aboutCheckNow": "Check now",
+  "aboutDownloadButton": "Download v{version}",
+  "@aboutDownloadButton": {
+    "description": "Auto-added for about_tab.dart i18n pilot",
+    "placeholders": {
+      "version": {
+        "type": "String"
+      }
+    }
+  },
+  "aboutApplyAndRestart": "Restart & apply",
+  "aboutWebsite": "Website",
+  "aboutSessionPoolTitle": "Session pool status (debug)",
+  "aboutSessionPoolHelp": "When multiple servers share the same proxy or jump host the upstream TCP connection is reused; each entry shows ref count and bytes transferred.",
+  "aboutSessionPoolEmpty": "No active pool entries",
+  "aboutUpdateDownloadingPercent": "Downloading {percent}%",
+  "@aboutUpdateDownloadingPercent": {
+    "description": "Auto-added for about_tab.dart i18n pilot",
+    "placeholders": {
+      "percent": {
+        "type": "String"
+      }
+    }
+  },
+  "commonRefresh": "Refresh",
+  "commonLoadFailed": "Load failed: {error}",
+  "@commonLoadFailed": {
+    "description": "Auto-added for about_tab.dart i18n pilot",
+    "placeholders": {
+      "error": {
+        "type": "String"
+      }
+    }
+  },
+  "settingsAi": "AI Assistant",
+  "settingsPrivacy": "Privacy",
+  "settingsAudit": "Audit log",
+  "settingsLocalAi": "Local AI",
+  "settingsAbout": "About",
+  "settingsSearchPlaceholder": "Search settings…",
+  "settingsSearchNoMatch": "No matching settings",
+  "settingsIdxThemeLabel": "Theme",
+  "settingsIdxThemeDesc": "Light / Dark / Follow system",
+  "settingsIdxFontLabel": "Font",
+  "settingsIdxFontDesc": "Terminal font and size",
+  "settingsIdxCursorLabel": "Cursor",
+  "settingsIdxCursorDesc": "Cursor shape and blink",
+  "settingsIdxScrollbackLabel": "Scrollback",
+  "settingsIdxScrollbackDesc": "Terminal history lines",
+  "settingsIdxTabWidthLabel": "Tab width",
+  "settingsIdxTabWidthDesc": "2 / 4 / 8 spaces",
+  "settingsIdxKeybindingsLabel": "Shortcuts",
+  "settingsIdxKeybindingsDesc": "Custom commands and conflict detection",
+  "settingsIdxAiProviderLabel": "AI Provider",
+  "settingsIdxAiProviderDesc": "Claude / OpenAI / Ollama / Local",
+  "settingsIdxAiContextLabel": "AI context",
+  "settingsIdxAiContextDesc": "Terminal lines sent to AI",
+  "settingsIdxTeamPassphraseLabel": "Team passphrase",
+  "settingsIdxTeamPassphraseDesc": "Team sync unlock",
+  "settingsIdxPrivacyClearLabel": "Privacy data wipe",
+  "settingsIdxPrivacyClearDesc": "Connection history / AI conversations / Snippet stats",
+  "settingsIdxGdprEraseLabel": "GDPR data erasure",
+  "settingsIdxGdprEraseDesc": "Permanently delete all local data",
+  "settingsIdxBackupLabel": "Backup import/export",
+  "settingsIdxBackupDesc": ".termex encrypted file",
+  "settingsIdxAuditLabel": "Audit log",
+  "settingsIdxAuditDesc": "Event query / CSV export",
+  "settingsIdxLocalAiLabel": "Local AI",
+  "settingsIdxLocalAiDesc": "llama-server port and model",
+  "settingsIdxAboutLabel": "About",
+  "settingsIdxAboutDesc": "Version and license",
+  "backupAutoFreqLabel": "Auto-backup frequency",
+  "backupAutoFreqHint": "How often .termex encrypted backups are generated",
+  "backupFreqOff": "Off",
+  "backupFreqDaily": "Daily",
+  "backupFreqWeekly": "Weekly",
+  "backupEncryptionNote": ".termex backups use AES-256-GCM + Argon2id encryption.",
+  "backupNow": "Backup now",
+  "backupImportConfig": "Import config",
+  "backupEnterEncryptPassword": "Enter encryption password",
+  "backupEnterDecryptPassword": "Enter decryption password",
+  "backupDone": "Backup complete: {file}",
+  "@backupDone": {
+    "description": "backup_tab.dart i18n",
+    "placeholders": {
+      "file": {
+        "type": "String"
+      }
+    }
+  },
+  "backupFailed": "Backup failed: {error}",
+  "@backupFailed": {
+    "description": "backup_tab.dart i18n",
+    "placeholders": {
+      "error": {
+        "type": "String"
+      }
+    }
+  },
+  "backupPasswordHint": "Password (12+ characters)",
+  "backupConfirm": "OK",
+  "backupHistoryTitle": "Backup history",
+  "backupHistoryClear": "Clear",
+  "backupHistoryMaxNote": "Keeping the latest {max} records",
+  "@backupHistoryMaxNote": {
+    "description": "backup_tab.dart i18n",
+    "placeholders": {
+      "max": {
+        "type": "String"
+      }
+    }
+  },
+  "backupHistoryEmpty": "No backup records yet",
+  "cloudTabScheduledBackup": "Scheduled backup",
+  "cloudK8sSelectContext": "Select a context to view pods",
+  "cloudK8sColName": "Name",
+  "cloudK8sColStatus": "Status",
+  "cloudK8sColRestarts": "Restarts",
+  "cloudK8sColAge": "Age",
+  "cloudK8sColImage": "Image",
+  "cloudSsmEmpty": "No SSM instances found",
+  "cloudSsmStartSession": "Start session",
+  "cloudEcsFavoritesTitle": "ECS favorites",
+  "cloudEcsAdd": "Add",
+  "cloudEcsFavoritesEmpty": "No favorited ECS instances",
+  "cloudEcsConnect": "Connect",
+  "cloudScheduleTitle": "Scheduled backup",
+  "cloudScheduleNew": "New",
+  "cloudScheduleEmpty": "No scheduled backups configured",
+  "cloudHistoryEmpty": "No backup records",
+  "cloudScheduleWeekly": "Every {weekday} · {hour}:{minute} UTC",
+  "@cloudScheduleWeekly": {
+    "description": "cloud_panel.dart i18n",
+    "placeholders": {
+      "weekday": {
+        "type": "String"
+      },
+      "hour": {
+        "type": "String"
+      },
+      "minute": {
+        "type": "String"
+      }
+    }
+  },
+  "cloudScheduleMonthly": "Every {day}th · {hour}:{minute} UTC",
+  "@cloudScheduleMonthly": {
+    "description": "cloud_panel.dart i18n",
+    "placeholders": {
+      "day": {
+        "type": "String"
+      },
+      "hour": {
+        "type": "String"
+      },
+      "minute": {
+        "type": "String"
+      }
+    }
+  },
+  "cloudScheduleDaily": "Daily · {hour}:{minute} UTC",
+  "@cloudScheduleDaily": {
+    "description": "cloud_panel.dart i18n",
+    "placeholders": {
+      "hour": {
+        "type": "String"
+      },
+      "minute": {
+        "type": "String"
+      }
+    }
+  },
+  "cloudScheduleRunNow": "Run now",
+  "cloudScheduleDelete": "Delete",
+  "privacyDialogTitle": "Privacy Policy",
+  "privacyEffectiveDate": "Effective · 2026-05-07",
+  "privacyClose": "Close",
+  "privacySec1Heading": "1. Overview",
+  "privacySec1Body": "Termex is an open-source SSH client. We take your privacy seriously: this app does not collect, transmit, or store any user data on Termex servers — Termex has no backend servers.",
+  "privacySec2Heading": "2. Data Storage",
+  "privacySec2Body": "All data is stored only on your device:\n· Server configs: local SQLite, SQLCipher AES-256 encryption.\n· SSH passwords / key passphrases: system Keychain (macOS) / Credential Manager (Windows) / Secret Service (Linux).\n· AI API keys: same — stored in the system Keychain.\n· Session recordings: local filesystem.\n· Monitor history: local SQLite, SQLCipher encrypted.",
+  "privacySec3Heading": "3. Network Connections",
+  "privacySec3Body": "Termex only establishes these network connections:\n· SSH connections: direct to the server you specify; no intermediate nodes.\n· AI requests: direct to the AI provider you configure (OpenAI, Anthropic, etc.); Termex never acts as a proxy or relay.\n· App updates: queries the official appcast feed for version information.",
+  "privacySec4Heading": "4. Team Sync (Optional)",
+  "privacySec4Body": "If you enable team features, Termex syncs encrypted configs via the Git repository you specify. Termex is not a sync server; all data is encrypted with the team key before transmission.",
+  "privacySec5Heading": "5. Your Rights (GDPR / CCPA)",
+  "privacySec5Body": "Because Termex collects no personal data:\n· Data access / export: all data is locally readable.\n· Data deletion: Settings → Privacy → Erase all data.\n· Data portability: Settings → Data → Export encrypted backup.",
+  "privacySec6Heading": "6. Contact",
+  "privacySec6Body": "The full privacy policy lives at docs/privacy-policy.md in the project repository. For privacy-related questions please contact us via GitHub Issues.",
+  "proxiesTitle": "Proxy configurations",
+  "proxiesAddProxy": "Add proxy",
+  "proxiesEmpty": "No proxies configured\nClick 'Add proxy' to create an HTTP or SOCKS5 proxy",
+  "proxiesDefault": "Default",
+  "proxiesTestConn": "Test connection",
+  "proxiesTestOk": "Proxy connection OK ✓",
+  "proxiesTestFail": "Proxy connection failed",
+  "proxiesTestError": "Test failed: {error}",
+  "@proxiesTestError": {
+    "placeholders": {
+      "error": {
+        "type": "String"
+      }
+    }
+  },
+  "proxiesSetDefault": "Set as default",
+  "proxiesDelete": "Delete",
+  "proxiesDialogName": "Name",
+  "proxiesDialogType": "Type",
+  "proxiesDialogHost": "Host",
+  "proxiesDialogPort": "Port",
+  "proxiesDialogUsername": "Username",
+  "proxiesDialogPassword": "Password",
+  "proxiesDialogOptional": "(optional)",
+  "proxiesDialogAdd": "Add",
+  "proxiesDefaultName": "Proxy",
+  "gitSyncExtraReposTitle": "Additional repositories",
+  "gitSyncNoExtraRepos": "No additional repositories",
+  "gitSyncAddRepo": "Add repository",
+  "gitSyncAddDialogTitle": "Add Git Sync repository",
+  "gitSyncLocalPath": "Local path",
+  "gitSyncRemoteUrl": "Remote URL",
+  "gitSyncRemoteUrlGitSsh": "Remote URL (git/ssh)",
+  "gitSyncAdd": "Add",
+  "gitSyncManualSync": "Manual sync",
+  "gitSyncEnable": "Enable",
+  "gitSyncRowLocal": "Local",
+  "gitSyncRowRemote": "Remote",
+  "gitSyncRowLastSync": "Last sync",
+  "gitSyncResolveConflicts": "Resolve conflicts ({count})",
+  "@gitSyncResolveConflicts": {
+    "placeholders": {
+      "count": {
+        "type": "String"
+      }
+    }
+  },
+  "gitSyncEnableDialogTitle": "Enable Git Sync",
+  "gitSyncLocalRepoPath": "Local repo path",
+  "gitSyncRowError": "Error: {message}",
+  "@gitSyncRowError": {
+    "placeholders": {
+      "message": {
+        "type": "String"
+      }
+    }
+  },
+  "sftpSortNameAsc": "Name ↑",
+  "sftpSortNameDesc": "Name ↓",
+  "sftpSortSizeDesc": "Size",
+  "sftpSortModifiedDesc": "Modified",
+  "sftpSortTypeFirst": "Type",
+  "sftpShowHidden": "Show hidden",
+  "sftpSortTooltip": "Sort",
+  "sftpColName": "Name",
+  "sftpColSize": "Size",
+  "sftpColModified": "Modified",
+  "sftpColPermissions": "Permissions",
+  "sftpEmptyDir": "(empty directory)",
+  "sftpActionDownload": "Download",
+  "sftpActionRename": "Rename",
+  "sftpActionDelete": "Delete",
+  "sftpActionChmod": "Change permissions",
+  "sftpActionNewFile": "New file",
+  "sftpActionNewFolder": "New folder",
+  "sftpActionProperties": "Properties",
+  "teamOfflineToast": "Network unreachable, entering offline mode",
+  "teamLeaveTitle": "Leave team",
+  "teamLeaveBody": "Leaving will delete all local team data — this cannot be undone.",
+  "teamStatMembers": "Members",
+  "teamStatSharedServers": "Shared servers",
+  "teamStatSharedProxies": "Shared proxies",
+  "teamOfflineBanner": "Offline — local browse only",
+  "teamMyRole": "My role",
+  "teamConflictsCount": "{count} sync conflicts — tap to resolve",
+  "@teamConflictsCount": {
+    "placeholders": {
+      "count": {
+        "type": "String"
+      }
+    }
+  },
+  "teamItemsCount": "{count} items",
+  "@teamItemsCount": {
+    "placeholders": {
+      "count": {
+        "type": "String"
+      }
+    }
+  },
+  "teamSyncNow": "Sync now",
+  "teamRelJustNow": "just now",
+  "teamRelMinutesAgo": "{n} minutes ago",
+  "@teamRelMinutesAgo": {
+    "placeholders": {
+      "n": {
+        "type": "String"
+      }
+    }
+  },
+  "teamRelHoursAgo": "{n} hours ago",
+  "@teamRelHoursAgo": {
+    "placeholders": {
+      "n": {
+        "type": "String"
+      }
+    }
+  },
+  "teamRelDaysAgo": "{n} days ago",
+  "@teamRelDaysAgo": {
+    "placeholders": {
+      "n": {
+        "type": "String"
+      }
+    }
+  },
+  "teamLeaveButton": "Leave team",
+  "teamDashLocked": "Team features locked",
+  "teamDashUnlock": "Unlock team",
+  "teamDashMembersTitle": "Team members",
+  "teamDashMemberCount": "{count} member(s)",
+  "@teamDashMemberCount": {
+    "placeholders": {
+      "count": {
+        "type": "String"
+      }
+    }
+  },
+  "teamDashLastSyncShort": "Last sync: {ago}",
+  "@teamDashLastSyncShort": {
+    "placeholders": {
+      "ago": {
+        "type": "String"
+      }
+    }
+  },
+  "teamDashInviteMember": "Invite member",
+  "teamDashConflictsShort": "{count} sync conflicts",
+  "@teamDashConflictsShort": {
+    "placeholders": {
+      "count": {
+        "type": "String"
+      }
+    }
+  },
+  "teamDashPendingInvites": "Pending invites",
+  "teamDashSyncShort": "Sync",
+  "teamDashResolve": "Resolve",
+  "teamDashRevokeInvite": "Revoke invite",
+  "recordingCleanupDone": "Cleaned up expired recording files",
+  "recordingCleanupFailed": "Cleanup failed: {error}",
+  "@recordingCleanupFailed": {
+    "placeholders": {
+      "error": {
+        "type": "String"
+      }
+    }
+  },
+  "recordingSaveSettings": "Recording save settings",
+  "recordingFormat": "Recording format",
+  "recordingFormatJsonSubtitle": "Structured JSON format, plays back in asciinema players\nCompact, recommended for sharing",
+  "recordingFormatRawSubtitle": "Raw terminal byte stream, suitable for offline replay\nLarger, keeps the full output",
+  "recordingStorageNote": "Recordings are saved under the recordings/ folder of the app data directory.\nFiles older than the retention period are cleaned up at every startup.",
+  "recordingRetentionForever": "Keep forever",
+  "recordingRetentionNone": "Do not keep",
+  "recordingRetentionDays": "{days} days",
+  "@recordingRetentionDays": {
+    "placeholders": {
+      "days": {
+        "type": "String"
+      }
+    }
+  },
+  "recordingRetentionTitle": "Recording retention",
+  "recordingForever": "Forever",
+  "recordingOneYear": "1 year",
+  "recordingCleanupNow": "Clean up expired now",
+  "recordingCleanupRunning": "Cleaning up…"
+}

@@ -1,7 +1,7 @@
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:flutter_test/flutter_test.dart';
 
-import 'package:termex/features/git_sync/state/git_sync_provider.dart';
+import 'package:termex_shared/features/git_sync/state/git_sync_provider.dart';
 
 ProviderContainer _container() => ProviderContainer();
 

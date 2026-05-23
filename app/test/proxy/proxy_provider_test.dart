@@ -1,7 +1,7 @@
 import 'package:flutter_test/flutter_test.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 
-import 'package:termex/features/proxy/state/proxy_provider.dart';
+import 'package:termex_shared/features/proxy/state/proxy_provider.dart';
 
 ProviderContainer _container() => ProviderContainer();
 

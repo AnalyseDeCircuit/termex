@@ -2,7 +2,7 @@
 
 This is the **in-progress Flutter rewrite** of Termex. The production version still ships on the Tauri/Vue stack (see [../README.md](../README.md)). This directory will become the default at v0.49.0 release.
 
-**Status**: Migration foundation complete, UI layouts done, FRB bindings pending codegen, 71 TODOs open. See [../docs/iterations/v0.51.0-remediation.md](../docs/iterations/v0.51.0-remediation.md).
+**Status**: Migration foundation complete, UI layouts done, FRB bindings pending codegen, 71 TODOs open. See [../docs/iterations/v0.51.0-pc-remediation.md](../docs/iterations/v0.51.0-pc-remediation.md).
 
 ---
 
@@ -88,7 +88,7 @@ app/lib/
 ├── plugins/                  # Plugin system UI
 ├── services/                 # Service layer (logging, config loading)
 ├── shortcuts/                # Keybinding management
-├── system/                   # sentinel_flag.dart, auto_updater.dart, crash_reporter.dart
+├── system/                   # auto_updater.dart, crash_reporter.dart
 └── ...
 ```
 
@@ -154,28 +154,6 @@ See [`distribute_options.yaml`](distribute_options.yaml) for configuration.
 
 ---
 
-## Anti-reverse-engineering (sentinel) builds
-
-Release builds include optional integrity checks gated by the `SENTINEL` dart-define:
-
-```bash
-# Normal release (sentinel checks tree-shaken out)
-flutter build macos --release
-
-# With sentinel checks
-flutter build macos --release --dart-define=SENTINEL=true
-```
-
-Rust-side equivalent uses the `sentinel` feature:
-```bash
-cargo build -p termex-core --features sentinel --release
-```
-
-See `lib/system/sentinel_flag.dart` and `../CLAUDE.local.md` for details.
-Watermarks are recorded in `../watermarks.local.json` (gitignored).
-
----
-
 ## Troubleshooting
 
 ### "FRB stub hit" error at runtime
@@ -209,6 +187,6 @@ cargo build -p termex-flutter-bridge --release
 
 - [Project overview (dual-stack)](../README.md)
 - [Claude Code rules](../CLAUDE.md)
-- [v0.51.0 remediation plan](../docs/iterations/v0.51.0-remediation.md)
+- [v0.51.0 remediation plan](../docs/iterations/v0.51.0-pc-remediation.md)
 - [Flutter migration roadmap](../docs/migration/flutter-migration-roadmap.md) (if present)
 - [v0.40.0–v0.50.0 iteration specs](../docs/iterations/)

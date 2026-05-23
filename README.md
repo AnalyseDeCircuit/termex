@@ -75,9 +75,11 @@ pnpm tauri build
 
 ## Tech Stack
 
-> **Repository state**: Termex is currently in a dual-stack migration period. The production app ships on the Tauri/Vue stack (v0.34.x). A parallel Flutter rewrite targets v0.49.0 and lives in `app/` + `crates/`. See [`docs/iterations/v0.51.0-remediation.md`](docs/iterations/v0.51.0-remediation.md) for current status.
+> ⚠️ **Tauri/Vue desktop stack is retiring** (v0.69+ deprecation announcement, 4-phase plan over 24 months → physical removal at v0.80). New installs should use the **Flutter desktop** packages. Existing Tauri installs continue to work; data & credentials are fully shared so switching to Flutter requires no manual migration. See the [Tauri retirement plan](docs/iterations/v0.70.0-pc-tauri-retirement.md) for the timeline and [MIGRATION.md §v0.69](docs/MIGRATION.md#v069-起从-tauri-桌面切换到-flutter-桌面) for the user-facing switch guide.
+>
+> **Repository state**: Functional parity between the legacy Tauri/Vue desktop app and the Flutter rewrite reached at v0.68.0. v0.69.0 is restructure-stabilization + deprecation announcement. The Flutter packages live under `app/` + `packages/termex_shared/` + `termex-mobile/`; the legacy stack lives in `src-tauri/` + `src/`. See [`docs/iterations/v0.51.0-pc-remediation.md`](docs/iterations/v0.51.0-pc-remediation.md) for migration history and [`docs/iterations/v0.69.0-pc-restructure-stabilization.md`](docs/iterations/v0.69.0-pc-restructure-stabilization.md) for the current stabilization status.
 
-### Production stack (v0.34.x — Tauri/Vue)
+### Legacy stack — retiring (v0.34.x — Tauri/Vue)
 
 ```text
 Tauri v2 + Rust          Backend, SSH, encryption, storage

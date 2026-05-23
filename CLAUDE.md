@@ -6,7 +6,9 @@
 
 Termex is an open-source, AI-native SSH client. Built on SSH as the foundation, it creates an always-on cloud AI workspace for the AI era. It targets developers and ops engineers who need a beautiful, fast, intelligent, and free SSH client.
 
-**Repository state (as of v0.34.0 + v0.51.0 remediation)**: this repo hosts **two co-existing implementations** during a long-running migration — the production Tauri/Vue app and an in-progress Flutter rewrite. See [docs/iterations/v0.51.0-remediation.md](docs/iterations/v0.51.0-remediation.md) for status.
+**Repository state (as of v0.68.0)**: this repo hosts **two co-existing implementations** during a long-running migration — the legacy Tauri/Vue app (retirement in progress) and the production Flutter rewrite. Functional parity completed at v0.68.0 (59+ parity items + i18n structure). See [docs/iterations/v0.51.0-pc-remediation.md](docs/iterations/v0.51.0-pc-remediation.md) for migration status and [docs/iterations/v0.70.0-pc-tauri-retirement.md](docs/iterations/v0.70.0-pc-tauri-retirement.md) for the 4-phase Tauri retirement plan (v0.69 → v0.80, 24 months).
+
+**⚠️ For new feature development**: write **Flutter only** (under `packages/termex_shared/lib/` or `app/lib/`). Do not add new code to `src-tauri/` or `src/` (Vue) — those are in retirement mode and accept critical security PRs only.
 
 ## Tech Stack
 
@@ -243,6 +245,39 @@ pnpm version:bump 0.2.0         # 直接设为 0.2.0
 - `docs/requirements.md` — Product requirements and feature specs
 - `docs/detailed-design.md` — System architecture, database schema, API design
 - `docs/prototype.html` — Interactive UI prototype (open in browser)
+
+### Iteration document naming (docs/iterations/)
+
+All files under `docs/iterations/` MUST follow this format:
+
+```
+v{版本号}-{scope}-{迭代版本文档名称}.md
+```
+
+Where `{scope}` is exactly one of:
+
+| Scope     | When to use                                                                 |
+|-----------|------------------------------------------------------------------------------|
+| `pc`      | Desktop client work — Tauri/Vue UI, Flutter desktop UI, desktop packaging   |
+| `mobile`  | iOS / Android Flutter app — UI, navigation, mobile-only features            |
+| `web`     | Future browser/web client                                                   |
+| `core`    | `crates/termex-core` business logic — SSH/SFTP/crypto/keychain/AI/team etc. |
+| `bridge`  | `crates/termex-flutter-bridge` — FRB wiring, codegen, Rust↔Dart contract    |
+| `homebrew`| Homebrew formula / tap maintenance                                          |
+
+Examples:
+- `v0.62.1-pc-ui-parity.md`
+- `v0.54.0-mobile-design-system.md`
+- `v0.39.0-bridge-architecture.md`
+- `v0.68.0-core-refactor-and-resilience.md`
+
+Rationale: scanning the directory listing should make each iteration's
+ownership obvious at a glance, and cross-cutting roadmap docs can grep
+`docs/iterations/v*-pc-*.md` to enumerate platform-specific work.
+
+For multi-scope iterations, pick the **primary** owner. If the doc is
+truly cross-cutting infrastructure (e.g. migration remediation that
+touches every layer), pick the scope of the team that drives the work.
 
 ## What NOT to Do
 

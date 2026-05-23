@@ -133,18 +133,57 @@ impl SftpHandle {
         transfer_id: &str,
         emitter: &BoxedSftpEmitter,
     ) -> Result<(), SftpError> {
-        use tokio::io::AsyncReadExt;
+        self.download_resumable(remote_path, local_path, transfer_id, emitter, 0, None)
+            .await
+    }
+
+    /// Resumable variant of [`download`] — supports starting from `offset`
+    /// bytes and short-circuiting on a cooperative cancel/pause signal. When
+    /// `cancel` flips to `true` mid-transfer the loop exits cleanly without
+    /// emitting `done`; the caller can re-invoke with the latest `transferred`
+    /// count as the next `offset` to resume.
+    pub async fn download_resumable(
+        &self,
+        remote_path: &str,
+        local_path: &str,
+        transfer_id: &str,
+        emitter: &BoxedSftpEmitter,
+        offset: u64,
+        cancel: Option<std::sync::Arc<std::sync::atomic::AtomicBool>>,
+    ) -> Result<(), SftpError> {
+        use std::io::SeekFrom;
+        use tokio::io::{AsyncReadExt, AsyncSeekExt};
 
         let meta = self.sftp.metadata(remote_path).await?;
         let total = meta.size.unwrap_or(0);
 
         let mut remote_file = self.sftp.open(remote_path).await?;
-        let mut local_file = tokio::fs::File::create(local_path).await?;
+        let mut local_file = if offset > 0 {
+            // Append mode for resume — open existing local file and seek to
+            // the offset so previously transferred bytes are preserved.
+            let mut f = tokio::fs::OpenOptions::new()
+                .write(true)
+                .create(true)
+                .open(local_path)
+                .await?;
+            f.seek(SeekFrom::Start(offset)).await?;
+            remote_file.seek(SeekFrom::Start(offset)).await?;
+            f
+        } else {
+            tokio::fs::File::create(local_path).await?
+        };
 
-        let mut transferred: u64 = 0;
+        let mut transferred: u64 = offset;
         let mut buf = vec![0u8; 32768];
 
         loop {
+            if let Some(c) = &cancel {
+                if c.load(std::sync::atomic::Ordering::Relaxed) {
+                    // Cooperative pause: do not emit done; the caller resumes
+                    // from `transferred` via a fresh invocation.
+                    return Ok(());
+                }
+            }
             let n = remote_file.read(&mut buf).await?;
             if n == 0 {
                 break;
@@ -166,25 +205,56 @@ impl SftpHandle {
         transfer_id: &str,
         emitter: &BoxedSftpEmitter,
     ) -> Result<(), SftpError> {
+        self.upload_resumable(local_path, remote_path, transfer_id, emitter, 0, None)
+            .await
+    }
+
+    /// Resumable variant of [`upload`]. See [`download_resumable`] for the
+    /// cancel/offset semantics.
+    pub async fn upload_resumable(
+        &self,
+        local_path: &str,
+        remote_path: &str,
+        transfer_id: &str,
+        emitter: &BoxedSftpEmitter,
+        offset: u64,
+        cancel: Option<std::sync::Arc<std::sync::atomic::AtomicBool>>,
+    ) -> Result<(), SftpError> {
         use russh_sftp::protocol::OpenFlags;
-        use tokio::io::{AsyncReadExt, AsyncWriteExt};
+        use std::io::SeekFrom;
+        use tokio::io::{AsyncReadExt, AsyncSeekExt, AsyncWriteExt};
 
         let local_meta = tokio::fs::metadata(local_path).await?;
         let total = local_meta.len();
 
         let mut local_file = tokio::fs::File::open(local_path).await?;
-        let mut remote_file = self
-            .sftp
-            .open_with_flags(
-                remote_path,
-                OpenFlags::CREATE | OpenFlags::TRUNCATE | OpenFlags::WRITE,
-            )
-            .await?;
+        let mut remote_file = if offset > 0 {
+            // Resume — keep the existing remote file, seek both sides.
+            let mut f = self
+                .sftp
+                .open_with_flags(remote_path, OpenFlags::CREATE | OpenFlags::WRITE)
+                .await?;
+            f.seek(SeekFrom::Start(offset)).await?;
+            local_file.seek(SeekFrom::Start(offset)).await?;
+            f
+        } else {
+            self.sftp
+                .open_with_flags(
+                    remote_path,
+                    OpenFlags::CREATE | OpenFlags::TRUNCATE | OpenFlags::WRITE,
+                )
+                .await?
+        };
 
-        let mut transferred: u64 = 0;
+        let mut transferred: u64 = offset;
         let mut buf = vec![0u8; 32768];
 
         loop {
+            if let Some(c) = &cancel {
+                if c.load(std::sync::atomic::Ordering::Relaxed) {
+                    return Ok(());
+                }
+            }
             let n = local_file.read(&mut buf).await?;
             if n == 0 {
                 break;

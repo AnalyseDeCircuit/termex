@@ -1,6 +1,6 @@
 import 'package:flutter_test/flutter_test.dart';
 
-import 'package:termex/system/auto_updater.dart';
+import 'package:termex_shared/system/auto_updater.dart';
 
 void main() {
   group('FakeAutoUpdater state machine', () {

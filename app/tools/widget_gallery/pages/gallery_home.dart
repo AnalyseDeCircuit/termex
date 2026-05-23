@@ -1,5 +1,5 @@
 import 'package:flutter/widgets.dart';
-import 'package:termex/design/tokens.dart';
+import 'package:termex_shared/design/tokens.dart';
 
 import 'button_page.dart';
 import 'text_field_page.dart';
@@ -236,7 +236,7 @@ class IconButtonPage extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    return _StubPage(name: 'IconButton');
+    return const _StubPage(name: 'IconButton');
   }
 }
 
@@ -245,7 +245,7 @@ class MenuPage extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    return _StubPage(name: 'Menu');
+    return const _StubPage(name: 'Menu');
   }
 }
 
@@ -254,7 +254,7 @@ class TooltipPage extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    return _StubPage(name: 'Tooltip');
+    return const _StubPage(name: 'Tooltip');
   }
 }
 
@@ -263,7 +263,7 @@ class PopoverPage extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    return _StubPage(name: 'Popover');
+    return const _StubPage(name: 'Popover');
   }
 }
 
@@ -272,7 +272,7 @@ class ListPage extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    return _StubPage(name: 'List');
+    return const _StubPage(name: 'List');
   }
 }
 

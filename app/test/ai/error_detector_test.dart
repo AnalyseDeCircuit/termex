@@ -1,5 +1,5 @@
 import 'package:flutter_test/flutter_test.dart';
-import 'package:termex/features/ai/features/error_detector.dart';
+import 'package:termex_shared/features/ai/features/error_detector.dart';
 
 void main() {
   late ErrorDetector detector;

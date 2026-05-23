@@ -18,58 +18,54 @@ pub async fn monitor_start(
     session_id: String,
     interval_ms: Option<u64>,
 ) -> Result<(), String> {
-    let interval = interval_ms.unwrap_or(3000).max(1000);
-
-    // Stop existing collector if any
-    monitor_stop_inner(&state, &session_id).await;
-
-    // Verify session exists
+    #[cfg(not(feature = "private"))]
     {
-        let sessions = state.sessions.read().await;
-        if !sessions.contains_key(&session_id) {
-            return Err(format!("session not found: {session_id}"));
+        let _ = (state, app, session_id, interval_ms);
+        return Err("monitor requires the commercial build".into());
+    }
+    #[cfg(feature = "private")]
+    {
+        let interval = interval_ms.unwrap_or(3000).max(1000);
+
+        // Stop existing collector if any
+        monitor_stop_inner(&state, &session_id).await;
+
+        // Verify session exists
+        {
+            let sessions = state.sessions.read().await;
+            if !sessions.contains_key(&session_id) {
+                return Err(format!("session not found: {session_id}"));
+            }
         }
+
+        // Create history ring buffer (5min / interval)
+        let capacity = (300_000 / interval) as usize;
+        let history = Arc::new(RwLock::new(MetricsHistory::new(capacity.max(10))));
+
+        // Spawn collector using AppHandle to access state
+        let collector = spawn_collector_via_app(
+            app.clone(),
+            session_id.clone(),
+            interval,
+            history.clone(),
+        );
+
+        // Register in state
+        {
+            let mut collectors = state.monitor_collectors.write().await;
+            collectors.insert(session_id.clone(), collector);
+        }
+        {
+            let mut histories = state.monitor_history.write().await;
+            histories.insert(session_id, history);
+        }
+
+        Ok(())
     }
-
-    // Create history ring buffer (5min / interval)
-    let capacity = (300_000 / interval) as usize;
-    let history = Arc::new(RwLock::new(MetricsHistory::new(capacity.max(10))));
-
-    // Clone the sessions Arc for the collector
-    // We need to pass a reference to the sessions map, not a session handle
-    let sessions_ref = {
-        // AppState.sessions is TokioRwLock<HashMap<String, SshSession>>
-        // We need an Arc to share it with the spawned task.
-        // Since AppState is managed by Tauri as a singleton, we create an Arc wrapper
-        // around the sessions reference for the collector task.
-        // However, AppState.sessions is not Arc-wrapped.
-        // The collector needs periodic access, so we pass the AppHandle and state.
-        // Alternative: use the AppHandle to get state inside the collector.
-        app.clone()
-    };
-
-    // Spawn collector using AppHandle to access state
-    let collector = spawn_collector_via_app(
-        sessions_ref,
-        session_id.clone(),
-        interval,
-        history.clone(),
-    );
-
-    // Register in state
-    {
-        let mut collectors = state.monitor_collectors.write().await;
-        collectors.insert(session_id.clone(), collector);
-    }
-    {
-        let mut histories = state.monitor_history.write().await;
-        histories.insert(session_id, history);
-    }
-
-    Ok(())
 }
 
 /// Spawns a collector that accesses sessions via AppHandle.
+#[cfg(feature = "private")]
 fn spawn_collector_via_app(
     app: tauri::AppHandle,
     session_id: String,

@@ -1,5 +1,5 @@
 import 'package:flutter_test/flutter_test.dart';
-import 'package:termex/features/ai/features/ai_suggestion_source.dart';
+import 'package:termex_shared/features/ai/features/ai_suggestion_source.dart';
 
 void main() {
   group('AiSuggestionSource', () {

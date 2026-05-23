@@ -1,6 +1,6 @@
 import 'package:flutter_test/flutter_test.dart';
 
-import 'package:termex/system/version_util.dart';
+import 'package:termex_shared/system/version_util.dart';
 
 void main() {
   group('compareVersions', () {

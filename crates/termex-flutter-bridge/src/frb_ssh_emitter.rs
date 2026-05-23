@@ -98,6 +98,16 @@ pub fn drain(session_id: &str) -> Vec<SshStreamEvent> {
     q.drain(..).collect()
 }
 
+/// Pushes stdout bytes directly — used by local PTY reader thread.
+pub fn push_stdout(session_id: &str, data: Vec<u8>) {
+    enqueue(session_id, SshStreamEvent::stdout(data));
+}
+
+/// Pushes a disconnected event directly — used by local PTY reader thread.
+pub fn push_disconnected(session_id: &str) {
+    enqueue(session_id, SshStreamEvent::disconnected());
+}
+
 /// Pushes an event to the session's queue if it is still registered.
 fn enqueue(session_id: &str, event: SshStreamEvent) {
     if let Some(entry) = QUEUES.get(session_id) {

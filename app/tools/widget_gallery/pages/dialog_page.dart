@@ -1,8 +1,8 @@
 import 'package:flutter/widgets.dart';
-import 'package:termex/design/tokens.dart';
-import 'package:termex/widgets/button.dart';
-import 'package:termex/widgets/dialog.dart';
-import 'package:termex/widgets/toast.dart';
+import 'package:termex_shared/design/tokens.dart';
+import 'package:termex_shared/widgets/button.dart';
+import 'package:termex_shared/widgets/dialog.dart';
+import 'package:termex_shared/widgets/toast.dart';
 
 class DialogPage extends StatelessWidget {
   const DialogPage({super.key});

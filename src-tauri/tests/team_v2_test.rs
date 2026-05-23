@@ -1,3 +1,5 @@
+#![cfg(feature = "private")]
+
 use std::collections::HashMap;
 
 use termex_lib::team::permission;

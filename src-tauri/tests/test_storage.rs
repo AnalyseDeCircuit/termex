@@ -18,7 +18,7 @@ fn test_migrations_idempotent() {
         .query_row("SELECT MAX(version) FROM _migrations", [], |row| row.get(0))
         .unwrap();
     // Updated for v0.52 gap coverage: V24 adds team_members + team_invites tables.
-    assert_eq!(version, 24);
+    assert_eq!(version, 25);
 }
 
 #[test]
@@ -28,7 +28,7 @@ fn test_all_migrations_applied() {
     let count: i32 = conn
         .query_row("SELECT COUNT(*) FROM _migrations", [], |row| row.get(0))
         .unwrap();
-    assert_eq!(count, 24);
+    assert_eq!(count, 25);
 }
 
 #[test]

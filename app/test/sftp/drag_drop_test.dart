@@ -1,10 +1,9 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:flutter_test/flutter_test.dart';
-import 'package:termex/features/sftp/state/sftp_pane_provider.dart';
-import 'package:termex/features/sftp/state/sftp_transfer_provider.dart';
-import 'package:termex/features/sftp/widgets/file_row.dart';
-import 'package:termex/features/sftp/widgets/sftp_drag.dart';
+import 'package:termex_shared/features/sftp/state/sftp_transfer_provider.dart';
+import 'package:termex_shared/features/sftp/widgets/file_row.dart';
+import 'package:termex_shared/features/sftp/widgets/sftp_drag.dart';
 
 Widget _wrap(Widget w) => ProviderScope(
       child: MaterialApp(home: Scaffold(body: w)),
@@ -38,17 +37,17 @@ void main() {
 
     testWidgets('feedback widget shows file name', (tester) async {
       await tester.pumpWidget(_wrap(
-        Draggable<SftpDragPayload>(
-          data: const SftpDragPayload(
+        const Draggable<SftpDragPayload>(
+          data: SftpDragPayload(
             side: DragSide.remote,
             file: FileRowData(name: 'notes.txt', isDirectory: false),
             absolutePath: '/home/user/notes.txt',
           ),
           feedback: Material(
             child: Text('notes.txt',
-                style: const TextStyle(color: Colors.white)),
+                style: TextStyle(color: Colors.white)),
           ),
-          child: const Text('notes.txt'),
+          child: Text('notes.txt'),
         ),
       ));
       expect(find.text('notes.txt'), findsOneWidget);

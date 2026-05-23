@@ -1,6 +1,6 @@
 import 'package:flutter/widgets.dart';
-import 'package:termex/design/tokens.dart';
-import 'package:termex/widgets/tabs.dart';
+import 'package:termex_shared/design/tokens.dart';
+import 'package:termex_shared/widgets/tabs.dart';
 
 class TabsPage extends StatefulWidget {
   const TabsPage({super.key});

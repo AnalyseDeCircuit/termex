@@ -1,6 +1,6 @@
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:flutter_test/flutter_test.dart';
-import 'package:termex/features/sftp/state/sftp_transfer_provider.dart';
+import 'package:termex_shared/features/sftp/state/sftp_transfer_provider.dart';
 
 void main() {
   ProviderContainer makeContainer() =>

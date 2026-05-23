@@ -1,7 +1,7 @@
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:flutter_test/flutter_test.dart';
 
-import 'package:termex/features/settings/state/keybinding_provider.dart';
+import 'package:termex_shared/features/settings/state/keybinding_provider.dart';
 
 void main() {
   group('KeybindingNotifier', () {

@@ -1,6 +1,6 @@
 import 'package:flutter/widgets.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
-import 'package:termex/design/tokens.dart';
+import 'package:termex_shared/design/tokens.dart';
 import 'pages/gallery_home.dart';
 
 void main() {

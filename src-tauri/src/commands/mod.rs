@@ -25,6 +25,10 @@ pub mod privacy;
 pub mod snippet;
 pub mod ssh_config;
 pub mod monitor;
+// Team commands depend on termex-core-private (crypto/git/permission/sync);
+// only present with `--features private`.
+#[cfg(feature = "private")]
 pub mod team;
+#[cfg(feature = "private")]
 pub mod team_ext;
 pub mod cloud;

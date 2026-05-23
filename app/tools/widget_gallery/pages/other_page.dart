@@ -1,11 +1,11 @@
 import 'package:flutter/widgets.dart';
-import 'package:termex/design/tokens.dart';
-import 'package:termex/widgets/badge.dart';
-import 'package:termex/widgets/avatar.dart';
-import 'package:termex/widgets/divider.dart';
-import 'package:termex/widgets/card.dart';
-import 'package:termex/widgets/skeleton.dart';
-import 'package:termex/widgets/accordion.dart';
+import 'package:termex_shared/design/tokens.dart';
+import 'package:termex_shared/widgets/badge.dart';
+import 'package:termex_shared/widgets/avatar.dart';
+import 'package:termex_shared/widgets/divider.dart';
+import 'package:termex_shared/widgets/card.dart';
+import 'package:termex_shared/widgets/skeleton.dart';
+import 'package:termex_shared/widgets/accordion.dart';
 
 class OtherPage extends StatelessWidget {
   const OtherPage({super.key});
@@ -26,7 +26,7 @@ class OtherPage extends StatelessWidget {
           const SizedBox(height: 32),
 
           // Badge section
-          _Section(
+          const _Section(
             title: 'Badge',
             child: Wrap(
               spacing: 24,
@@ -57,7 +57,7 @@ class OtherPage extends StatelessWidget {
           const SizedBox(height: 32),
 
           // Avatar section
-          _Section(
+          const _Section(
             title: 'Avatar',
             child: Wrap(
               spacing: 16,
@@ -76,7 +76,7 @@ class OtherPage extends StatelessWidget {
                   initials: 'XY',
                   size: AvatarSize.large,
                 ),
-                const TermexAvatar(
+                TermexAvatar(
                   icon: _UserIcon(),
                   size: AvatarSize.medium,
                 ),
@@ -118,9 +118,9 @@ class OtherPage extends StatelessWidget {
                       ),
                     ),
                     const SizedBox(width: 12),
-                    SizedBox(
+                    const SizedBox(
                       height: 32,
-                      child: const TermexDivider(direction: Axis.vertical),
+                      child: TermexDivider(direction: Axis.vertical),
                     ),
                     const SizedBox(width: 12),
                     Text(
@@ -180,11 +180,11 @@ class OtherPage extends StatelessWidget {
           const SizedBox(height: 32),
 
           // Skeleton section
-          _Section(
+          const _Section(
             title: 'Skeleton',
             child: Column(
               crossAxisAlignment: CrossAxisAlignment.stretch,
-              children: const [
+              children: [
                 TermexSkeleton(width: 200, height: 16),
                 SizedBox(height: 8),
                 TermexSkeleton(height: 12),

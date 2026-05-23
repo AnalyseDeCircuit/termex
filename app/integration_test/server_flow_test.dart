@@ -13,11 +13,10 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:flutter_test/flutter_test.dart';
 import 'package:integration_test/integration_test.dart';
 
-import 'package:termex/features/server_list/models/server_dto.dart';
-import 'package:termex/features/server_list/server_list_page.dart';
-import 'package:termex/features/server_list/state/server_provider.dart';
-import 'package:termex/features/server_list/widgets/server_form_dialog.dart';
-import 'package:termex/features/tabs/state/tab_controller.dart';
+import 'package:termex_shared/features/server_list/models/server_dto.dart';
+import 'package:termex_shared/features/server_list/server_list_page.dart';
+import 'package:termex_shared/features/server_list/state/server_provider.dart';
+import 'package:termex_shared/features/tabs/state/tab_controller.dart';
 
 // ─── Stubs ───────────────────────────────────────────────────────────────────
 

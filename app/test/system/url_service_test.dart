@@ -1,6 +1,6 @@
 import 'package:flutter_test/flutter_test.dart';
 
-import 'package:termex/system/url_service.dart';
+import 'package:termex_shared/system/url_service.dart';
 
 void main() {
   final svc = UrlService.instance;

@@ -6,7 +6,8 @@
 import '../frb_generated.dart';
 import 'package:flutter_rust_bridge/flutter_rust_bridge_for_generated.dart';
 
-// These function are ignored because they are on traits that is not defined in current crate (put an empty `#[frb]` on it to unignore): `clone`, `clone`, `clone`, `clone`, `clone`, `fmt`, `fmt`, `fmt`, `fmt`, `fmt`
+// These functions are ignored because they are not marked as `pub`: `history_to_dto`, `keychain_ref_for`, `parse_freq`, `to_dto`
+// These function are ignored because they are on traits that is not defined in current crate (put an empty `#[frb]` on it to unignore): `clone`, `clone`, `clone`, `clone`, `clone`, `clone`, `clone`, `fmt`, `fmt`, `fmt`, `fmt`, `fmt`, `fmt`, `fmt`
 
 /// Returns all contexts found in the active kubeconfig file.
 Future<List<K8sContext>> cloudK8SListContexts() =>
@@ -74,6 +75,198 @@ Future<void> cloudSaveCredential({required CloudCredential credential}) =>
 Future<CloudCredential?> cloudLoadCredential({required String provider}) =>
     TermexBridge.instance.api
         .crateApiCloudCloudLoadCredential(provider: provider);
+
+/// Creates a new backup schedule. The `password` is stored in the OS
+/// keychain under a generated reference; the DB never holds the raw secret.
+Future<BackupSchedule> cloudCreateSchedule(
+        {required String name,
+        required String frequency,
+        required int hour,
+        required int minute,
+        int? weekday,
+        int? dayOfMonth,
+        required String targetDir,
+        required String password}) =>
+    TermexBridge.instance.api.crateApiCloudCloudCreateSchedule(
+        name: name,
+        frequency: frequency,
+        hour: hour,
+        minute: minute,
+        weekday: weekday,
+        dayOfMonth: dayOfMonth,
+        targetDir: targetDir,
+        password: password);
+
+/// Lists all backup schedules ordered by `created_at DESC`. The first
+/// call after a DB unlock also lazily spawns the tick task; subsequent
+/// calls are pure DB reads.
+Future<List<BackupSchedule>> cloudListSchedules() =>
+    TermexBridge.instance.api.crateApiCloudCloudListSchedules();
+
+/// Updates schedule fields. Any `None` argument leaves the existing value
+/// in place. `next_run_at` is recomputed from the new cadence on success.
+///
+/// `weekday` and `day_of_month` accept `Some(i32)` to overwrite; clearing
+/// them back to NULL requires deleting and recreating the schedule (the
+/// FRB binding cannot express `Option<Option<i32>>`).
+Future<void> cloudUpdateSchedule(
+        {required String id,
+        String? name,
+        String? frequency,
+        int? hour,
+        int? minute,
+        int? weekday,
+        int? dayOfMonth,
+        String? targetDir,
+        bool? enabled}) =>
+    TermexBridge.instance.api.crateApiCloudCloudUpdateSchedule(
+        id: id,
+        name: name,
+        frequency: frequency,
+        hour: hour,
+        minute: minute,
+        weekday: weekday,
+        dayOfMonth: dayOfMonth,
+        targetDir: targetDir,
+        enabled: enabled);
+
+/// Deletes a schedule by id. Also drops the associated keychain password
+/// reference; orphan `backup_history` rows have their `schedule_id`
+/// nulled out via the FK `ON DELETE SET NULL`.
+Future<void> cloudDeleteSchedule({required String id}) =>
+    TermexBridge.instance.api.crateApiCloudCloudDeleteSchedule(id: id);
+
+/// Lists backup history rows. `schedule_id = None` returns the merged
+/// stream of manual + scheduled backups, sorted by `started_at DESC`.
+Future<List<BackupHistory>> cloudListBackups(
+        {String? scheduleId, required int limit, required int offset}) =>
+    TermexBridge.instance.api.crateApiCloudCloudListBackups(
+        scheduleId: scheduleId, limit: limit, offset: offset);
+
+/// Triggers an immediate run of `id`, independent of its cadence. The
+/// scheduler tick will still fire on the next regular boundary; this is
+/// effectively a "force-fire-once" for manual testing or ad-hoc rotations.
+Future<void> cloudRunScheduleNow({required String id}) =>
+    TermexBridge.instance.api.crateApiCloudCloudRunScheduleNow(id: id);
+
+/// One row from `backup_history`. `schedule_id` is `None` for manual
+/// backups recorded by the v0.67.0 P1.12 flow.
+class BackupHistory {
+  final String id;
+  final String? scheduleId;
+  final String filePath;
+  final PlatformInt64 sizeBytes;
+
+  /// One of `"success"` / `"failed"`.
+  final String status;
+  final String startedAt;
+  final String? completedAt;
+  final String? errorMsg;
+
+  const BackupHistory({
+    required this.id,
+    this.scheduleId,
+    required this.filePath,
+    required this.sizeBytes,
+    required this.status,
+    required this.startedAt,
+    this.completedAt,
+    this.errorMsg,
+  });
+
+  @override
+  int get hashCode =>
+      id.hashCode ^
+      scheduleId.hashCode ^
+      filePath.hashCode ^
+      sizeBytes.hashCode ^
+      status.hashCode ^
+      startedAt.hashCode ^
+      completedAt.hashCode ^
+      errorMsg.hashCode;
+
+  @override
+  bool operator ==(Object other) =>
+      identical(this, other) ||
+      other is BackupHistory &&
+          runtimeType == other.runtimeType &&
+          id == other.id &&
+          scheduleId == other.scheduleId &&
+          filePath == other.filePath &&
+          sizeBytes == other.sizeBytes &&
+          status == other.status &&
+          startedAt == other.startedAt &&
+          completedAt == other.completedAt &&
+          errorMsg == other.errorMsg;
+}
+
+/// User-facing schedule descriptor mirroring `backup_schedules` columns.
+class BackupSchedule {
+  final String id;
+  final String name;
+
+  /// One of `"daily"` / `"weekly"` / `"monthly"`.
+  final String frequency;
+  final int hour;
+  final int minute;
+
+  /// 0=Sun .. 6=Sat. Required when `frequency == "weekly"`.
+  final int? weekday;
+
+  /// 1..28. Required when `frequency == "monthly"`.
+  final int? dayOfMonth;
+  final String targetDir;
+  final bool enabled;
+
+  /// RFC3339 UTC timestamp of the next scheduled fire time.
+  final String nextRunAt;
+  final String createdAt;
+
+  const BackupSchedule({
+    required this.id,
+    required this.name,
+    required this.frequency,
+    required this.hour,
+    required this.minute,
+    this.weekday,
+    this.dayOfMonth,
+    required this.targetDir,
+    required this.enabled,
+    required this.nextRunAt,
+    required this.createdAt,
+  });
+
+  @override
+  int get hashCode =>
+      id.hashCode ^
+      name.hashCode ^
+      frequency.hashCode ^
+      hour.hashCode ^
+      minute.hashCode ^
+      weekday.hashCode ^
+      dayOfMonth.hashCode ^
+      targetDir.hashCode ^
+      enabled.hashCode ^
+      nextRunAt.hashCode ^
+      createdAt.hashCode;
+
+  @override
+  bool operator ==(Object other) =>
+      identical(this, other) ||
+      other is BackupSchedule &&
+          runtimeType == other.runtimeType &&
+          id == other.id &&
+          name == other.name &&
+          frequency == other.frequency &&
+          hour == other.hour &&
+          minute == other.minute &&
+          weekday == other.weekday &&
+          dayOfMonth == other.dayOfMonth &&
+          targetDir == other.targetDir &&
+          enabled == other.enabled &&
+          nextRunAt == other.nextRunAt &&
+          createdAt == other.createdAt;
+}
 
 /// Cloud-provider credential bundle.  The actual secret material lives in the
 /// OS keychain; only the opaque reference is persisted in the database.

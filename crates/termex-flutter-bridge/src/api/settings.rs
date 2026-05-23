@@ -52,6 +52,37 @@ pub struct AppSettings {
     pub local_ai_context_size: i32,
     /// Path to kubeconfig file used by cloud K8s integration (§13.5 of v0.46 spec).
     pub k8s_kubeconfig_path: String,
+
+    // ── Local AI ────────────────────────────────────────────────────────────
+    /// Auto-start the local llama.cpp server on app launch.
+    pub local_ai_auto_start: bool,
+
+    // ── Keyword highlight rules ─────────────────────────────────────────────
+    /// JSON array of keyword highlight rules (HighlightsTab).
+    /// Schema: `[{"pattern":"foo","color":"#ff0000","caseSensitive":false}]`.
+    pub keyword_rules_json: String,
+
+    // ── Monitor panel ───────────────────────────────────────────────────────
+    /// Polling interval (milliseconds) for monitor metrics collector.
+    pub monitor_interval_ms: i32,
+    /// Auto-start monitor collector when an SSH session opens.
+    pub monitor_auto_start: bool,
+    /// Render CPU panel in monitor view.
+    pub monitor_show_cpu: bool,
+    /// Render memory panel in monitor view.
+    pub monitor_show_memory: bool,
+    /// Render disk panel in monitor view.
+    pub monitor_show_disk: bool,
+    /// Render network panel in monitor view.
+    pub monitor_show_network: bool,
+    /// Render process list in monitor view.
+    pub monitor_show_processes: bool,
+
+    // ── Recording ───────────────────────────────────────────────────────────
+    /// Recording retention in days (-1 = keep forever).
+    pub recording_retention_days: i32,
+    /// Recording file format: `"asciicast"` | `"json"` | `"text"`.
+    pub recording_format: String,
 }
 
 impl Default for AppSettings {
@@ -74,6 +105,17 @@ impl Default for AppSettings {
             local_ai_threads: 4,
             local_ai_context_size: 4096,
             k8s_kubeconfig_path: "~/.kube/config".into(),
+            local_ai_auto_start: true,
+            keyword_rules_json: "[]".into(),
+            monitor_interval_ms: 2000,
+            monitor_auto_start: false,
+            monitor_show_cpu: true,
+            monitor_show_memory: true,
+            monitor_show_disk: true,
+            monitor_show_network: true,
+            monitor_show_processes: true,
+            recording_retention_days: 30,
+            recording_format: "asciicast".into(),
         }
     }
 }
@@ -108,6 +150,17 @@ const K_LOCAL_AI_PORT: &str = "local_ai_port";
 const K_LOCAL_AI_THREADS: &str = "local_ai_threads";
 const K_LOCAL_AI_CONTEXT_SIZE: &str = "local_ai_context_size";
 const K_K8S_KUBECONFIG_PATH: &str = "k8s_kubeconfig_path";
+const K_LOCAL_AI_AUTO_START: &str = "local_ai_auto_start";
+const K_KEYWORD_RULES_JSON: &str = "keyword_rules_json";
+const K_MONITOR_INTERVAL_MS: &str = "monitor_interval_ms";
+const K_MONITOR_AUTO_START: &str = "monitor_auto_start";
+const K_MONITOR_SHOW_CPU: &str = "monitor_show_cpu";
+const K_MONITOR_SHOW_MEMORY: &str = "monitor_show_memory";
+const K_MONITOR_SHOW_DISK: &str = "monitor_show_disk";
+const K_MONITOR_SHOW_NETWORK: &str = "monitor_show_network";
+const K_MONITOR_SHOW_PROCESSES: &str = "monitor_show_processes";
+const K_RECORDING_RETENTION_DAYS: &str = "recording_retention_days";
+const K_RECORDING_FORMAT: &str = "recording_format";
 
 const ALL_KEYS: &[&str] = &[
     K_THEME_MODE,
@@ -127,6 +180,17 @@ const ALL_KEYS: &[&str] = &[
     K_LOCAL_AI_THREADS,
     K_LOCAL_AI_CONTEXT_SIZE,
     K_K8S_KUBECONFIG_PATH,
+    K_LOCAL_AI_AUTO_START,
+    K_KEYWORD_RULES_JSON,
+    K_MONITOR_INTERVAL_MS,
+    K_MONITOR_AUTO_START,
+    K_MONITOR_SHOW_CPU,
+    K_MONITOR_SHOW_MEMORY,
+    K_MONITOR_SHOW_DISK,
+    K_MONITOR_SHOW_NETWORK,
+    K_MONITOR_SHOW_PROCESSES,
+    K_RECORDING_RETENTION_DAYS,
+    K_RECORDING_FORMAT,
 ];
 
 // ─── Settings CRUD ───────────────────────────────────────────────────────────
@@ -149,7 +213,12 @@ pub fn settings_load() -> Result<AppSettings, String> {
                      'cursor_blink','scrollback_lines','tab_width','ui_language',
                      'ai_auto_diagnose','ai_context_lines','auto_backup_frequency',
                      'audit_retention_days','local_ai_port','local_ai_threads',
-                     'local_ai_context_size','k8s_kubeconfig_path')",
+                     'local_ai_context_size','k8s_kubeconfig_path',
+                     'local_ai_auto_start','keyword_rules_json',
+                     'monitor_interval_ms','monitor_auto_start',
+                     'monitor_show_cpu','monitor_show_memory','monitor_show_disk',
+                     'monitor_show_network','monitor_show_processes',
+                     'recording_retention_days','recording_format')",
                 )?;
                 let mut map = HashMap::new();
                 let iter = stmt.query_map([], |r| {
@@ -214,6 +283,50 @@ fn map_to_settings(m: &HashMap<String, String>) -> AppSettings {
             .get(K_K8S_KUBECONFIG_PATH)
             .cloned()
             .unwrap_or(d.k8s_kubeconfig_path),
+        local_ai_auto_start: m
+            .get(K_LOCAL_AI_AUTO_START)
+            .map(|v| v == "true" || v == "1")
+            .unwrap_or(d.local_ai_auto_start),
+        keyword_rules_json: m
+            .get(K_KEYWORD_RULES_JSON)
+            .cloned()
+            .unwrap_or(d.keyword_rules_json),
+        monitor_interval_ms: m
+            .get(K_MONITOR_INTERVAL_MS)
+            .and_then(|v| v.parse().ok())
+            .unwrap_or(d.monitor_interval_ms),
+        monitor_auto_start: m
+            .get(K_MONITOR_AUTO_START)
+            .map(|v| v == "true" || v == "1")
+            .unwrap_or(d.monitor_auto_start),
+        monitor_show_cpu: m
+            .get(K_MONITOR_SHOW_CPU)
+            .map(|v| v == "true" || v == "1")
+            .unwrap_or(d.monitor_show_cpu),
+        monitor_show_memory: m
+            .get(K_MONITOR_SHOW_MEMORY)
+            .map(|v| v == "true" || v == "1")
+            .unwrap_or(d.monitor_show_memory),
+        monitor_show_disk: m
+            .get(K_MONITOR_SHOW_DISK)
+            .map(|v| v == "true" || v == "1")
+            .unwrap_or(d.monitor_show_disk),
+        monitor_show_network: m
+            .get(K_MONITOR_SHOW_NETWORK)
+            .map(|v| v == "true" || v == "1")
+            .unwrap_or(d.monitor_show_network),
+        monitor_show_processes: m
+            .get(K_MONITOR_SHOW_PROCESSES)
+            .map(|v| v == "true" || v == "1")
+            .unwrap_or(d.monitor_show_processes),
+        recording_retention_days: m
+            .get(K_RECORDING_RETENTION_DAYS)
+            .and_then(|v| v.parse().ok())
+            .unwrap_or(d.recording_retention_days),
+        recording_format: m
+            .get(K_RECORDING_FORMAT)
+            .cloned()
+            .unwrap_or(d.recording_format),
     }
 }
 
@@ -236,6 +349,17 @@ fn settings_to_pairs(s: &AppSettings) -> Vec<(&'static str, String)> {
         (K_LOCAL_AI_THREADS, s.local_ai_threads.to_string()),
         (K_LOCAL_AI_CONTEXT_SIZE, s.local_ai_context_size.to_string()),
         (K_K8S_KUBECONFIG_PATH, s.k8s_kubeconfig_path.clone()),
+        (K_LOCAL_AI_AUTO_START, s.local_ai_auto_start.to_string()),
+        (K_KEYWORD_RULES_JSON, s.keyword_rules_json.clone()),
+        (K_MONITOR_INTERVAL_MS, s.monitor_interval_ms.to_string()),
+        (K_MONITOR_AUTO_START, s.monitor_auto_start.to_string()),
+        (K_MONITOR_SHOW_CPU, s.monitor_show_cpu.to_string()),
+        (K_MONITOR_SHOW_MEMORY, s.monitor_show_memory.to_string()),
+        (K_MONITOR_SHOW_DISK, s.monitor_show_disk.to_string()),
+        (K_MONITOR_SHOW_NETWORK, s.monitor_show_network.to_string()),
+        (K_MONITOR_SHOW_PROCESSES, s.monitor_show_processes.to_string()),
+        (K_RECORDING_RETENTION_DAYS, s.recording_retention_days.to_string()),
+        (K_RECORDING_FORMAT, s.recording_format.clone()),
     ]
 }
 
@@ -271,13 +395,7 @@ pub fn settings_save(settings: AppSettings) -> Result<(), String> {
 /// Argon2id binary container described in §4.8.5 of the v0.46 spec.
 #[frb]
 pub fn settings_export(path: String, password: String) -> Result<(), String> {
-    let current = settings_load()?;
-    let payload = serde_json::json!({
-        "schema_version": 2,
-        "exported_at": chrono::Utc::now().to_rfc3339(),
-        "settings": current,
-    });
-    let json = serde_json::to_string_pretty(&payload).map_err(|e| e.to_string())?;
+    let json = settings_export_to_json()?;
 
     if password.is_empty() {
         std::fs::write(&path, json).map_err(|e| format!("write export file: {e}"))?;
@@ -285,6 +403,20 @@ pub fn settings_export(path: String, password: String) -> Result<(), String> {
         crate::api::backup::backup_encrypt_to_file(path, password, json)?;
     }
     Ok(())
+}
+
+/// Builds the JSON payload used by the export / backup-scheduler paths.
+/// Exposed at module scope so non-FRB code in the bridge crate (e.g. the
+/// G1 BackupScheduler runner) can reuse the exact same envelope shape.
+#[frb(ignore)]
+pub fn settings_export_to_json() -> Result<String, String> {
+    let current = settings_load()?;
+    let payload = serde_json::json!({
+        "schema_version": 2,
+        "exported_at": chrono::Utc::now().to_rfc3339(),
+        "settings": current,
+    });
+    serde_json::to_string_pretty(&payload).map_err(|e| e.to_string())
 }
 
 /// Imports settings from an export file.  Handles both plain-JSON and

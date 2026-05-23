@@ -15,24 +15,32 @@ import 'api/group.dart';
 import 'api/keybindings.dart';
 import 'api/local_ai.dart';
 import 'api/local_fs.dart';
+import 'api/local_pty.dart';
+import 'api/mobile.dart';
+import 'api/mobile_auth.dart';
 import 'api/monitor.dart';
 import 'api/plugin.dart';
 import 'api/port_forward.dart';
 import 'api/proxy.dart';
+import 'api/push.dart';
 import 'api/recording.dart';
+import 'api/security.dart';
 import 'api/server.dart';
 import 'api/settings.dart';
 import 'api/sftp.dart';
 import 'api/snippet.dart';
 import 'api/ssh.dart';
 import 'api/ssh_config.dart';
+import 'api/sync.dart';
 import 'api/system.dart';
 import 'api/team.dart';
+import 'api/team_mobile.dart';
 import 'api/team_permissions.dart';
 import 'api/theme.dart';
 import 'api/update.dart';
 import 'dart:async';
 import 'dart:convert';
+import 'frb_chain_emitter.dart';
 import 'frb_generated.dart';
 import 'frb_generated.io.dart'
     if (dart.library.js_interop) 'frb_generated.web.dart';
@@ -98,7 +106,7 @@ class TermexBridge extends BaseEntrypoint<TermexBridgeApi, TermexBridgeApiImpl,
   String get codegenVersion => '2.12.0';
 
   @override
-  int get rustContentHash => 691476704;
+  int get rustContentHash => 2085191707;
 
   static const kDefaultExternalLibraryLoaderConfig =
       ExternalLibraryLoaderConfig(
@@ -231,13 +239,31 @@ abstract class TermexBridgeApi extends BaseApi {
 
   Future<String> crateApiBackupBackupFormatDescription();
 
+  Future<bool> crateApiMobileAuthBiometricAvailable();
+
+  Future<void> crateApiMobileAuthBiometricUnlock();
+
+  Future<void> crateApiMobileCancelStagedDelete({required String serverId});
+
+  Future<void> crateApiSshChainConnectSimulate(
+      {required String sessionId,
+      required List<ChainHopInfo> hops,
+      required List<int> hopFailures,
+      required BigInt backoffBaseMs,
+      required BigInt backoffMaxMs});
+
   Future<String> crateApiSshCheckHostKey(
       {required String host,
       required int port,
       required String fingerprint,
       required String keyType});
 
+  Future<bool> crateApiMobileAuthCheckSessionAlive({required String sessionId});
+
   Future<bool> crateApiSshCheckSshAgentAvailable();
+
+  Future<bool> crateApiTeamMobileCheckTeamRepoReachable(
+      {required String teamId});
 
   Future<void> crateApiSftpClearCommandHistory({required String serverId});
 
@@ -249,11 +275,25 @@ abstract class TermexBridgeApi extends BaseApi {
 
   Future<void> crateApiSystemClipboardWrite({required String text});
 
+  Future<void> crateApiLocalPtyClose({required String sessionId});
+
   Future<void> crateApiAppCloseApp();
 
   Future<void> crateApiSftpCloseSftpChannel({required String sessionId});
 
   Future<void> crateApiSshCloseSshSession({required String sessionId});
+
+  Future<BackupSchedule> crateApiCloudCloudCreateSchedule(
+      {required String name,
+      required String frequency,
+      required int hour,
+      required int minute,
+      int? weekday,
+      int? dayOfMonth,
+      required String targetDir,
+      required String password});
+
+  Future<void> crateApiCloudCloudDeleteSchedule({required String id});
 
   Future<EcsFavorite> crateApiCloudCloudEcsAddFavorite(
       {required String instanceId,
@@ -278,8 +318,15 @@ abstract class TermexBridgeApi extends BaseApi {
 
   Future<void> crateApiCloudCloudK8SSwitchContext({required String name});
 
+  Future<List<BackupHistory>> crateApiCloudCloudListBackups(
+      {String? scheduleId, required int limit, required int offset});
+
+  Future<List<BackupSchedule>> crateApiCloudCloudListSchedules();
+
   Future<CloudCredential?> crateApiCloudCloudLoadCredential(
       {required String provider});
+
+  Future<void> crateApiCloudCloudRunScheduleNow({required String id});
 
   Future<void> crateApiCloudCloudSaveCredential(
       {required CloudCredential credential});
@@ -290,8 +337,24 @@ abstract class TermexBridgeApi extends BaseApi {
   Future<String> crateApiCloudCloudSsmStartSession(
       {required String instanceId, required String region});
 
+  Future<void> crateApiCloudCloudUpdateSchedule(
+      {required String id,
+      String? name,
+      String? frequency,
+      int? hour,
+      int? minute,
+      int? weekday,
+      int? dayOfMonth,
+      String? targetDir,
+      bool? enabled});
+
+  Future<void> crateApiMobileCommitStagedDelete({required String serverId});
+
   Future<int> crateApiUpdateCompareVersions(
       {required String a, required String b});
+
+  Future<String> crateApiSyncConfirmPairing(
+      {required String pairingToken, required String code});
 
   Future<GroupDto> crateApiGroupCreateGroup({required GroupInput input});
 
@@ -310,9 +373,20 @@ abstract class TermexBridgeApi extends BaseApi {
   Future<ExternalToolStatus>
       crateApiExternalToolsExternalToolCheckSessionManagerPlugin();
 
+  Future<String> crateApiTeamMobileGenerateInviteUrl(
+      {required String teamId, required int expiresInHours});
+
+  Future<(String, String)> crateApiSyncGeneratePairingCode();
+
+  Future<List<DiscoveredDevice>> crateApiSyncGetDiscoveredDevices();
+
   Future<GroupDto?> crateApiGroupGetGroup({required String id});
 
+  Future<String> crateApiMobileGetPlatform();
+
   Future<ServerDto?> crateApiServerGetServer({required String id});
+
+  Future<BigInt> crateApiTeamMobileGetTeamStorageSize({required String teamId});
 
   Future<ThemeConfig> crateApiThemeGetThemeConfig();
 
@@ -342,10 +416,19 @@ abstract class TermexBridgeApi extends BaseApi {
   Future<void> crateApiGitSyncGitSyncUpdateRepoMode(
       {required String id, required GitSyncMode mode});
 
+  Future<void> crateApiMobileHapticFeedback({required HapticStyle style});
+
   Future<SshConfigImportResult> crateApiSshConfigImportSshConfig(
       {String? path, required List<String> selectedAliases});
 
   Future<AppInitState> crateApiAppInitApp();
+
+  Future<String> crateApiSyncInitiatePairing(
+      {required String peerHost, required int peerPort});
+
+  Future<bool> crateApiLocalPtyIsLocalSession({required String sessionId});
+
+  Future<bool> crateApiMobileIsMobilePlatform();
 
   Future<bool> crateApiSftpIsSftpOpen({required String sessionId});
 
@@ -439,7 +522,13 @@ abstract class TermexBridgeApi extends BaseApi {
 
   Future<LocalFileDto> crateApiLocalFsLocalStat({required String path});
 
+  Future<bool> crateApiAppMasterPasswordRequired();
+
+  Future<String> crateApiMobileMobileDocumentsDir();
+
   Future<List<String>> crateApiMonitorMonitorActivePollingSessions();
+
+  Future<SystemStats> crateApiMonitorMonitorCollectLocalStats();
 
   Future<SystemStats> crateApiMonitorMonitorGetStats(
       {required String sessionId});
@@ -471,6 +560,9 @@ abstract class TermexBridgeApi extends BaseApi {
   Future<void> crateApiServerMoveServerToGroup(
       {required String id, String? groupId});
 
+  Future<String> crateApiLocalPtyOpenLocalPty(
+      {required int cols, required int rows});
+
   Future<String> crateApiSftpOpenSftpChannel({required String sessionId});
 
   Future<String> crateApiSshOpenSshSession(
@@ -485,6 +577,9 @@ abstract class TermexBridgeApi extends BaseApi {
 
   Future<UpdateManifest> crateApiUpdateParseAppcast(
       {required String xml, required String currentVersion});
+
+  Future<InviteInfo> crateApiTeamMobileParseInviteUrl(
+      {required String qrContent});
 
   Future<PermissionCheckResult> crateApiPluginPluginCheckPermission(
       {required String pluginId, required String permission});
@@ -512,6 +607,9 @@ abstract class TermexBridgeApi extends BaseApi {
 
   Future<List<AiChunkDto>> crateApiAiPollAiChunks(
       {required String conversationId});
+
+  Future<List<ChainProgressDto>> crateApiSshPollChainProgress(
+      {required String sessionId});
 
   Future<List<SftpTransferProgress>> crateApiSftpPollSftpProgress(
       {required String transferId});
@@ -593,7 +691,22 @@ abstract class TermexBridgeApi extends BaseApi {
 
   Future<void> crateApiProxyProxySetDefault({required String id});
 
+  Future<void> crateApiProxyProxyStorePassword(
+      {required String proxyId, required String password});
+
   Future<bool> crateApiProxyProxyTestConnection({required String id});
+
+  Future<void> crateApiPushPushLocalNotification(
+      {required String title, required String body, String? deepLink});
+
+  Future<String?> crateApiPushPushTokenGet();
+
+  Future<void> crateApiPushPushTokenRegister(
+      {required String token, required String platform});
+
+  Future<void> crateApiPushPushTokenUnregister();
+
+  Future<void> crateApiMobileAuthReconnectSession({required String sessionId});
 
   Future<String> crateApiSftpRecordCommand(
       {required String sessionId,
@@ -639,8 +752,20 @@ abstract class TermexBridgeApi extends BaseApi {
 
   Future<void> crateApiGroupReorderGroups({required List<String> ids});
 
+  Future<void> crateApiLocalPtyResize(
+      {required String sessionId, required int cols, required int rows});
+
   Future<void> crateApiSshResizeTerminal(
       {required String sessionId, required int cols, required int rows});
+
+  Future<String?> crateApiSyncRespondToPairing(
+      {required String requestId, required bool accept});
+
+  Future<void> crateApiMobileAuthResumeAllKeepalives();
+
+  Future<SecurityStatus> crateApiSecuritySecurityStatus();
+
+  Future<List<ProxyPoolStat>> crateApiSshSessionPoolStats();
 
   Future<void> crateApiThemeSetThemeConfig({required ThemeConfig config});
 
@@ -668,7 +793,8 @@ abstract class TermexBridgeApi extends BaseApi {
       {required String sessionId,
       required String remotePath,
       required String localPath,
-      required String transferId});
+      required String transferId,
+      required BigInt offset});
 
   Future<List<SftpFileDto>> crateApiSftpSftpList(
       {required String sessionId, required String path});
@@ -676,11 +802,18 @@ abstract class TermexBridgeApi extends BaseApi {
   Future<void> crateApiSftpSftpMkdir(
       {required String sessionId, required String path});
 
+  Future<void> crateApiSftpSftpPauseTransfer({required String transferId});
+
+  Future<Uint8List> crateApiSftpSftpReadFileBytes(
+      {required String sessionId, required String path, required int maxBytes});
+
   Future<void> crateApiSftpSftpRemove(
       {required String sessionId, required String path});
 
   Future<void> crateApiSftpSftpRename(
       {required String sessionId, required String from, required String to});
+
+  Future<void> crateApiSftpSftpResumeTransfer({required String transferId});
 
   Future<void> crateApiSftpSftpRmdir(
       {required String sessionId, required String path});
@@ -696,7 +829,13 @@ abstract class TermexBridgeApi extends BaseApi {
       {required String sessionId,
       required String localPath,
       required String remotePath,
-      required String transferId});
+      required String transferId,
+      required BigInt offset});
+
+  Future<void> crateApiSftpSftpWriteFileBytes(
+      {required String sessionId,
+      required String path,
+      required List<int> data});
 
   Future<Snippet> crateApiSnippetSnippetCreate(
       {required String name,
@@ -730,6 +869,29 @@ abstract class TermexBridgeApi extends BaseApi {
       required String content,
       String? group,
       required List<String> tags});
+
+  Future<bool> crateApiSshSshHasPassphrase({required String serverId});
+
+  Future<void> crateApiSshSshStorePassphrase(
+      {required String serverId, required String passphrase});
+
+  Future<void> crateApiMobileStageDeleteServer({required String serverId});
+
+  Future<void> crateApiSyncStartSyncService({required int port});
+
+  Future<void> crateApiSyncStopSyncService();
+
+  Future<void> crateApiMobileAuthSuspendAllKeepalives();
+
+  Future<SyncSummary> crateApiSyncSyncFromPeer(
+      {required String sessionToken,
+      required bool includeCredentials,
+      String? credentialPassword});
+
+  Future<SyncSummary> crateApiSyncSyncToPeer(
+      {required String sessionToken,
+      required bool includeCredentials,
+      String? credentialPassword});
 
   Future<TeamMember> crateApiTeamTeamAddMember(
       {required String name, required String email, required TeamRole role});
@@ -815,8 +977,28 @@ abstract class TermexBridgeApi extends BaseApi {
 
   Future<void> crateApiSystemWindowStateSave({required WindowState state});
 
+  Future<void> crateApiLocalPtyWriteStdin(
+      {required String sessionId, required List<int> data});
+
   Future<void> crateApiSshWriteStdin(
       {required String sessionId, required List<int> data});
+
+  RustArcIncrementStrongCountFnType
+      get rust_arc_increment_strong_count_DiscoveredDevice;
+
+  RustArcDecrementStrongCountFnType
+      get rust_arc_decrement_strong_count_DiscoveredDevice;
+
+  CrossPlatformFinalizerArg
+      get rust_arc_decrement_strong_count_DiscoveredDevicePtr;
+
+  RustArcIncrementStrongCountFnType
+      get rust_arc_increment_strong_count_SyncSummary;
+
+  RustArcDecrementStrongCountFnType
+      get rust_arc_decrement_strong_count_SyncSummary;
+
+  CrossPlatformFinalizerArg get rust_arc_decrement_strong_count_SyncSummaryPtr;
 }
 
 class TermexBridgeApiImpl extends TermexBridgeApiImplPlatform
@@ -1921,6 +2103,119 @@ class TermexBridgeApiImpl extends TermexBridgeApiImplPlatform
       );
 
   @override
+  Future<bool> crateApiMobileAuthBiometricAvailable() {
+    return handler.executeNormal(NormalTask(
+      callFfi: (port_) {
+        final serializer = SseSerializer(generalizedFrbRustBinding);
+        pdeCallFfi(generalizedFrbRustBinding, serializer,
+            funcId: 43, port: port_);
+      },
+      codec: SseCodec(
+        decodeSuccessData: sse_decode_bool,
+        decodeErrorData: null,
+      ),
+      constMeta: kCrateApiMobileAuthBiometricAvailableConstMeta,
+      argValues: [],
+      apiImpl: this,
+    ));
+  }
+
+  TaskConstMeta get kCrateApiMobileAuthBiometricAvailableConstMeta =>
+      const TaskConstMeta(
+        debugName: "biometric_available",
+        argNames: [],
+      );
+
+  @override
+  Future<void> crateApiMobileAuthBiometricUnlock() {
+    return handler.executeNormal(NormalTask(
+      callFfi: (port_) {
+        final serializer = SseSerializer(generalizedFrbRustBinding);
+        pdeCallFfi(generalizedFrbRustBinding, serializer,
+            funcId: 44, port: port_);
+      },
+      codec: SseCodec(
+        decodeSuccessData: sse_decode_unit,
+        decodeErrorData: sse_decode_String,
+      ),
+      constMeta: kCrateApiMobileAuthBiometricUnlockConstMeta,
+      argValues: [],
+      apiImpl: this,
+    ));
+  }
+
+  TaskConstMeta get kCrateApiMobileAuthBiometricUnlockConstMeta =>
+      const TaskConstMeta(
+        debugName: "biometric_unlock",
+        argNames: [],
+      );
+
+  @override
+  Future<void> crateApiMobileCancelStagedDelete({required String serverId}) {
+    return handler.executeNormal(NormalTask(
+      callFfi: (port_) {
+        final serializer = SseSerializer(generalizedFrbRustBinding);
+        sse_encode_String(serverId, serializer);
+        pdeCallFfi(generalizedFrbRustBinding, serializer,
+            funcId: 45, port: port_);
+      },
+      codec: SseCodec(
+        decodeSuccessData: sse_decode_unit,
+        decodeErrorData: sse_decode_String,
+      ),
+      constMeta: kCrateApiMobileCancelStagedDeleteConstMeta,
+      argValues: [serverId],
+      apiImpl: this,
+    ));
+  }
+
+  TaskConstMeta get kCrateApiMobileCancelStagedDeleteConstMeta =>
+      const TaskConstMeta(
+        debugName: "cancel_staged_delete",
+        argNames: ["serverId"],
+      );
+
+  @override
+  Future<void> crateApiSshChainConnectSimulate(
+      {required String sessionId,
+      required List<ChainHopInfo> hops,
+      required List<int> hopFailures,
+      required BigInt backoffBaseMs,
+      required BigInt backoffMaxMs}) {
+    return handler.executeNormal(NormalTask(
+      callFfi: (port_) {
+        final serializer = SseSerializer(generalizedFrbRustBinding);
+        sse_encode_String(sessionId, serializer);
+        sse_encode_list_chain_hop_info(hops, serializer);
+        sse_encode_list_prim_i_32_loose(hopFailures, serializer);
+        sse_encode_u_64(backoffBaseMs, serializer);
+        sse_encode_u_64(backoffMaxMs, serializer);
+        pdeCallFfi(generalizedFrbRustBinding, serializer,
+            funcId: 46, port: port_);
+      },
+      codec: SseCodec(
+        decodeSuccessData: sse_decode_unit,
+        decodeErrorData: sse_decode_String,
+      ),
+      constMeta: kCrateApiSshChainConnectSimulateConstMeta,
+      argValues: [sessionId, hops, hopFailures, backoffBaseMs, backoffMaxMs],
+      apiImpl: this,
+    ));
+  }
+
+  TaskConstMeta get kCrateApiSshChainConnectSimulateConstMeta =>
+      const TaskConstMeta(
+        debugName: "chain_connect_simulate",
+        argNames: [
+          "sessionId",
+          "hops",
+          "hopFailures",
+          "backoffBaseMs",
+          "backoffMaxMs"
+        ],
+      );
+
+  @override
   Future<String> crateApiSshCheckHostKey(
       {required String host,
       required int port,
@@ -1934,7 +2229,7 @@ class TermexBridgeApiImpl extends TermexBridgeApiImplPlatform
         sse_encode_String(fingerprint, serializer);
         sse_encode_String(keyType, serializer);
         pdeCallFfi(generalizedFrbRustBinding, serializer,
-            funcId: 43, port: port_);
+            funcId: 47, port: port_);
       },
       codec: SseCodec(
         decodeSuccessData: sse_decode_String,
@@ -1952,12 +2247,38 @@ class TermexBridgeApiImpl extends TermexBridgeApiImplPlatform
       );
 
   @override
+  Future<bool> crateApiMobileAuthCheckSessionAlive(
+      {required String sessionId}) {
+    return handler.executeNormal(NormalTask(
+      callFfi: (port_) {
+        final serializer = SseSerializer(generalizedFrbRustBinding);
+        sse_encode_String(sessionId, serializer);
+        pdeCallFfi(generalizedFrbRustBinding, serializer,
+            funcId: 48, port: port_);
+      },
+      codec: SseCodec(
+        decodeSuccessData: sse_decode_bool,
+        decodeErrorData: sse_decode_String,
+      ),
+      constMeta: kCrateApiMobileAuthCheckSessionAliveConstMeta,
+      argValues: [sessionId],
+      apiImpl: this,
+    ));
+  }
+
+  TaskConstMeta get kCrateApiMobileAuthCheckSessionAliveConstMeta =>
+      const TaskConstMeta(
+        debugName: "check_session_alive",
+        argNames: ["sessionId"],
+      );
+
+  @override
   Future<bool> crateApiSshCheckSshAgentAvailable() {
     return handler.executeNormal(NormalTask(
       callFfi: (port_) {
         final serializer = SseSerializer(generalizedFrbRustBinding);
         pdeCallFfi(generalizedFrbRustBinding, serializer,
-            funcId: 44, port: port_);
+            funcId: 49, port: port_);
       },
       codec: SseCodec(
         decodeSuccessData: sse_decode_bool,
@@ -1976,13 +2297,39 @@ class TermexBridgeApiImpl extends TermexBridgeApiImplPlatform
       );
 
   @override
+  Future<bool> crateApiTeamMobileCheckTeamRepoReachable(
+      {required String teamId}) {
+    return handler.executeNormal(NormalTask(
+      callFfi: (port_) {
+        final serializer = SseSerializer(generalizedFrbRustBinding);
+        sse_encode_String(teamId, serializer);
+        pdeCallFfi(generalizedFrbRustBinding, serializer,
+            funcId: 50, port: port_);
+      },
+      codec: SseCodec(
+        decodeSuccessData: sse_decode_bool,
+        decodeErrorData: null,
+      ),
+      constMeta: kCrateApiTeamMobileCheckTeamRepoReachableConstMeta,
+      argValues: [teamId],
+      apiImpl: this,
+    ));
+  }
+
+  TaskConstMeta get kCrateApiTeamMobileCheckTeamRepoReachableConstMeta =>
+      const TaskConstMeta(
+        debugName: "check_team_repo_reachable",
+        argNames: ["teamId"],
+      );
+
+  @override
   Future<void> crateApiSftpClearCommandHistory({required String serverId}) {
     return handler.executeNormal(NormalTask(
       callFfi: (port_) {
         final serializer = SseSerializer(generalizedFrbRustBinding);
         sse_encode_String(serverId, serializer);
         pdeCallFfi(generalizedFrbRustBinding, serializer,
-            funcId: 45, port: port_);
+            funcId: 51, port: port_);
       },
       codec: SseCodec(
         decodeSuccessData: sse_decode_unit,
@@ -2006,7 +2353,7 @@ class TermexBridgeApiImpl extends TermexBridgeApiImplPlatform
       callFfi: (port_) {
         final serializer = SseSerializer(generalizedFrbRustBinding);
         pdeCallFfi(generalizedFrbRustBinding, serializer,
-            funcId: 46, port: port_);
+            funcId: 52, port: port_);
       },
       codec: SseCodec(
         decodeSuccessData: sse_decode_unit,
@@ -2030,7 +2377,7 @@ class TermexBridgeApiImpl extends TermexBridgeApiImplPlatform
       callFfi: (port_) {
         final serializer = SseSerializer(generalizedFrbRustBinding);
         pdeCallFfi(generalizedFrbRustBinding, serializer,
-            funcId: 47, port: port_);
+            funcId: 53, port: port_);
       },
       codec: SseCodec(
         decodeSuccessData: sse_decode_unit,
@@ -2054,7 +2401,7 @@ class TermexBridgeApiImpl extends TermexBridgeApiImplPlatform
       callFfi: (port_) {
         final serializer = SseSerializer(generalizedFrbRustBinding);
         pdeCallFfi(generalizedFrbRustBinding, serializer,
-            funcId: 48, port: port_);
+            funcId: 54, port: port_);
       },
       codec: SseCodec(
         decodeSuccessData: sse_decode_String,
@@ -2079,7 +2426,7 @@ class TermexBridgeApiImpl extends TermexBridgeApiImplPlatform
         final serializer = SseSerializer(generalizedFrbRustBinding);
         sse_encode_String(text, serializer);
         pdeCallFfi(generalizedFrbRustBinding, serializer,
-            funcId: 49, port: port_);
+            funcId: 55, port: port_);
       },
       codec: SseCodec(
         decodeSuccessData: sse_decode_unit,
@@ -2098,12 +2445,36 @@ class TermexBridgeApiImpl extends TermexBridgeApiImplPlatform
       );
 
   @override
+  Future<void> crateApiLocalPtyClose({required String sessionId}) {
+    return handler.executeNormal(NormalTask(
+      callFfi: (port_) {
+        final serializer = SseSerializer(generalizedFrbRustBinding);
+        sse_encode_String(sessionId, serializer);
+        pdeCallFfi(generalizedFrbRustBinding, serializer,
+            funcId: 56, port: port_);
+      },
+      codec: SseCodec(
+        decodeSuccessData: sse_decode_unit,
+        decodeErrorData: null,
+      ),
+      constMeta: kCrateApiLocalPtyCloseConstMeta,
+      argValues: [sessionId],
+      apiImpl: this,
+    ));
+  }
+
+  TaskConstMeta get kCrateApiLocalPtyCloseConstMeta => const TaskConstMeta(
+        debugName: "close",
+        argNames: ["sessionId"],
+      );
+
+  @override
   Future<void> crateApiAppCloseApp() {
     return handler.executeNormal(NormalTask(
       callFfi: (port_) {
         final serializer = SseSerializer(generalizedFrbRustBinding);
         pdeCallFfi(generalizedFrbRustBinding, serializer,
-            funcId: 50, port: port_);
+            funcId: 57, port: port_);
       },
       codec: SseCodec(
         decodeSuccessData: sse_decode_unit,
@@ -2127,7 +2498,7 @@ class TermexBridgeApiImpl extends TermexBridgeApiImplPlatform
         final serializer = SseSerializer(generalizedFrbRustBinding);
         sse_encode_String(sessionId, serializer);
         pdeCallFfi(generalizedFrbRustBinding, serializer,
-            funcId: 51, port: port_);
+            funcId: 58, port: port_);
       },
       codec: SseCodec(
         decodeSuccessData: sse_decode_unit,
@@ -2152,7 +2523,7 @@ class TermexBridgeApiImpl extends TermexBridgeApiImplPlatform
         final serializer = SseSerializer(generalizedFrbRustBinding);
         sse_encode_String(sessionId, serializer);
         pdeCallFfi(generalizedFrbRustBinding, serializer,
-            funcId: 52, port: port_);
+            funcId: 59, port: port_);
       },
       codec: SseCodec(
         decodeSuccessData: sse_decode_unit,
@@ -2170,6 +2541,89 @@ class TermexBridgeApiImpl extends TermexBridgeApiImplPlatform
       );
 
   @override
+  Future<BackupSchedule> crateApiCloudCloudCreateSchedule(
+      {required String name,
+      required String frequency,
+      required int hour,
+      required int minute,
+      int? weekday,
+      int? dayOfMonth,
+      required String targetDir,
+      required String password}) {
+    return handler.executeNormal(NormalTask(
+      callFfi: (port_) {
+        final serializer = SseSerializer(generalizedFrbRustBinding);
+        sse_encode_String(name, serializer);
+        sse_encode_String(frequency, serializer);
+        sse_encode_i_32(hour, serializer);
+        sse_encode_i_32(minute, serializer);
+        sse_encode_opt_box_autoadd_i_32(weekday, serializer);
+        sse_encode_opt_box_autoadd_i_32(dayOfMonth, serializer);
+        sse_encode_String(targetDir, serializer);
+        sse_encode_String(password, serializer);
+        pdeCallFfi(generalizedFrbRustBinding, serializer,
+            funcId: 60, port: port_);
+      },
+      codec: SseCodec(
+        decodeSuccessData: sse_decode_backup_schedule,
+        decodeErrorData: sse_decode_String,
+      ),
+      constMeta: kCrateApiCloudCloudCreateScheduleConstMeta,
+      argValues: [
+        name,
+        frequency,
+        hour,
+        minute,
+        weekday,
+        dayOfMonth,
+        targetDir,
+        password
+      ],
+      apiImpl: this,
+    ));
+  }
+
+  TaskConstMeta get kCrateApiCloudCloudCreateScheduleConstMeta =>
+      const TaskConstMeta(
+        debugName: "cloud_create_schedule",
+        argNames: [
+          "name",
+          "frequency",
+          "hour",
+          "minute",
+          "weekday",
+          "dayOfMonth",
+          "targetDir",
+          "password"
+        ],
+      );
+
+  @override
+  Future<void> crateApiCloudCloudDeleteSchedule({required String id}) {
+    return handler.executeNormal(NormalTask(
+      callFfi: (port_) {
+        final serializer = SseSerializer(generalizedFrbRustBinding);
+        sse_encode_String(id, serializer);
+        pdeCallFfi(generalizedFrbRustBinding, serializer,
+            funcId: 61, port: port_);
+      },
+      codec: SseCodec(
+        decodeSuccessData: sse_decode_unit,
+        decodeErrorData: sse_decode_String,
+      ),
+      constMeta: kCrateApiCloudCloudDeleteScheduleConstMeta,
+      argValues: [id],
+      apiImpl: this,
+    ));
+  }
+
+  TaskConstMeta get kCrateApiCloudCloudDeleteScheduleConstMeta =>
+      const TaskConstMeta(
+        debugName: "cloud_delete_schedule",
+        argNames: ["id"],
+      );
+
+  @override
   Future<EcsFavorite> crateApiCloudCloudEcsAddFavorite(
       {required String instanceId,
       required String name,
@@ -2183,7 +2637,7 @@ class TermexBridgeApiImpl extends TermexBridgeApiImplPlatform
         sse_encode_String(region, serializer);
         sse_encode_String(endpoint, serializer);
         pdeCallFfi(generalizedFrbRustBinding, serializer,
-            funcId: 53, port: port_);
+            funcId: 62, port: port_);
       },
       codec: SseCodec(
         decodeSuccessData: sse_decode_ecs_favorite,
@@ -2207,7 +2661,7 @@ class TermexBridgeApiImpl extends TermexBridgeApiImplPlatform
       callFfi: (port_) {
         final serializer = SseSerializer(generalizedFrbRustBinding);
         pdeCallFfi(generalizedFrbRustBinding, serializer,
-            funcId: 54, port: port_);
+            funcId: 63, port: port_);
       },
       codec: SseCodec(
         decodeSuccessData: sse_decode_list_ecs_favorite,
@@ -2232,7 +2686,7 @@ class TermexBridgeApiImpl extends TermexBridgeApiImplPlatform
         final serializer = SseSerializer(generalizedFrbRustBinding);
         sse_encode_String(id, serializer);
         pdeCallFfi(generalizedFrbRustBinding, serializer,
-            funcId: 55, port: port_);
+            funcId: 64, port: port_);
       },
       codec: SseCodec(
         decodeSuccessData: sse_decode_unit,
@@ -2264,7 +2718,7 @@ class TermexBridgeApiImpl extends TermexBridgeApiImplPlatform
         sse_encode_opt_String(container, serializer);
         sse_encode_String(command, serializer);
         pdeCallFfi(generalizedFrbRustBinding, serializer,
-            funcId: 56, port: port_);
+            funcId: 65, port: port_);
       },
       codec: SseCodec(
         decodeSuccessData: sse_decode_String,
@@ -2287,7 +2741,7 @@ class TermexBridgeApiImpl extends TermexBridgeApiImplPlatform
       callFfi: (port_) {
         final serializer = SseSerializer(generalizedFrbRustBinding);
         pdeCallFfi(generalizedFrbRustBinding, serializer,
-            funcId: 57, port: port_);
+            funcId: 66, port: port_);
       },
       codec: SseCodec(
         decodeSuccessData: sse_decode_list_k_8_s_context,
@@ -2314,7 +2768,7 @@ class TermexBridgeApiImpl extends TermexBridgeApiImplPlatform
         sse_encode_String(context, serializer);
         sse_encode_String(namespace, serializer);
         pdeCallFfi(generalizedFrbRustBinding, serializer,
-            funcId: 58, port: port_);
+            funcId: 67, port: port_);
       },
       codec: SseCodec(
         decodeSuccessData: sse_decode_list_k_8_s_pod,
@@ -2339,7 +2793,7 @@ class TermexBridgeApiImpl extends TermexBridgeApiImplPlatform
         final serializer = SseSerializer(generalizedFrbRustBinding);
         sse_encode_String(name, serializer);
         pdeCallFfi(generalizedFrbRustBinding, serializer,
-            funcId: 59, port: port_);
+            funcId: 68, port: port_);
       },
       codec: SseCodec(
         decodeSuccessData: sse_decode_unit,
@@ -2358,6 +2812,58 @@ class TermexBridgeApiImpl extends TermexBridgeApiImplPlatform
       );
 
   @override
+  Future<List<BackupHistory>> crateApiCloudCloudListBackups(
+      {String? scheduleId, required int limit, required int offset}) {
+    return handler.executeNormal(NormalTask(
+      callFfi: (port_) {
+        final serializer = SseSerializer(generalizedFrbRustBinding);
+        sse_encode_opt_String(scheduleId, serializer);
+        sse_encode_i_32(limit, serializer);
+        sse_encode_i_32(offset, serializer);
+        pdeCallFfi(generalizedFrbRustBinding, serializer,
+            funcId: 69, port: port_);
+      },
+      codec: SseCodec(
+        decodeSuccessData: sse_decode_list_backup_history,
+        decodeErrorData: sse_decode_String,
+      ),
+      constMeta: kCrateApiCloudCloudListBackupsConstMeta,
+      argValues: [scheduleId, limit, offset],
+      apiImpl: this,
+    ));
+  }
+
+  TaskConstMeta get kCrateApiCloudCloudListBackupsConstMeta =>
+      const TaskConstMeta(
+        debugName: "cloud_list_backups",
+        argNames: ["scheduleId", "limit", "offset"],
+      );
+
+  @override
+  Future<List<BackupSchedule>> crateApiCloudCloudListSchedules() {
+    return handler.executeNormal(NormalTask(
+      callFfi: (port_) {
+        final serializer = SseSerializer(generalizedFrbRustBinding);
+        pdeCallFfi(generalizedFrbRustBinding, serializer,
+            funcId: 70, port: port_);
+      },
+      codec: SseCodec(
+        decodeSuccessData: sse_decode_list_backup_schedule,
+        decodeErrorData: sse_decode_String,
+      ),
+      constMeta: kCrateApiCloudCloudListSchedulesConstMeta,
+      argValues: [],
+      apiImpl: this,
+    ));
+  }
+
+  TaskConstMeta get kCrateApiCloudCloudListSchedulesConstMeta =>
+      const TaskConstMeta(
+        debugName: "cloud_list_schedules",
+        argNames: [],
+      );
+
+  @override
   Future<CloudCredential?> crateApiCloudCloudLoadCredential(
       {required String provider}) {
     return handler.executeNormal(NormalTask(
@@ -2365,7 +2871,7 @@ class TermexBridgeApiImpl extends TermexBridgeApiImplPlatform
         final serializer = SseSerializer(generalizedFrbRustBinding);
         sse_encode_String(provider, serializer);
         pdeCallFfi(generalizedFrbRustBinding, serializer,
-            funcId: 60, port: port_);
+            funcId: 71, port: port_);
       },
       codec: SseCodec(
         decodeSuccessData: sse_decode_opt_box_autoadd_cloud_credential,
@@ -2384,6 +2890,31 @@ class TermexBridgeApiImpl extends TermexBridgeApiImplPlatform
       );
 
   @override
+  Future<void> crateApiCloudCloudRunScheduleNow({required String id}) {
+    return handler.executeNormal(NormalTask(
+      callFfi: (port_) {
+        final serializer = SseSerializer(generalizedFrbRustBinding);
+        sse_encode_String(id, serializer);
+        pdeCallFfi(generalizedFrbRustBinding, serializer,
+            funcId: 72, port: port_);
+      },
+      codec: SseCodec(
+        decodeSuccessData: sse_decode_unit,
+        decodeErrorData: sse_decode_String,
+      ),
+      constMeta: kCrateApiCloudCloudRunScheduleNowConstMeta,
+      argValues: [id],
+      apiImpl: this,
+    ));
+  }
+
+  TaskConstMeta get kCrateApiCloudCloudRunScheduleNowConstMeta =>
+      const TaskConstMeta(
+        debugName: "cloud_run_schedule_now",
+        argNames: ["id"],
+      );
+
+  @override
   Future<void> crateApiCloudCloudSaveCredential(
       {required CloudCredential credential}) {
     return handler.executeNormal(NormalTask(
@@ -2391,7 +2922,7 @@ class TermexBridgeApiImpl extends TermexBridgeApiImplPlatform
         final serializer = SseSerializer(generalizedFrbRustBinding);
         sse_encode_box_autoadd_cloud_credential(credential, serializer);
         pdeCallFfi(generalizedFrbRustBinding, serializer,
-            funcId: 61, port: port_);
+            funcId: 73, port: port_);
       },
       codec: SseCodec(
         decodeSuccessData: sse_decode_unit,
@@ -2417,7 +2948,7 @@ class TermexBridgeApiImpl extends TermexBridgeApiImplPlatform
         final serializer = SseSerializer(generalizedFrbRustBinding);
         sse_encode_String(region, serializer);
         pdeCallFfi(generalizedFrbRustBinding, serializer,
-            funcId: 62, port: port_);
+            funcId: 74, port: port_);
       },
       codec: SseCodec(
         decodeSuccessData: sse_decode_list_ssm_instance,
@@ -2444,7 +2975,7 @@ class TermexBridgeApiImpl extends TermexBridgeApiImplPlatform
         sse_encode_String(instanceId, serializer);
         sse_encode_String(region, serializer);
         pdeCallFfi(generalizedFrbRustBinding, serializer,
-            funcId: 63, port: port_);
+            funcId: 75, port: port_);
       },
       codec: SseCodec(
         decodeSuccessData: sse_decode_String,
@@ -2463,6 +2994,93 @@ class TermexBridgeApiImpl extends TermexBridgeApiImplPlatform
       );
 
   @override
+  Future<void> crateApiCloudCloudUpdateSchedule(
+      {required String id,
+      String? name,
+      String? frequency,
+      int? hour,
+      int? minute,
+      int? weekday,
+      int? dayOfMonth,
+      String? targetDir,
+      bool? enabled}) {
+    return handler.executeNormal(NormalTask(
+      callFfi: (port_) {
+        final serializer = SseSerializer(generalizedFrbRustBinding);
+        sse_encode_String(id, serializer);
+        sse_encode_opt_String(name, serializer);
+        sse_encode_opt_String(frequency, serializer);
+        sse_encode_opt_box_autoadd_i_32(hour, serializer);
+        sse_encode_opt_box_autoadd_i_32(minute, serializer);
+        sse_encode_opt_box_autoadd_i_32(weekday, serializer);
+        sse_encode_opt_box_autoadd_i_32(dayOfMonth, serializer);
+        sse_encode_opt_String(targetDir, serializer);
+        sse_encode_opt_box_autoadd_bool(enabled, serializer);
+        pdeCallFfi(generalizedFrbRustBinding, serializer,
+            funcId: 76, port: port_);
+      },
+      codec: SseCodec(
+        decodeSuccessData: sse_decode_unit,
+        decodeErrorData: sse_decode_String,
+      ),
+      constMeta: kCrateApiCloudCloudUpdateScheduleConstMeta,
+      argValues: [
+        id,
+        name,
+        frequency,
+        hour,
+        minute,
+        weekday,
+        dayOfMonth,
+        targetDir,
+        enabled
+      ],
+      apiImpl: this,
+    ));
+  }
+
+  TaskConstMeta get kCrateApiCloudCloudUpdateScheduleConstMeta =>
+      const TaskConstMeta(
+        debugName: "cloud_update_schedule",
+        argNames: [
+          "id",
+          "name",
+          "frequency",
+          "hour",
+          "minute",
+          "weekday",
+          "dayOfMonth",
+          "targetDir",
+          "enabled"
+        ],
+      );
+
+  @override
+  Future<void> crateApiMobileCommitStagedDelete({required String serverId}) {
+    return handler.executeNormal(NormalTask(
+      callFfi: (port_) {
+        final serializer = SseSerializer(generalizedFrbRustBinding);
+        sse_encode_String(serverId, serializer);
+        pdeCallFfi(generalizedFrbRustBinding, serializer,
+            funcId: 77, port: port_);
+      },
+      codec: SseCodec(
+        decodeSuccessData: sse_decode_unit,
+        decodeErrorData: sse_decode_String,
+      ),
+      constMeta: kCrateApiMobileCommitStagedDeleteConstMeta,
+      argValues: [serverId],
+      apiImpl: this,
+    ));
+  }
+
+  TaskConstMeta get kCrateApiMobileCommitStagedDeleteConstMeta =>
+      const TaskConstMeta(
+        debugName: "commit_staged_delete",
+        argNames: ["serverId"],
+      );
+
+  @override
   Future<int> crateApiUpdateCompareVersions(
       {required String a, required String b}) {
     return handler.executeNormal(NormalTask(
@@ -2471,7 +3089,7 @@ class TermexBridgeApiImpl extends TermexBridgeApiImplPlatform
         sse_encode_String(a, serializer);
         sse_encode_String(b, serializer);
         pdeCallFfi(generalizedFrbRustBinding, serializer,
-            funcId: 64, port: port_);
+            funcId: 78, port: port_);
       },
       codec: SseCodec(
         decodeSuccessData: sse_decode_i_32,
@@ -2490,13 +3108,39 @@ class TermexBridgeApiImpl extends TermexBridgeApiImplPlatform
       );
 
   @override
+  Future<String> crateApiSyncConfirmPairing(
+      {required String pairingToken, required String code}) {
+    return handler.executeNormal(NormalTask(
+      callFfi: (port_) {
+        final serializer = SseSerializer(generalizedFrbRustBinding);
+        sse_encode_String(pairingToken, serializer);
+        sse_encode_String(code, serializer);
+        pdeCallFfi(generalizedFrbRustBinding, serializer,
+            funcId: 79, port: port_);
+      },
+      codec: SseCodec(
+        decodeSuccessData: sse_decode_String,
+        decodeErrorData: sse_decode_String,
+      ),
+      constMeta: kCrateApiSyncConfirmPairingConstMeta,
+      argValues: [pairingToken, code],
+      apiImpl: this,
+    ));
+  }
+
+  TaskConstMeta get kCrateApiSyncConfirmPairingConstMeta => const TaskConstMeta(
+        debugName: "confirm_pairing",
+        argNames: ["pairingToken", "code"],
+      );
+
+  @override
   Future<GroupDto> crateApiGroupCreateGroup({required GroupInput input}) {
     return handler.executeNormal(NormalTask(
       callFfi: (port_) {
         final serializer = SseSerializer(generalizedFrbRustBinding);
         sse_encode_box_autoadd_group_input(input, serializer);
         pdeCallFfi(generalizedFrbRustBinding, serializer,
-            funcId: 65, port: port_);
+            funcId: 80, port: port_);
       },
       codec: SseCodec(
         decodeSuccessData: sse_decode_group_dto,
@@ -2520,7 +3164,7 @@ class TermexBridgeApiImpl extends TermexBridgeApiImplPlatform
         final serializer = SseSerializer(generalizedFrbRustBinding);
         sse_encode_box_autoadd_server_input(input, serializer);
         pdeCallFfi(generalizedFrbRustBinding, serializer,
-            funcId: 66, port: port_);
+            funcId: 81, port: port_);
       },
       codec: SseCodec(
         decodeSuccessData: sse_decode_server_dto,
@@ -2544,7 +3188,7 @@ class TermexBridgeApiImpl extends TermexBridgeApiImplPlatform
         final serializer = SseSerializer(generalizedFrbRustBinding);
         sse_encode_String(id, serializer);
         pdeCallFfi(generalizedFrbRustBinding, serializer,
-            funcId: 67, port: port_);
+            funcId: 82, port: port_);
       },
       codec: SseCodec(
         decodeSuccessData: sse_decode_unit,
@@ -2568,7 +3212,7 @@ class TermexBridgeApiImpl extends TermexBridgeApiImplPlatform
         final serializer = SseSerializer(generalizedFrbRustBinding);
         sse_encode_String(id, serializer);
         pdeCallFfi(generalizedFrbRustBinding, serializer,
-            funcId: 68, port: port_);
+            funcId: 83, port: port_);
       },
       codec: SseCodec(
         decodeSuccessData: sse_decode_unit,
@@ -2591,7 +3235,7 @@ class TermexBridgeApiImpl extends TermexBridgeApiImplPlatform
       callFfi: (port_) {
         final serializer = SseSerializer(generalizedFrbRustBinding);
         pdeCallFfi(generalizedFrbRustBinding, serializer,
-            funcId: 69, port: port_);
+            funcId: 84, port: port_);
       },
       codec: SseCodec(
         decodeSuccessData: sse_decode_list_external_tool_status,
@@ -2615,7 +3259,7 @@ class TermexBridgeApiImpl extends TermexBridgeApiImplPlatform
       callFfi: (port_) {
         final serializer = SseSerializer(generalizedFrbRustBinding);
         pdeCallFfi(generalizedFrbRustBinding, serializer,
-            funcId: 70, port: port_);
+            funcId: 85, port: port_);
       },
       codec: SseCodec(
         decodeSuccessData: sse_decode_external_tool_status,
@@ -2639,7 +3283,7 @@ class TermexBridgeApiImpl extends TermexBridgeApiImplPlatform
       callFfi: (port_) {
         final serializer = SseSerializer(generalizedFrbRustBinding);
         pdeCallFfi(generalizedFrbRustBinding, serializer,
-            funcId: 71, port: port_);
+            funcId: 86, port: port_);
       },
       codec: SseCodec(
         decodeSuccessData: sse_decode_external_tool_status,
@@ -2664,7 +3308,7 @@ class TermexBridgeApiImpl extends TermexBridgeApiImplPlatform
       callFfi: (port_) {
         final serializer = SseSerializer(generalizedFrbRustBinding);
         pdeCallFfi(generalizedFrbRustBinding, serializer,
-            funcId: 72, port: port_);
+            funcId: 87, port: port_);
       },
       codec: SseCodec(
         decodeSuccessData: sse_decode_external_tool_status,
@@ -2685,13 +3329,89 @@ class TermexBridgeApiImpl extends TermexBridgeApiImplPlatform
           );
 
   @override
+  Future<String> crateApiTeamMobileGenerateInviteUrl(
+      {required String teamId, required int expiresInHours}) {
+    return handler.executeNormal(NormalTask(
+      callFfi: (port_) {
+        final serializer = SseSerializer(generalizedFrbRustBinding);
+        sse_encode_String(teamId, serializer);
+        sse_encode_u_32(expiresInHours, serializer);
+        pdeCallFfi(generalizedFrbRustBinding, serializer,
+            funcId: 88, port: port_);
+      },
+      codec: SseCodec(
+        decodeSuccessData: sse_decode_String,
+        decodeErrorData: sse_decode_String,
+      ),
+      constMeta: kCrateApiTeamMobileGenerateInviteUrlConstMeta,
+      argValues: [teamId, expiresInHours],
+      apiImpl: this,
+    ));
+  }
+
+  TaskConstMeta get kCrateApiTeamMobileGenerateInviteUrlConstMeta =>
+      const TaskConstMeta(
+        debugName: "generate_invite_url",
+        argNames: ["teamId", "expiresInHours"],
+      );
+
+  @override
+  Future<(String, String)> crateApiSyncGeneratePairingCode() {
+    return handler.executeNormal(NormalTask(
+      callFfi: (port_) {
+        final serializer = SseSerializer(generalizedFrbRustBinding);
+        pdeCallFfi(generalizedFrbRustBinding, serializer,
+            funcId: 89, port: port_);
+      },
+      codec: SseCodec(
+        decodeSuccessData: sse_decode_record_string_string,
+        decodeErrorData: sse_decode_String,
+      ),
+      constMeta: kCrateApiSyncGeneratePairingCodeConstMeta,
+      argValues: [],
+      apiImpl: this,
+    ));
+  }
+
+  TaskConstMeta get kCrateApiSyncGeneratePairingCodeConstMeta =>
+      const TaskConstMeta(
+        debugName: "generate_pairing_code",
+        argNames: [],
+      );
+
+  @override
+  Future<List<DiscoveredDevice>> crateApiSyncGetDiscoveredDevices() {
+    return handler.executeNormal(NormalTask(
+      callFfi: (port_) {
+        final serializer = SseSerializer(generalizedFrbRustBinding);
+        pdeCallFfi(generalizedFrbRustBinding, serializer,
+            funcId: 90, port: port_);
+      },
+      codec: SseCodec(
+        decodeSuccessData:
+            sse_decode_list_Auto_Owned_RustOpaque_flutter_rust_bridgefor_generatedRustAutoOpaqueInnerDiscoveredDevice,
+        decodeErrorData: null,
+      ),
+      constMeta: kCrateApiSyncGetDiscoveredDevicesConstMeta,
+      argValues: [],
+      apiImpl: this,
+    ));
+  }
+
+  TaskConstMeta get kCrateApiSyncGetDiscoveredDevicesConstMeta =>
+      const TaskConstMeta(
+        debugName: "get_discovered_devices",
+        argNames: [],
+      );
+
+  @override
   Future<GroupDto?> crateApiGroupGetGroup({required String id}) {
     return handler.executeNormal(NormalTask(
       callFfi: (port_) {
         final serializer = SseSerializer(generalizedFrbRustBinding);
         sse_encode_String(id, serializer);
         pdeCallFfi(generalizedFrbRustBinding, serializer,
-            funcId: 73, port: port_);
+            funcId: 91, port: port_);
       },
       codec: SseCodec(
         decodeSuccessData: sse_decode_opt_box_autoadd_group_dto,
@@ -2709,13 +3429,36 @@ class TermexBridgeApiImpl extends TermexBridgeApiImplPlatform
       );
 
   @override
+  Future<String> crateApiMobileGetPlatform() {
+    return handler.executeNormal(NormalTask(
+      callFfi: (port_) {
+        final serializer = SseSerializer(generalizedFrbRustBinding);
+        pdeCallFfi(generalizedFrbRustBinding, serializer,
+            funcId: 92, port: port_);
+      },
+      codec: SseCodec(
+        decodeSuccessData: sse_decode_String,
+        decodeErrorData: null,
+      ),
+      constMeta: kCrateApiMobileGetPlatformConstMeta,
+      argValues: [],
+      apiImpl: this,
+    ));
+  }
+
+  TaskConstMeta get kCrateApiMobileGetPlatformConstMeta => const TaskConstMeta(
+        debugName: "get_platform",
+        argNames: [],
+      );
+
+  @override
   Future<ServerDto?> crateApiServerGetServer({required String id}) {
     return handler.executeNormal(NormalTask(
       callFfi: (port_) {
         final serializer = SseSerializer(generalizedFrbRustBinding);
         sse_encode_String(id, serializer);
         pdeCallFfi(generalizedFrbRustBinding, serializer,
-            funcId: 74, port: port_);
+            funcId: 93, port: port_);
       },
       codec: SseCodec(
         decodeSuccessData: sse_decode_opt_box_autoadd_server_dto,
@@ -2733,12 +3476,38 @@ class TermexBridgeApiImpl extends TermexBridgeApiImplPlatform
       );
 
   @override
+  Future<BigInt> crateApiTeamMobileGetTeamStorageSize(
+      {required String teamId}) {
+    return handler.executeNormal(NormalTask(
+      callFfi: (port_) {
+        final serializer = SseSerializer(generalizedFrbRustBinding);
+        sse_encode_String(teamId, serializer);
+        pdeCallFfi(generalizedFrbRustBinding, serializer,
+            funcId: 94, port: port_);
+      },
+      codec: SseCodec(
+        decodeSuccessData: sse_decode_u_64,
+        decodeErrorData: sse_decode_String,
+      ),
+      constMeta: kCrateApiTeamMobileGetTeamStorageSizeConstMeta,
+      argValues: [teamId],
+      apiImpl: this,
+    ));
+  }
+
+  TaskConstMeta get kCrateApiTeamMobileGetTeamStorageSizeConstMeta =>
+      const TaskConstMeta(
+        debugName: "get_team_storage_size",
+        argNames: ["teamId"],
+      );
+
+  @override
   Future<ThemeConfig> crateApiThemeGetThemeConfig() {
     return handler.executeNormal(NormalTask(
       callFfi: (port_) {
         final serializer = SseSerializer(generalizedFrbRustBinding);
         pdeCallFfi(generalizedFrbRustBinding, serializer,
-            funcId: 75, port: port_);
+            funcId: 95, port: port_);
       },
       codec: SseCodec(
         decodeSuccessData: sse_decode_theme_config,
@@ -2763,7 +3532,7 @@ class TermexBridgeApiImpl extends TermexBridgeApiImplPlatform
         final serializer = SseSerializer(generalizedFrbRustBinding);
         sse_encode_box_autoadd_git_sync_input(input, serializer);
         pdeCallFfi(generalizedFrbRustBinding, serializer,
-            funcId: 76, port: port_);
+            funcId: 96, port: port_);
       },
       codec: SseCodec(
         decodeSuccessData: sse_decode_String,
@@ -2788,7 +3557,7 @@ class TermexBridgeApiImpl extends TermexBridgeApiImplPlatform
         final serializer = SseSerializer(generalizedFrbRustBinding);
         sse_encode_String(serverId, serializer);
         pdeCallFfi(generalizedFrbRustBinding, serializer,
-            funcId: 77, port: port_);
+            funcId: 97, port: port_);
       },
       codec: SseCodec(
         decodeSuccessData: sse_decode_unit,
@@ -2818,7 +3587,7 @@ class TermexBridgeApiImpl extends TermexBridgeApiImplPlatform
         sse_encode_String(remote, serializer);
         sse_encode_String(localPath, serializer);
         pdeCallFfi(generalizedFrbRustBinding, serializer,
-            funcId: 78, port: port_);
+            funcId: 98, port: port_);
       },
       codec: SseCodec(
         decodeSuccessData: sse_decode_unit,
@@ -2844,7 +3613,7 @@ class TermexBridgeApiImpl extends TermexBridgeApiImplPlatform
         final serializer = SseSerializer(generalizedFrbRustBinding);
         sse_encode_String(serverId, serializer);
         pdeCallFfi(generalizedFrbRustBinding, serializer,
-            funcId: 79, port: port_);
+            funcId: 99, port: port_);
       },
       codec: SseCodec(
         decodeSuccessData: sse_decode_list_git_sync_repo,
@@ -2871,7 +3640,7 @@ class TermexBridgeApiImpl extends TermexBridgeApiImplPlatform
         sse_encode_String(id, serializer);
         sse_encode_opt_String(error, serializer);
         pdeCallFfi(generalizedFrbRustBinding, serializer,
-            funcId: 80, port: port_);
+            funcId: 100, port: port_);
       },
       codec: SseCodec(
         decodeSuccessData: sse_decode_unit,
@@ -2896,7 +3665,7 @@ class TermexBridgeApiImpl extends TermexBridgeApiImplPlatform
         final serializer = SseSerializer(generalizedFrbRustBinding);
         sse_encode_String(id, serializer);
         pdeCallFfi(generalizedFrbRustBinding, serializer,
-            funcId: 81, port: port_);
+            funcId: 101, port: port_);
       },
       codec: SseCodec(
         decodeSuccessData: sse_decode_unit,
@@ -2922,7 +3691,7 @@ class TermexBridgeApiImpl extends TermexBridgeApiImplPlatform
         final serializer = SseSerializer(generalizedFrbRustBinding);
         sse_encode_String(serverId, serializer);
         pdeCallFfi(generalizedFrbRustBinding, serializer,
-            funcId: 82, port: port_);
+            funcId: 102, port: port_);
       },
       codec: SseCodec(
         decodeSuccessData: sse_decode_git_sync_status,
@@ -2948,7 +3717,7 @@ class TermexBridgeApiImpl extends TermexBridgeApiImplPlatform
         final serializer = SseSerializer(generalizedFrbRustBinding);
         sse_encode_String(serverId, serializer);
         pdeCallFfi(generalizedFrbRustBinding, serializer,
-            funcId: 83, port: port_);
+            funcId: 103, port: port_);
       },
       codec: SseCodec(
         decodeSuccessData: sse_decode_git_sync_status,
@@ -2975,7 +3744,7 @@ class TermexBridgeApiImpl extends TermexBridgeApiImplPlatform
         sse_encode_String(id, serializer);
         sse_encode_git_sync_mode(mode, serializer);
         pdeCallFfi(generalizedFrbRustBinding, serializer,
-            funcId: 84, port: port_);
+            funcId: 104, port: port_);
       },
       codec: SseCodec(
         decodeSuccessData: sse_decode_unit,
@@ -2994,6 +3763,31 @@ class TermexBridgeApiImpl extends TermexBridgeApiImplPlatform
       );
 
   @override
+  Future<void> crateApiMobileHapticFeedback({required HapticStyle style}) {
+    return handler.executeNormal(NormalTask(
+      callFfi: (port_) {
+        final serializer = SseSerializer(generalizedFrbRustBinding);
+        sse_encode_haptic_style(style, serializer);
+        pdeCallFfi(generalizedFrbRustBinding, serializer,
+            funcId: 105, port: port_);
+      },
+      codec: SseCodec(
+        decodeSuccessData: sse_decode_unit,
+        decodeErrorData: sse_decode_String,
+      ),
+      constMeta: kCrateApiMobileHapticFeedbackConstMeta,
+      argValues: [style],
+      apiImpl: this,
+    ));
+  }
+
+  TaskConstMeta get kCrateApiMobileHapticFeedbackConstMeta =>
+      const TaskConstMeta(
+        debugName: "haptic_feedback",
+        argNames: ["style"],
+      );
+
+  @override
   Future<SshConfigImportResult> crateApiSshConfigImportSshConfig(
       {String? path, required List<String> selectedAliases}) {
     return handler.executeNormal(NormalTask(
@@ -3002,7 +3796,7 @@ class TermexBridgeApiImpl extends TermexBridgeApiImplPlatform
         sse_encode_opt_String(path, serializer);
         sse_encode_list_String(selectedAliases, serializer);
         pdeCallFfi(generalizedFrbRustBinding, serializer,
-            funcId: 85, port: port_);
+            funcId: 106, port: port_);
       },
       codec: SseCodec(
         decodeSuccessData: sse_decode_ssh_config_import_result,
@@ -3026,7 +3820,7 @@ class TermexBridgeApiImpl extends TermexBridgeApiImplPlatform
       callFfi: (port_) {
         final serializer = SseSerializer(generalizedFrbRustBinding);
         pdeCallFfi(generalizedFrbRustBinding, serializer,
-            funcId: 86, port: port_);
+            funcId: 107, port: port_);
       },
       codec: SseCodec(
         decodeSuccessData: sse_decode_app_init_state,
@@ -3044,13 +3838,89 @@ class TermexBridgeApiImpl extends TermexBridgeApiImplPlatform
       );
 
   @override
+  Future<String> crateApiSyncInitiatePairing(
+      {required String peerHost, required int peerPort}) {
+    return handler.executeNormal(NormalTask(
+      callFfi: (port_) {
+        final serializer = SseSerializer(generalizedFrbRustBinding);
+        sse_encode_String(peerHost, serializer);
+        sse_encode_u_16(peerPort, serializer);
+        pdeCallFfi(generalizedFrbRustBinding, serializer,
+            funcId: 108, port: port_);
+      },
+      codec: SseCodec(
+        decodeSuccessData: sse_decode_String,
+        decodeErrorData: sse_decode_String,
+      ),
+      constMeta: kCrateApiSyncInitiatePairingConstMeta,
+      argValues: [peerHost, peerPort],
+      apiImpl: this,
+    ));
+  }
+
+  TaskConstMeta get kCrateApiSyncInitiatePairingConstMeta =>
+      const TaskConstMeta(
+        debugName: "initiate_pairing",
+        argNames: ["peerHost", "peerPort"],
+      );
+
+  @override
+  Future<bool> crateApiLocalPtyIsLocalSession({required String sessionId}) {
+    return handler.executeNormal(NormalTask(
+      callFfi: (port_) {
+        final serializer = SseSerializer(generalizedFrbRustBinding);
+        sse_encode_String(sessionId, serializer);
+        pdeCallFfi(generalizedFrbRustBinding, serializer,
+            funcId: 109, port: port_);
+      },
+      codec: SseCodec(
+        decodeSuccessData: sse_decode_bool,
+        decodeErrorData: null,
+      ),
+      constMeta: kCrateApiLocalPtyIsLocalSessionConstMeta,
+      argValues: [sessionId],
+      apiImpl: this,
+    ));
+  }
+
+  TaskConstMeta get kCrateApiLocalPtyIsLocalSessionConstMeta =>
+      const TaskConstMeta(
+        debugName: "is_local_session",
+        argNames: ["sessionId"],
+      );
+
+  @override
+  Future<bool> crateApiMobileIsMobilePlatform() {
+    return handler.executeNormal(NormalTask(
+      callFfi: (port_) {
+        final serializer = SseSerializer(generalizedFrbRustBinding);
+        pdeCallFfi(generalizedFrbRustBinding, serializer,
+            funcId: 110, port: port_);
+      },
+      codec: SseCodec(
+        decodeSuccessData: sse_decode_bool,
+        decodeErrorData: null,
+      ),
+      constMeta: kCrateApiMobileIsMobilePlatformConstMeta,
+      argValues: [],
+      apiImpl: this,
+    ));
+  }
+
+  TaskConstMeta get kCrateApiMobileIsMobilePlatformConstMeta =>
+      const TaskConstMeta(
+        debugName: "is_mobile_platform",
+        argNames: [],
+      );
+
+  @override
   Future<bool> crateApiSftpIsSftpOpen({required String sessionId}) {
     return handler.executeNormal(NormalTask(
       callFfi: (port_) {
         final serializer = SseSerializer(generalizedFrbRustBinding);
         sse_encode_String(sessionId, serializer);
         pdeCallFfi(generalizedFrbRustBinding, serializer,
-            funcId: 87, port: port_);
+            funcId: 111, port: port_);
       },
       codec: SseCodec(
         decodeSuccessData: sse_decode_bool,
@@ -3076,7 +3946,7 @@ class TermexBridgeApiImpl extends TermexBridgeApiImplPlatform
         sse_encode_String(current, serializer);
         sse_encode_String(remote, serializer);
         pdeCallFfi(generalizedFrbRustBinding, serializer,
-            funcId: 88, port: port_);
+            funcId: 112, port: port_);
       },
       codec: SseCodec(
         decodeSuccessData: sse_decode_bool,
@@ -3103,7 +3973,7 @@ class TermexBridgeApiImpl extends TermexBridgeApiImplPlatform
         sse_encode_String(keyCombination, serializer);
         sse_encode_String(context, serializer);
         pdeCallFfi(generalizedFrbRustBinding, serializer,
-            funcId: 89, port: port_);
+            funcId: 113, port: port_);
       },
       codec: SseCodec(
         decodeSuccessData: sse_decode_opt_box_autoadd_conflict_info,
@@ -3127,7 +3997,7 @@ class TermexBridgeApiImpl extends TermexBridgeApiImplPlatform
       callFfi: (port_) {
         final serializer = SseSerializer(generalizedFrbRustBinding);
         pdeCallFfi(generalizedFrbRustBinding, serializer,
-            funcId: 90, port: port_);
+            funcId: 114, port: port_);
       },
       codec: SseCodec(
         decodeSuccessData: sse_decode_list_keybinding_entry,
@@ -3153,7 +4023,7 @@ class TermexBridgeApiImpl extends TermexBridgeApiImplPlatform
         final serializer = SseSerializer(generalizedFrbRustBinding);
         sse_encode_String(keyCombination, serializer);
         pdeCallFfi(generalizedFrbRustBinding, serializer,
-            funcId: 91, port: port_);
+            funcId: 115, port: port_);
       },
       codec: SseCodec(
         decodeSuccessData: sse_decode_bool,
@@ -3179,7 +4049,7 @@ class TermexBridgeApiImpl extends TermexBridgeApiImplPlatform
         final serializer = SseSerializer(generalizedFrbRustBinding);
         sse_encode_String(scope, serializer);
         pdeCallFfi(generalizedFrbRustBinding, serializer,
-            funcId: 92, port: port_);
+            funcId: 116, port: port_);
       },
       codec: SseCodec(
         decodeSuccessData: sse_decode_bool,
@@ -3203,7 +4073,7 @@ class TermexBridgeApiImpl extends TermexBridgeApiImplPlatform
       callFfi: (port_) {
         final serializer = SseSerializer(generalizedFrbRustBinding);
         pdeCallFfi(generalizedFrbRustBinding, serializer,
-            funcId: 93, port: port_);
+            funcId: 117, port: port_);
       },
       codec: SseCodec(
         decodeSuccessData: sse_decode_list_keybinding_entry,
@@ -3227,7 +4097,7 @@ class TermexBridgeApiImpl extends TermexBridgeApiImplPlatform
       callFfi: (port_) {
         final serializer = SseSerializer(generalizedFrbRustBinding);
         pdeCallFfi(generalizedFrbRustBinding, serializer,
-            funcId: 94, port: port_);
+            funcId: 118, port: port_);
       },
       codec: SseCodec(
         decodeSuccessData: sse_decode_list_String,
@@ -3251,7 +4121,7 @@ class TermexBridgeApiImpl extends TermexBridgeApiImplPlatform
       callFfi: (port_) {
         final serializer = SseSerializer(generalizedFrbRustBinding);
         pdeCallFfi(generalizedFrbRustBinding, serializer,
-            funcId: 95, port: port_);
+            funcId: 119, port: port_);
       },
       codec: SseCodec(
         decodeSuccessData: sse_decode_list_String,
@@ -3276,7 +4146,7 @@ class TermexBridgeApiImpl extends TermexBridgeApiImplPlatform
         final serializer = SseSerializer(generalizedFrbRustBinding);
         sse_encode_String(action, serializer);
         pdeCallFfi(generalizedFrbRustBinding, serializer,
-            funcId: 96, port: port_);
+            funcId: 120, port: port_);
       },
       codec: SseCodec(
         decodeSuccessData: sse_decode_unit,
@@ -3300,7 +4170,7 @@ class TermexBridgeApiImpl extends TermexBridgeApiImplPlatform
       callFfi: (port_) {
         final serializer = SseSerializer(generalizedFrbRustBinding);
         pdeCallFfi(generalizedFrbRustBinding, serializer,
-            funcId: 97, port: port_);
+            funcId: 121, port: port_);
       },
       codec: SseCodec(
         decodeSuccessData: sse_decode_unit,
@@ -3330,7 +4200,7 @@ class TermexBridgeApiImpl extends TermexBridgeApiImplPlatform
         sse_encode_String(keyCombination, serializer);
         sse_encode_String(context, serializer);
         pdeCallFfi(generalizedFrbRustBinding, serializer,
-            funcId: 98, port: port_);
+            funcId: 122, port: port_);
       },
       codec: SseCodec(
         decodeSuccessData: sse_decode_unit,
@@ -3360,7 +4230,7 @@ class TermexBridgeApiImpl extends TermexBridgeApiImplPlatform
         sse_encode_String(keyCombination, serializer);
         sse_encode_String(context, serializer);
         pdeCallFfi(generalizedFrbRustBinding, serializer,
-            funcId: 99, port: port_);
+            funcId: 123, port: port_);
       },
       codec: SseCodec(
         decodeSuccessData: sse_decode_unit,
@@ -3387,7 +4257,7 @@ class TermexBridgeApiImpl extends TermexBridgeApiImplPlatform
         sse_encode_String(serverId, serializer);
         sse_encode_u_32(limit, serializer);
         pdeCallFfi(generalizedFrbRustBinding, serializer,
-            funcId: 100, port: port_);
+            funcId: 124, port: port_);
       },
       codec: SseCodec(
         decodeSuccessData: sse_decode_list_command_history_entry,
@@ -3411,7 +4281,7 @@ class TermexBridgeApiImpl extends TermexBridgeApiImplPlatform
       callFfi: (port_) {
         final serializer = SseSerializer(generalizedFrbRustBinding);
         pdeCallFfi(generalizedFrbRustBinding, serializer,
-            funcId: 101, port: port_);
+            funcId: 125, port: port_);
       },
       codec: SseCodec(
         decodeSuccessData: sse_decode_list_group_dto,
@@ -3434,7 +4304,7 @@ class TermexBridgeApiImpl extends TermexBridgeApiImplPlatform
       callFfi: (port_) {
         final serializer = SseSerializer(generalizedFrbRustBinding);
         pdeCallFfi(generalizedFrbRustBinding, serializer,
-            funcId: 102, port: port_);
+            funcId: 126, port: port_);
       },
       codec: SseCodec(
         decodeSuccessData: sse_decode_list_quick_connect_entry,
@@ -3458,7 +4328,7 @@ class TermexBridgeApiImpl extends TermexBridgeApiImplPlatform
       callFfi: (port_) {
         final serializer = SseSerializer(generalizedFrbRustBinding);
         pdeCallFfi(generalizedFrbRustBinding, serializer,
-            funcId: 103, port: port_);
+            funcId: 127, port: port_);
       },
       codec: SseCodec(
         decodeSuccessData: sse_decode_list_server_dto,
@@ -3481,7 +4351,7 @@ class TermexBridgeApiImpl extends TermexBridgeApiImplPlatform
       callFfi: (port_) {
         final serializer = SseSerializer(generalizedFrbRustBinding);
         pdeCallFfi(generalizedFrbRustBinding, serializer,
-            funcId: 104, port: port_);
+            funcId: 128, port: port_);
       },
       codec: SseCodec(
         decodeSuccessData: sse_decode_bool,
@@ -3505,7 +4375,7 @@ class TermexBridgeApiImpl extends TermexBridgeApiImplPlatform
       callFfi: (port_) {
         final serializer = SseSerializer(generalizedFrbRustBinding);
         pdeCallFfi(generalizedFrbRustBinding, serializer,
-            funcId: 105, port: port_);
+            funcId: 129, port: port_);
       },
       codec: SseCodec(
         decodeSuccessData: sse_decode_unit,
@@ -3529,7 +4399,7 @@ class TermexBridgeApiImpl extends TermexBridgeApiImplPlatform
       callFfi: (port_) {
         final serializer = SseSerializer(generalizedFrbRustBinding);
         pdeCallFfi(generalizedFrbRustBinding, serializer,
-            funcId: 106, port: port_);
+            funcId: 130, port: port_);
       },
       codec: SseCodec(
         decodeSuccessData: sse_decode_String,
@@ -3553,7 +4423,7 @@ class TermexBridgeApiImpl extends TermexBridgeApiImplPlatform
       callFfi: (port_) {
         final serializer = SseSerializer(generalizedFrbRustBinding);
         pdeCallFfi(generalizedFrbRustBinding, serializer,
-            funcId: 107, port: port_);
+            funcId: 131, port: port_);
       },
       codec: SseCodec(
         decodeSuccessData: sse_decode_unit,
@@ -3578,7 +4448,7 @@ class TermexBridgeApiImpl extends TermexBridgeApiImplPlatform
         final serializer = SseSerializer(generalizedFrbRustBinding);
         sse_encode_String(modelId, serializer);
         pdeCallFfi(generalizedFrbRustBinding, serializer,
-            funcId: 108, port: port_);
+            funcId: 132, port: port_);
       },
       codec: SseCodec(
         decodeSuccessData: sse_decode_unit,
@@ -3602,7 +4472,7 @@ class TermexBridgeApiImpl extends TermexBridgeApiImplPlatform
       callFfi: (port_) {
         final serializer = SseSerializer(generalizedFrbRustBinding);
         pdeCallFfi(generalizedFrbRustBinding, serializer,
-            funcId: 109, port: port_);
+            funcId: 133, port: port_);
       },
       codec: SseCodec(
         decodeSuccessData: sse_decode_u_64,
@@ -3627,7 +4497,7 @@ class TermexBridgeApiImpl extends TermexBridgeApiImplPlatform
         final serializer = SseSerializer(generalizedFrbRustBinding);
         sse_encode_String(modelId, serializer);
         pdeCallFfi(generalizedFrbRustBinding, serializer,
-            funcId: 110, port: port_);
+            funcId: 134, port: port_);
       },
       codec: SseCodec(
         decodeSuccessData: sse_decode_unit,
@@ -3652,7 +4522,7 @@ class TermexBridgeApiImpl extends TermexBridgeApiImplPlatform
         final serializer = SseSerializer(generalizedFrbRustBinding);
         sse_encode_String(modelId, serializer);
         pdeCallFfi(generalizedFrbRustBinding, serializer,
-            funcId: 111, port: port_);
+            funcId: 135, port: port_);
       },
       codec: SseCodec(
         decodeSuccessData: sse_decode_unit,
@@ -3676,7 +4546,7 @@ class TermexBridgeApiImpl extends TermexBridgeApiImplPlatform
       callFfi: (port_) {
         final serializer = SseSerializer(generalizedFrbRustBinding);
         pdeCallFfi(generalizedFrbRustBinding, serializer,
-            funcId: 112, port: port_);
+            funcId: 136, port: port_);
       },
       codec: SseCodec(
         decodeSuccessData: sse_decode_local_ai_health,
@@ -3700,7 +4570,7 @@ class TermexBridgeApiImpl extends TermexBridgeApiImplPlatform
       callFfi: (port_) {
         final serializer = SseSerializer(generalizedFrbRustBinding);
         pdeCallFfi(generalizedFrbRustBinding, serializer,
-            funcId: 113, port: port_);
+            funcId: 137, port: port_);
       },
       codec: SseCodec(
         decodeSuccessData: sse_decode_list_local_model_dto,
@@ -3727,7 +4597,7 @@ class TermexBridgeApiImpl extends TermexBridgeApiImplPlatform
         sse_encode_String(modelId, serializer);
         sse_encode_u_16(port, serializer);
         pdeCallFfi(generalizedFrbRustBinding, serializer,
-            funcId: 114, port: port_);
+            funcId: 138, port: port_);
       },
       codec: SseCodec(
         decodeSuccessData: sse_decode_unit,
@@ -3751,7 +4621,7 @@ class TermexBridgeApiImpl extends TermexBridgeApiImplPlatform
       callFfi: (port_) {
         final serializer = SseSerializer(generalizedFrbRustBinding);
         pdeCallFfi(generalizedFrbRustBinding, serializer,
-            funcId: 115, port: port_);
+            funcId: 139, port: port_);
       },
       codec: SseCodec(
         decodeSuccessData: sse_decode_unit,
@@ -3775,7 +4645,7 @@ class TermexBridgeApiImpl extends TermexBridgeApiImplPlatform
         final serializer = SseSerializer(generalizedFrbRustBinding);
         sse_encode_String(path, serializer);
         pdeCallFfi(generalizedFrbRustBinding, serializer,
-            funcId: 116, port: port_);
+            funcId: 140, port: port_);
       },
       codec: SseCodec(
         decodeSuccessData: sse_decode_unit,
@@ -3800,7 +4670,7 @@ class TermexBridgeApiImpl extends TermexBridgeApiImplPlatform
         final serializer = SseSerializer(generalizedFrbRustBinding);
         sse_encode_String(path, serializer);
         pdeCallFfi(generalizedFrbRustBinding, serializer,
-            funcId: 117, port: port_);
+            funcId: 141, port: port_);
       },
       codec: SseCodec(
         decodeSuccessData: sse_decode_unit,
@@ -3824,7 +4694,7 @@ class TermexBridgeApiImpl extends TermexBridgeApiImplPlatform
         final serializer = SseSerializer(generalizedFrbRustBinding);
         sse_encode_String(path, serializer);
         pdeCallFfi(generalizedFrbRustBinding, serializer,
-            funcId: 118, port: port_);
+            funcId: 142, port: port_);
       },
       codec: SseCodec(
         decodeSuccessData: sse_decode_bool,
@@ -3847,7 +4717,7 @@ class TermexBridgeApiImpl extends TermexBridgeApiImplPlatform
       callFfi: (port_) {
         final serializer = SseSerializer(generalizedFrbRustBinding);
         pdeCallFfi(generalizedFrbRustBinding, serializer,
-            funcId: 119, port: port_);
+            funcId: 143, port: port_);
       },
       codec: SseCodec(
         decodeSuccessData: sse_decode_String,
@@ -3873,7 +4743,7 @@ class TermexBridgeApiImpl extends TermexBridgeApiImplPlatform
         final serializer = SseSerializer(generalizedFrbRustBinding);
         sse_encode_String(path, serializer);
         pdeCallFfi(generalizedFrbRustBinding, serializer,
-            funcId: 120, port: port_);
+            funcId: 144, port: port_);
       },
       codec: SseCodec(
         decodeSuccessData: sse_decode_list_local_file_dto,
@@ -3898,7 +4768,7 @@ class TermexBridgeApiImpl extends TermexBridgeApiImplPlatform
         final serializer = SseSerializer(generalizedFrbRustBinding);
         sse_encode_String(path, serializer);
         pdeCallFfi(generalizedFrbRustBinding, serializer,
-            funcId: 121, port: port_);
+            funcId: 145, port: port_);
       },
       codec: SseCodec(
         decodeSuccessData: sse_decode_unit,
@@ -3922,7 +4792,7 @@ class TermexBridgeApiImpl extends TermexBridgeApiImplPlatform
         final serializer = SseSerializer(generalizedFrbRustBinding);
         sse_encode_String(path, serializer);
         pdeCallFfi(generalizedFrbRustBinding, serializer,
-            funcId: 122, port: port_);
+            funcId: 146, port: port_);
       },
       codec: SseCodec(
         decodeSuccessData: sse_decode_String,
@@ -3948,7 +4818,7 @@ class TermexBridgeApiImpl extends TermexBridgeApiImplPlatform
         sse_encode_String(from, serializer);
         sse_encode_String(to, serializer);
         pdeCallFfi(generalizedFrbRustBinding, serializer,
-            funcId: 123, port: port_);
+            funcId: 147, port: port_);
       },
       codec: SseCodec(
         decodeSuccessData: sse_decode_unit,
@@ -3972,7 +4842,7 @@ class TermexBridgeApiImpl extends TermexBridgeApiImplPlatform
         final serializer = SseSerializer(generalizedFrbRustBinding);
         sse_encode_String(path, serializer);
         pdeCallFfi(generalizedFrbRustBinding, serializer,
-            funcId: 124, port: port_);
+            funcId: 148, port: port_);
       },
       codec: SseCodec(
         decodeSuccessData: sse_decode_unit,
@@ -3996,7 +4866,7 @@ class TermexBridgeApiImpl extends TermexBridgeApiImplPlatform
         final serializer = SseSerializer(generalizedFrbRustBinding);
         sse_encode_String(path, serializer);
         pdeCallFfi(generalizedFrbRustBinding, serializer,
-            funcId: 125, port: port_);
+            funcId: 149, port: port_);
       },
       codec: SseCodec(
         decodeSuccessData: sse_decode_local_file_dto,
@@ -4014,12 +4884,60 @@ class TermexBridgeApiImpl extends TermexBridgeApiImplPlatform
       );
 
   @override
+  Future<bool> crateApiAppMasterPasswordRequired() {
+    return handler.executeNormal(NormalTask(
+      callFfi: (port_) {
+        final serializer = SseSerializer(generalizedFrbRustBinding);
+        pdeCallFfi(generalizedFrbRustBinding, serializer,
+            funcId: 150, port: port_);
+      },
+      codec: SseCodec(
+        decodeSuccessData: sse_decode_bool,
+        decodeErrorData: null,
+      ),
+      constMeta: kCrateApiAppMasterPasswordRequiredConstMeta,
+      argValues: [],
+      apiImpl: this,
+    ));
+  }
+
+  TaskConstMeta get kCrateApiAppMasterPasswordRequiredConstMeta =>
+      const TaskConstMeta(
+        debugName: "master_password_required",
+        argNames: [],
+      );
+
+  @override
+  Future<String> crateApiMobileMobileDocumentsDir() {
+    return handler.executeNormal(NormalTask(
+      callFfi: (port_) {
+        final serializer = SseSerializer(generalizedFrbRustBinding);
+        pdeCallFfi(generalizedFrbRustBinding, serializer,
+            funcId: 151, port: port_);
+      },
+      codec: SseCodec(
+        decodeSuccessData: sse_decode_String,
+        decodeErrorData: sse_decode_String,
+      ),
+      constMeta: kCrateApiMobileMobileDocumentsDirConstMeta,
+      argValues: [],
+      apiImpl: this,
+    ));
+  }
+
+  TaskConstMeta get kCrateApiMobileMobileDocumentsDirConstMeta =>
+      const TaskConstMeta(
+        debugName: "mobile_documents_dir",
+        argNames: [],
+      );
+
+  @override
   Future<List<String>> crateApiMonitorMonitorActivePollingSessions() {
     return handler.executeNormal(NormalTask(
       callFfi: (port_) {
         final serializer = SseSerializer(generalizedFrbRustBinding);
         pdeCallFfi(generalizedFrbRustBinding, serializer,
-            funcId: 126, port: port_);
+            funcId: 152, port: port_);
       },
       codec: SseCodec(
         decodeSuccessData: sse_decode_list_String,
@@ -4038,6 +4956,30 @@ class TermexBridgeApiImpl extends TermexBridgeApiImplPlatform
       );
 
   @override
+  Future<SystemStats> crateApiMonitorMonitorCollectLocalStats() {
+    return handler.executeNormal(NormalTask(
+      callFfi: (port_) {
+        final serializer = SseSerializer(generalizedFrbRustBinding);
+        pdeCallFfi(generalizedFrbRustBinding, serializer,
+            funcId: 153, port: port_);
+      },
+      codec: SseCodec(
+        decodeSuccessData: sse_decode_system_stats,
+        decodeErrorData: sse_decode_String,
+      ),
+      constMeta: kCrateApiMonitorMonitorCollectLocalStatsConstMeta,
+      argValues: [],
+      apiImpl: this,
+    ));
+  }
+
+  TaskConstMeta get kCrateApiMonitorMonitorCollectLocalStatsConstMeta =>
+      const TaskConstMeta(
+        debugName: "monitor_collect_local_stats",
+        argNames: [],
+      );
+
+  @override
   Future<SystemStats> crateApiMonitorMonitorGetStats(
       {required String sessionId}) {
     return handler.executeNormal(NormalTask(
@@ -4045,7 +4987,7 @@ class TermexBridgeApiImpl extends TermexBridgeApiImplPlatform
         final serializer = SseSerializer(generalizedFrbRustBinding);
         sse_encode_String(sessionId, serializer);
         pdeCallFfi(generalizedFrbRustBinding, serializer,
-            funcId: 127, port: port_);
+            funcId: 154, port: port_);
       },
       codec: SseCodec(
         decodeSuccessData: sse_decode_system_stats,
@@ -4072,7 +5014,7 @@ class TermexBridgeApiImpl extends TermexBridgeApiImplPlatform
         sse_encode_String(sessionId, serializer);
         sse_encode_i_32(limit, serializer);
         pdeCallFfi(generalizedFrbRustBinding, serializer,
-            funcId: 128, port: port_);
+            funcId: 155, port: port_);
       },
       codec: SseCodec(
         decodeSuccessData: sse_decode_list_process_info,
@@ -4106,7 +5048,7 @@ class TermexBridgeApiImpl extends TermexBridgeApiImplPlatform
         sse_encode_String(processName, serializer);
         sse_encode_bool(expertMode, serializer);
         pdeCallFfi(generalizedFrbRustBinding, serializer,
-            funcId: 129, port: port_);
+            funcId: 156, port: port_);
       },
       codec: SseCodec(
         decodeSuccessData: sse_decode_unit,
@@ -4134,7 +5076,7 @@ class TermexBridgeApiImpl extends TermexBridgeApiImplPlatform
         sse_encode_u_32(pid, serializer);
         sse_encode_String(signal, serializer);
         pdeCallFfi(generalizedFrbRustBinding, serializer,
-            funcId: 130, port: port_);
+            funcId: 157, port: port_);
       },
       codec: SseCodec(
         decodeSuccessData: sse_decode_unit,
@@ -4161,7 +5103,7 @@ class TermexBridgeApiImpl extends TermexBridgeApiImplPlatform
         sse_encode_String(sessionId, serializer);
         sse_encode_u_32(intervalMs, serializer);
         pdeCallFfi(generalizedFrbRustBinding, serializer,
-            funcId: 131, port: port_);
+            funcId: 158, port: port_);
       },
       codec: SseCodec(
         decodeSuccessData: sse_decode_unit,
@@ -4186,7 +5128,7 @@ class TermexBridgeApiImpl extends TermexBridgeApiImplPlatform
         final serializer = SseSerializer(generalizedFrbRustBinding);
         sse_encode_String(sessionId, serializer);
         pdeCallFfi(generalizedFrbRustBinding, serializer,
-            funcId: 132, port: port_);
+            funcId: 159, port: port_);
       },
       codec: SseCodec(
         decodeSuccessData: sse_decode_unit,
@@ -4218,7 +5160,7 @@ class TermexBridgeApiImpl extends TermexBridgeApiImplPlatform
         sse_encode_String(processName, serializer);
         sse_encode_bool(expertMode, serializer);
         pdeCallFfi(generalizedFrbRustBinding, serializer,
-            funcId: 133, port: port_);
+            funcId: 160, port: port_);
       },
       codec: SseCodec(
         decodeSuccessData: sse_decode_unit,
@@ -4245,7 +5187,7 @@ class TermexBridgeApiImpl extends TermexBridgeApiImplPlatform
         sse_encode_String(id, serializer);
         sse_encode_opt_String(groupId, serializer);
         pdeCallFfi(generalizedFrbRustBinding, serializer,
-            funcId: 134, port: port_);
+            funcId: 161, port: port_);
       },
       codec: SseCodec(
         decodeSuccessData: sse_decode_unit,
@@ -4264,13 +5206,40 @@ class TermexBridgeApiImpl extends TermexBridgeApiImplPlatform
       );
 
   @override
+  Future<String> crateApiLocalPtyOpenLocalPty(
+      {required int cols, required int rows}) {
+    return handler.executeNormal(NormalTask(
+      callFfi: (port_) {
+        final serializer = SseSerializer(generalizedFrbRustBinding);
+        sse_encode_u_32(cols, serializer);
+        sse_encode_u_32(rows, serializer);
+        pdeCallFfi(generalizedFrbRustBinding, serializer,
+            funcId: 162, port: port_);
+      },
+      codec: SseCodec(
+        decodeSuccessData: sse_decode_String,
+        decodeErrorData: sse_decode_String,
+      ),
+      constMeta: kCrateApiLocalPtyOpenLocalPtyConstMeta,
+      argValues: [cols, rows],
+      apiImpl: this,
+    ));
+  }
+
+  TaskConstMeta get kCrateApiLocalPtyOpenLocalPtyConstMeta =>
+      const TaskConstMeta(
+        debugName: "open_local_pty",
+        argNames: ["cols", "rows"],
+      );
+
+  @override
   Future<String> crateApiSftpOpenSftpChannel({required String sessionId}) {
     return handler.executeNormal(NormalTask(
       callFfi: (port_) {
         final serializer = SseSerializer(generalizedFrbRustBinding);
         sse_encode_String(sessionId, serializer);
         pdeCallFfi(generalizedFrbRustBinding, serializer,
-            funcId: 135, port: port_);
+            funcId: 163, port: port_);
       },
       codec: SseCodec(
         decodeSuccessData: sse_decode_String,
@@ -4298,7 +5267,7 @@ class TermexBridgeApiImpl extends TermexBridgeApiImplPlatform
         sse_encode_u_32(cols, serializer);
         sse_encode_u_32(rows, serializer);
         pdeCallFfi(generalizedFrbRustBinding, serializer,
-            funcId: 136, port: port_);
+            funcId: 164, port: port_);
       },
       codec: SseCodec(
         decodeSuccessData: sse_decode_String,
@@ -4327,7 +5296,7 @@ class TermexBridgeApiImpl extends TermexBridgeApiImplPlatform
         sse_encode_u_32(cols, serializer);
         sse_encode_u_32(rows, serializer);
         pdeCallFfi(generalizedFrbRustBinding, serializer,
-            funcId: 137, port: port_);
+            funcId: 165, port: port_);
       },
       codec: SseCodec(
         decodeSuccessData: sse_decode_String,
@@ -4352,7 +5321,7 @@ class TermexBridgeApiImpl extends TermexBridgeApiImplPlatform
         final serializer = SseSerializer(generalizedFrbRustBinding);
         sse_encode_String(url, serializer);
         pdeCallFfi(generalizedFrbRustBinding, serializer,
-            funcId: 138, port: port_);
+            funcId: 166, port: port_);
       },
       codec: SseCodec(
         decodeSuccessData: sse_decode_unit,
@@ -4378,7 +5347,7 @@ class TermexBridgeApiImpl extends TermexBridgeApiImplPlatform
         sse_encode_String(xml, serializer);
         sse_encode_String(currentVersion, serializer);
         pdeCallFfi(generalizedFrbRustBinding, serializer,
-            funcId: 139, port: port_);
+            funcId: 167, port: port_);
       },
       codec: SseCodec(
         decodeSuccessData: sse_decode_update_manifest,
@@ -4396,6 +5365,32 @@ class TermexBridgeApiImpl extends TermexBridgeApiImplPlatform
       );
 
   @override
+  Future<InviteInfo> crateApiTeamMobileParseInviteUrl(
+      {required String qrContent}) {
+    return handler.executeNormal(NormalTask(
+      callFfi: (port_) {
+        final serializer = SseSerializer(generalizedFrbRustBinding);
+        sse_encode_String(qrContent, serializer);
+        pdeCallFfi(generalizedFrbRustBinding, serializer,
+            funcId: 168, port: port_);
+      },
+      codec: SseCodec(
+        decodeSuccessData: sse_decode_invite_info,
+        decodeErrorData: sse_decode_String,
+      ),
+      constMeta: kCrateApiTeamMobileParseInviteUrlConstMeta,
+      argValues: [qrContent],
+      apiImpl: this,
+    ));
+  }
+
+  TaskConstMeta get kCrateApiTeamMobileParseInviteUrlConstMeta =>
+      const TaskConstMeta(
+        debugName: "parse_invite_url",
+        argNames: ["qrContent"],
+      );
+
+  @override
   Future<PermissionCheckResult> crateApiPluginPluginCheckPermission(
       {required String pluginId, required String permission}) {
     return handler.executeNormal(NormalTask(
@@ -4404,7 +5399,7 @@ class TermexBridgeApiImpl extends TermexBridgeApiImplPlatform
         sse_encode_String(pluginId, serializer);
         sse_encode_String(permission, serializer);
         pdeCallFfi(generalizedFrbRustBinding, serializer,
-            funcId: 140, port: port_);
+            funcId: 169, port: port_);
       },
       codec: SseCodec(
         decodeSuccessData: sse_decode_permission_check_result,
@@ -4428,7 +5423,7 @@ class TermexBridgeApiImpl extends TermexBridgeApiImplPlatform
       callFfi: (port_) {
         final serializer = SseSerializer(generalizedFrbRustBinding);
         pdeCallFfi(generalizedFrbRustBinding, serializer,
-            funcId: 141, port: port_);
+            funcId: 170, port: port_);
       },
       codec: SseCodec(
         decodeSuccessData: sse_decode_bool,
@@ -4453,7 +5448,7 @@ class TermexBridgeApiImpl extends TermexBridgeApiImplPlatform
         final serializer = SseSerializer(generalizedFrbRustBinding);
         sse_encode_String(pluginId, serializer);
         pdeCallFfi(generalizedFrbRustBinding, serializer,
-            funcId: 142, port: port_);
+            funcId: 171, port: port_);
       },
       codec: SseCodec(
         decodeSuccessData: sse_decode_unit,
@@ -4478,7 +5473,7 @@ class TermexBridgeApiImpl extends TermexBridgeApiImplPlatform
         final serializer = SseSerializer(generalizedFrbRustBinding);
         sse_encode_String(pluginId, serializer);
         pdeCallFfi(generalizedFrbRustBinding, serializer,
-            funcId: 143, port: port_);
+            funcId: 172, port: port_);
       },
       codec: SseCodec(
         decodeSuccessData: sse_decode_unit,
@@ -4504,7 +5499,7 @@ class TermexBridgeApiImpl extends TermexBridgeApiImplPlatform
         sse_encode_String(pluginId, serializer);
         sse_encode_String(permission, serializer);
         pdeCallFfi(generalizedFrbRustBinding, serializer,
-            funcId: 144, port: port_);
+            funcId: 173, port: port_);
       },
       codec: SseCodec(
         decodeSuccessData: sse_decode_unit,
@@ -4528,7 +5523,7 @@ class TermexBridgeApiImpl extends TermexBridgeApiImplPlatform
       callFfi: (port_) {
         final serializer = SseSerializer(generalizedFrbRustBinding);
         pdeCallFfi(generalizedFrbRustBinding, serializer,
-            funcId: 145, port: port_);
+            funcId: 174, port: port_);
       },
       codec: SseCodec(
         decodeSuccessData: sse_decode_list_plugin_dto,
@@ -4554,7 +5549,7 @@ class TermexBridgeApiImpl extends TermexBridgeApiImplPlatform
         sse_encode_String(manifestJson, serializer);
         sse_encode_String(installPath, serializer);
         pdeCallFfi(generalizedFrbRustBinding, serializer,
-            funcId: 146, port: port_);
+            funcId: 175, port: port_);
       },
       codec: SseCodec(
         decodeSuccessData: sse_decode_plugin_dto,
@@ -4581,7 +5576,7 @@ class TermexBridgeApiImpl extends TermexBridgeApiImplPlatform
         sse_encode_String(pluginId, serializer);
         sse_encode_String(permission, serializer);
         pdeCallFfi(generalizedFrbRustBinding, serializer,
-            funcId: 147, port: port_);
+            funcId: 176, port: port_);
       },
       codec: SseCodec(
         decodeSuccessData: sse_decode_unit,
@@ -4606,7 +5601,7 @@ class TermexBridgeApiImpl extends TermexBridgeApiImplPlatform
         final serializer = SseSerializer(generalizedFrbRustBinding);
         sse_encode_bool(enabled, serializer);
         pdeCallFfi(generalizedFrbRustBinding, serializer,
-            funcId: 148, port: port_);
+            funcId: 177, port: port_);
       },
       codec: SseCodec(
         decodeSuccessData: sse_decode_unit,
@@ -4631,7 +5626,7 @@ class TermexBridgeApiImpl extends TermexBridgeApiImplPlatform
         final serializer = SseSerializer(generalizedFrbRustBinding);
         sse_encode_String(pluginId, serializer);
         pdeCallFfi(generalizedFrbRustBinding, serializer,
-            funcId: 149, port: port_);
+            funcId: 178, port: port_);
       },
       codec: SseCodec(
         decodeSuccessData: sse_decode_unit,
@@ -4657,7 +5652,7 @@ class TermexBridgeApiImpl extends TermexBridgeApiImplPlatform
         final serializer = SseSerializer(generalizedFrbRustBinding);
         sse_encode_String(conversationId, serializer);
         pdeCallFfi(generalizedFrbRustBinding, serializer,
-            funcId: 150, port: port_);
+            funcId: 179, port: port_);
       },
       codec: SseCodec(
         decodeSuccessData: sse_decode_list_ai_chunk_dto,
@@ -4675,6 +5670,32 @@ class TermexBridgeApiImpl extends TermexBridgeApiImplPlatform
       );
 
   @override
+  Future<List<ChainProgressDto>> crateApiSshPollChainProgress(
+      {required String sessionId}) {
+    return handler.executeNormal(NormalTask(
+      callFfi: (port_) {
+        final serializer = SseSerializer(generalizedFrbRustBinding);
+        sse_encode_String(sessionId, serializer);
+        pdeCallFfi(generalizedFrbRustBinding, serializer,
+            funcId: 180, port: port_);
+      },
+      codec: SseCodec(
+        decodeSuccessData: sse_decode_list_chain_progress_dto,
+        decodeErrorData: null,
+      ),
+      constMeta: kCrateApiSshPollChainProgressConstMeta,
+      argValues: [sessionId],
+      apiImpl: this,
+    ));
+  }
+
+  TaskConstMeta get kCrateApiSshPollChainProgressConstMeta =>
+      const TaskConstMeta(
+        debugName: "poll_chain_progress",
+        argNames: ["sessionId"],
+      );
+
+  @override
   Future<List<SftpTransferProgress>> crateApiSftpPollSftpProgress(
       {required String transferId}) {
     return handler.executeNormal(NormalTask(
@@ -4682,7 +5703,7 @@ class TermexBridgeApiImpl extends TermexBridgeApiImplPlatform
         final serializer = SseSerializer(generalizedFrbRustBinding);
         sse_encode_String(transferId, serializer);
         pdeCallFfi(generalizedFrbRustBinding, serializer,
-            funcId: 151, port: port_);
+            funcId: 181, port: port_);
       },
       codec: SseCodec(
         decodeSuccessData: sse_decode_list_sftp_transfer_progress,
@@ -4708,7 +5729,7 @@ class TermexBridgeApiImpl extends TermexBridgeApiImplPlatform
         final serializer = SseSerializer(generalizedFrbRustBinding);
         sse_encode_String(sessionId, serializer);
         pdeCallFfi(generalizedFrbRustBinding, serializer,
-            funcId: 152, port: port_);
+            funcId: 182, port: port_);
       },
       codec: SseCodec(
         decodeSuccessData: sse_decode_list_ssh_stream_event,
@@ -4732,7 +5753,7 @@ class TermexBridgeApiImpl extends TermexBridgeApiImplPlatform
         final serializer = SseSerializer(generalizedFrbRustBinding);
         sse_encode_String(ruleId, serializer);
         pdeCallFfi(generalizedFrbRustBinding, serializer,
-            funcId: 153, port: port_);
+            funcId: 183, port: port_);
       },
       codec: SseCodec(
         decodeSuccessData: sse_decode_unit,
@@ -4760,7 +5781,7 @@ class TermexBridgeApiImpl extends TermexBridgeApiImplPlatform
         sse_encode_u_16(localPort, serializer);
         sse_encode_opt_String(excludeId, serializer);
         pdeCallFfi(generalizedFrbRustBinding, serializer,
-            funcId: 154, port: port_);
+            funcId: 184, port: port_);
       },
       codec: SseCodec(
         decodeSuccessData: sse_decode_opt_String,
@@ -4786,7 +5807,7 @@ class TermexBridgeApiImpl extends TermexBridgeApiImplPlatform
         final serializer = SseSerializer(generalizedFrbRustBinding);
         sse_encode_String(sessionId, serializer);
         pdeCallFfi(generalizedFrbRustBinding, serializer,
-            funcId: 155, port: port_);
+            funcId: 185, port: port_);
       },
       codec: SseCodec(
         decodeSuccessData: sse_decode_list_forward_rule,
@@ -4810,7 +5831,7 @@ class TermexBridgeApiImpl extends TermexBridgeApiImplPlatform
       callFfi: (port_) {
         final serializer = SseSerializer(generalizedFrbRustBinding);
         pdeCallFfi(generalizedFrbRustBinding, serializer,
-            funcId: 156, port: port_);
+            funcId: 186, port: port_);
       },
       codec: SseCodec(
         decodeSuccessData: sse_decode_list_forward_rule,
@@ -4844,7 +5865,7 @@ class TermexBridgeApiImpl extends TermexBridgeApiImplPlatform
         sse_encode_String(remoteHost, serializer);
         sse_encode_u_16(remotePort, serializer);
         pdeCallFfi(generalizedFrbRustBinding, serializer,
-            funcId: 157, port: port_);
+            funcId: 187, port: port_);
       },
       codec: SseCodec(
         decodeSuccessData: sse_decode_String,
@@ -4890,7 +5911,7 @@ class TermexBridgeApiImpl extends TermexBridgeApiImplPlatform
         sse_encode_bool(autoStart, serializer);
         sse_encode_bool(allowLan, serializer);
         pdeCallFfi(generalizedFrbRustBinding, serializer,
-            funcId: 158, port: port_);
+            funcId: 188, port: port_);
       },
       codec: SseCodec(
         decodeSuccessData: sse_decode_String,
@@ -4934,7 +5955,7 @@ class TermexBridgeApiImpl extends TermexBridgeApiImplPlatform
         final serializer = SseSerializer(generalizedFrbRustBinding);
         sse_encode_String(ruleId, serializer);
         pdeCallFfi(generalizedFrbRustBinding, serializer,
-            funcId: 159, port: port_);
+            funcId: 189, port: port_);
       },
       codec: SseCodec(
         decodeSuccessData: sse_decode_forward_status,
@@ -4959,7 +5980,7 @@ class TermexBridgeApiImpl extends TermexBridgeApiImplPlatform
         final serializer = SseSerializer(generalizedFrbRustBinding);
         sse_encode_String(ruleId, serializer);
         pdeCallFfi(generalizedFrbRustBinding, serializer,
-            funcId: 160, port: port_);
+            funcId: 190, port: port_);
       },
       codec: SseCodec(
         decodeSuccessData: sse_decode_unit,
@@ -4987,7 +6008,7 @@ class TermexBridgeApiImpl extends TermexBridgeApiImplPlatform
         sse_encode_u_16(start, serializer);
         sse_encode_u_16(window, serializer);
         pdeCallFfi(generalizedFrbRustBinding, serializer,
-            funcId: 161, port: port_);
+            funcId: 191, port: port_);
       },
       codec: SseCodec(
         decodeSuccessData: sse_decode_opt_box_autoadd_u_16,
@@ -5013,7 +6034,7 @@ class TermexBridgeApiImpl extends TermexBridgeApiImplPlatform
         final serializer = SseSerializer(generalizedFrbRustBinding);
         sse_encode_opt_String(path, serializer);
         pdeCallFfi(generalizedFrbRustBinding, serializer,
-            funcId: 162, port: port_);
+            funcId: 192, port: port_);
       },
       codec: SseCodec(
         decodeSuccessData: sse_decode_list_ssh_config_preview_entry,
@@ -5037,7 +6058,7 @@ class TermexBridgeApiImpl extends TermexBridgeApiImplPlatform
       callFfi: (port_) {
         final serializer = SseSerializer(generalizedFrbRustBinding);
         pdeCallFfi(generalizedFrbRustBinding, serializer,
-            funcId: 163, port: port_);
+            funcId: 193, port: port_);
       },
       codec: SseCodec(
         decodeSuccessData: sse_decode_unit,
@@ -5061,7 +6082,7 @@ class TermexBridgeApiImpl extends TermexBridgeApiImplPlatform
       callFfi: (port_) {
         final serializer = SseSerializer(generalizedFrbRustBinding);
         pdeCallFfi(generalizedFrbRustBinding, serializer,
-            funcId: 164, port: port_);
+            funcId: 194, port: port_);
       },
       codec: SseCodec(
         decodeSuccessData: sse_decode_unit,
@@ -5085,7 +6106,7 @@ class TermexBridgeApiImpl extends TermexBridgeApiImplPlatform
       callFfi: (port_) {
         final serializer = SseSerializer(generalizedFrbRustBinding);
         pdeCallFfi(generalizedFrbRustBinding, serializer,
-            funcId: 165, port: port_);
+            funcId: 195, port: port_);
       },
       codec: SseCodec(
         decodeSuccessData: sse_decode_unit,
@@ -5112,7 +6133,7 @@ class TermexBridgeApiImpl extends TermexBridgeApiImplPlatform
         sse_encode_String(masterPassword, serializer);
         sse_encode_String(confirmation, serializer);
         pdeCallFfi(generalizedFrbRustBinding, serializer,
-            funcId: 166, port: port_);
+            funcId: 196, port: port_);
       },
       codec: SseCodec(
         decodeSuccessData: sse_decode_unit,
@@ -5144,7 +6165,7 @@ class TermexBridgeApiImpl extends TermexBridgeApiImplPlatform
         sse_encode_u_16(port, serializer);
         sse_encode_opt_String(username, serializer);
         pdeCallFfi(generalizedFrbRustBinding, serializer,
-            funcId: 167, port: port_);
+            funcId: 197, port: port_);
       },
       codec: SseCodec(
         decodeSuccessData: sse_decode_proxy_config,
@@ -5179,7 +6200,7 @@ class TermexBridgeApiImpl extends TermexBridgeApiImplPlatform
         sse_encode_opt_String(username, serializer);
         sse_encode_bool(tlsEnabled, serializer);
         pdeCallFfi(generalizedFrbRustBinding, serializer,
-            funcId: 168, port: port_);
+            funcId: 198, port: port_);
       },
       codec: SseCodec(
         decodeSuccessData: sse_decode_proxy_config,
@@ -5210,7 +6231,7 @@ class TermexBridgeApiImpl extends TermexBridgeApiImplPlatform
         final serializer = SseSerializer(generalizedFrbRustBinding);
         sse_encode_String(id, serializer);
         pdeCallFfi(generalizedFrbRustBinding, serializer,
-            funcId: 169, port: port_);
+            funcId: 199, port: port_);
       },
       codec: SseCodec(
         decodeSuccessData: sse_decode_unit,
@@ -5233,7 +6254,7 @@ class TermexBridgeApiImpl extends TermexBridgeApiImplPlatform
       callFfi: (port_) {
         final serializer = SseSerializer(generalizedFrbRustBinding);
         pdeCallFfi(generalizedFrbRustBinding, serializer,
-            funcId: 170, port: port_);
+            funcId: 200, port: port_);
       },
       codec: SseCodec(
         decodeSuccessData: sse_decode_opt_box_autoadd_proxy_config,
@@ -5258,7 +6279,7 @@ class TermexBridgeApiImpl extends TermexBridgeApiImplPlatform
         final serializer = SseSerializer(generalizedFrbRustBinding);
         sse_encode_String(proxyId, serializer);
         pdeCallFfi(generalizedFrbRustBinding, serializer,
-            funcId: 171, port: port_);
+            funcId: 201, port: port_);
       },
       codec: SseCodec(
         decodeSuccessData: sse_decode_String,
@@ -5282,7 +6303,7 @@ class TermexBridgeApiImpl extends TermexBridgeApiImplPlatform
       callFfi: (port_) {
         final serializer = SseSerializer(generalizedFrbRustBinding);
         pdeCallFfi(generalizedFrbRustBinding, serializer,
-            funcId: 172, port: port_);
+            funcId: 202, port: port_);
       },
       codec: SseCodec(
         decodeSuccessData: sse_decode_list_proxy_config,
@@ -5308,7 +6329,7 @@ class TermexBridgeApiImpl extends TermexBridgeApiImplPlatform
         sse_encode_String(proxyId, serializer);
         sse_encode_opt_box_autoadd_u_32(latencyMs, serializer);
         pdeCallFfi(generalizedFrbRustBinding, serializer,
-            funcId: 173, port: port_);
+            funcId: 203, port: port_);
       },
       codec: SseCodec(
         decodeSuccessData: sse_decode_unit,
@@ -5333,7 +6354,7 @@ class TermexBridgeApiImpl extends TermexBridgeApiImplPlatform
         final serializer = SseSerializer(generalizedFrbRustBinding);
         sse_encode_String(id, serializer);
         pdeCallFfi(generalizedFrbRustBinding, serializer,
-            funcId: 174, port: port_);
+            funcId: 204, port: port_);
       },
       codec: SseCodec(
         decodeSuccessData: sse_decode_unit,
@@ -5352,13 +6373,40 @@ class TermexBridgeApiImpl extends TermexBridgeApiImplPlatform
       );
 
   @override
+  Future<void> crateApiProxyProxyStorePassword(
+      {required String proxyId, required String password}) {
+    return handler.executeNormal(NormalTask(
+      callFfi: (port_) {
+        final serializer = SseSerializer(generalizedFrbRustBinding);
+        sse_encode_String(proxyId, serializer);
+        sse_encode_String(password, serializer);
+        pdeCallFfi(generalizedFrbRustBinding, serializer,
+            funcId: 205, port: port_);
+      },
+      codec: SseCodec(
+        decodeSuccessData: sse_decode_unit,
+        decodeErrorData: sse_decode_String,
+      ),
+      constMeta: kCrateApiProxyProxyStorePasswordConstMeta,
+      argValues: [proxyId, password],
+      apiImpl: this,
+    ));
+  }
+
+  TaskConstMeta get kCrateApiProxyProxyStorePasswordConstMeta =>
+      const TaskConstMeta(
+        debugName: "proxy_store_password",
+        argNames: ["proxyId", "password"],
+      );
+
+  @override
   Future<bool> crateApiProxyProxyTestConnection({required String id}) {
     return handler.executeNormal(NormalTask(
       callFfi: (port_) {
         final serializer = SseSerializer(generalizedFrbRustBinding);
         sse_encode_String(id, serializer);
         pdeCallFfi(generalizedFrbRustBinding, serializer,
-            funcId: 175, port: port_);
+            funcId: 206, port: port_);
       },
       codec: SseCodec(
         decodeSuccessData: sse_decode_bool,
@@ -5374,6 +6422,133 @@ class TermexBridgeApiImpl extends TermexBridgeApiImplPlatform
       const TaskConstMeta(
         debugName: "proxy_test_connection",
         argNames: ["id"],
+      );
+
+  @override
+  Future<void> crateApiPushPushLocalNotification(
+      {required String title, required String body, String? deepLink}) {
+    return handler.executeNormal(NormalTask(
+      callFfi: (port_) {
+        final serializer = SseSerializer(generalizedFrbRustBinding);
+        sse_encode_String(title, serializer);
+        sse_encode_String(body, serializer);
+        sse_encode_opt_String(deepLink, serializer);
+        pdeCallFfi(generalizedFrbRustBinding, serializer,
+            funcId: 207, port: port_);
+      },
+      codec: SseCodec(
+        decodeSuccessData: sse_decode_unit,
+        decodeErrorData: sse_decode_String,
+      ),
+      constMeta: kCrateApiPushPushLocalNotificationConstMeta,
+      argValues: [title, body, deepLink],
+      apiImpl: this,
+    ));
+  }
+
+  TaskConstMeta get kCrateApiPushPushLocalNotificationConstMeta =>
+      const TaskConstMeta(
+        debugName: "push_local_notification",
+        argNames: ["title", "body", "deepLink"],
+      );
+
+  @override
+  Future<String?> crateApiPushPushTokenGet() {
+    return handler.executeNormal(NormalTask(
+      callFfi: (port_) {
+        final serializer = SseSerializer(generalizedFrbRustBinding);
+        pdeCallFfi(generalizedFrbRustBinding, serializer,
+            funcId: 208, port: port_);
+      },
+      codec: SseCodec(
+        decodeSuccessData: sse_decode_opt_String,
+        decodeErrorData: null,
+      ),
+      constMeta: kCrateApiPushPushTokenGetConstMeta,
+      argValues: [],
+      apiImpl: this,
+    ));
+  }
+
+  TaskConstMeta get kCrateApiPushPushTokenGetConstMeta => const TaskConstMeta(
+        debugName: "push_token_get",
+        argNames: [],
+      );
+
+  @override
+  Future<void> crateApiPushPushTokenRegister(
+      {required String token, required String platform}) {
+    return handler.executeNormal(NormalTask(
+      callFfi: (port_) {
+        final serializer = SseSerializer(generalizedFrbRustBinding);
+        sse_encode_String(token, serializer);
+        sse_encode_String(platform, serializer);
+        pdeCallFfi(generalizedFrbRustBinding, serializer,
+            funcId: 209, port: port_);
+      },
+      codec: SseCodec(
+        decodeSuccessData: sse_decode_unit,
+        decodeErrorData: sse_decode_String,
+      ),
+      constMeta: kCrateApiPushPushTokenRegisterConstMeta,
+      argValues: [token, platform],
+      apiImpl: this,
+    ));
+  }
+
+  TaskConstMeta get kCrateApiPushPushTokenRegisterConstMeta =>
+      const TaskConstMeta(
+        debugName: "push_token_register",
+        argNames: ["token", "platform"],
+      );
+
+  @override
+  Future<void> crateApiPushPushTokenUnregister() {
+    return handler.executeNormal(NormalTask(
+      callFfi: (port_) {
+        final serializer = SseSerializer(generalizedFrbRustBinding);
+        pdeCallFfi(generalizedFrbRustBinding, serializer,
+            funcId: 210, port: port_);
+      },
+      codec: SseCodec(
+        decodeSuccessData: sse_decode_unit,
+        decodeErrorData: sse_decode_String,
+      ),
+      constMeta: kCrateApiPushPushTokenUnregisterConstMeta,
+      argValues: [],
+      apiImpl: this,
+    ));
+  }
+
+  TaskConstMeta get kCrateApiPushPushTokenUnregisterConstMeta =>
+      const TaskConstMeta(
+        debugName: "push_token_unregister",
+        argNames: [],
+      );
+
+  @override
+  Future<void> crateApiMobileAuthReconnectSession({required String sessionId}) {
+    return handler.executeNormal(NormalTask(
+      callFfi: (port_) {
+        final serializer = SseSerializer(generalizedFrbRustBinding);
+        sse_encode_String(sessionId, serializer);
+        pdeCallFfi(generalizedFrbRustBinding, serializer,
+            funcId: 211, port: port_);
+      },
+      codec: SseCodec(
+        decodeSuccessData: sse_decode_unit,
+        decodeErrorData: sse_decode_String,
+      ),
+      constMeta: kCrateApiMobileAuthReconnectSessionConstMeta,
+      argValues: [sessionId],
+      apiImpl: this,
+    ));
+  }
+
+  TaskConstMeta get kCrateApiMobileAuthReconnectSessionConstMeta =>
+      const TaskConstMeta(
+        debugName: "reconnect_session",
+        argNames: ["sessionId"],
       );
 
   @override
@@ -5394,7 +6569,7 @@ class TermexBridgeApiImpl extends TermexBridgeApiImplPlatform
         sse_encode_String(startedAt, serializer);
         sse_encode_opt_box_autoadd_i_64(durationMs, serializer);
         pdeCallFfi(generalizedFrbRustBinding, serializer,
-            funcId: 176, port: port_);
+            funcId: 212, port: port_);
       },
       codec: SseCodec(
         decodeSuccessData: sse_decode_String,
@@ -5432,7 +6607,7 @@ class TermexBridgeApiImpl extends TermexBridgeApiImplPlatform
         final serializer = SseSerializer(generalizedFrbRustBinding);
         sse_encode_u_32(days, serializer);
         pdeCallFfi(generalizedFrbRustBinding, serializer,
-            funcId: 177, port: port_);
+            funcId: 213, port: port_);
       },
       codec: SseCodec(
         decodeSuccessData: sse_decode_u_32,
@@ -5457,7 +6632,7 @@ class TermexBridgeApiImpl extends TermexBridgeApiImplPlatform
         final serializer = SseSerializer(generalizedFrbRustBinding);
         sse_encode_String(id, serializer);
         pdeCallFfi(generalizedFrbRustBinding, serializer,
-            funcId: 178, port: port_);
+            funcId: 214, port: port_);
       },
       codec: SseCodec(
         decodeSuccessData: sse_decode_unit,
@@ -5483,7 +6658,7 @@ class TermexBridgeApiImpl extends TermexBridgeApiImplPlatform
         final serializer = SseSerializer(generalizedFrbRustBinding);
         sse_encode_String(parentId, serializer);
         pdeCallFfi(generalizedFrbRustBinding, serializer,
-            funcId: 179, port: port_);
+            funcId: 215, port: port_);
       },
       codec: SseCodec(
         decodeSuccessData: sse_decode_u_32,
@@ -5510,7 +6685,7 @@ class TermexBridgeApiImpl extends TermexBridgeApiImplPlatform
         sse_encode_String(id, serializer);
         sse_encode_String(destPath, serializer);
         pdeCallFfi(generalizedFrbRustBinding, serializer,
-            funcId: 180, port: port_);
+            funcId: 216, port: port_);
       },
       codec: SseCodec(
         decodeSuccessData: sse_decode_unit,
@@ -5535,7 +6710,7 @@ class TermexBridgeApiImpl extends TermexBridgeApiImplPlatform
         final serializer = SseSerializer(generalizedFrbRustBinding);
         sse_encode_String(id, serializer);
         pdeCallFfi(generalizedFrbRustBinding, serializer,
-            funcId: 181, port: port_);
+            funcId: 217, port: port_);
       },
       codec: SseCodec(
         decodeSuccessData: sse_decode_String,
@@ -5559,7 +6734,7 @@ class TermexBridgeApiImpl extends TermexBridgeApiImplPlatform
       callFfi: (port_) {
         final serializer = SseSerializer(generalizedFrbRustBinding);
         pdeCallFfi(generalizedFrbRustBinding, serializer,
-            funcId: 182, port: port_);
+            funcId: 218, port: port_);
       },
       codec: SseCodec(
         decodeSuccessData: sse_decode_list_recording_entry,
@@ -5583,7 +6758,7 @@ class TermexBridgeApiImpl extends TermexBridgeApiImplPlatform
       callFfi: (port_) {
         final serializer = SseSerializer(generalizedFrbRustBinding);
         pdeCallFfi(generalizedFrbRustBinding, serializer,
-            funcId: 183, port: port_);
+            funcId: 219, port: port_);
       },
       codec: SseCodec(
         decodeSuccessData: sse_decode_list_recording_dto,
@@ -5608,7 +6783,7 @@ class TermexBridgeApiImpl extends TermexBridgeApiImplPlatform
         final serializer = SseSerializer(generalizedFrbRustBinding);
         sse_encode_String(id, serializer);
         pdeCallFfi(generalizedFrbRustBinding, serializer,
-            funcId: 184, port: port_);
+            funcId: 220, port: port_);
       },
       codec: SseCodec(
         decodeSuccessData: sse_decode_unit,
@@ -5638,7 +6813,7 @@ class TermexBridgeApiImpl extends TermexBridgeApiImplPlatform
         sse_encode_String(sessionId, serializer);
         sse_encode_String(filePath, serializer);
         pdeCallFfi(generalizedFrbRustBinding, serializer,
-            funcId: 185, port: port_);
+            funcId: 221, port: port_);
       },
       codec: SseCodec(
         decodeSuccessData: sse_decode_String,
@@ -5664,7 +6839,7 @@ class TermexBridgeApiImpl extends TermexBridgeApiImplPlatform
         final serializer = SseSerializer(generalizedFrbRustBinding);
         sse_encode_String(serverName, serializer);
         pdeCallFfi(generalizedFrbRustBinding, serializer,
-            funcId: 186, port: port_);
+            funcId: 222, port: port_);
       },
       codec: SseCodec(
         decodeSuccessData: sse_decode_String,
@@ -5691,7 +6866,7 @@ class TermexBridgeApiImpl extends TermexBridgeApiImplPlatform
         sse_encode_String(basename, serializer);
         sse_encode_u_32(partN, serializer);
         pdeCallFfi(generalizedFrbRustBinding, serializer,
-            funcId: 187, port: port_);
+            funcId: 223, port: port_);
       },
       codec: SseCodec(
         decodeSuccessData: sse_decode_String,
@@ -5718,7 +6893,7 @@ class TermexBridgeApiImpl extends TermexBridgeApiImplPlatform
         sse_encode_String(sessionId, serializer);
         sse_encode_opt_String(title, serializer);
         pdeCallFfi(generalizedFrbRustBinding, serializer,
-            funcId: 188, port: port_);
+            funcId: 224, port: port_);
       },
       codec: SseCodec(
         decodeSuccessData: sse_decode_String,
@@ -5744,7 +6919,7 @@ class TermexBridgeApiImpl extends TermexBridgeApiImplPlatform
         final serializer = SseSerializer(generalizedFrbRustBinding);
         sse_encode_String(recordingId, serializer);
         pdeCallFfi(generalizedFrbRustBinding, serializer,
-            funcId: 189, port: port_);
+            funcId: 225, port: port_);
       },
       codec: SseCodec(
         decodeSuccessData: sse_decode_recording_entry,
@@ -5769,7 +6944,7 @@ class TermexBridgeApiImpl extends TermexBridgeApiImplPlatform
         final serializer = SseSerializer(generalizedFrbRustBinding);
         sse_encode_list_String(ids, serializer);
         pdeCallFfi(generalizedFrbRustBinding, serializer,
-            funcId: 190, port: port_);
+            funcId: 226, port: port_);
       },
       codec: SseCodec(
         decodeSuccessData: sse_decode_unit,
@@ -5787,6 +6962,33 @@ class TermexBridgeApiImpl extends TermexBridgeApiImplPlatform
       );
 
   @override
+  Future<void> crateApiLocalPtyResize(
+      {required String sessionId, required int cols, required int rows}) {
+    return handler.executeNormal(NormalTask(
+      callFfi: (port_) {
+        final serializer = SseSerializer(generalizedFrbRustBinding);
+        sse_encode_String(sessionId, serializer);
+        sse_encode_u_32(cols, serializer);
+        sse_encode_u_32(rows, serializer);
+        pdeCallFfi(generalizedFrbRustBinding, serializer,
+            funcId: 227, port: port_);
+      },
+      codec: SseCodec(
+        decodeSuccessData: sse_decode_unit,
+        decodeErrorData: sse_decode_String,
+      ),
+      constMeta: kCrateApiLocalPtyResizeConstMeta,
+      argValues: [sessionId, cols, rows],
+      apiImpl: this,
+    ));
+  }
+
+  TaskConstMeta get kCrateApiLocalPtyResizeConstMeta => const TaskConstMeta(
+        debugName: "resize",
+        argNames: ["sessionId", "cols", "rows"],
+      );
+
+  @override
   Future<void> crateApiSshResizeTerminal(
       {required String sessionId, required int cols, required int rows}) {
     return handler.executeNormal(NormalTask(
@@ -5796,7 +6998,7 @@ class TermexBridgeApiImpl extends TermexBridgeApiImplPlatform
         sse_encode_u_32(cols, serializer);
         sse_encode_u_32(rows, serializer);
         pdeCallFfi(generalizedFrbRustBinding, serializer,
-            funcId: 191, port: port_);
+            funcId: 228, port: port_);
       },
       codec: SseCodec(
         decodeSuccessData: sse_decode_unit,
@@ -5814,13 +7016,112 @@ class TermexBridgeApiImpl extends TermexBridgeApiImplPlatform
       );
 
   @override
+  Future<String?> crateApiSyncRespondToPairing(
+      {required String requestId, required bool accept}) {
+    return handler.executeNormal(NormalTask(
+      callFfi: (port_) {
+        final serializer = SseSerializer(generalizedFrbRustBinding);
+        sse_encode_String(requestId, serializer);
+        sse_encode_bool(accept, serializer);
+        pdeCallFfi(generalizedFrbRustBinding, serializer,
+            funcId: 229, port: port_);
+      },
+      codec: SseCodec(
+        decodeSuccessData: sse_decode_opt_String,
+        decodeErrorData: sse_decode_String,
+      ),
+      constMeta: kCrateApiSyncRespondToPairingConstMeta,
+      argValues: [requestId, accept],
+      apiImpl: this,
+    ));
+  }
+
+  TaskConstMeta get kCrateApiSyncRespondToPairingConstMeta =>
+      const TaskConstMeta(
+        debugName: "respond_to_pairing",
+        argNames: ["requestId", "accept"],
+      );
+
+  @override
+  Future<void> crateApiMobileAuthResumeAllKeepalives() {
+    return handler.executeNormal(NormalTask(
+      callFfi: (port_) {
+        final serializer = SseSerializer(generalizedFrbRustBinding);
+        pdeCallFfi(generalizedFrbRustBinding, serializer,
+            funcId: 230, port: port_);
+      },
+      codec: SseCodec(
+        decodeSuccessData: sse_decode_unit,
+        decodeErrorData: sse_decode_String,
+      ),
+      constMeta: kCrateApiMobileAuthResumeAllKeepalivesConstMeta,
+      argValues: [],
+      apiImpl: this,
+    ));
+  }
+
+  TaskConstMeta get kCrateApiMobileAuthResumeAllKeepalivesConstMeta =>
+      const TaskConstMeta(
+        debugName: "resume_all_keepalives",
+        argNames: [],
+      );
+
+  @override
+  Future<SecurityStatus> crateApiSecuritySecurityStatus() {
+    return handler.executeNormal(NormalTask(
+      callFfi: (port_) {
+        final serializer = SseSerializer(generalizedFrbRustBinding);
+        pdeCallFfi(generalizedFrbRustBinding, serializer,
+            funcId: 231, port: port_);
+      },
+      codec: SseCodec(
+        decodeSuccessData: sse_decode_security_status,
+        decodeErrorData: null,
+      ),
+      constMeta: kCrateApiSecuritySecurityStatusConstMeta,
+      argValues: [],
+      apiImpl: this,
+    ));
+  }
+
+  TaskConstMeta get kCrateApiSecuritySecurityStatusConstMeta =>
+      const TaskConstMeta(
+        debugName: "security_status",
+        argNames: [],
+      );
+
+  @override
+  Future<List<ProxyPoolStat>> crateApiSshSessionPoolStats() {
+    return handler.executeNormal(NormalTask(
+      callFfi: (port_) {
+        final serializer = SseSerializer(generalizedFrbRustBinding);
+        pdeCallFfi(generalizedFrbRustBinding, serializer,
+            funcId: 232, port: port_);
+      },
+      codec: SseCodec(
+        decodeSuccessData: sse_decode_list_proxy_pool_stat,
+        decodeErrorData: sse_decode_String,
+      ),
+      constMeta: kCrateApiSshSessionPoolStatsConstMeta,
+      argValues: [],
+      apiImpl: this,
+    ));
+  }
+
+  TaskConstMeta get kCrateApiSshSessionPoolStatsConstMeta =>
+      const TaskConstMeta(
+        debugName: "session_pool_stats",
+        argNames: [],
+      );
+
+  @override
   Future<void> crateApiThemeSetThemeConfig({required ThemeConfig config}) {
     return handler.executeNormal(NormalTask(
       callFfi: (port_) {
         final serializer = SseSerializer(generalizedFrbRustBinding);
         sse_encode_box_autoadd_theme_config(config, serializer);
         pdeCallFfi(generalizedFrbRustBinding, serializer,
-            funcId: 192, port: port_);
+            funcId: 233, port: port_);
       },
       codec: SseCodec(
         decodeSuccessData: sse_decode_unit,
@@ -5847,7 +7148,7 @@ class TermexBridgeApiImpl extends TermexBridgeApiImplPlatform
         sse_encode_String(path, serializer);
         sse_encode_String(password, serializer);
         pdeCallFfi(generalizedFrbRustBinding, serializer,
-            funcId: 193, port: port_);
+            funcId: 234, port: port_);
       },
       codec: SseCodec(
         decodeSuccessData: sse_decode_unit,
@@ -5874,7 +7175,7 @@ class TermexBridgeApiImpl extends TermexBridgeApiImplPlatform
         sse_encode_String(path, serializer);
         sse_encode_String(password, serializer);
         pdeCallFfi(generalizedFrbRustBinding, serializer,
-            funcId: 194, port: port_);
+            funcId: 235, port: port_);
       },
       codec: SseCodec(
         decodeSuccessData: sse_decode_app_settings,
@@ -5898,7 +7199,7 @@ class TermexBridgeApiImpl extends TermexBridgeApiImplPlatform
       callFfi: (port_) {
         final serializer = SseSerializer(generalizedFrbRustBinding);
         pdeCallFfi(generalizedFrbRustBinding, serializer,
-            funcId: 195, port: port_);
+            funcId: 236, port: port_);
       },
       codec: SseCodec(
         decodeSuccessData: sse_decode_app_settings,
@@ -5922,7 +7223,7 @@ class TermexBridgeApiImpl extends TermexBridgeApiImplPlatform
       callFfi: (port_) {
         final serializer = SseSerializer(generalizedFrbRustBinding);
         pdeCallFfi(generalizedFrbRustBinding, serializer,
-            funcId: 196, port: port_);
+            funcId: 237, port: port_);
       },
       codec: SseCodec(
         decodeSuccessData: sse_decode_unit,
@@ -5947,7 +7248,7 @@ class TermexBridgeApiImpl extends TermexBridgeApiImplPlatform
         final serializer = SseSerializer(generalizedFrbRustBinding);
         sse_encode_box_autoadd_app_settings(settings, serializer);
         pdeCallFfi(generalizedFrbRustBinding, serializer,
-            funcId: 197, port: port_);
+            funcId: 238, port: port_);
       },
       codec: SseCodec(
         decodeSuccessData: sse_decode_unit,
@@ -5972,7 +7273,7 @@ class TermexBridgeApiImpl extends TermexBridgeApiImplPlatform
         final serializer = SseSerializer(generalizedFrbRustBinding);
         sse_encode_String(transferId, serializer);
         pdeCallFfi(generalizedFrbRustBinding, serializer,
-            funcId: 198, port: port_);
+            funcId: 239, port: port_);
       },
       codec: SseCodec(
         decodeSuccessData: sse_decode_unit,
@@ -5999,7 +7300,7 @@ class TermexBridgeApiImpl extends TermexBridgeApiImplPlatform
         sse_encode_String(sessionId, serializer);
         sse_encode_String(path, serializer);
         pdeCallFfi(generalizedFrbRustBinding, serializer,
-            funcId: 199, port: port_);
+            funcId: 240, port: port_);
       },
       codec: SseCodec(
         decodeSuccessData: sse_decode_String,
@@ -6027,7 +7328,7 @@ class TermexBridgeApiImpl extends TermexBridgeApiImplPlatform
         sse_encode_String(path, serializer);
         sse_encode_u_32(mode, serializer);
         pdeCallFfi(generalizedFrbRustBinding, serializer,
-            funcId: 200, port: port_);
+            funcId: 241, port: port_);
       },
       codec: SseCodec(
         decodeSuccessData: sse_decode_unit,
@@ -6049,7 +7350,8 @@ class TermexBridgeApiImpl extends TermexBridgeApiImplPlatform
       {required String sessionId,
       required String remotePath,
       required String localPath,
-      required String transferId}) {
+      required String transferId,
+      required BigInt offset}) {
     return handler.executeNormal(NormalTask(
       callFfi: (port_) {
         final serializer = SseSerializer(generalizedFrbRustBinding);
@@ -6057,22 +7359,29 @@ class TermexBridgeApiImpl extends TermexBridgeApiImplPlatform
         sse_encode_String(remotePath, serializer);
         sse_encode_String(localPath, serializer);
         sse_encode_String(transferId, serializer);
+        sse_encode_u_64(offset, serializer);
         pdeCallFfi(generalizedFrbRustBinding, serializer,
-            funcId: 201, port: port_);
+            funcId: 242, port: port_);
       },
       codec: SseCodec(
         decodeSuccessData: sse_decode_unit,
         decodeErrorData: sse_decode_String,
       ),
       constMeta: kCrateApiSftpSftpDownloadConstMeta,
-      argValues: [sessionId, remotePath, localPath, transferId],
+      argValues: [sessionId, remotePath, localPath, transferId, offset],
       apiImpl: this,
     ));
   }
 
   TaskConstMeta get kCrateApiSftpSftpDownloadConstMeta => const TaskConstMeta(
         debugName: "sftp_download",
-        argNames: ["sessionId", "remotePath", "localPath", "transferId"],
+        argNames: [
+          "sessionId",
+          "remotePath",
+          "localPath",
+          "transferId",
+          "offset"
+        ],
       );
 
   @override
@@ -6084,7 +7393,7 @@ class TermexBridgeApiImpl extends TermexBridgeApiImplPlatform
         sse_encode_String(sessionId, serializer);
         sse_encode_String(path, serializer);
         pdeCallFfi(generalizedFrbRustBinding, serializer,
-            funcId: 202, port: port_);
+            funcId: 243, port: port_);
       },
       codec: SseCodec(
         decodeSuccessData: sse_decode_list_sftp_file_dto,
@@ -6110,7 +7419,7 @@ class TermexBridgeApiImpl extends TermexBridgeApiImplPlatform
         sse_encode_String(sessionId, serializer);
         sse_encode_String(path, serializer);
         pdeCallFfi(generalizedFrbRustBinding, serializer,
-            funcId: 203, port: port_);
+            funcId: 244, port: port_);
       },
       codec: SseCodec(
         decodeSuccessData: sse_decode_unit,
@@ -6128,6 +7437,61 @@ class TermexBridgeApiImpl extends TermexBridgeApiImplPlatform
       );
 
   @override
+  Future<void> crateApiSftpSftpPauseTransfer({required String transferId}) {
+    return handler.executeNormal(NormalTask(
+      callFfi: (port_) {
+        final serializer = SseSerializer(generalizedFrbRustBinding);
+        sse_encode_String(transferId, serializer);
+        pdeCallFfi(generalizedFrbRustBinding, serializer,
+            funcId: 245, port: port_);
+      },
+      codec: SseCodec(
+        decodeSuccessData: sse_decode_unit,
+        decodeErrorData: sse_decode_String,
+      ),
+      constMeta: kCrateApiSftpSftpPauseTransferConstMeta,
+      argValues: [transferId],
+      apiImpl: this,
+    ));
+  }
+
+  TaskConstMeta get kCrateApiSftpSftpPauseTransferConstMeta =>
+      const TaskConstMeta(
+        debugName: "sftp_pause_transfer",
+        argNames: ["transferId"],
+      );
+
+  @override
+  Future<Uint8List> crateApiSftpSftpReadFileBytes(
+      {required String sessionId,
+      required String path,
+      required int maxBytes}) {
+    return handler.executeNormal(NormalTask(
+      callFfi: (port_) {
+        final serializer = SseSerializer(generalizedFrbRustBinding);
+        sse_encode_String(sessionId, serializer);
+        sse_encode_String(path, serializer);
+        sse_encode_u_32(maxBytes, serializer);
+        pdeCallFfi(generalizedFrbRustBinding, serializer,
+            funcId: 246, port: port_);
+      },
+      codec: SseCodec(
+        decodeSuccessData: sse_decode_list_prim_u_8_strict,
+        decodeErrorData: sse_decode_String,
+      ),
+      constMeta: kCrateApiSftpSftpReadFileBytesConstMeta,
+      argValues: [sessionId, path, maxBytes],
+      apiImpl: this,
+    ));
+  }
+
+  TaskConstMeta get kCrateApiSftpSftpReadFileBytesConstMeta =>
+      const TaskConstMeta(
+        debugName: "sftp_read_file_bytes",
+        argNames: ["sessionId", "path", "maxBytes"],
+      );
+
+  @override
   Future<void> crateApiSftpSftpRemove(
       {required String sessionId, required String path}) {
     return handler.executeNormal(NormalTask(
@@ -6136,7 +7500,7 @@ class TermexBridgeApiImpl extends TermexBridgeApiImplPlatform
         sse_encode_String(sessionId, serializer);
         sse_encode_String(path, serializer);
         pdeCallFfi(generalizedFrbRustBinding, serializer,
-            funcId: 204, port: port_);
+            funcId: 247, port: port_);
       },
       codec: SseCodec(
         decodeSuccessData: sse_decode_unit,
@@ -6163,7 +7527,7 @@ class TermexBridgeApiImpl extends TermexBridgeApiImplPlatform
         sse_encode_String(from, serializer);
         sse_encode_String(to, serializer);
         pdeCallFfi(generalizedFrbRustBinding, serializer,
-            funcId: 205, port: port_);
+            funcId: 248, port: port_);
       },
       codec: SseCodec(
         decodeSuccessData: sse_decode_unit,
@@ -6181,6 +7545,31 @@ class TermexBridgeApiImpl extends TermexBridgeApiImplPlatform
       );
 
   @override
+  Future<void> crateApiSftpSftpResumeTransfer({required String transferId}) {
+    return handler.executeNormal(NormalTask(
+      callFfi: (port_) {
+        final serializer = SseSerializer(generalizedFrbRustBinding);
+        sse_encode_String(transferId, serializer);
+        pdeCallFfi(generalizedFrbRustBinding, serializer,
+            funcId: 249, port: port_);
+      },
+      codec: SseCodec(
+        decodeSuccessData: sse_decode_unit,
+        decodeErrorData: sse_decode_String,
+      ),
+      constMeta: kCrateApiSftpSftpResumeTransferConstMeta,
+      argValues: [transferId],
+      apiImpl: this,
+    ));
+  }
+
+  TaskConstMeta get kCrateApiSftpSftpResumeTransferConstMeta =>
+      const TaskConstMeta(
+        debugName: "sftp_resume_transfer",
+        argNames: ["transferId"],
+      );
+
+  @override
   Future<void> crateApiSftpSftpRmdir(
       {required String sessionId, required String path}) {
     return handler.executeNormal(NormalTask(
@@ -6189,7 +7578,7 @@ class TermexBridgeApiImpl extends TermexBridgeApiImplPlatform
         sse_encode_String(sessionId, serializer);
         sse_encode_String(path, serializer);
         pdeCallFfi(generalizedFrbRustBinding, serializer,
-            funcId: 206, port: port_);
+            funcId: 250, port: port_);
       },
       codec: SseCodec(
         decodeSuccessData: sse_decode_unit,
@@ -6222,7 +7611,7 @@ class TermexBridgeApiImpl extends TermexBridgeApiImplPlatform
         sse_encode_String(dstPath, serializer);
         sse_encode_String(transferId, serializer);
         pdeCallFfi(generalizedFrbRustBinding, serializer,
-            funcId: 207, port: port_);
+            funcId: 251, port: port_);
       },
       codec: SseCodec(
         decodeSuccessData: sse_decode_unit,
@@ -6251,7 +7640,8 @@ class TermexBridgeApiImpl extends TermexBridgeApiImplPlatform
       {required String sessionId,
       required String localPath,
       required String remotePath,
-      required String transferId}) {
+      required String transferId,
+      required BigInt offset}) {
     return handler.executeNormal(NormalTask(
       callFfi: (port_) {
         final serializer = SseSerializer(generalizedFrbRustBinding);
@@ -6259,22 +7649,59 @@ class TermexBridgeApiImpl extends TermexBridgeApiImplPlatform
         sse_encode_String(localPath, serializer);
         sse_encode_String(remotePath, serializer);
         sse_encode_String(transferId, serializer);
+        sse_encode_u_64(offset, serializer);
         pdeCallFfi(generalizedFrbRustBinding, serializer,
-            funcId: 208, port: port_);
+            funcId: 252, port: port_);
       },
       codec: SseCodec(
         decodeSuccessData: sse_decode_unit,
         decodeErrorData: sse_decode_String,
       ),
       constMeta: kCrateApiSftpSftpUploadConstMeta,
-      argValues: [sessionId, localPath, remotePath, transferId],
+      argValues: [sessionId, localPath, remotePath, transferId, offset],
       apiImpl: this,
     ));
   }
 
   TaskConstMeta get kCrateApiSftpSftpUploadConstMeta => const TaskConstMeta(
         debugName: "sftp_upload",
-        argNames: ["sessionId", "localPath", "remotePath", "transferId"],
+        argNames: [
+          "sessionId",
+          "localPath",
+          "remotePath",
+          "transferId",
+          "offset"
+        ],
+      );
+
+  @override
+  Future<void> crateApiSftpSftpWriteFileBytes(
+      {required String sessionId,
+      required String path,
+      required List<int> data}) {
+    return handler.executeNormal(NormalTask(
+      callFfi: (port_) {
+        final serializer = SseSerializer(generalizedFrbRustBinding);
+        sse_encode_String(sessionId, serializer);
+        sse_encode_String(path, serializer);
+        sse_encode_list_prim_u_8_loose(data, serializer);
+        pdeCallFfi(generalizedFrbRustBinding, serializer,
+            funcId: 253, port: port_);
+      },
+      codec: SseCodec(
+        decodeSuccessData: sse_decode_unit,
+        decodeErrorData: sse_decode_String,
+      ),
+      constMeta: kCrateApiSftpSftpWriteFileBytesConstMeta,
+      argValues: [sessionId, path, data],
+      apiImpl: this,
+    ));
+  }
+
+  TaskConstMeta get kCrateApiSftpSftpWriteFileBytesConstMeta =>
+      const TaskConstMeta(
+        debugName: "sftp_write_file_bytes",
+        argNames: ["sessionId", "path", "data"],
       );
 
   @override
@@ -6291,7 +7718,7 @@ class TermexBridgeApiImpl extends TermexBridgeApiImplPlatform
         sse_encode_opt_String(group, serializer);
         sse_encode_list_String(tags, serializer);
         pdeCallFfi(generalizedFrbRustBinding, serializer,
-            funcId: 209, port: port_);
+            funcId: 254, port: port_);
       },
       codec: SseCodec(
         decodeSuccessData: sse_decode_snippet,
@@ -6316,7 +7743,7 @@ class TermexBridgeApiImpl extends TermexBridgeApiImplPlatform
         final serializer = SseSerializer(generalizedFrbRustBinding);
         sse_encode_String(id, serializer);
         pdeCallFfi(generalizedFrbRustBinding, serializer,
-            funcId: 210, port: port_);
+            funcId: 255, port: port_);
       },
       codec: SseCodec(
         decodeSuccessData: sse_decode_unit,
@@ -6341,7 +7768,7 @@ class TermexBridgeApiImpl extends TermexBridgeApiImplPlatform
         final serializer = SseSerializer(generalizedFrbRustBinding);
         sse_encode_String(path, serializer);
         pdeCallFfi(generalizedFrbRustBinding, serializer,
-            funcId: 211, port: port_);
+            funcId: 256, port: port_);
       },
       codec: SseCodec(
         decodeSuccessData: sse_decode_unit,
@@ -6367,7 +7794,7 @@ class TermexBridgeApiImpl extends TermexBridgeApiImplPlatform
         final serializer = SseSerializer(generalizedFrbRustBinding);
         sse_encode_String(content, serializer);
         pdeCallFfi(generalizedFrbRustBinding, serializer,
-            funcId: 212, port: port_);
+            funcId: 257, port: port_);
       },
       codec: SseCodec(
         decodeSuccessData: sse_decode_list_snippet_variable,
@@ -6393,7 +7820,7 @@ class TermexBridgeApiImpl extends TermexBridgeApiImplPlatform
         final serializer = SseSerializer(generalizedFrbRustBinding);
         sse_encode_String(path, serializer);
         pdeCallFfi(generalizedFrbRustBinding, serializer,
-            funcId: 213, port: port_);
+            funcId: 258, port: port_);
       },
       codec: SseCodec(
         decodeSuccessData: sse_decode_snippet_import_summary,
@@ -6420,7 +7847,7 @@ class TermexBridgeApiImpl extends TermexBridgeApiImplPlatform
         sse_encode_opt_String(query, serializer);
         sse_encode_opt_String(group, serializer);
         pdeCallFfi(generalizedFrbRustBinding, serializer,
-            funcId: 214, port: port_);
+            funcId: 259, port: port_);
       },
       codec: SseCodec(
         decodeSuccessData: sse_decode_list_snippet,
@@ -6443,7 +7870,7 @@ class TermexBridgeApiImpl extends TermexBridgeApiImplPlatform
       callFfi: (port_) {
         final serializer = SseSerializer(generalizedFrbRustBinding);
         pdeCallFfi(generalizedFrbRustBinding, serializer,
-            funcId: 215, port: port_);
+            funcId: 260, port: port_);
       },
       codec: SseCodec(
         decodeSuccessData: sse_decode_list_String,
@@ -6468,7 +7895,7 @@ class TermexBridgeApiImpl extends TermexBridgeApiImplPlatform
         final serializer = SseSerializer(generalizedFrbRustBinding);
         sse_encode_String(id, serializer);
         pdeCallFfi(generalizedFrbRustBinding, serializer,
-            funcId: 216, port: port_);
+            funcId: 261, port: port_);
       },
       codec: SseCodec(
         decodeSuccessData: sse_decode_unit,
@@ -6495,7 +7922,7 @@ class TermexBridgeApiImpl extends TermexBridgeApiImplPlatform
         sse_encode_String(content, serializer);
         sse_encode_list_record_string_string(variables, serializer);
         pdeCallFfi(generalizedFrbRustBinding, serializer,
-            funcId: 217, port: port_);
+            funcId: 262, port: port_);
       },
       codec: SseCodec(
         decodeSuccessData: sse_decode_String,
@@ -6529,7 +7956,7 @@ class TermexBridgeApiImpl extends TermexBridgeApiImplPlatform
         sse_encode_opt_String(group, serializer);
         sse_encode_list_String(tags, serializer);
         pdeCallFfi(generalizedFrbRustBinding, serializer,
-            funcId: 218, port: port_);
+            funcId: 263, port: port_);
       },
       codec: SseCodec(
         decodeSuccessData: sse_decode_snippet,
@@ -6548,6 +7975,216 @@ class TermexBridgeApiImpl extends TermexBridgeApiImplPlatform
       );
 
   @override
+  Future<bool> crateApiSshSshHasPassphrase({required String serverId}) {
+    return handler.executeNormal(NormalTask(
+      callFfi: (port_) {
+        final serializer = SseSerializer(generalizedFrbRustBinding);
+        sse_encode_String(serverId, serializer);
+        pdeCallFfi(generalizedFrbRustBinding, serializer,
+            funcId: 264, port: port_);
+      },
+      codec: SseCodec(
+        decodeSuccessData: sse_decode_bool,
+        decodeErrorData: null,
+      ),
+      constMeta: kCrateApiSshSshHasPassphraseConstMeta,
+      argValues: [serverId],
+      apiImpl: this,
+    ));
+  }
+
+  TaskConstMeta get kCrateApiSshSshHasPassphraseConstMeta =>
+      const TaskConstMeta(
+        debugName: "ssh_has_passphrase",
+        argNames: ["serverId"],
+      );
+
+  @override
+  Future<void> crateApiSshSshStorePassphrase(
+      {required String serverId, required String passphrase}) {
+    return handler.executeNormal(NormalTask(
+      callFfi: (port_) {
+        final serializer = SseSerializer(generalizedFrbRustBinding);
+        sse_encode_String(serverId, serializer);
+        sse_encode_String(passphrase, serializer);
+        pdeCallFfi(generalizedFrbRustBinding, serializer,
+            funcId: 265, port: port_);
+      },
+      codec: SseCodec(
+        decodeSuccessData: sse_decode_unit,
+        decodeErrorData: sse_decode_String,
+      ),
+      constMeta: kCrateApiSshSshStorePassphraseConstMeta,
+      argValues: [serverId, passphrase],
+      apiImpl: this,
+    ));
+  }
+
+  TaskConstMeta get kCrateApiSshSshStorePassphraseConstMeta =>
+      const TaskConstMeta(
+        debugName: "ssh_store_passphrase",
+        argNames: ["serverId", "passphrase"],
+      );
+
+  @override
+  Future<void> crateApiMobileStageDeleteServer({required String serverId}) {
+    return handler.executeNormal(NormalTask(
+      callFfi: (port_) {
+        final serializer = SseSerializer(generalizedFrbRustBinding);
+        sse_encode_String(serverId, serializer);
+        pdeCallFfi(generalizedFrbRustBinding, serializer,
+            funcId: 266, port: port_);
+      },
+      codec: SseCodec(
+        decodeSuccessData: sse_decode_unit,
+        decodeErrorData: sse_decode_String,
+      ),
+      constMeta: kCrateApiMobileStageDeleteServerConstMeta,
+      argValues: [serverId],
+      apiImpl: this,
+    ));
+  }
+
+  TaskConstMeta get kCrateApiMobileStageDeleteServerConstMeta =>
+      const TaskConstMeta(
+        debugName: "stage_delete_server",
+        argNames: ["serverId"],
+      );
+
+  @override
+  Future<void> crateApiSyncStartSyncService({required int port}) {
+    return handler.executeNormal(NormalTask(
+      callFfi: (port_) {
+        final serializer = SseSerializer(generalizedFrbRustBinding);
+        sse_encode_u_16(port, serializer);
+        pdeCallFfi(generalizedFrbRustBinding, serializer,
+            funcId: 267, port: port_);
+      },
+      codec: SseCodec(
+        decodeSuccessData: sse_decode_unit,
+        decodeErrorData: sse_decode_String,
+      ),
+      constMeta: kCrateApiSyncStartSyncServiceConstMeta,
+      argValues: [port],
+      apiImpl: this,
+    ));
+  }
+
+  TaskConstMeta get kCrateApiSyncStartSyncServiceConstMeta =>
+      const TaskConstMeta(
+        debugName: "start_sync_service",
+        argNames: ["port"],
+      );
+
+  @override
+  Future<void> crateApiSyncStopSyncService() {
+    return handler.executeNormal(NormalTask(
+      callFfi: (port_) {
+        final serializer = SseSerializer(generalizedFrbRustBinding);
+        pdeCallFfi(generalizedFrbRustBinding, serializer,
+            funcId: 268, port: port_);
+      },
+      codec: SseCodec(
+        decodeSuccessData: sse_decode_unit,
+        decodeErrorData: sse_decode_String,
+      ),
+      constMeta: kCrateApiSyncStopSyncServiceConstMeta,
+      argValues: [],
+      apiImpl: this,
+    ));
+  }
+
+  TaskConstMeta get kCrateApiSyncStopSyncServiceConstMeta =>
+      const TaskConstMeta(
+        debugName: "stop_sync_service",
+        argNames: [],
+      );
+
+  @override
+  Future<void> crateApiMobileAuthSuspendAllKeepalives() {
+    return handler.executeNormal(NormalTask(
+      callFfi: (port_) {
+        final serializer = SseSerializer(generalizedFrbRustBinding);
+        pdeCallFfi(generalizedFrbRustBinding, serializer,
+            funcId: 269, port: port_);
+      },
+      codec: SseCodec(
+        decodeSuccessData: sse_decode_unit,
+        decodeErrorData: sse_decode_String,
+      ),
+      constMeta: kCrateApiMobileAuthSuspendAllKeepalivesConstMeta,
+      argValues: [],
+      apiImpl: this,
+    ));
+  }
+
+  TaskConstMeta get kCrateApiMobileAuthSuspendAllKeepalivesConstMeta =>
+      const TaskConstMeta(
+        debugName: "suspend_all_keepalives",
+        argNames: [],
+      );
+
+  @override
+  Future<SyncSummary> crateApiSyncSyncFromPeer(
+      {required String sessionToken,
+      required bool includeCredentials,
+      String? credentialPassword}) {
+    return handler.executeNormal(NormalTask(
+      callFfi: (port_) {
+        final serializer = SseSerializer(generalizedFrbRustBinding);
+        sse_encode_String(sessionToken, serializer);
+        sse_encode_bool(includeCredentials, serializer);
+        sse_encode_opt_String(credentialPassword, serializer);
+        pdeCallFfi(generalizedFrbRustBinding, serializer,
+            funcId: 270, port: port_);
+      },
+      codec: SseCodec(
+        decodeSuccessData:
+            sse_decode_Auto_Owned_RustOpaque_flutter_rust_bridgefor_generatedRustAutoOpaqueInnerSyncSummary,
+        decodeErrorData: sse_decode_String,
+      ),
+      constMeta: kCrateApiSyncSyncFromPeerConstMeta,
+      argValues: [sessionToken, includeCredentials, credentialPassword],
+      apiImpl: this,
+    ));
+  }
+
+  TaskConstMeta get kCrateApiSyncSyncFromPeerConstMeta => const TaskConstMeta(
+        debugName: "sync_from_peer",
+        argNames: ["sessionToken", "includeCredentials", "credentialPassword"],
+      );
+
+  @override
+  Future<SyncSummary> crateApiSyncSyncToPeer(
+      {required String sessionToken,
+      required bool includeCredentials,
+      String? credentialPassword}) {
+    return handler.executeNormal(NormalTask(
+      callFfi: (port_) {
+        final serializer = SseSerializer(generalizedFrbRustBinding);
+        sse_encode_String(sessionToken, serializer);
+        sse_encode_bool(includeCredentials, serializer);
+        sse_encode_opt_String(credentialPassword, serializer);
+        pdeCallFfi(generalizedFrbRustBinding, serializer,
+            funcId: 271, port: port_);
+      },
+      codec: SseCodec(
+        decodeSuccessData:
+            sse_decode_Auto_Owned_RustOpaque_flutter_rust_bridgefor_generatedRustAutoOpaqueInnerSyncSummary,
+        decodeErrorData: sse_decode_String,
+      ),
+      constMeta: kCrateApiSyncSyncToPeerConstMeta,
+      argValues: [sessionToken, includeCredentials, credentialPassword],
+      apiImpl: this,
+    ));
+  }
+
+  TaskConstMeta get kCrateApiSyncSyncToPeerConstMeta => const TaskConstMeta(
+        debugName: "sync_to_peer",
+        argNames: ["sessionToken", "includeCredentials", "credentialPassword"],
+      );
+
+  @override
   Future<TeamMember> crateApiTeamTeamAddMember(
       {required String name, required String email, required TeamRole role}) {
     return handler.executeNormal(NormalTask(
@@ -6557,7 +8194,7 @@ class TermexBridgeApiImpl extends TermexBridgeApiImplPlatform
         sse_encode_String(email, serializer);
         sse_encode_team_role(role, serializer);
         pdeCallFfi(generalizedFrbRustBinding, serializer,
-            funcId: 219, port: port_);
+            funcId: 272, port: port_);
       },
       codec: SseCodec(
         decodeSuccessData: sse_decode_team_member,
@@ -6583,7 +8220,7 @@ class TermexBridgeApiImpl extends TermexBridgeApiImplPlatform
         sse_encode_String(oldPassphrase, serializer);
         sse_encode_String(newPassphrase, serializer);
         pdeCallFfi(generalizedFrbRustBinding, serializer,
-            funcId: 220, port: port_);
+            funcId: 273, port: port_);
       },
       codec: SseCodec(
         decodeSuccessData: sse_decode_unit,
@@ -6607,7 +8244,7 @@ class TermexBridgeApiImpl extends TermexBridgeApiImplPlatform
       callFfi: (port_) {
         final serializer = SseSerializer(generalizedFrbRustBinding);
         pdeCallFfi(generalizedFrbRustBinding, serializer,
-            funcId: 221, port: port_);
+            funcId: 274, port: port_);
       },
       codec: SseCodec(
         decodeSuccessData: sse_decode_list_team_member,
@@ -6633,7 +8270,7 @@ class TermexBridgeApiImpl extends TermexBridgeApiImplPlatform
         sse_encode_String(role, serializer);
         sse_encode_String(permission, serializer);
         pdeCallFfi(generalizedFrbRustBinding, serializer,
-            funcId: 222, port: port_);
+            funcId: 275, port: port_);
       },
       codec: SseCodec(
         decodeSuccessData: sse_decode_bool,
@@ -6660,7 +8297,7 @@ class TermexBridgeApiImpl extends TermexBridgeApiImplPlatform
         sse_encode_String(code, serializer);
         sse_encode_String(passphrase, serializer);
         pdeCallFfi(generalizedFrbRustBinding, serializer,
-            funcId: 223, port: port_);
+            funcId: 276, port: port_);
       },
       codec: SseCodec(
         decodeSuccessData: sse_decode_unit,
@@ -6686,7 +8323,7 @@ class TermexBridgeApiImpl extends TermexBridgeApiImplPlatform
         final serializer = SseSerializer(generalizedFrbRustBinding);
         sse_encode_String(code, serializer);
         pdeCallFfi(generalizedFrbRustBinding, serializer,
-            funcId: 224, port: port_);
+            funcId: 277, port: port_);
       },
       codec: SseCodec(
         decodeSuccessData: sse_decode_team_invite_payload,
@@ -6713,7 +8350,7 @@ class TermexBridgeApiImpl extends TermexBridgeApiImplPlatform
         sse_encode_team_role(role, serializer);
         sse_encode_i_32(expiresHours, serializer);
         pdeCallFfi(generalizedFrbRustBinding, serializer,
-            funcId: 225, port: port_);
+            funcId: 278, port: port_);
       },
       codec: SseCodec(
         decodeSuccessData: sse_decode_team_invite,
@@ -6737,7 +8374,7 @@ class TermexBridgeApiImpl extends TermexBridgeApiImplPlatform
       callFfi: (port_) {
         final serializer = SseSerializer(generalizedFrbRustBinding);
         pdeCallFfi(generalizedFrbRustBinding, serializer,
-            funcId: 226, port: port_);
+            funcId: 279, port: port_);
       },
       codec: SseCodec(
         decodeSuccessData: sse_decode_list_team_conflict,
@@ -6761,7 +8398,7 @@ class TermexBridgeApiImpl extends TermexBridgeApiImplPlatform
       callFfi: (port_) {
         final serializer = SseSerializer(generalizedFrbRustBinding);
         pdeCallFfi(generalizedFrbRustBinding, serializer,
-            funcId: 227, port: port_);
+            funcId: 280, port: port_);
       },
       codec: SseCodec(
         decodeSuccessData: sse_decode_list_String,
@@ -6785,7 +8422,7 @@ class TermexBridgeApiImpl extends TermexBridgeApiImplPlatform
       callFfi: (port_) {
         final serializer = SseSerializer(generalizedFrbRustBinding);
         pdeCallFfi(generalizedFrbRustBinding, serializer,
-            funcId: 228, port: port_);
+            funcId: 281, port: port_);
       },
       codec: SseCodec(
         decodeSuccessData: sse_decode_list_String,
@@ -6810,7 +8447,7 @@ class TermexBridgeApiImpl extends TermexBridgeApiImplPlatform
         final serializer = SseSerializer(generalizedFrbRustBinding);
         sse_encode_String(memberId, serializer);
         pdeCallFfi(generalizedFrbRustBinding, serializer,
-            funcId: 229, port: port_);
+            funcId: 282, port: port_);
       },
       codec: SseCodec(
         decodeSuccessData: sse_decode_unit,
@@ -6837,7 +8474,7 @@ class TermexBridgeApiImpl extends TermexBridgeApiImplPlatform
         sse_encode_String(conflictId, serializer);
         sse_encode_bool(useLocal, serializer);
         pdeCallFfi(generalizedFrbRustBinding, serializer,
-            funcId: 230, port: port_);
+            funcId: 283, port: port_);
       },
       codec: SseCodec(
         decodeSuccessData: sse_decode_unit,
@@ -6863,7 +8500,7 @@ class TermexBridgeApiImpl extends TermexBridgeApiImplPlatform
         final serializer = SseSerializer(generalizedFrbRustBinding);
         sse_encode_String(role, serializer);
         pdeCallFfi(generalizedFrbRustBinding, serializer,
-            funcId: 231, port: port_);
+            funcId: 284, port: port_);
       },
       codec: SseCodec(
         decodeSuccessData: sse_decode_list_String,
@@ -6887,7 +8524,7 @@ class TermexBridgeApiImpl extends TermexBridgeApiImplPlatform
       callFfi: (port_) {
         final serializer = SseSerializer(generalizedFrbRustBinding);
         pdeCallFfi(generalizedFrbRustBinding, serializer,
-            funcId: 232, port: port_);
+            funcId: 285, port: port_);
       },
       codec: SseCodec(
         decodeSuccessData: sse_decode_i_32,
@@ -6913,7 +8550,7 @@ class TermexBridgeApiImpl extends TermexBridgeApiImplPlatform
         sse_encode_String(memberId, serializer);
         sse_encode_team_role(role, serializer);
         pdeCallFfi(generalizedFrbRustBinding, serializer,
-            funcId: 233, port: port_);
+            funcId: 286, port: port_);
       },
       codec: SseCodec(
         decodeSuccessData: sse_decode_unit,
@@ -6937,7 +8574,7 @@ class TermexBridgeApiImpl extends TermexBridgeApiImplPlatform
         final serializer = SseSerializer(generalizedFrbRustBinding);
         sse_encode_String(passphrase, serializer);
         pdeCallFfi(generalizedFrbRustBinding, serializer,
-            funcId: 234, port: port_);
+            funcId: 287, port: port_);
       },
       codec: SseCodec(
         decodeSuccessData: sse_decode_bool,
@@ -6961,7 +8598,7 @@ class TermexBridgeApiImpl extends TermexBridgeApiImplPlatform
       callFfi: (port_) {
         final serializer = SseSerializer(generalizedFrbRustBinding);
         pdeCallFfi(generalizedFrbRustBinding, serializer,
-            funcId: 235, port: port_);
+            funcId: 288, port: port_);
       },
       codec: SseCodec(
         decodeSuccessData: sse_decode_u_16,
@@ -6984,7 +8621,7 @@ class TermexBridgeApiImpl extends TermexBridgeApiImplPlatform
       callFfi: (port_) {
         final serializer = SseSerializer(generalizedFrbRustBinding);
         pdeCallFfi(generalizedFrbRustBinding, serializer,
-            funcId: 236, port: port_);
+            funcId: 289, port: port_);
       },
       codec: SseCodec(
         decodeSuccessData: sse_decode_tor_status,
@@ -7007,7 +8644,7 @@ class TermexBridgeApiImpl extends TermexBridgeApiImplPlatform
       callFfi: (port_) {
         final serializer = SseSerializer(generalizedFrbRustBinding);
         pdeCallFfi(generalizedFrbRustBinding, serializer,
-            funcId: 237, port: port_);
+            funcId: 290, port: port_);
       },
       codec: SseCodec(
         decodeSuccessData: sse_decode_unit,
@@ -7038,7 +8675,7 @@ class TermexBridgeApiImpl extends TermexBridgeApiImplPlatform
         sse_encode_String(fingerprint, serializer);
         sse_encode_String(keyType, serializer);
         pdeCallFfi(generalizedFrbRustBinding, serializer,
-            funcId: 238, port: port_);
+            funcId: 291, port: port_);
       },
       codec: SseCodec(
         decodeSuccessData: sse_decode_unit,
@@ -7062,7 +8699,7 @@ class TermexBridgeApiImpl extends TermexBridgeApiImplPlatform
         final serializer = SseSerializer(generalizedFrbRustBinding);
         sse_encode_String(password, serializer);
         pdeCallFfi(generalizedFrbRustBinding, serializer,
-            funcId: 239, port: port_);
+            funcId: 292, port: port_);
       },
       codec: SseCodec(
         decodeSuccessData: sse_decode_unit,
@@ -7086,7 +8723,7 @@ class TermexBridgeApiImpl extends TermexBridgeApiImplPlatform
       callFfi: (port_) {
         final serializer = SseSerializer(generalizedFrbRustBinding);
         pdeCallFfi(generalizedFrbRustBinding, serializer,
-            funcId: 240, port: port_);
+            funcId: 293, port: port_);
       },
       codec: SseCodec(
         decodeSuccessData: sse_decode_update_config,
@@ -7110,7 +8747,7 @@ class TermexBridgeApiImpl extends TermexBridgeApiImplPlatform
       callFfi: (port_) {
         final serializer = SseSerializer(generalizedFrbRustBinding);
         pdeCallFfi(generalizedFrbRustBinding, serializer,
-            funcId: 241, port: port_);
+            funcId: 294, port: port_);
       },
       codec: SseCodec(
         decodeSuccessData: sse_decode_update_config,
@@ -7140,7 +8777,7 @@ class TermexBridgeApiImpl extends TermexBridgeApiImplPlatform
         sse_encode_opt_box_autoadd_bool(autoDownload, serializer);
         sse_encode_opt_box_autoadd_i_64(checkIntervalHours, serializer);
         pdeCallFfi(generalizedFrbRustBinding, serializer,
-            funcId: 242, port: port_);
+            funcId: 295, port: port_);
       },
       codec: SseCodec(
         decodeSuccessData: sse_decode_update_config,
@@ -7167,7 +8804,7 @@ class TermexBridgeApiImpl extends TermexBridgeApiImplPlatform
         sse_encode_String(id, serializer);
         sse_encode_box_autoadd_group_input(input, serializer);
         pdeCallFfi(generalizedFrbRustBinding, serializer,
-            funcId: 243, port: port_);
+            funcId: 296, port: port_);
       },
       codec: SseCodec(
         decodeSuccessData: sse_decode_group_dto,
@@ -7191,7 +8828,7 @@ class TermexBridgeApiImpl extends TermexBridgeApiImplPlatform
         final serializer = SseSerializer(generalizedFrbRustBinding);
         sse_encode_String(id, serializer);
         pdeCallFfi(generalizedFrbRustBinding, serializer,
-            funcId: 244, port: port_);
+            funcId: 297, port: port_);
       },
       codec: SseCodec(
         decodeSuccessData: sse_decode_unit,
@@ -7216,7 +8853,7 @@ class TermexBridgeApiImpl extends TermexBridgeApiImplPlatform
         final serializer = SseSerializer(generalizedFrbRustBinding);
         sse_encode_String(nowRfc3339, serializer);
         pdeCallFfi(generalizedFrbRustBinding, serializer,
-            funcId: 245, port: port_);
+            funcId: 298, port: port_);
       },
       codec: SseCodec(
         decodeSuccessData: sse_decode_unit,
@@ -7243,7 +8880,7 @@ class TermexBridgeApiImpl extends TermexBridgeApiImplPlatform
         sse_encode_String(id, serializer);
         sse_encode_box_autoadd_server_input(input, serializer);
         pdeCallFfi(generalizedFrbRustBinding, serializer,
-            funcId: 246, port: port_);
+            funcId: 299, port: port_);
       },
       codec: SseCodec(
         decodeSuccessData: sse_decode_server_dto,
@@ -7267,7 +8904,7 @@ class TermexBridgeApiImpl extends TermexBridgeApiImplPlatform
         final serializer = SseSerializer(generalizedFrbRustBinding);
         sse_encode_String(url, serializer);
         pdeCallFfi(generalizedFrbRustBinding, serializer,
-            funcId: 247, port: port_);
+            funcId: 300, port: port_);
       },
       codec: SseCodec(
         decodeSuccessData: sse_decode_bool,
@@ -7291,7 +8928,7 @@ class TermexBridgeApiImpl extends TermexBridgeApiImplPlatform
         final serializer = SseSerializer(generalizedFrbRustBinding);
         sse_encode_String(url, serializer);
         pdeCallFfi(generalizedFrbRustBinding, serializer,
-            funcId: 248, port: port_);
+            funcId: 301, port: port_);
       },
       codec: SseCodec(
         decodeSuccessData: sse_decode_unit,
@@ -7315,7 +8952,7 @@ class TermexBridgeApiImpl extends TermexBridgeApiImplPlatform
         final serializer = SseSerializer(generalizedFrbRustBinding);
         sse_encode_String(password, serializer);
         pdeCallFfi(generalizedFrbRustBinding, serializer,
-            funcId: 249, port: port_);
+            funcId: 302, port: port_);
       },
       codec: SseCodec(
         decodeSuccessData: sse_decode_bool,
@@ -7339,7 +8976,7 @@ class TermexBridgeApiImpl extends TermexBridgeApiImplPlatform
       callFfi: (port_) {
         final serializer = SseSerializer(generalizedFrbRustBinding);
         pdeCallFfi(generalizedFrbRustBinding, serializer,
-            funcId: 250, port: port_);
+            funcId: 303, port: port_);
       },
       codec: SseCodec(
         decodeSuccessData: sse_decode_unit,
@@ -7363,7 +9000,7 @@ class TermexBridgeApiImpl extends TermexBridgeApiImplPlatform
       callFfi: (port_) {
         final serializer = SseSerializer(generalizedFrbRustBinding);
         pdeCallFfi(generalizedFrbRustBinding, serializer,
-            funcId: 251, port: port_);
+            funcId: 304, port: port_);
       },
       codec: SseCodec(
         decodeSuccessData: sse_decode_window_state,
@@ -7388,7 +9025,7 @@ class TermexBridgeApiImpl extends TermexBridgeApiImplPlatform
         final serializer = SseSerializer(generalizedFrbRustBinding);
         sse_encode_box_autoadd_window_state(state, serializer);
         pdeCallFfi(generalizedFrbRustBinding, serializer,
-            funcId: 252, port: port_);
+            funcId: 305, port: port_);
       },
       codec: SseCodec(
         decodeSuccessData: sse_decode_unit,
@@ -7407,6 +9044,32 @@ class TermexBridgeApiImpl extends TermexBridgeApiImplPlatform
       );
 
   @override
+  Future<void> crateApiLocalPtyWriteStdin(
+      {required String sessionId, required List<int> data}) {
+    return handler.executeNormal(NormalTask(
+      callFfi: (port_) {
+        final serializer = SseSerializer(generalizedFrbRustBinding);
+        sse_encode_String(sessionId, serializer);
+        sse_encode_list_prim_u_8_loose(data, serializer);
+        pdeCallFfi(generalizedFrbRustBinding, serializer,
+            funcId: 306, port: port_);
+      },
+      codec: SseCodec(
+        decodeSuccessData: sse_decode_unit,
+        decodeErrorData: sse_decode_String,
+      ),
+      constMeta: kCrateApiLocalPtyWriteStdinConstMeta,
+      argValues: [sessionId, data],
+      apiImpl: this,
+    ));
+  }
+
+  TaskConstMeta get kCrateApiLocalPtyWriteStdinConstMeta => const TaskConstMeta(
+        debugName: "write_stdin",
+        argNames: ["sessionId", "data"],
+      );
+
+  @override
   Future<void> crateApiSshWriteStdin(
       {required String sessionId, required List<int> data}) {
     return handler.executeNormal(NormalTask(
@@ -7415,7 +9078,7 @@ class TermexBridgeApiImpl extends TermexBridgeApiImplPlatform
         sse_encode_String(sessionId, serializer);
         sse_encode_list_prim_u_8_loose(data, serializer);
         pdeCallFfi(generalizedFrbRustBinding, serializer,
-            funcId: 253, port: port_);
+            funcId: 307, port: port_);
       },
       codec: SseCodec(
         decodeSuccessData: sse_decode_unit,
@@ -7432,10 +9095,58 @@ class TermexBridgeApiImpl extends TermexBridgeApiImplPlatform
         argNames: ["sessionId", "data"],
       );
 
+  RustArcIncrementStrongCountFnType
+      get rust_arc_increment_strong_count_DiscoveredDevice => wire
+          .rust_arc_increment_strong_count_RustOpaque_flutter_rust_bridgefor_generatedRustAutoOpaqueInnerDiscoveredDevice;
+
+  RustArcDecrementStrongCountFnType
+      get rust_arc_decrement_strong_count_DiscoveredDevice => wire
+          .rust_arc_decrement_strong_count_RustOpaque_flutter_rust_bridgefor_generatedRustAutoOpaqueInnerDiscoveredDevice;
+
+  RustArcIncrementStrongCountFnType
+      get rust_arc_increment_strong_count_SyncSummary => wire
+          .rust_arc_increment_strong_count_RustOpaque_flutter_rust_bridgefor_generatedRustAutoOpaqueInnerSyncSummary;
+
+  RustArcDecrementStrongCountFnType
+      get rust_arc_decrement_strong_count_SyncSummary => wire
+          .rust_arc_decrement_strong_count_RustOpaque_flutter_rust_bridgefor_generatedRustAutoOpaqueInnerSyncSummary;
+
   @protected
   AnyhowException dco_decode_AnyhowException(dynamic raw) {
     // Codec=Dco (DartCObject based), see doc to use other codecs
     return AnyhowException(raw as String);
+  }
+
+  @protected
+  DiscoveredDevice
+      dco_decode_Auto_Owned_RustOpaque_flutter_rust_bridgefor_generatedRustAutoOpaqueInnerDiscoveredDevice(
+          dynamic raw) {
+    // Codec=Dco (DartCObject based), see doc to use other codecs
+    return DiscoveredDeviceImpl.frbInternalDcoDecode(raw as List<dynamic>);
+  }
+
+  @protected
+  SyncSummary
+      dco_decode_Auto_Owned_RustOpaque_flutter_rust_bridgefor_generatedRustAutoOpaqueInnerSyncSummary(
+          dynamic raw) {
+    // Codec=Dco (DartCObject based), see doc to use other codecs
+    return SyncSummaryImpl.frbInternalDcoDecode(raw as List<dynamic>);
+  }
+
+  @protected
+  DiscoveredDevice
+      dco_decode_RustOpaque_flutter_rust_bridgefor_generatedRustAutoOpaqueInnerDiscoveredDevice(
+          dynamic raw) {
+    // Codec=Dco (DartCObject based), see doc to use other codecs
+    return DiscoveredDeviceImpl.frbInternalDcoDecode(raw as List<dynamic>);
+  }
+
+  @protected
+  SyncSummary
+      dco_decode_RustOpaque_flutter_rust_bridgefor_generatedRustAutoOpaqueInnerSyncSummary(
+          dynamic raw) {
+    // Codec=Dco (DartCObject based), see doc to use other codecs
+    return SyncSummaryImpl.frbInternalDcoDecode(raw as List<dynamic>);
   }
 
   @protected
@@ -7488,14 +9199,16 @@ class TermexBridgeApiImpl extends TermexBridgeApiImplPlatform
   AiProviderConfig dco_decode_ai_provider_config(dynamic raw) {
     // Codec=Dco (DartCObject based), see doc to use other codecs
     final arr = raw as List<dynamic>;
-    if (arr.length != 5)
-      throw Exception('unexpected arr length: expect 5 but see ${arr.length}');
+    if (arr.length != 7)
+      throw Exception('unexpected arr length: expect 7 but see ${arr.length}');
     return AiProviderConfig(
       provider: dco_decode_ai_provider(arr[0]),
       model: dco_decode_String(arr[1]),
       apiKey: dco_decode_opt_String(arr[2]),
       baseUrl: dco_decode_opt_String(arr[3]),
       contextLines: dco_decode_i_32(arr[4]),
+      temperature: dco_decode_opt_box_autoadd_f_64(arr[5]),
+      maxTokens: dco_decode_opt_box_autoadd_i_32(arr[6]),
     );
   }
 
@@ -7514,8 +9227,8 @@ class TermexBridgeApiImpl extends TermexBridgeApiImplPlatform
   AppSettings dco_decode_app_settings(dynamic raw) {
     // Codec=Dco (DartCObject based), see doc to use other codecs
     final arr = raw as List<dynamic>;
-    if (arr.length != 17)
-      throw Exception('unexpected arr length: expect 17 but see ${arr.length}');
+    if (arr.length != 28)
+      throw Exception('unexpected arr length: expect 28 but see ${arr.length}');
     return AppSettings(
       themeMode: dco_decode_String(arr[0]),
       colorScheme: dco_decode_String(arr[1]),
@@ -7534,6 +9247,17 @@ class TermexBridgeApiImpl extends TermexBridgeApiImplPlatform
       localAiThreads: dco_decode_i_32(arr[14]),
       localAiContextSize: dco_decode_i_32(arr[15]),
       k8SKubeconfigPath: dco_decode_String(arr[16]),
+      localAiAutoStart: dco_decode_bool(arr[17]),
+      keywordRulesJson: dco_decode_String(arr[18]),
+      monitorIntervalMs: dco_decode_i_32(arr[19]),
+      monitorAutoStart: dco_decode_bool(arr[20]),
+      monitorShowCpu: dco_decode_bool(arr[21]),
+      monitorShowMemory: dco_decode_bool(arr[22]),
+      monitorShowDisk: dco_decode_bool(arr[23]),
+      monitorShowNetwork: dco_decode_bool(arr[24]),
+      monitorShowProcesses: dco_decode_bool(arr[25]),
+      recordingRetentionDays: dco_decode_i_32(arr[26]),
+      recordingFormat: dco_decode_String(arr[27]),
     );
   }
 
@@ -7555,6 +9279,45 @@ class TermexBridgeApiImpl extends TermexBridgeApiImplPlatform
   AuthType dco_decode_auth_type(dynamic raw) {
     // Codec=Dco (DartCObject based), see doc to use other codecs
     return AuthType.values[raw as int];
+  }
+
+  @protected
+  BackupHistory dco_decode_backup_history(dynamic raw) {
+    // Codec=Dco (DartCObject based), see doc to use other codecs
+    final arr = raw as List<dynamic>;
+    if (arr.length != 8)
+      throw Exception('unexpected arr length: expect 8 but see ${arr.length}');
+    return BackupHistory(
+      id: dco_decode_String(arr[0]),
+      scheduleId: dco_decode_opt_String(arr[1]),
+      filePath: dco_decode_String(arr[2]),
+      sizeBytes: dco_decode_i_64(arr[3]),
+      status: dco_decode_String(arr[4]),
+      startedAt: dco_decode_String(arr[5]),
+      completedAt: dco_decode_opt_String(arr[6]),
+      errorMsg: dco_decode_opt_String(arr[7]),
+    );
+  }
+
+  @protected
+  BackupSchedule dco_decode_backup_schedule(dynamic raw) {
+    // Codec=Dco (DartCObject based), see doc to use other codecs
+    final arr = raw as List<dynamic>;
+    if (arr.length != 11)
+      throw Exception('unexpected arr length: expect 11 but see ${arr.length}');
+    return BackupSchedule(
+      id: dco_decode_String(arr[0]),
+      name: dco_decode_String(arr[1]),
+      frequency: dco_decode_String(arr[2]),
+      hour: dco_decode_i_32(arr[3]),
+      minute: dco_decode_i_32(arr[4]),
+      weekday: dco_decode_opt_box_autoadd_i_32(arr[5]),
+      dayOfMonth: dco_decode_opt_box_autoadd_i_32(arr[6]),
+      targetDir: dco_decode_String(arr[7]),
+      enabled: dco_decode_bool(arr[8]),
+      nextRunAt: dco_decode_String(arr[9]),
+      createdAt: dco_decode_String(arr[10]),
+    );
   }
 
   @protected
@@ -7591,6 +9354,12 @@ class TermexBridgeApiImpl extends TermexBridgeApiImplPlatform
   ConflictInfo dco_decode_box_autoadd_conflict_info(dynamic raw) {
     // Codec=Dco (DartCObject based), see doc to use other codecs
     return dco_decode_conflict_info(raw);
+  }
+
+  @protected
+  double dco_decode_box_autoadd_f_64(dynamic raw) {
+    // Codec=Dco (DartCObject based), see doc to use other codecs
+    return raw as double;
   }
 
   @protected
@@ -7669,6 +9438,39 @@ class TermexBridgeApiImpl extends TermexBridgeApiImplPlatform
   WindowState dco_decode_box_autoadd_window_state(dynamic raw) {
     // Codec=Dco (DartCObject based), see doc to use other codecs
     return dco_decode_window_state(raw);
+  }
+
+  @protected
+  ChainHopInfo dco_decode_chain_hop_info(dynamic raw) {
+    // Codec=Dco (DartCObject based), see doc to use other codecs
+    final arr = raw as List<dynamic>;
+    if (arr.length != 4)
+      throw Exception('unexpected arr length: expect 4 but see ${arr.length}');
+    return ChainHopInfo(
+      hopId: dco_decode_String(arr[0]),
+      name: dco_decode_String(arr[1]),
+      host: dco_decode_String(arr[2]),
+      port: dco_decode_u_16(arr[3]),
+    );
+  }
+
+  @protected
+  ChainProgressDto dco_decode_chain_progress_dto(dynamic raw) {
+    // Codec=Dco (DartCObject based), see doc to use other codecs
+    final arr = raw as List<dynamic>;
+    if (arr.length != 9)
+      throw Exception('unexpected arr length: expect 9 but see ${arr.length}');
+    return ChainProgressDto(
+      kind: dco_decode_String(arr[0]),
+      hopIndex: dco_decode_i_32(arr[1]),
+      hopTotal: dco_decode_i_32(arr[2]),
+      hopName: dco_decode_String(arr[3]),
+      attempt: dco_decode_i_32(arr[4]),
+      elapsedMs: dco_decode_i_64(arr[5]),
+      nextAttemptInMs: dco_decode_i_64(arr[6]),
+      willRetry: dco_decode_bool(arr[7]),
+      error: dco_decode_opt_String(arr[8]),
+    );
   }
 
   @protected
@@ -7794,9 +9596,9 @@ class TermexBridgeApiImpl extends TermexBridgeApiImplPlatform
     // Codec=Dco (DartCObject based), see doc to use other codecs
     switch (raw[0]) {
       case 0:
-        return ForwardStatus_Stopped();
+        return const ForwardStatus_Stopped();
       case 1:
-        return ForwardStatus_Running();
+        return const ForwardStatus_Running();
       case 2:
         return ForwardStatus_PortConflict(
           dco_decode_String(raw[1]),
@@ -7914,6 +9716,12 @@ class TermexBridgeApiImpl extends TermexBridgeApiImplPlatform
   }
 
   @protected
+  HapticStyle dco_decode_haptic_style(dynamic raw) {
+    // Codec=Dco (DartCObject based), see doc to use other codecs
+    return HapticStyle.values[raw as int];
+  }
+
+  @protected
   int dco_decode_i_32(dynamic raw) {
     // Codec=Dco (DartCObject based), see doc to use other codecs
     return raw as int;
@@ -7923,6 +9731,20 @@ class TermexBridgeApiImpl extends TermexBridgeApiImplPlatform
   PlatformInt64 dco_decode_i_64(dynamic raw) {
     // Codec=Dco (DartCObject based), see doc to use other codecs
     return dcoDecodeI64(raw);
+  }
+
+  @protected
+  InviteInfo dco_decode_invite_info(dynamic raw) {
+    // Codec=Dco (DartCObject based), see doc to use other codecs
+    final arr = raw as List<dynamic>;
+    if (arr.length != 4)
+      throw Exception('unexpected arr length: expect 4 but see ${arr.length}');
+    return InviteInfo(
+      repoUrl: dco_decode_String(arr[0]),
+      token: dco_decode_String(arr[1]),
+      teamName: dco_decode_String(arr[2]),
+      expiresAt: dco_decode_String(arr[3]),
+    );
   }
 
   @protected
@@ -7968,6 +9790,17 @@ class TermexBridgeApiImpl extends TermexBridgeApiImplPlatform
   }
 
   @protected
+  List<DiscoveredDevice>
+      dco_decode_list_Auto_Owned_RustOpaque_flutter_rust_bridgefor_generatedRustAutoOpaqueInnerDiscoveredDevice(
+          dynamic raw) {
+    // Codec=Dco (DartCObject based), see doc to use other codecs
+    return (raw as List<dynamic>)
+        .map(
+            dco_decode_Auto_Owned_RustOpaque_flutter_rust_bridgefor_generatedRustAutoOpaqueInnerDiscoveredDevice)
+        .toList();
+  }
+
+  @protected
   List<String> dco_decode_list_String(dynamic raw) {
     // Codec=Dco (DartCObject based), see doc to use other codecs
     return (raw as List<dynamic>).map(dco_decode_String).toList();
@@ -7989,6 +9822,30 @@ class TermexBridgeApiImpl extends TermexBridgeApiImplPlatform
   List<AuditLogEntry> dco_decode_list_audit_log_entry(dynamic raw) {
     // Codec=Dco (DartCObject based), see doc to use other codecs
     return (raw as List<dynamic>).map(dco_decode_audit_log_entry).toList();
+  }
+
+  @protected
+  List<BackupHistory> dco_decode_list_backup_history(dynamic raw) {
+    // Codec=Dco (DartCObject based), see doc to use other codecs
+    return (raw as List<dynamic>).map(dco_decode_backup_history).toList();
+  }
+
+  @protected
+  List<BackupSchedule> dco_decode_list_backup_schedule(dynamic raw) {
+    // Codec=Dco (DartCObject based), see doc to use other codecs
+    return (raw as List<dynamic>).map(dco_decode_backup_schedule).toList();
+  }
+
+  @protected
+  List<ChainHopInfo> dco_decode_list_chain_hop_info(dynamic raw) {
+    // Codec=Dco (DartCObject based), see doc to use other codecs
+    return (raw as List<dynamic>).map(dco_decode_chain_hop_info).toList();
+  }
+
+  @protected
+  List<ChainProgressDto> dco_decode_list_chain_progress_dto(dynamic raw) {
+    // Codec=Dco (DartCObject based), see doc to use other codecs
+    return (raw as List<dynamic>).map(dco_decode_chain_progress_dto).toList();
   }
 
   @protected
@@ -8072,6 +9929,18 @@ class TermexBridgeApiImpl extends TermexBridgeApiImplPlatform
   }
 
   @protected
+  List<int> dco_decode_list_prim_i_32_loose(dynamic raw) {
+    // Codec=Dco (DartCObject based), see doc to use other codecs
+    return raw as List<int>;
+  }
+
+  @protected
+  Int32List dco_decode_list_prim_i_32_strict(dynamic raw) {
+    // Codec=Dco (DartCObject based), see doc to use other codecs
+    return raw as Int32List;
+  }
+
+  @protected
   List<int> dco_decode_list_prim_u_8_loose(dynamic raw) {
     // Codec=Dco (DartCObject based), see doc to use other codecs
     return raw as List<int>;
@@ -8093,6 +9962,12 @@ class TermexBridgeApiImpl extends TermexBridgeApiImplPlatform
   List<ProxyConfig> dco_decode_list_proxy_config(dynamic raw) {
     // Codec=Dco (DartCObject based), see doc to use other codecs
     return (raw as List<dynamic>).map(dco_decode_proxy_config).toList();
+  }
+
+  @protected
+  List<ProxyPoolStat> dco_decode_list_proxy_pool_stat(dynamic raw) {
+    // Codec=Dco (DartCObject based), see doc to use other codecs
+    return (raw as List<dynamic>).map(dco_decode_proxy_pool_stat).toList();
   }
 
   @protected
@@ -8277,6 +10152,12 @@ class TermexBridgeApiImpl extends TermexBridgeApiImplPlatform
   }
 
   @protected
+  double? dco_decode_opt_box_autoadd_f_64(dynamic raw) {
+    // Codec=Dco (DartCObject based), see doc to use other codecs
+    return raw == null ? null : dco_decode_box_autoadd_f_64(raw);
+  }
+
+  @protected
   GroupDto? dco_decode_opt_box_autoadd_group_dto(dynamic raw) {
     // Codec=Dco (DartCObject based), see doc to use other codecs
     return raw == null ? null : dco_decode_box_autoadd_group_dto(raw);
@@ -8392,6 +10273,23 @@ class TermexBridgeApiImpl extends TermexBridgeApiImplPlatform
   }
 
   @protected
+  ProxyPoolStat dco_decode_proxy_pool_stat(dynamic raw) {
+    // Codec=Dco (DartCObject based), see doc to use other codecs
+    final arr = raw as List<dynamic>;
+    if (arr.length != 7)
+      throw Exception('unexpected arr length: expect 7 but see ${arr.length}');
+    return ProxyPoolStat(
+      proxyType: dco_decode_String(arr[0]),
+      host: dco_decode_String(arr[1]),
+      port: dco_decode_u_16(arr[2]),
+      username: dco_decode_opt_String(arr[3]),
+      refCount: dco_decode_i_32(arr[4]),
+      connectedSince: dco_decode_i_64(arr[5]),
+      bytesTransferred: dco_decode_i_64(arr[6]),
+    );
+  }
+
+  @protected
   ProxyType dco_decode_proxy_type(dynamic raw) {
     // Codec=Dco (DartCObject based), see doc to use other codecs
     return ProxyType.values[raw as int];
@@ -8469,6 +10367,18 @@ class TermexBridgeApiImpl extends TermexBridgeApiImplPlatform
   }
 
   @protected
+  SecurityStatus dco_decode_security_status(dynamic raw) {
+    // Codec=Dco (DartCObject based), see doc to use other codecs
+    final arr = raw as List<dynamic>;
+    if (arr.length != 2)
+      throw Exception('unexpected arr length: expect 2 but see ${arr.length}');
+    return SecurityStatus(
+      keychainAvailable: dco_decode_bool(arr[0]),
+      keychainCredentialCount: dco_decode_u_32(arr[1]),
+    );
+  }
+
+  @protected
   ServerDto dco_decode_server_dto(dynamic raw) {
     // Codec=Dco (DartCObject based), see doc to use other codecs
     final arr = raw as List<dynamic>;
@@ -8514,8 +10424,8 @@ class TermexBridgeApiImpl extends TermexBridgeApiImplPlatform
   SftpFileDto dco_decode_sftp_file_dto(dynamic raw) {
     // Codec=Dco (DartCObject based), see doc to use other codecs
     final arr = raw as List<dynamic>;
-    if (arr.length != 8)
-      throw Exception('unexpected arr length: expect 8 but see ${arr.length}');
+    if (arr.length != 9)
+      throw Exception('unexpected arr length: expect 9 but see ${arr.length}');
     return SftpFileDto(
       name: dco_decode_String(arr[0]),
       path: dco_decode_String(arr[1]),
@@ -8525,6 +10435,7 @@ class TermexBridgeApiImpl extends TermexBridgeApiImplPlatform
       permissions: dco_decode_u_32(arr[5]),
       modifiedAt: dco_decode_i_64(arr[6]),
       owner: dco_decode_opt_String(arr[7]),
+      group: dco_decode_opt_String(arr[8]),
     );
   }
 
@@ -8800,8 +10711,8 @@ class TermexBridgeApiImpl extends TermexBridgeApiImplPlatform
   UpdateManifest dco_decode_update_manifest(dynamic raw) {
     // Codec=Dco (DartCObject based), see doc to use other codecs
     final arr = raw as List<dynamic>;
-    if (arr.length != 7)
-      throw Exception('unexpected arr length: expect 7 but see ${arr.length}');
+    if (arr.length != 8)
+      throw Exception('unexpected arr length: expect 8 but see ${arr.length}');
     return UpdateManifest(
       currentVersion: dco_decode_String(arr[0]),
       availableVersion: dco_decode_opt_String(arr[1]),
@@ -8810,7 +10721,14 @@ class TermexBridgeApiImpl extends TermexBridgeApiImplPlatform
       deltaFrom: dco_decode_opt_String(arr[4]),
       deltaUrl: dco_decode_opt_String(arr[5]),
       sizeBytes: dco_decode_opt_box_autoadd_i_64(arr[6]),
+      forceUpdate: dco_decode_bool(arr[7]),
     );
+  }
+
+  @protected
+  BigInt dco_decode_usize(dynamic raw) {
+    // Codec=Dco (DartCObject based), see doc to use other codecs
+    return dcoDecodeU64(raw);
   }
 
   @protected
@@ -8834,6 +10752,42 @@ class TermexBridgeApiImpl extends TermexBridgeApiImplPlatform
     // Codec=Sse (Serialization based), see doc to use other codecs
     var inner = sse_decode_String(deserializer);
     return AnyhowException(inner);
+  }
+
+  @protected
+  DiscoveredDevice
+      sse_decode_Auto_Owned_RustOpaque_flutter_rust_bridgefor_generatedRustAutoOpaqueInnerDiscoveredDevice(
+          SseDeserializer deserializer) {
+    // Codec=Sse (Serialization based), see doc to use other codecs
+    return DiscoveredDeviceImpl.frbInternalSseDecode(
+        sse_decode_usize(deserializer), sse_decode_i_32(deserializer));
+  }
+
+  @protected
+  SyncSummary
+      sse_decode_Auto_Owned_RustOpaque_flutter_rust_bridgefor_generatedRustAutoOpaqueInnerSyncSummary(
+          SseDeserializer deserializer) {
+    // Codec=Sse (Serialization based), see doc to use other codecs
+    return SyncSummaryImpl.frbInternalSseDecode(
+        sse_decode_usize(deserializer), sse_decode_i_32(deserializer));
+  }
+
+  @protected
+  DiscoveredDevice
+      sse_decode_RustOpaque_flutter_rust_bridgefor_generatedRustAutoOpaqueInnerDiscoveredDevice(
+          SseDeserializer deserializer) {
+    // Codec=Sse (Serialization based), see doc to use other codecs
+    return DiscoveredDeviceImpl.frbInternalSseDecode(
+        sse_decode_usize(deserializer), sse_decode_i_32(deserializer));
+  }
+
+  @protected
+  SyncSummary
+      sse_decode_RustOpaque_flutter_rust_bridgefor_generatedRustAutoOpaqueInnerSyncSummary(
+          SseDeserializer deserializer) {
+    // Codec=Sse (Serialization based), see doc to use other codecs
+    return SyncSummaryImpl.frbInternalSseDecode(
+        sse_decode_usize(deserializer), sse_decode_i_32(deserializer));
   }
 
   @protected
@@ -8898,12 +10852,16 @@ class TermexBridgeApiImpl extends TermexBridgeApiImplPlatform
     var var_apiKey = sse_decode_opt_String(deserializer);
     var var_baseUrl = sse_decode_opt_String(deserializer);
     var var_contextLines = sse_decode_i_32(deserializer);
+    var var_temperature = sse_decode_opt_box_autoadd_f_64(deserializer);
+    var var_maxTokens = sse_decode_opt_box_autoadd_i_32(deserializer);
     return AiProviderConfig(
         provider: var_provider,
         model: var_model,
         apiKey: var_apiKey,
         baseUrl: var_baseUrl,
-        contextLines: var_contextLines);
+        contextLines: var_contextLines,
+        temperature: var_temperature,
+        maxTokens: var_maxTokens);
   }
 
   @protected
@@ -8933,6 +10891,17 @@ class TermexBridgeApiImpl extends TermexBridgeApiImplPlatform
     var var_localAiThreads = sse_decode_i_32(deserializer);
     var var_localAiContextSize = sse_decode_i_32(deserializer);
     var var_k8SKubeconfigPath = sse_decode_String(deserializer);
+    var var_localAiAutoStart = sse_decode_bool(deserializer);
+    var var_keywordRulesJson = sse_decode_String(deserializer);
+    var var_monitorIntervalMs = sse_decode_i_32(deserializer);
+    var var_monitorAutoStart = sse_decode_bool(deserializer);
+    var var_monitorShowCpu = sse_decode_bool(deserializer);
+    var var_monitorShowMemory = sse_decode_bool(deserializer);
+    var var_monitorShowDisk = sse_decode_bool(deserializer);
+    var var_monitorShowNetwork = sse_decode_bool(deserializer);
+    var var_monitorShowProcesses = sse_decode_bool(deserializer);
+    var var_recordingRetentionDays = sse_decode_i_32(deserializer);
+    var var_recordingFormat = sse_decode_String(deserializer);
     return AppSettings(
         themeMode: var_themeMode,
         colorScheme: var_colorScheme,
@@ -8950,7 +10919,18 @@ class TermexBridgeApiImpl extends TermexBridgeApiImplPlatform
         localAiPort: var_localAiPort,
         localAiThreads: var_localAiThreads,
         localAiContextSize: var_localAiContextSize,
-        k8SKubeconfigPath: var_k8SKubeconfigPath);
+        k8SKubeconfigPath: var_k8SKubeconfigPath,
+        localAiAutoStart: var_localAiAutoStart,
+        keywordRulesJson: var_keywordRulesJson,
+        monitorIntervalMs: var_monitorIntervalMs,
+        monitorAutoStart: var_monitorAutoStart,
+        monitorShowCpu: var_monitorShowCpu,
+        monitorShowMemory: var_monitorShowMemory,
+        monitorShowDisk: var_monitorShowDisk,
+        monitorShowNetwork: var_monitorShowNetwork,
+        monitorShowProcesses: var_monitorShowProcesses,
+        recordingRetentionDays: var_recordingRetentionDays,
+        recordingFormat: var_recordingFormat);
   }
 
   @protected
@@ -8972,6 +10952,56 @@ class TermexBridgeApiImpl extends TermexBridgeApiImplPlatform
     // Codec=Sse (Serialization based), see doc to use other codecs
     var inner = sse_decode_i_32(deserializer);
     return AuthType.values[inner];
+  }
+
+  @protected
+  BackupHistory sse_decode_backup_history(SseDeserializer deserializer) {
+    // Codec=Sse (Serialization based), see doc to use other codecs
+    var var_id = sse_decode_String(deserializer);
+    var var_scheduleId = sse_decode_opt_String(deserializer);
+    var var_filePath = sse_decode_String(deserializer);
+    var var_sizeBytes = sse_decode_i_64(deserializer);
+    var var_status = sse_decode_String(deserializer);
+    var var_startedAt = sse_decode_String(deserializer);
+    var var_completedAt = sse_decode_opt_String(deserializer);
+    var var_errorMsg = sse_decode_opt_String(deserializer);
+    return BackupHistory(
+        id: var_id,
+        scheduleId: var_scheduleId,
+        filePath: var_filePath,
+        sizeBytes: var_sizeBytes,
+        status: var_status,
+        startedAt: var_startedAt,
+        completedAt: var_completedAt,
+        errorMsg: var_errorMsg);
+  }
+
+  @protected
+  BackupSchedule sse_decode_backup_schedule(SseDeserializer deserializer) {
+    // Codec=Sse (Serialization based), see doc to use other codecs
+    var var_id = sse_decode_String(deserializer);
+    var var_name = sse_decode_String(deserializer);
+    var var_frequency = sse_decode_String(deserializer);
+    var var_hour = sse_decode_i_32(deserializer);
+    var var_minute = sse_decode_i_32(deserializer);
+    var var_weekday = sse_decode_opt_box_autoadd_i_32(deserializer);
+    var var_dayOfMonth = sse_decode_opt_box_autoadd_i_32(deserializer);
+    var var_targetDir = sse_decode_String(deserializer);
+    var var_enabled = sse_decode_bool(deserializer);
+    var var_nextRunAt = sse_decode_String(deserializer);
+    var var_createdAt = sse_decode_String(deserializer);
+    return BackupSchedule(
+        id: var_id,
+        name: var_name,
+        frequency: var_frequency,
+        hour: var_hour,
+        minute: var_minute,
+        weekday: var_weekday,
+        dayOfMonth: var_dayOfMonth,
+        targetDir: var_targetDir,
+        enabled: var_enabled,
+        nextRunAt: var_nextRunAt,
+        createdAt: var_createdAt);
   }
 
   @protected
@@ -9012,6 +11042,12 @@ class TermexBridgeApiImpl extends TermexBridgeApiImplPlatform
       SseDeserializer deserializer) {
     // Codec=Sse (Serialization based), see doc to use other codecs
     return (sse_decode_conflict_info(deserializer));
+  }
+
+  @protected
+  double sse_decode_box_autoadd_f_64(SseDeserializer deserializer) {
+    // Codec=Sse (Serialization based), see doc to use other codecs
+    return (sse_decode_f_64(deserializer));
   }
 
   @protected
@@ -9095,6 +11131,41 @@ class TermexBridgeApiImpl extends TermexBridgeApiImplPlatform
       SseDeserializer deserializer) {
     // Codec=Sse (Serialization based), see doc to use other codecs
     return (sse_decode_window_state(deserializer));
+  }
+
+  @protected
+  ChainHopInfo sse_decode_chain_hop_info(SseDeserializer deserializer) {
+    // Codec=Sse (Serialization based), see doc to use other codecs
+    var var_hopId = sse_decode_String(deserializer);
+    var var_name = sse_decode_String(deserializer);
+    var var_host = sse_decode_String(deserializer);
+    var var_port = sse_decode_u_16(deserializer);
+    return ChainHopInfo(
+        hopId: var_hopId, name: var_name, host: var_host, port: var_port);
+  }
+
+  @protected
+  ChainProgressDto sse_decode_chain_progress_dto(SseDeserializer deserializer) {
+    // Codec=Sse (Serialization based), see doc to use other codecs
+    var var_kind = sse_decode_String(deserializer);
+    var var_hopIndex = sse_decode_i_32(deserializer);
+    var var_hopTotal = sse_decode_i_32(deserializer);
+    var var_hopName = sse_decode_String(deserializer);
+    var var_attempt = sse_decode_i_32(deserializer);
+    var var_elapsedMs = sse_decode_i_64(deserializer);
+    var var_nextAttemptInMs = sse_decode_i_64(deserializer);
+    var var_willRetry = sse_decode_bool(deserializer);
+    var var_error = sse_decode_opt_String(deserializer);
+    return ChainProgressDto(
+        kind: var_kind,
+        hopIndex: var_hopIndex,
+        hopTotal: var_hopTotal,
+        hopName: var_hopName,
+        attempt: var_attempt,
+        elapsedMs: var_elapsedMs,
+        nextAttemptInMs: var_nextAttemptInMs,
+        willRetry: var_willRetry,
+        error: var_error);
   }
 
   @protected
@@ -9228,9 +11299,9 @@ class TermexBridgeApiImpl extends TermexBridgeApiImplPlatform
     var tag_ = sse_decode_i_32(deserializer);
     switch (tag_) {
       case 0:
-        return ForwardStatus_Stopped();
+        return const ForwardStatus_Stopped();
       case 1:
-        return ForwardStatus_Running();
+        return const ForwardStatus_Running();
       case 2:
         var var_field0 = sse_decode_String(deserializer);
         return ForwardStatus_PortConflict(var_field0);
@@ -9364,6 +11435,13 @@ class TermexBridgeApiImpl extends TermexBridgeApiImplPlatform
   }
 
   @protected
+  HapticStyle sse_decode_haptic_style(SseDeserializer deserializer) {
+    // Codec=Sse (Serialization based), see doc to use other codecs
+    var inner = sse_decode_i_32(deserializer);
+    return HapticStyle.values[inner];
+  }
+
+  @protected
   int sse_decode_i_32(SseDeserializer deserializer) {
     // Codec=Sse (Serialization based), see doc to use other codecs
     return deserializer.buffer.getInt32();
@@ -9373,6 +11451,20 @@ class TermexBridgeApiImpl extends TermexBridgeApiImplPlatform
   PlatformInt64 sse_decode_i_64(SseDeserializer deserializer) {
     // Codec=Sse (Serialization based), see doc to use other codecs
     return deserializer.buffer.getPlatformInt64();
+  }
+
+  @protected
+  InviteInfo sse_decode_invite_info(SseDeserializer deserializer) {
+    // Codec=Sse (Serialization based), see doc to use other codecs
+    var var_repoUrl = sse_decode_String(deserializer);
+    var var_token = sse_decode_String(deserializer);
+    var var_teamName = sse_decode_String(deserializer);
+    var var_expiresAt = sse_decode_String(deserializer);
+    return InviteInfo(
+        repoUrl: var_repoUrl,
+        token: var_token,
+        teamName: var_teamName,
+        expiresAt: var_expiresAt);
   }
 
   @protected
@@ -9415,6 +11507,22 @@ class TermexBridgeApiImpl extends TermexBridgeApiImplPlatform
         action: var_action,
         keyCombination: var_keyCombination,
         context: var_context);
+  }
+
+  @protected
+  List<DiscoveredDevice>
+      sse_decode_list_Auto_Owned_RustOpaque_flutter_rust_bridgefor_generatedRustAutoOpaqueInnerDiscoveredDevice(
+          SseDeserializer deserializer) {
+    // Codec=Sse (Serialization based), see doc to use other codecs
+
+    var len_ = sse_decode_i_32(deserializer);
+    var ans_ = <DiscoveredDevice>[];
+    for (var idx_ = 0; idx_ < len_; ++idx_) {
+      ans_.add(
+          sse_decode_Auto_Owned_RustOpaque_flutter_rust_bridgefor_generatedRustAutoOpaqueInnerDiscoveredDevice(
+              deserializer));
+    }
+    return ans_;
   }
 
   @protected
@@ -9463,6 +11571,58 @@ class TermexBridgeApiImpl extends TermexBridgeApiImplPlatform
     var ans_ = <AuditLogEntry>[];
     for (var idx_ = 0; idx_ < len_; ++idx_) {
       ans_.add(sse_decode_audit_log_entry(deserializer));
+    }
+    return ans_;
+  }
+
+  @protected
+  List<BackupHistory> sse_decode_list_backup_history(
+      SseDeserializer deserializer) {
+    // Codec=Sse (Serialization based), see doc to use other codecs
+
+    var len_ = sse_decode_i_32(deserializer);
+    var ans_ = <BackupHistory>[];
+    for (var idx_ = 0; idx_ < len_; ++idx_) {
+      ans_.add(sse_decode_backup_history(deserializer));
+    }
+    return ans_;
+  }
+
+  @protected
+  List<BackupSchedule> sse_decode_list_backup_schedule(
+      SseDeserializer deserializer) {
+    // Codec=Sse (Serialization based), see doc to use other codecs
+
+    var len_ = sse_decode_i_32(deserializer);
+    var ans_ = <BackupSchedule>[];
+    for (var idx_ = 0; idx_ < len_; ++idx_) {
+      ans_.add(sse_decode_backup_schedule(deserializer));
+    }
+    return ans_;
+  }
+
+  @protected
+  List<ChainHopInfo> sse_decode_list_chain_hop_info(
+      SseDeserializer deserializer) {
+    // Codec=Sse (Serialization based), see doc to use other codecs
+
+    var len_ = sse_decode_i_32(deserializer);
+    var ans_ = <ChainHopInfo>[];
+    for (var idx_ = 0; idx_ < len_; ++idx_) {
+      ans_.add(sse_decode_chain_hop_info(deserializer));
+    }
+    return ans_;
+  }
+
+  @protected
+  List<ChainProgressDto> sse_decode_list_chain_progress_dto(
+      SseDeserializer deserializer) {
+    // Codec=Sse (Serialization based), see doc to use other codecs
+
+    var len_ = sse_decode_i_32(deserializer);
+    var ans_ = <ChainProgressDto>[];
+    for (var idx_ = 0; idx_ < len_; ++idx_) {
+      ans_.add(sse_decode_chain_progress_dto(deserializer));
     }
     return ans_;
   }
@@ -9631,6 +11791,20 @@ class TermexBridgeApiImpl extends TermexBridgeApiImplPlatform
   }
 
   @protected
+  List<int> sse_decode_list_prim_i_32_loose(SseDeserializer deserializer) {
+    // Codec=Sse (Serialization based), see doc to use other codecs
+    var len_ = sse_decode_i_32(deserializer);
+    return deserializer.buffer.getInt32List(len_);
+  }
+
+  @protected
+  Int32List sse_decode_list_prim_i_32_strict(SseDeserializer deserializer) {
+    // Codec=Sse (Serialization based), see doc to use other codecs
+    var len_ = sse_decode_i_32(deserializer);
+    return deserializer.buffer.getInt32List(len_);
+  }
+
+  @protected
   List<int> sse_decode_list_prim_u_8_loose(SseDeserializer deserializer) {
     // Codec=Sse (Serialization based), see doc to use other codecs
     var len_ = sse_decode_i_32(deserializer);
@@ -9664,6 +11838,19 @@ class TermexBridgeApiImpl extends TermexBridgeApiImplPlatform
     var ans_ = <ProxyConfig>[];
     for (var idx_ = 0; idx_ < len_; ++idx_) {
       ans_.add(sse_decode_proxy_config(deserializer));
+    }
+    return ans_;
+  }
+
+  @protected
+  List<ProxyPoolStat> sse_decode_list_proxy_pool_stat(
+      SseDeserializer deserializer) {
+    // Codec=Sse (Serialization based), see doc to use other codecs
+
+    var len_ = sse_decode_i_32(deserializer);
+    var ans_ = <ProxyPoolStat>[];
+    for (var idx_ = 0; idx_ < len_; ++idx_) {
+      ans_.add(sse_decode_proxy_pool_stat(deserializer));
     }
     return ans_;
   }
@@ -9975,6 +12162,17 @@ class TermexBridgeApiImpl extends TermexBridgeApiImplPlatform
   }
 
   @protected
+  double? sse_decode_opt_box_autoadd_f_64(SseDeserializer deserializer) {
+    // Codec=Sse (Serialization based), see doc to use other codecs
+
+    if (sse_decode_bool(deserializer)) {
+      return (sse_decode_box_autoadd_f_64(deserializer));
+    } else {
+      return null;
+    }
+  }
+
+  @protected
   GroupDto? sse_decode_opt_box_autoadd_group_dto(SseDeserializer deserializer) {
     // Codec=Sse (Serialization based), see doc to use other codecs
 
@@ -10144,6 +12342,26 @@ class TermexBridgeApiImpl extends TermexBridgeApiImplPlatform
   }
 
   @protected
+  ProxyPoolStat sse_decode_proxy_pool_stat(SseDeserializer deserializer) {
+    // Codec=Sse (Serialization based), see doc to use other codecs
+    var var_proxyType = sse_decode_String(deserializer);
+    var var_host = sse_decode_String(deserializer);
+    var var_port = sse_decode_u_16(deserializer);
+    var var_username = sse_decode_opt_String(deserializer);
+    var var_refCount = sse_decode_i_32(deserializer);
+    var var_connectedSince = sse_decode_i_64(deserializer);
+    var var_bytesTransferred = sse_decode_i_64(deserializer);
+    return ProxyPoolStat(
+        proxyType: var_proxyType,
+        host: var_host,
+        port: var_port,
+        username: var_username,
+        refCount: var_refCount,
+        connectedSince: var_connectedSince,
+        bytesTransferred: var_bytesTransferred);
+  }
+
+  @protected
   ProxyType sse_decode_proxy_type(SseDeserializer deserializer) {
     // Codec=Sse (Serialization based), see doc to use other codecs
     var inner = sse_decode_i_32(deserializer);
@@ -10235,6 +12453,16 @@ class TermexBridgeApiImpl extends TermexBridgeApiImplPlatform
   }
 
   @protected
+  SecurityStatus sse_decode_security_status(SseDeserializer deserializer) {
+    // Codec=Sse (Serialization based), see doc to use other codecs
+    var var_keychainAvailable = sse_decode_bool(deserializer);
+    var var_keychainCredentialCount = sse_decode_u_32(deserializer);
+    return SecurityStatus(
+        keychainAvailable: var_keychainAvailable,
+        keychainCredentialCount: var_keychainCredentialCount);
+  }
+
+  @protected
   ServerDto sse_decode_server_dto(SseDeserializer deserializer) {
     // Codec=Sse (Serialization based), see doc to use other codecs
     var var_id = sse_decode_String(deserializer);
@@ -10301,6 +12529,7 @@ class TermexBridgeApiImpl extends TermexBridgeApiImplPlatform
     var var_permissions = sse_decode_u_32(deserializer);
     var var_modifiedAt = sse_decode_i_64(deserializer);
     var var_owner = sse_decode_opt_String(deserializer);
+    var var_group = sse_decode_opt_String(deserializer);
     return SftpFileDto(
         name: var_name,
         path: var_path,
@@ -10309,7 +12538,8 @@ class TermexBridgeApiImpl extends TermexBridgeApiImplPlatform
         size: var_size,
         permissions: var_permissions,
         modifiedAt: var_modifiedAt,
-        owner: var_owner);
+        owner: var_owner,
+        group: var_group);
   }
 
   @protected
@@ -10591,6 +12821,7 @@ class TermexBridgeApiImpl extends TermexBridgeApiImplPlatform
     var var_deltaFrom = sse_decode_opt_String(deserializer);
     var var_deltaUrl = sse_decode_opt_String(deserializer);
     var var_sizeBytes = sse_decode_opt_box_autoadd_i_64(deserializer);
+    var var_forceUpdate = sse_decode_bool(deserializer);
     return UpdateManifest(
         currentVersion: var_currentVersion,
         availableVersion: var_availableVersion,
@@ -10598,7 +12829,14 @@ class TermexBridgeApiImpl extends TermexBridgeApiImplPlatform
         downloadUrl: var_downloadUrl,
         deltaFrom: var_deltaFrom,
         deltaUrl: var_deltaUrl,
-        sizeBytes: var_sizeBytes);
+        sizeBytes: var_sizeBytes,
+        forceUpdate: var_forceUpdate);
+  }
+
+  @protected
+  BigInt sse_decode_usize(SseDeserializer deserializer) {
+    // Codec=Sse (Serialization based), see doc to use other codecs
+    return deserializer.buffer.getBigUint64();
   }
 
   @protected
@@ -10624,6 +12862,44 @@ class TermexBridgeApiImpl extends TermexBridgeApiImplPlatform
       AnyhowException self, SseSerializer serializer) {
     // Codec=Sse (Serialization based), see doc to use other codecs
     sse_encode_String(self.message, serializer);
+  }
+
+  @protected
+  void
+      sse_encode_Auto_Owned_RustOpaque_flutter_rust_bridgefor_generatedRustAutoOpaqueInnerDiscoveredDevice(
+          DiscoveredDevice self, SseSerializer serializer) {
+    // Codec=Sse (Serialization based), see doc to use other codecs
+    sse_encode_usize(
+        (self as DiscoveredDeviceImpl).frbInternalSseEncode(move: true),
+        serializer);
+  }
+
+  @protected
+  void
+      sse_encode_Auto_Owned_RustOpaque_flutter_rust_bridgefor_generatedRustAutoOpaqueInnerSyncSummary(
+          SyncSummary self, SseSerializer serializer) {
+    // Codec=Sse (Serialization based), see doc to use other codecs
+    sse_encode_usize(
+        (self as SyncSummaryImpl).frbInternalSseEncode(move: true), serializer);
+  }
+
+  @protected
+  void
+      sse_encode_RustOpaque_flutter_rust_bridgefor_generatedRustAutoOpaqueInnerDiscoveredDevice(
+          DiscoveredDevice self, SseSerializer serializer) {
+    // Codec=Sse (Serialization based), see doc to use other codecs
+    sse_encode_usize(
+        (self as DiscoveredDeviceImpl).frbInternalSseEncode(move: null),
+        serializer);
+  }
+
+  @protected
+  void
+      sse_encode_RustOpaque_flutter_rust_bridgefor_generatedRustAutoOpaqueInnerSyncSummary(
+          SyncSummary self, SseSerializer serializer) {
+    // Codec=Sse (Serialization based), see doc to use other codecs
+    sse_encode_usize(
+        (self as SyncSummaryImpl).frbInternalSseEncode(move: null), serializer);
   }
 
   @protected
@@ -10671,6 +12947,8 @@ class TermexBridgeApiImpl extends TermexBridgeApiImplPlatform
     sse_encode_opt_String(self.apiKey, serializer);
     sse_encode_opt_String(self.baseUrl, serializer);
     sse_encode_i_32(self.contextLines, serializer);
+    sse_encode_opt_box_autoadd_f_64(self.temperature, serializer);
+    sse_encode_opt_box_autoadd_i_32(self.maxTokens, serializer);
   }
 
   @protected
@@ -10699,6 +12977,17 @@ class TermexBridgeApiImpl extends TermexBridgeApiImplPlatform
     sse_encode_i_32(self.localAiThreads, serializer);
     sse_encode_i_32(self.localAiContextSize, serializer);
     sse_encode_String(self.k8SKubeconfigPath, serializer);
+    sse_encode_bool(self.localAiAutoStart, serializer);
+    sse_encode_String(self.keywordRulesJson, serializer);
+    sse_encode_i_32(self.monitorIntervalMs, serializer);
+    sse_encode_bool(self.monitorAutoStart, serializer);
+    sse_encode_bool(self.monitorShowCpu, serializer);
+    sse_encode_bool(self.monitorShowMemory, serializer);
+    sse_encode_bool(self.monitorShowDisk, serializer);
+    sse_encode_bool(self.monitorShowNetwork, serializer);
+    sse_encode_bool(self.monitorShowProcesses, serializer);
+    sse_encode_i_32(self.recordingRetentionDays, serializer);
+    sse_encode_String(self.recordingFormat, serializer);
   }
 
   @protected
@@ -10715,6 +13004,36 @@ class TermexBridgeApiImpl extends TermexBridgeApiImplPlatform
   void sse_encode_auth_type(AuthType self, SseSerializer serializer) {
     // Codec=Sse (Serialization based), see doc to use other codecs
     sse_encode_i_32(self.index, serializer);
+  }
+
+  @protected
+  void sse_encode_backup_history(BackupHistory self, SseSerializer serializer) {
+    // Codec=Sse (Serialization based), see doc to use other codecs
+    sse_encode_String(self.id, serializer);
+    sse_encode_opt_String(self.scheduleId, serializer);
+    sse_encode_String(self.filePath, serializer);
+    sse_encode_i_64(self.sizeBytes, serializer);
+    sse_encode_String(self.status, serializer);
+    sse_encode_String(self.startedAt, serializer);
+    sse_encode_opt_String(self.completedAt, serializer);
+    sse_encode_opt_String(self.errorMsg, serializer);
+  }
+
+  @protected
+  void sse_encode_backup_schedule(
+      BackupSchedule self, SseSerializer serializer) {
+    // Codec=Sse (Serialization based), see doc to use other codecs
+    sse_encode_String(self.id, serializer);
+    sse_encode_String(self.name, serializer);
+    sse_encode_String(self.frequency, serializer);
+    sse_encode_i_32(self.hour, serializer);
+    sse_encode_i_32(self.minute, serializer);
+    sse_encode_opt_box_autoadd_i_32(self.weekday, serializer);
+    sse_encode_opt_box_autoadd_i_32(self.dayOfMonth, serializer);
+    sse_encode_String(self.targetDir, serializer);
+    sse_encode_bool(self.enabled, serializer);
+    sse_encode_String(self.nextRunAt, serializer);
+    sse_encode_String(self.createdAt, serializer);
   }
 
   @protected
@@ -10755,6 +13074,12 @@ class TermexBridgeApiImpl extends TermexBridgeApiImplPlatform
       ConflictInfo self, SseSerializer serializer) {
     // Codec=Sse (Serialization based), see doc to use other codecs
     sse_encode_conflict_info(self, serializer);
+  }
+
+  @protected
+  void sse_encode_box_autoadd_f_64(double self, SseSerializer serializer) {
+    // Codec=Sse (Serialization based), see doc to use other codecs
+    sse_encode_f_64(self, serializer);
   }
 
   @protected
@@ -10842,6 +13167,30 @@ class TermexBridgeApiImpl extends TermexBridgeApiImplPlatform
       WindowState self, SseSerializer serializer) {
     // Codec=Sse (Serialization based), see doc to use other codecs
     sse_encode_window_state(self, serializer);
+  }
+
+  @protected
+  void sse_encode_chain_hop_info(ChainHopInfo self, SseSerializer serializer) {
+    // Codec=Sse (Serialization based), see doc to use other codecs
+    sse_encode_String(self.hopId, serializer);
+    sse_encode_String(self.name, serializer);
+    sse_encode_String(self.host, serializer);
+    sse_encode_u_16(self.port, serializer);
+  }
+
+  @protected
+  void sse_encode_chain_progress_dto(
+      ChainProgressDto self, SseSerializer serializer) {
+    // Codec=Sse (Serialization based), see doc to use other codecs
+    sse_encode_String(self.kind, serializer);
+    sse_encode_i_32(self.hopIndex, serializer);
+    sse_encode_i_32(self.hopTotal, serializer);
+    sse_encode_String(self.hopName, serializer);
+    sse_encode_i_32(self.attempt, serializer);
+    sse_encode_i_64(self.elapsedMs, serializer);
+    sse_encode_i_64(self.nextAttemptInMs, serializer);
+    sse_encode_bool(self.willRetry, serializer);
+    sse_encode_opt_String(self.error, serializer);
   }
 
   @protected
@@ -11029,6 +13378,12 @@ class TermexBridgeApiImpl extends TermexBridgeApiImplPlatform
   }
 
   @protected
+  void sse_encode_haptic_style(HapticStyle self, SseSerializer serializer) {
+    // Codec=Sse (Serialization based), see doc to use other codecs
+    sse_encode_i_32(self.index, serializer);
+  }
+
+  @protected
   void sse_encode_i_32(int self, SseSerializer serializer) {
     // Codec=Sse (Serialization based), see doc to use other codecs
     serializer.buffer.putInt32(self);
@@ -11038,6 +13393,15 @@ class TermexBridgeApiImpl extends TermexBridgeApiImplPlatform
   void sse_encode_i_64(PlatformInt64 self, SseSerializer serializer) {
     // Codec=Sse (Serialization based), see doc to use other codecs
     serializer.buffer.putPlatformInt64(self);
+  }
+
+  @protected
+  void sse_encode_invite_info(InviteInfo self, SseSerializer serializer) {
+    // Codec=Sse (Serialization based), see doc to use other codecs
+    sse_encode_String(self.repoUrl, serializer);
+    sse_encode_String(self.token, serializer);
+    sse_encode_String(self.teamName, serializer);
+    sse_encode_String(self.expiresAt, serializer);
   }
 
   @protected
@@ -11066,6 +13430,18 @@ class TermexBridgeApiImpl extends TermexBridgeApiImplPlatform
     sse_encode_String(self.action, serializer);
     sse_encode_String(self.keyCombination, serializer);
     sse_encode_String(self.context, serializer);
+  }
+
+  @protected
+  void
+      sse_encode_list_Auto_Owned_RustOpaque_flutter_rust_bridgefor_generatedRustAutoOpaqueInnerDiscoveredDevice(
+          List<DiscoveredDevice> self, SseSerializer serializer) {
+    // Codec=Sse (Serialization based), see doc to use other codecs
+    sse_encode_i_32(self.length, serializer);
+    for (final item in self) {
+      sse_encode_Auto_Owned_RustOpaque_flutter_rust_bridgefor_generatedRustAutoOpaqueInnerDiscoveredDevice(
+          item, serializer);
+    }
   }
 
   @protected
@@ -11104,6 +13480,46 @@ class TermexBridgeApiImpl extends TermexBridgeApiImplPlatform
     sse_encode_i_32(self.length, serializer);
     for (final item in self) {
       sse_encode_audit_log_entry(item, serializer);
+    }
+  }
+
+  @protected
+  void sse_encode_list_backup_history(
+      List<BackupHistory> self, SseSerializer serializer) {
+    // Codec=Sse (Serialization based), see doc to use other codecs
+    sse_encode_i_32(self.length, serializer);
+    for (final item in self) {
+      sse_encode_backup_history(item, serializer);
+    }
+  }
+
+  @protected
+  void sse_encode_list_backup_schedule(
+      List<BackupSchedule> self, SseSerializer serializer) {
+    // Codec=Sse (Serialization based), see doc to use other codecs
+    sse_encode_i_32(self.length, serializer);
+    for (final item in self) {
+      sse_encode_backup_schedule(item, serializer);
+    }
+  }
+
+  @protected
+  void sse_encode_list_chain_hop_info(
+      List<ChainHopInfo> self, SseSerializer serializer) {
+    // Codec=Sse (Serialization based), see doc to use other codecs
+    sse_encode_i_32(self.length, serializer);
+    for (final item in self) {
+      sse_encode_chain_hop_info(item, serializer);
+    }
+  }
+
+  @protected
+  void sse_encode_list_chain_progress_dto(
+      List<ChainProgressDto> self, SseSerializer serializer) {
+    // Codec=Sse (Serialization based), see doc to use other codecs
+    sse_encode_i_32(self.length, serializer);
+    for (final item in self) {
+      sse_encode_chain_progress_dto(item, serializer);
     }
   }
 
@@ -11237,6 +13653,23 @@ class TermexBridgeApiImpl extends TermexBridgeApiImplPlatform
   }
 
   @protected
+  void sse_encode_list_prim_i_32_loose(
+      List<int> self, SseSerializer serializer) {
+    // Codec=Sse (Serialization based), see doc to use other codecs
+    sse_encode_i_32(self.length, serializer);
+    serializer.buffer
+        .putInt32List(self is Int32List ? self : Int32List.fromList(self));
+  }
+
+  @protected
+  void sse_encode_list_prim_i_32_strict(
+      Int32List self, SseSerializer serializer) {
+    // Codec=Sse (Serialization based), see doc to use other codecs
+    sse_encode_i_32(self.length, serializer);
+    serializer.buffer.putInt32List(self);
+  }
+
+  @protected
   void sse_encode_list_prim_u_8_loose(
       List<int> self, SseSerializer serializer) {
     // Codec=Sse (Serialization based), see doc to use other codecs
@@ -11270,6 +13703,16 @@ class TermexBridgeApiImpl extends TermexBridgeApiImplPlatform
     sse_encode_i_32(self.length, serializer);
     for (final item in self) {
       sse_encode_proxy_config(item, serializer);
+    }
+  }
+
+  @protected
+  void sse_encode_list_proxy_pool_stat(
+      List<ProxyPoolStat> self, SseSerializer serializer) {
+    // Codec=Sse (Serialization based), see doc to use other codecs
+    sse_encode_i_32(self.length, serializer);
+    for (final item in self) {
+      sse_encode_proxy_pool_stat(item, serializer);
     }
   }
 
@@ -11515,6 +13958,16 @@ class TermexBridgeApiImpl extends TermexBridgeApiImplPlatform
   }
 
   @protected
+  void sse_encode_opt_box_autoadd_f_64(double? self, SseSerializer serializer) {
+    // Codec=Sse (Serialization based), see doc to use other codecs
+
+    sse_encode_bool(self != null, serializer);
+    if (self != null) {
+      sse_encode_box_autoadd_f_64(self, serializer);
+    }
+  }
+
+  @protected
   void sse_encode_opt_box_autoadd_group_dto(
       GroupDto? self, SseSerializer serializer) {
     // Codec=Sse (Serialization based), see doc to use other codecs
@@ -11647,6 +14100,19 @@ class TermexBridgeApiImpl extends TermexBridgeApiImplPlatform
   }
 
   @protected
+  void sse_encode_proxy_pool_stat(
+      ProxyPoolStat self, SseSerializer serializer) {
+    // Codec=Sse (Serialization based), see doc to use other codecs
+    sse_encode_String(self.proxyType, serializer);
+    sse_encode_String(self.host, serializer);
+    sse_encode_u_16(self.port, serializer);
+    sse_encode_opt_String(self.username, serializer);
+    sse_encode_i_32(self.refCount, serializer);
+    sse_encode_i_64(self.connectedSince, serializer);
+    sse_encode_i_64(self.bytesTransferred, serializer);
+  }
+
+  @protected
   void sse_encode_proxy_type(ProxyType self, SseSerializer serializer) {
     // Codec=Sse (Serialization based), see doc to use other codecs
     sse_encode_i_32(self.index, serializer);
@@ -11706,6 +14172,14 @@ class TermexBridgeApiImpl extends TermexBridgeApiImplPlatform
   }
 
   @protected
+  void sse_encode_security_status(
+      SecurityStatus self, SseSerializer serializer) {
+    // Codec=Sse (Serialization based), see doc to use other codecs
+    sse_encode_bool(self.keychainAvailable, serializer);
+    sse_encode_u_32(self.keychainCredentialCount, serializer);
+  }
+
+  @protected
   void sse_encode_server_dto(ServerDto self, SseSerializer serializer) {
     // Codec=Sse (Serialization based), see doc to use other codecs
     sse_encode_String(self.id, serializer);
@@ -11748,6 +14222,7 @@ class TermexBridgeApiImpl extends TermexBridgeApiImplPlatform
     sse_encode_u_32(self.permissions, serializer);
     sse_encode_i_64(self.modifiedAt, serializer);
     sse_encode_opt_String(self.owner, serializer);
+    sse_encode_opt_String(self.group, serializer);
   }
 
   @protected
@@ -11955,6 +14430,13 @@ class TermexBridgeApiImpl extends TermexBridgeApiImplPlatform
     sse_encode_opt_String(self.deltaFrom, serializer);
     sse_encode_opt_String(self.deltaUrl, serializer);
     sse_encode_opt_box_autoadd_i_64(self.sizeBytes, serializer);
+    sse_encode_bool(self.forceUpdate, serializer);
+  }
+
+  @protected
+  void sse_encode_usize(BigInt self, SseSerializer serializer) {
+    // Codec=Sse (Serialization based), see doc to use other codecs
+    serializer.buffer.putBigUint64(self);
   }
 
   @protected
@@ -11967,4 +14449,45 @@ class TermexBridgeApiImpl extends TermexBridgeApiImplPlatform
     sse_encode_bool(self.isMaximized, serializer);
     sse_encode_list_String(self.openTabServerIds, serializer);
   }
+}
+
+@sealed
+class DiscoveredDeviceImpl extends RustOpaque implements DiscoveredDevice {
+  // Not to be used by end users
+  DiscoveredDeviceImpl.frbInternalDcoDecode(List<dynamic> wire)
+      : super.frbInternalDcoDecode(wire, _kStaticData);
+
+  // Not to be used by end users
+  DiscoveredDeviceImpl.frbInternalSseDecode(
+      BigInt ptr, int externalSizeOnNative)
+      : super.frbInternalSseDecode(ptr, externalSizeOnNative, _kStaticData);
+
+  static final _kStaticData = RustArcStaticData(
+    rustArcIncrementStrongCount: TermexBridge
+        .instance.api.rust_arc_increment_strong_count_DiscoveredDevice,
+    rustArcDecrementStrongCount: TermexBridge
+        .instance.api.rust_arc_decrement_strong_count_DiscoveredDevice,
+    rustArcDecrementStrongCountPtr: TermexBridge
+        .instance.api.rust_arc_decrement_strong_count_DiscoveredDevicePtr,
+  );
+}
+
+@sealed
+class SyncSummaryImpl extends RustOpaque implements SyncSummary {
+  // Not to be used by end users
+  SyncSummaryImpl.frbInternalDcoDecode(List<dynamic> wire)
+      : super.frbInternalDcoDecode(wire, _kStaticData);
+
+  // Not to be used by end users
+  SyncSummaryImpl.frbInternalSseDecode(BigInt ptr, int externalSizeOnNative)
+      : super.frbInternalSseDecode(ptr, externalSizeOnNative, _kStaticData);
+
+  static final _kStaticData = RustArcStaticData(
+    rustArcIncrementStrongCount:
+        TermexBridge.instance.api.rust_arc_increment_strong_count_SyncSummary,
+    rustArcDecrementStrongCount:
+        TermexBridge.instance.api.rust_arc_decrement_strong_count_SyncSummary,
+    rustArcDecrementStrongCountPtr: TermexBridge
+        .instance.api.rust_arc_decrement_strong_count_SyncSummaryPtr,
+  );
 }

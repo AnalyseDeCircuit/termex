@@ -30,7 +30,7 @@
   - Keystroke latency (target < 16 ms end-to-end)
   - 20-tab steady memory (target < 100 MB)
 
-Those measurements are tracked in [v0.52.0 §C5](iterations/v0.52.0-gap-coverage.md#c5-性能基准达标复核); a follow-up runs them under the `integration_test/performance/` harness once Flutter driver is wired up.
+Those measurements are tracked in [v0.52.0 §C5](iterations/v0.52.0-pc-gap-coverage.md#c5-性能基准达标复核); a follow-up runs them under the `integration_test/performance/` harness once Flutter driver is wired up.
 
 ## Methodology
 

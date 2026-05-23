@@ -7,7 +7,7 @@ import '../frb_generated.dart';
 import 'package:flutter_rust_bridge/flutter_rust_bridge_for_generated.dart';
 
 // These types are ignored because they are neither used by any `pub` functions nor (for structs and enums) marked `#[frb(unignore)]`: `UpdateChannel`
-// These function are ignored because they are on traits that is not defined in current crate (put an empty `#[frb]` on it to unignore): `assert_receiver_is_total_eq`, `clone`, `clone`, `clone`, `eq`, `fmt`, `fmt`, `fmt`
+// These function are ignored because they are on traits that is not defined in current crate (put an empty `#[frb]` on it to unignore): `assert_fields_are_eq`, `clone`, `clone`, `clone`, `eq`, `fmt`, `fmt`, `fmt`
 // These functions are ignored (category: IgnoreBecauseExplicitAttribute): `as_str`, `parse`
 
 Future<String> appcastUrl({required String channel}) =>
@@ -96,6 +96,11 @@ class UpdateManifest {
   final String? deltaUrl;
   final PlatformInt64? sizeBytes;
 
+  /// When true the UI must block dismissal and force the user to update
+  /// before continuing — used for critical security releases. Parsed from
+  /// the appcast `<sparkle:criticalUpdate/>` marker.
+  final bool forceUpdate;
+
   const UpdateManifest({
     required this.currentVersion,
     this.availableVersion,
@@ -104,6 +109,7 @@ class UpdateManifest {
     this.deltaFrom,
     this.deltaUrl,
     this.sizeBytes,
+    required this.forceUpdate,
   });
 
   @override
@@ -114,7 +120,8 @@ class UpdateManifest {
       downloadUrl.hashCode ^
       deltaFrom.hashCode ^
       deltaUrl.hashCode ^
-      sizeBytes.hashCode;
+      sizeBytes.hashCode ^
+      forceUpdate.hashCode;
 
   @override
   bool operator ==(Object other) =>
@@ -127,5 +134,6 @@ class UpdateManifest {
           downloadUrl == other.downloadUrl &&
           deltaFrom == other.deltaFrom &&
           deltaUrl == other.deltaUrl &&
-          sizeBytes == other.sizeBytes;
+          sizeBytes == other.sizeBytes &&
+          forceUpdate == other.forceUpdate;
 }

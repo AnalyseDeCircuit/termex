@@ -8,6 +8,7 @@ import 'package:flutter_rust_bridge/flutter_rust_bridge_for_generated.dart';
 
 // These functions are ignored because they are not marked as `pub`: `csv_escape`, `map_to_settings`, `settings_to_pairs`
 // These function are ignored because they are on traits that is not defined in current crate (put an empty `#[frb]` on it to unignore): `clone`, `clone`, `fmt`, `fmt`
+// These functions are ignored (category: IgnoreBecauseExplicitAttribute): `settings_export_to_json`
 
 /// Loads settings from the database.  Any key missing from the table falls
 /// back to its built-in default.  When the database is not unlocked the
@@ -137,6 +138,40 @@ class AppSettings {
   /// Path to kubeconfig file used by cloud K8s integration (§13.5 of v0.46 spec).
   final String k8SKubeconfigPath;
 
+  /// Auto-start the local llama.cpp server on app launch.
+  final bool localAiAutoStart;
+
+  /// JSON array of keyword highlight rules (HighlightsTab).
+  /// Schema: `[{"pattern":"foo","color":"#ff0000","caseSensitive":false}]`.
+  final String keywordRulesJson;
+
+  /// Polling interval (milliseconds) for monitor metrics collector.
+  final int monitorIntervalMs;
+
+  /// Auto-start monitor collector when an SSH session opens.
+  final bool monitorAutoStart;
+
+  /// Render CPU panel in monitor view.
+  final bool monitorShowCpu;
+
+  /// Render memory panel in monitor view.
+  final bool monitorShowMemory;
+
+  /// Render disk panel in monitor view.
+  final bool monitorShowDisk;
+
+  /// Render network panel in monitor view.
+  final bool monitorShowNetwork;
+
+  /// Render process list in monitor view.
+  final bool monitorShowProcesses;
+
+  /// Recording retention in days (-1 = keep forever).
+  final int recordingRetentionDays;
+
+  /// Recording file format: `"asciicast"` | `"json"` | `"text"`.
+  final String recordingFormat;
+
   const AppSettings({
     required this.themeMode,
     required this.colorScheme,
@@ -155,6 +190,17 @@ class AppSettings {
     required this.localAiThreads,
     required this.localAiContextSize,
     required this.k8SKubeconfigPath,
+    required this.localAiAutoStart,
+    required this.keywordRulesJson,
+    required this.monitorIntervalMs,
+    required this.monitorAutoStart,
+    required this.monitorShowCpu,
+    required this.monitorShowMemory,
+    required this.monitorShowDisk,
+    required this.monitorShowNetwork,
+    required this.monitorShowProcesses,
+    required this.recordingRetentionDays,
+    required this.recordingFormat,
   });
 
   static Future<AppSettings> default_() =>
@@ -178,7 +224,18 @@ class AppSettings {
       localAiPort.hashCode ^
       localAiThreads.hashCode ^
       localAiContextSize.hashCode ^
-      k8SKubeconfigPath.hashCode;
+      k8SKubeconfigPath.hashCode ^
+      localAiAutoStart.hashCode ^
+      keywordRulesJson.hashCode ^
+      monitorIntervalMs.hashCode ^
+      monitorAutoStart.hashCode ^
+      monitorShowCpu.hashCode ^
+      monitorShowMemory.hashCode ^
+      monitorShowDisk.hashCode ^
+      monitorShowNetwork.hashCode ^
+      monitorShowProcesses.hashCode ^
+      recordingRetentionDays.hashCode ^
+      recordingFormat.hashCode;
 
   @override
   bool operator ==(Object other) =>
@@ -201,7 +258,18 @@ class AppSettings {
           localAiPort == other.localAiPort &&
           localAiThreads == other.localAiThreads &&
           localAiContextSize == other.localAiContextSize &&
-          k8SKubeconfigPath == other.k8SKubeconfigPath;
+          k8SKubeconfigPath == other.k8SKubeconfigPath &&
+          localAiAutoStart == other.localAiAutoStart &&
+          keywordRulesJson == other.keywordRulesJson &&
+          monitorIntervalMs == other.monitorIntervalMs &&
+          monitorAutoStart == other.monitorAutoStart &&
+          monitorShowCpu == other.monitorShowCpu &&
+          monitorShowMemory == other.monitorShowMemory &&
+          monitorShowDisk == other.monitorShowDisk &&
+          monitorShowNetwork == other.monitorShowNetwork &&
+          monitorShowProcesses == other.monitorShowProcesses &&
+          recordingRetentionDays == other.recordingRetentionDays &&
+          recordingFormat == other.recordingFormat;
 }
 
 /// A single entry in the audit log.

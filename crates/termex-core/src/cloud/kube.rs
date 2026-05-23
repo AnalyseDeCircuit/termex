@@ -1,8 +1,7 @@
-use std::time::Duration;
-use tokio::process::Command;
-use tokio::time::timeout;
-
-const CLI_TIMEOUT: Duration = Duration::from_secs(30);
+//! DTOs and pure parsers for Kubernetes context / pod listing.
+//!
+//! The async `kubectl` invocations (list_contexts, list_namespaces,
+//! list_pods) live in `termex-core-private::cloud::kube`.
 
 #[derive(Debug, Clone, serde::Serialize, serde::Deserialize)]
 #[serde(rename_all = "camelCase")]
@@ -37,23 +36,10 @@ pub struct ContainerInfo {
     pub state: String,
 }
 
-async fn run_kubectl(args: &[&str]) -> Result<String, String> {
-    let output = timeout(
-        CLI_TIMEOUT,
-        Command::new("kubectl").args(args).output(),
-    )
-    .await
-    .map_err(|_| format!("kubectl timed out after {}s", CLI_TIMEOUT.as_secs()))?
-    .map_err(|e| format!("kubectl not found: {}", e))?;
-
-    if !output.status.success() {
-        let stderr = String::from_utf8_lossy(&output.stderr);
-        return Err(stderr.trim().to_string());
-    }
-
-    Ok(String::from_utf8_lossy(&output.stdout).to_string())
-}
-
+/// Parses `kubectl config view -o json` output into a list of contexts.
+///
+/// Pure function (no I/O) so it stays in OSS for unit tests and Tauri-side
+/// type compatibility.
 pub fn parse_contexts(json_str: &str) -> Result<Vec<KubeContext>, String> {
     let doc: serde_json::Value =
         serde_json::from_str(json_str).map_err(|e| format!("Invalid JSON: {}", e))?;
@@ -97,29 +83,7 @@ pub fn parse_contexts(json_str: &str) -> Result<Vec<KubeContext>, String> {
     Ok(result)
 }
 
-pub async fn list_contexts() -> Result<Vec<KubeContext>, String> {
-    let output = run_kubectl(&["config", "view", "-o", "json"]).await?;
-    parse_contexts(&output)
-}
-
-pub async fn list_namespaces(context: &str) -> Result<Vec<String>, String> {
-    let output = run_kubectl(&[
-        "--context",
-        context,
-        "get",
-        "namespaces",
-        "-o",
-        "jsonpath={.items[*].metadata.name}",
-    ])
-    .await?;
-
-    Ok(output
-        .split_whitespace()
-        .filter(|s| !s.is_empty())
-        .map(|s| s.to_string())
-        .collect())
-}
-
+/// Parses `kubectl get pods -o json` output into a list of pod summaries.
 pub fn parse_pod_list(json_str: &str) -> Result<Vec<PodInfo>, String> {
     let doc: serde_json::Value =
         serde_json::from_str(json_str).map_err(|e| format!("Invalid JSON: {}", e))?;
@@ -257,16 +221,14 @@ pub fn parse_pod_list(json_str: &str) -> Result<Vec<PodInfo>, String> {
 }
 
 fn compute_age(creation_timestamp: &str) -> String {
-    use std::time::{SystemTime, UNIX_EPOCH, Duration};
+    use std::time::{Duration, SystemTime, UNIX_EPOCH};
 
-    // Parse ISO 8601 / RFC 3339: "2024-01-15T10:30:00Z"
     let ts = creation_timestamp.trim().trim_end_matches('Z');
     let parts: Vec<&str> = ts.splitn(2, 'T').collect();
     if parts.len() != 2 {
         return String::new();
     }
     let date_parts: Vec<u64> = parts[0].split('-').filter_map(|s| s.parse().ok()).collect();
-    let time_str = parts[1].trim_end_matches(|c: char| c == '+' || c.is_ascii_digit() || c == ':');
     let time_parts: Vec<u64> = parts[1]
         .split(|c: char| !c.is_ascii_digit())
         .filter(|s| !s.is_empty())
@@ -278,9 +240,6 @@ fn compute_age(creation_timestamp: &str) -> String {
         return String::new();
     }
 
-    let _ = time_str; // suppress unused warning
-
-    // Approximate epoch calculation
     let (year, month, day) = (date_parts[0], date_parts[1], date_parts[2]);
     let (hour, min, sec) = (time_parts[0], time_parts[1], time_parts[2]);
 
@@ -317,12 +276,4 @@ fn days_from_civil(y: i64, m: u32, d: u32) -> i64 {
     let doy = (153 * (if m > 2 { m - 3 } else { m + 9 }) + 2) / 5 + d - 1;
     let doe = yoe * 365 + yoe / 4 - yoe / 100 + doy;
     era * 146097 + doe as i64 - 719468
-}
-
-pub async fn list_pods(context: &str, namespace: &str) -> Result<Vec<PodInfo>, String> {
-    let output = run_kubectl(&[
-        "--context", context, "-n", namespace, "get", "pods", "-o", "json",
-    ])
-    .await?;
-    parse_pod_list(&output)
 }

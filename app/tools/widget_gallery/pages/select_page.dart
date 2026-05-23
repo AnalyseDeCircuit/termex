@@ -1,6 +1,6 @@
 import 'package:flutter/widgets.dart';
-import 'package:termex/design/tokens.dart';
-import 'package:termex/widgets/select.dart';
+import 'package:termex_shared/design/tokens.dart';
+import 'package:termex_shared/widgets/select.dart';
 
 class SelectPage extends StatefulWidget {
   const SelectPage({super.key});
@@ -77,7 +77,7 @@ class _SelectPageState extends State<SelectPage> {
             ),
           ),
           const SizedBox(height: 32),
-          _Section(
+          const _Section(
             title: 'Disabled',
             child: SizedBox(
               width: 320,

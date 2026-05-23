@@ -9,7 +9,16 @@ pub use termex_core::paths;
 pub use termex_core::plugin;
 pub use termex_core::recording;
 pub use termex_core::storage;
-pub use termex_core::team;
+// Team module: types stay in OSS (DTOs for command signatures); crypto/git/
+// permission/sync implementations live in termex-core-private and are only
+// available with `--features private`.
+pub mod team {
+    pub use termex_core::team::types;
+    pub use termex_core::team::types::*;
+
+    #[cfg(feature = "private")]
+    pub use termex_core_private::team::{crypto, git, permission, sync};
+}
 
 // Tauri-coupled modules remain in this crate.
 pub mod commands;
@@ -551,27 +560,48 @@ pub fn run() {
             commands::recording::recording_open_dir,
             commands::recording::recording_set_shared,
             commands::recording::recording_make_local,
-            // Team
+            // Team (only registered with --features private)
+            #[cfg(feature = "private")]
             commands::team::team_create,
+            #[cfg(feature = "private")]
             commands::team::team_join,
+            #[cfg(feature = "private")]
             commands::team::team_sync,
+            #[cfg(feature = "private")]
             commands::team::team_leave,
+            #[cfg(feature = "private")]
             commands::team::team_get_status,
+            #[cfg(feature = "private")]
             commands::team::team_list_members,
+            #[cfg(feature = "private")]
             commands::team::team_set_role,
+            #[cfg(feature = "private")]
             commands::team::team_remove_member,
+            #[cfg(feature = "private")]
             commands::team::team_verify_passphrase,
+            #[cfg(feature = "private")]
             commands::team::team_toggle_share,
+            #[cfg(feature = "private")]
             commands::team::team_rotate_key,
+            #[cfg(feature = "private")]
             commands::team_ext::team_check_permission,
+            #[cfg(feature = "private")]
             commands::team_ext::team_list_roles,
+            #[cfg(feature = "private")]
             commands::team_ext::team_my_capabilities,
+            #[cfg(feature = "private")]
             commands::team::team_resolve_conflicts,
+            #[cfg(feature = "private")]
             commands::team_ext::team_generate_invite_token,
+            #[cfg(feature = "private")]
             commands::team_ext::team_decode_invite,
+            #[cfg(feature = "private")]
             commands::team_ext::team_get_credentials,
+            #[cfg(feature = "private")]
             commands::team_ext::team_role_create,
+            #[cfg(feature = "private")]
             commands::team_ext::team_role_update,
+            #[cfg(feature = "private")]
             commands::team_ext::team_role_delete,
             // Plugins
             commands::plugin::plugin_list,

@@ -1,9 +1,9 @@
 import 'package:flutter/widgets.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:flutter_test/flutter_test.dart';
-import 'package:termex/features/server_list/models/server_dto.dart';
-import 'package:termex/features/server_list/server_list_page.dart';
-import 'package:termex/features/server_list/state/server_provider.dart';
+import 'package:termex_shared/features/server_list/models/server_dto.dart';
+import 'package:termex_shared/features/server_list/server_list_page.dart';
+import 'package:termex_shared/features/server_list/state/server_provider.dart';
 
 PageRoute<T> _route<T>(RouteSettings s, WidgetBuilder b) =>
     PageRouteBuilder<T>(settings: s, pageBuilder: (ctx, _, __) => b(ctx));
@@ -36,9 +36,9 @@ void main() {
           serverListProvider.overrideWith(() => _EmptyServerListNotifier()),
         ],
         child: WidgetsApp(
-          color: Color(0xFF1E1E2E),
+          color: const Color(0xFF1E1E2E),
           pageRouteBuilder: _route,
-          home: ServerListPage(),
+          home: const ServerListPage(),
         ),
       ),
     );
@@ -55,9 +55,9 @@ void main() {
               .overrideWith(() => _StubServerListNotifier([server])),
         ],
         child: WidgetsApp(
-          color: Color(0xFF1E1E2E),
+          color: const Color(0xFF1E1E2E),
           pageRouteBuilder: _route,
-          home: ServerListPage(),
+          home: const ServerListPage(),
         ),
       ),
     );
@@ -78,9 +78,9 @@ void main() {
               .overrideWith(() => _StubServerListNotifier(servers)),
         ],
         child: WidgetsApp(
-          color: Color(0xFF1E1E2E),
+          color: const Color(0xFF1E1E2E),
           pageRouteBuilder: _route,
-          home: ServerListPage(),
+          home: const ServerListPage(),
         ),
       ),
     );

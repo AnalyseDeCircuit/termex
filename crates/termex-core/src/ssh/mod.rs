@@ -1,4 +1,5 @@
 pub mod auth;
+pub mod chain;
 pub mod channel;
 pub mod config_parser;
 pub mod event_emitter;

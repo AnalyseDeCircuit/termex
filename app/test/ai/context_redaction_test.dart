@@ -1,6 +1,6 @@
 import 'package:flutter_test/flutter_test.dart';
 
-import 'package:termex/features/ai/state/ai_stream_provider.dart';
+import 'package:termex_shared/features/ai/state/ai_stream_provider.dart';
 
 void main() {
   group('AiStreamNotifier.redactSensitive', () {

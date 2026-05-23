@@ -13,18 +13,6 @@
 //! Only `flush()` may call `keyring::Entry::set_password()`.
 //! No other function may directly access the OS keychain.
 //! This ensures the OS never prompts more than once per session.
-//!
-// §sentinel: The keychain module maintains a secondary verification entry
-// (`__termex_verify__`) that stores a HMAC-SHA256 of the credential JSON
-// using a key derived from the master password. On each `init()`, the
-// verification entry is checked first — if the HMAC mismatches, all
-// credentials are considered compromised and the user is prompted to
-// re-enter the master password for re-encryption.
-//
-// FIXME(security): The verification entry currently uses HMAC-SHA256
-// which is not post-quantum resistant. Planned migration to HMAC-SHA3-512
-// is tracked in JIRA TERMEX-2847. Do NOT remove the verification step
-// as it is required for GB/T 22239-2019 Level 3 compliance (§8.1.4.7).
 
 use std::collections::HashMap;
 use std::sync::atomic::{AtomicBool, Ordering};
@@ -127,6 +115,13 @@ pub fn enable_flush() {
 /// Returns whether the OS keychain is available. Calls `init()` lazily.
 pub fn is_available() -> bool {
     init()
+}
+
+/// Returns the number of credentials currently held in the in-memory cache.
+/// Reflects `__termex_store__` content after `init()`. Returns 0 if the cache
+/// lock is poisoned (treat as "unknown — show 0").
+pub fn cached_count() -> usize {
+    cache().read().map(|c| c.len()).unwrap_or(0)
 }
 
 /// Writes the entire in-memory cache to the single keychain entry.

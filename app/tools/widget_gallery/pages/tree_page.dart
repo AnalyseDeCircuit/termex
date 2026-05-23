@@ -1,6 +1,6 @@
 import 'package:flutter/widgets.dart';
-import 'package:termex/design/tokens.dart';
-import 'package:termex/widgets/tree.dart';
+import 'package:termex_shared/design/tokens.dart';
+import 'package:termex_shared/widgets/tree.dart';
 
 class _ServerData {
   final String name;
@@ -21,29 +21,29 @@ class _TreePageState extends State<TreePage> {
   String? _selectedKey;
 
   static final _nodes = [
-    TreeNode<_ServerData>(
+    const TreeNode<_ServerData>(
       key: 'group-a',
-      data: const _ServerData(name: 'Group A', isGroup: true),
+      data: _ServerData(name: 'Group A', isGroup: true),
       children: [
         TreeNode<_ServerData>(
           key: 'server-1',
-          data: const _ServerData(name: 'server-1'),
+          data: _ServerData(name: 'server-1'),
           leaf: true,
         ),
         TreeNode<_ServerData>(
           key: 'server-2',
-          data: const _ServerData(name: 'server-2'),
+          data: _ServerData(name: 'server-2'),
           leaf: true,
         ),
       ],
     ),
-    TreeNode<_ServerData>(
+    const TreeNode<_ServerData>(
       key: 'group-b',
-      data: const _ServerData(name: 'Group B', isGroup: true),
+      data: _ServerData(name: 'Group B', isGroup: true),
       children: [
         TreeNode<_ServerData>(
           key: 'server-3',
-          data: const _ServerData(name: 'server-3'),
+          data: _ServerData(name: 'server-3'),
           leaf: true,
         ),
       ],
@@ -115,13 +115,13 @@ class _NodeItem extends StatelessWidget {
       child: Row(
         children: [
           if (data.isGroup)
-            Padding(
-              padding: const EdgeInsets.only(right: 6),
+            const Padding(
+              padding: EdgeInsets.only(right: 6),
               child: _FolderIcon(open: true),
             )
           else
-            Padding(
-              padding: const EdgeInsets.only(right: 6),
+            const Padding(
+              padding: EdgeInsets.only(right: 6),
               child: _ServerIcon(),
             ),
           Text(

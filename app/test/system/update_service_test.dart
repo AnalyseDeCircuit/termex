@@ -1,7 +1,7 @@
 import 'package:flutter_test/flutter_test.dart';
 
-import 'package:termex/system/auto_updater.dart';
-import 'package:termex/system/update_service.dart';
+import 'package:termex_shared/system/auto_updater.dart';
+import 'package:termex_shared/system/update_service.dart';
 
 void main() {
   const xmlWithUpdate = '''

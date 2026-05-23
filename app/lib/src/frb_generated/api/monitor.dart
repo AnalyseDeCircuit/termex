@@ -25,6 +25,14 @@ Future<void> monitorValidateSignal(
         processName: processName,
         expertMode: expertMode);
 
+/// Collects a real-time metrics snapshot for the local host.
+///
+/// Unlike [`monitor_get_stats`], this does not require an SSH session — it
+/// queries the machine Termex itself is running on via `sysinfo`. Used by
+/// local-PTY tabs whose monitor panel previously rendered hard-coded values.
+Future<SystemStats> monitorCollectLocalStats() =>
+    TermexBridge.instance.api.crateApiMonitorMonitorCollectLocalStats();
+
 Future<SystemStats> monitorGetStats({required String sessionId}) =>
     TermexBridge.instance.api
         .crateApiMonitorMonitorGetStats(sessionId: sessionId);

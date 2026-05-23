@@ -1,8 +1,8 @@
 import 'package:flutter/widgets.dart';
-import 'package:termex/design/tokens.dart';
-import 'package:termex/widgets/toggle.dart';
-import 'package:termex/widgets/checkbox.dart';
-import 'package:termex/widgets/radio.dart';
+import 'package:termex_shared/design/tokens.dart';
+import 'package:termex_shared/widgets/toggle.dart';
+import 'package:termex_shared/widgets/checkbox.dart';
+import 'package:termex_shared/widgets/radio.dart';
 
 class ToggleCheckboxRadioPage extends StatefulWidget {
   const ToggleCheckboxRadioPage({super.key});

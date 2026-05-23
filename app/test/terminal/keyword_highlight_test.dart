@@ -1,5 +1,5 @@
 import 'package:flutter_test/flutter_test.dart';
-import 'package:termex/terminal/features/keyword_highlight/highlight_engine.dart';
+import 'package:termex_shared/terminal/features/keyword_highlight/highlight_engine.dart';
 
 void main() {
   group('HighlightEngine', () {

@@ -82,6 +82,12 @@ pub struct AiProviderConfig {
     pub base_url: Option<String>,
     /// Max tokens to send as context from terminal scrollback.
     pub context_lines: i32,
+    /// Sampling temperature [0.0, 2.0]. None = provider default.
+    #[serde(default)]
+    pub temperature: Option<f64>,
+    /// Maximum tokens for completion output. None = provider default.
+    #[serde(default)]
+    pub max_tokens: Option<i32>,
 }
 
 /// Token usage returned for each completed message.

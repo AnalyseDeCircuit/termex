@@ -1,5 +1,5 @@
 import 'package:flutter_test/flutter_test.dart';
-import 'package:termex/features/server_list/state/quick_connect_provider.dart';
+import 'package:termex_shared/features/server_list/state/quick_connect_provider.dart';
 
 void main() {
   group('QuickConnectParser', () {

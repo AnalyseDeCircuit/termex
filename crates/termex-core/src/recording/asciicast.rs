@@ -61,7 +61,30 @@ pub struct AsciicastFile {
 }
 
 impl AsciicastFile {
-    /// Parses an asciicast v2 file from lines.
+    /// Serializes to asciicast v2 format (one JSON object per line).
+    ///
+    /// Trivial JSON-per-line emission; kept in OSS so the recorder runtime
+    /// (`recorder::RecorderRegistry::stop`) can finalize a session without
+    /// pulling in `termex-core-private`.
+    pub fn serialize(&self) -> Result<String, super::RecordingError> {
+        let mut output = serde_json::to_string(&self.header)?;
+        output.push('\n');
+        for event in &self.events {
+            output.push_str(&serde_json::to_string(event)?);
+            output.push('\n');
+        }
+        Ok(output)
+    }
+
+    /// Returns the total duration of the recording in seconds.
+    pub fn duration(&self) -> f64 {
+        self.events.last().map(|e| e.0).unwrap_or(0.0)
+    }
+
+    /// Parses an asciicast v2 file (header line + one JSON event per line).
+    ///
+    /// Trivial JSON-per-line parsing kept in OSS so the recorder runtime and
+    /// tests can round-trip without pulling in `termex-core-private`.
     pub fn parse(content: &str) -> Result<Self, super::RecordingError> {
         let mut lines = content.lines();
         let header_line = lines.next().ok_or_else(|| {
@@ -83,21 +106,5 @@ impl AsciicastFile {
         }
 
         Ok(Self { header, events })
-    }
-
-    /// Serializes to asciicast v2 format (one JSON object per line).
-    pub fn serialize(&self) -> Result<String, super::RecordingError> {
-        let mut output = serde_json::to_string(&self.header)?;
-        output.push('\n');
-        for event in &self.events {
-            output.push_str(&serde_json::to_string(event)?);
-            output.push('\n');
-        }
-        Ok(output)
-    }
-
-    /// Returns the total duration of the recording in seconds.
-    pub fn duration(&self) -> f64 {
-        self.events.last().map(|e| e.0).unwrap_or(0.0)
     }
 }

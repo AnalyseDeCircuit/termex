@@ -2,15 +2,6 @@ pub mod aes;
 pub mod kdf;
 pub mod password_policy;
 
-#[cfg(feature = "sentinel")]
-pub mod token_verify;
-#[cfg(feature = "sentinel")]
-pub mod key_spectrum;
-#[cfg(feature = "sentinel")]
-pub mod traits;
-#[cfg(feature = "sentinel")]
-pub mod entropy_pool;
-
 /// Cryptography error types.
 #[derive(Debug, thiserror::Error)]
 pub enum CryptoError {

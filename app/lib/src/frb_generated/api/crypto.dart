@@ -6,16 +6,24 @@
 import '../frb_generated.dart';
 import 'package:flutter_rust_bridge/flutter_rust_bridge_for_generated.dart';
 
-/// Verify the master password by attempting to open the database.
+// These functions are ignored because they are not marked as `pub`: `hex_decode`, `load_salt_and_token`
+
+/// Verify the master password against the stored verification token.
+///
+/// Matches the Tauri/Vue stack scheme: the database itself is plain SQLite
+/// (not SQLCipher-encrypted). The master password is verified by deriving
+/// an Argon2id key from `password + master_salt` and decrypting the
+/// `master_verify` token; if the plaintext is `TERMEX_VERIFY`, the password
+/// is correct.
 ///
 /// Returns `Ok(true)` on success, `Ok(false)` if the password is wrong,
-/// or `Err(...)` if the database is corrupt or unreadable for another reason.
+/// `Err(...)` on I/O or schema corruption.
 Future<bool> verifyMasterPassword({required String password}) =>
     TermexBridge.instance.api
         .crateApiCryptoVerifyMasterPassword(password: password);
 
-/// Unlock the database with a master password.
-///
-/// On success the global DB singleton is set so subsequent API calls work.
+/// Unlock the database with a master password. Same verification logic as
+/// `verify_master_password` but returns `Err` instead of `Ok(false)` on a
+/// wrong password.
 Future<void> unlockDatabase({required String password}) =>
     TermexBridge.instance.api.crateApiCryptoUnlockDatabase(password: password);

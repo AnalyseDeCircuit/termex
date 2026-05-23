@@ -64,7 +64,7 @@
 - **建议**：v0.60.1 接入 flutter_sparkle（或自写 Method Channel），Windows 走 `ms-appinstaller://`，Linux 调 `appimageupdatetool`
 
 ### T-3. Delta 更新占位
-- **位置**：appcast.xml / [v0.49.0-release-cutover.md §5.3.5](iterations/v0.49.0-release-cutover.md)
+- **位置**：appcast.xml / [v0.49.0-pc-release-cutover.md §5.3.5](iterations/v0.49.0-pc-release-cutover.md)
 - **症状**：delta URL 已写入 appcast 解析，但 CI 中未生成 bsdiff delta 包
 - **影响**：macOS 用户每次下载全量 DMG（40+ MB）
 - **建议**：v0.60.1 在 `flutter-release.yml` 加 bsdiff step，对上一 stable 版本生成 delta，附到 appcast

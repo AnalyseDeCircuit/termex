@@ -1,6 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_test/flutter_test.dart';
-import 'package:termex/features/ai/panel/markdown_renderer.dart';
+import 'package:termex_shared/features/ai/panel/markdown_renderer.dart';
 
 Widget _wrap(Widget w) => MaterialApp(home: Scaffold(body: w));
 

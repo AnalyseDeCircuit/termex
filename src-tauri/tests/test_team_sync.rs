@@ -1,3 +1,5 @@
+#![cfg(feature = "private")]
+
 use termex_lib::team::sync::{merge_decision, MergeDecision};
 use termex_lib::team::types::{
     SharedServerConfig, TeamJson, TeamMemberEntry, TeamSettings,

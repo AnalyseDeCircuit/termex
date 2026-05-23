@@ -1,5 +1,6 @@
 pub mod ai;
 pub mod audit;
+pub mod backup;
 pub mod cloud;
 pub mod crypto;
 pub mod keychain;
@@ -8,7 +9,9 @@ pub mod monitor;
 pub mod paths;
 pub mod plugin;
 pub mod recording;
+pub mod session;
 pub mod sftp;
 pub mod ssh;
 pub mod storage;
+pub mod sync;
 pub mod team;

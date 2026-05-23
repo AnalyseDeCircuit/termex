@@ -1,6 +1,5 @@
 import 'package:flutter_test/flutter_test.dart';
-import 'package:termex/terminal/features/autocomplete/autocomplete_engine.dart';
-import 'package:termex/terminal/features/autocomplete/suggestion_source.dart';
+import 'package:termex_shared/terminal/features/autocomplete/autocomplete_engine.dart';
 
 void main() {
   group('AutocompleteEngine', () {

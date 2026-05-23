@@ -1,12 +1,12 @@
 import 'package:flutter_test/flutter_test.dart';
-import 'package:termex/terminal/pane/pane_tree.dart';
+import 'package:termex_shared/terminal/pane/pane_tree.dart';
 
 void main() {
   group('PaneTree', () {
     late PaneTree tree;
 
     setUp(() {
-      tree = PaneTree(root: const PaneLeaf('a'), focusedPaneId: 'a');
+      tree = const PaneTree(root: PaneLeaf('a'), focusedPaneId: 'a');
     });
 
     test('initial state has one leaf', () {

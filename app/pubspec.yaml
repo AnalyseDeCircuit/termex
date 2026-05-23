@@ -13,6 +13,9 @@ dependencies:
   riverpod_annotation: ^2.3.5
   termex_bridge:
     path: ../crates/termex-flutter-bridge
+  # 与移动端共用的 Dart 包（widgets / design / terminal / features 的大部分）
+  termex_shared:
+    path: ../packages/termex_shared
   flutter_svg: ^2.0.0
   timeago: ^3.6.0
   uuid: ^4.4.0
@@ -25,6 +28,18 @@ dependencies:
   freezed_annotation: ^2.4.0
   meta: ^1.12.0
   flutter_rust_bridge: 2.12.0
+  xterm: ^4.0.0
+  share_plus: ^10.0.0
+  shared_preferences: ^2.2.0
+  flutter_localizations:
+    sdk: flutter
+  lucide_icons: ^0.257.0
+  # 监控指标折线图（monitor/widgets/metric_chart.dart）
+  fl_chart: ^0.69.0
+  # 电池监控（system/battery/battery_monitor.dart）— 桌面端笔记本/平板也有电池
+  battery_plus: ^6.0.0
+  # 网络质量检测（system/network/network_quality_detector.dart）
+  connectivity_plus: ^6.0.0
 
 dev_dependencies:
   flutter_test:
@@ -39,8 +54,11 @@ dev_dependencies:
   golden_toolkit: ^0.15.0
 
 flutter:
-  uses-material-design: false
-  generate: true
+  uses-material-design: true
+  # generate: true was removed — localizations live in termex_shared, where
+  # the l10n.yaml + .arb files have moved. Pre-generated .dart files are
+  # checked in there too, so the desktop app does NOT need to invoke
+  # flutter gen-l10n at pub get time.
   fonts:
     - family: JetBrainsMono
       fonts:

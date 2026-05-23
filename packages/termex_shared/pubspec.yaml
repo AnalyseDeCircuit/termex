@@ -1,0 +1,60 @@
+name: termex_shared
+description: Shared Dart code (widgets / design / terminal / features) reused by both the desktop (termex/app) and mobile (termex-mobile/app) Flutter apps.
+version: 0.53.7
+publish_to: none
+
+environment:
+  sdk: ">=3.3.0 <4.0.0"
+  flutter: ">=3.22.0"
+
+dependencies:
+  flutter:
+    sdk: flutter
+  flutter_localizations:
+    sdk: flutter
+
+  # State management
+  flutter_riverpod: ^2.5.1
+  riverpod_annotation: ^2.3.5
+  freezed_annotation: ^2.4.0
+  meta: ^1.12.0
+
+  # FRB bridge (re-exported so consumers get the same package)
+  termex_bridge:
+    path: ../../crates/termex-flutter-bridge
+  flutter_rust_bridge: 2.12.0
+
+  # Terminal rendering
+  xterm: ^4.0.0
+
+  # UI primitives
+  flutter_svg: ^2.0.0
+  lucide_icons: ^0.257.0
+
+  # Syntax highlighting (used by editor dialogs / snippet preview)
+  highlight: ^0.7.0
+  flutter_highlight: ^0.7.0
+
+  # System helpers
+  url_launcher: ^6.3.0
+  shared_preferences: ^2.2.0
+  timeago: ^3.6.0
+  uuid: ^4.4.0
+
+  # File ops
+  file_picker: ^8.0.0
+  share_plus: ^10.0.0
+
+  # Monitoring (kept here because monitor panel + battery + connectivity live in the shared layer)
+  fl_chart: ^0.69.0
+  battery_plus: ^6.0.0
+  connectivity_plus: ^6.0.0
+
+dev_dependencies:
+  flutter_test:
+    sdk: flutter
+  flutter_lints: ^4.0.0
+
+flutter:
+  uses-material-design: true
+  generate: true

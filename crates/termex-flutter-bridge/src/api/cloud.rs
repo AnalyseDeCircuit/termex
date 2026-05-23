@@ -9,6 +9,8 @@
 use flutter_rust_bridge::frb;
 
 use crate::db_state;
+use termex_core::backup::scheduler as bs;
+use termex_core::keychain;
 use termex_core::storage::cloud_favorites as core_fav;
 
 // ─── DTOs ────────────────────────────────────────────────────────────────────
@@ -278,4 +280,242 @@ pub fn cloud_load_credential(provider: String) -> Result<Option<CloudCredential>
         })
         .map_err(|e| e.to_string())
     })
+}
+
+// ─── Backup scheduler (v0.68.0 G1) ───────────────────────────────────────────
+
+/// User-facing schedule descriptor mirroring `backup_schedules` columns.
+#[frb]
+#[derive(Debug, Clone, serde::Serialize, serde::Deserialize)]
+#[serde(rename_all = "camelCase")]
+pub struct BackupSchedule {
+    pub id: String,
+    pub name: String,
+    /// One of `"daily"` / `"weekly"` / `"monthly"`.
+    pub frequency: String,
+    pub hour: i32,
+    pub minute: i32,
+    /// 0=Sun .. 6=Sat. Required when `frequency == "weekly"`.
+    pub weekday: Option<i32>,
+    /// 1..28. Required when `frequency == "monthly"`.
+    pub day_of_month: Option<i32>,
+    pub target_dir: String,
+    pub enabled: bool,
+    /// RFC3339 UTC timestamp of the next scheduled fire time.
+    pub next_run_at: String,
+    pub created_at: String,
+}
+
+/// One row from `backup_history`. `schedule_id` is `None` for manual
+/// backups recorded by the v0.67.0 P1.12 flow.
+#[frb]
+#[derive(Debug, Clone, serde::Serialize, serde::Deserialize)]
+#[serde(rename_all = "camelCase")]
+pub struct BackupHistory {
+    pub id: String,
+    pub schedule_id: Option<String>,
+    pub file_path: String,
+    pub size_bytes: i64,
+    /// One of `"success"` / `"failed"`.
+    pub status: String,
+    pub started_at: String,
+    pub completed_at: Option<String>,
+    pub error_msg: Option<String>,
+}
+
+fn parse_freq(s: &str) -> Result<bs::BackupFrequency, String> {
+    bs::BackupFrequency::parse(s).ok_or_else(|| format!("unknown frequency: {s}"))
+}
+
+fn to_dto(row: bs::BackupScheduleRow) -> BackupSchedule {
+    BackupSchedule {
+        id: row.id,
+        name: row.name,
+        frequency: row.frequency.as_str().to_string(),
+        hour: row.hour as i32,
+        minute: row.minute as i32,
+        weekday: row.weekday.map(|v| v as i32),
+        day_of_month: row.day_of_month.map(|v| v as i32),
+        target_dir: row.target_dir,
+        enabled: row.enabled,
+        next_run_at: row.next_run_at.to_string(),
+        created_at: row.created_at.to_string(),
+    }
+}
+
+fn history_to_dto(row: bs::BackupHistoryRow) -> BackupHistory {
+    BackupHistory {
+        id: row.id,
+        schedule_id: row.schedule_id,
+        file_path: row.file_path,
+        size_bytes: row.size_bytes,
+        status: row.status.as_str().to_string(),
+        started_at: row.started_at.to_string(),
+        completed_at: row.completed_at.map(|t| t.to_string()),
+        error_msg: row.error_msg,
+    }
+}
+
+fn keychain_ref_for(id: &str) -> String {
+    format!("termex:backup:schedule:{id}")
+}
+
+/// Creates a new backup schedule. The `password` is stored in the OS
+/// keychain under a generated reference; the DB never holds the raw secret.
+#[frb]
+pub fn cloud_create_schedule(
+    name: String,
+    frequency: String,
+    hour: i32,
+    minute: i32,
+    weekday: Option<i32>,
+    day_of_month: Option<i32>,
+    target_dir: String,
+    password: String,
+) -> Result<BackupSchedule, String> {
+    let freq = parse_freq(&frequency)?;
+    if password.is_empty() {
+        return Err("Backup password must not be empty".into());
+    }
+    if target_dir.is_empty() {
+        return Err("Target directory must not be empty".into());
+    }
+    let id = uuid::Uuid::new_v4().to_string();
+    let kc_ref = keychain_ref_for(&id);
+    keychain::store(&kc_ref, &password)
+        .map_err(|e| format!("failed to store schedule password: {e}"))?;
+
+    let now = time::OffsetDateTime::now_utc();
+    let row = bs::BackupScheduleRow {
+        id: id.clone(),
+        name: name.clone(),
+        frequency: freq,
+        hour: hour.clamp(0, 23) as u8,
+        minute: minute.clamp(0, 59) as u8,
+        weekday: weekday.map(|v| v.clamp(0, 6) as u8),
+        day_of_month: day_of_month.map(|v| v.clamp(1, 28) as u8),
+        target_dir,
+        password_keychain_ref: kc_ref,
+        enabled: true,
+        next_run_at: now,
+        created_at: now,
+    };
+    let next = bs::compute_next_run(&row, now);
+    let row = bs::BackupScheduleRow { next_run_at: next, ..row };
+
+    db_state::with_db(|db| {
+        db.with_conn(|conn| bs::insert_schedule(conn, &row))
+            .map_err(|e| e.to_string())?;
+        Ok(())
+    })?;
+    // First create after unlock kicks off the tick task; an existing one
+    // gets a poke so the freshly-inserted row fires on its `next_run_at`.
+    crate::scheduler_handle::ensure_started();
+    crate::scheduler_handle::poke();
+    Ok(to_dto(row))
+}
+
+/// Lists all backup schedules ordered by `created_at DESC`. The first
+/// call after a DB unlock also lazily spawns the tick task; subsequent
+/// calls are pure DB reads.
+#[frb]
+pub fn cloud_list_schedules() -> Result<Vec<BackupSchedule>, String> {
+    crate::scheduler_handle::ensure_started();
+    let rows: Vec<bs::BackupScheduleRow> = db_state::with_db(|db| {
+        db.with_conn(|conn| bs::list_schedules(conn))
+            .map_err(|e| e.to_string())
+    })?;
+    Ok(rows.into_iter().map(to_dto).collect())
+}
+
+/// Updates schedule fields. Any `None` argument leaves the existing value
+/// in place. `next_run_at` is recomputed from the new cadence on success.
+///
+/// `weekday` and `day_of_month` accept `Some(i32)` to overwrite; clearing
+/// them back to NULL requires deleting and recreating the schedule (the
+/// FRB binding cannot express `Option<Option<i32>>`).
+#[frb]
+#[allow(clippy::too_many_arguments)]
+pub fn cloud_update_schedule(
+    id: String,
+    name: Option<String>,
+    frequency: Option<String>,
+    hour: Option<i32>,
+    minute: Option<i32>,
+    weekday: Option<i32>,
+    day_of_month: Option<i32>,
+    target_dir: Option<String>,
+    enabled: Option<bool>,
+) -> Result<(), String> {
+    let freq = match frequency.as_deref() {
+        Some(s) => Some(parse_freq(s)?),
+        None => None,
+    };
+    db_state::with_db(|db| {
+        db.with_conn(|conn| {
+            bs::update_schedule(
+                conn,
+                &id,
+                name.as_deref(),
+                freq,
+                hour.map(|v| v.clamp(0, 23) as u8),
+                minute.map(|v| v.clamp(0, 59) as u8),
+                weekday.map(|v| Some(v.clamp(0, 6) as u8)),
+                day_of_month.map(|v| Some(v.clamp(1, 28) as u8)),
+                target_dir.as_deref(),
+                enabled,
+            )
+        })
+        .map_err(|e| e.to_string())
+    })
+}
+
+/// Deletes a schedule by id. Also drops the associated keychain password
+/// reference; orphan `backup_history` rows have their `schedule_id`
+/// nulled out via the FK `ON DELETE SET NULL`.
+#[frb]
+pub fn cloud_delete_schedule(id: String) -> Result<(), String> {
+    let _ = keychain::delete(&keychain_ref_for(&id));
+    db_state::with_db(|db| {
+        db.with_conn(|conn| bs::delete_schedule(conn, &id))
+            .map_err(|e| e.to_string())
+    })
+}
+
+/// Lists backup history rows. `schedule_id = None` returns the merged
+/// stream of manual + scheduled backups, sorted by `started_at DESC`.
+#[frb]
+pub fn cloud_list_backups(
+    schedule_id: Option<String>,
+    limit: i32,
+    offset: i32,
+) -> Result<Vec<BackupHistory>, String> {
+    let l = limit.max(1) as i64;
+    let o = offset.max(0) as i64;
+    let rows: Vec<bs::BackupHistoryRow> = db_state::with_db(|db| {
+        db.with_conn(|conn| bs::list_history(conn, schedule_id.as_deref(), l, o))
+            .map_err(|e| e.to_string())
+    })?;
+    Ok(rows.into_iter().map(history_to_dto).collect())
+}
+
+/// Triggers an immediate run of `id`, independent of its cadence. The
+/// scheduler tick will still fire on the next regular boundary; this is
+/// effectively a "force-fire-once" for manual testing or ad-hoc rotations.
+#[frb]
+pub fn cloud_run_schedule_now(id: String) -> Result<(), String> {
+    // Set next_run_at to now so the tick picks it up immediately.
+    let now = time::OffsetDateTime::now_utc().to_string();
+    db_state::with_db(|db| {
+        db.with_conn(|conn| {
+            conn.execute(
+                "UPDATE backup_schedules SET next_run_at = ?2 WHERE id = ?1",
+                rusqlite::params![id, now],
+            )?;
+            Ok::<(), rusqlite::Error>(())
+        })
+        .map_err(|e| e.to_string())
+    })?;
+    crate::scheduler_handle::poke();
+    Ok(())
 }

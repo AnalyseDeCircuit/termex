@@ -1,6 +1,6 @@
 import 'package:flutter/widgets.dart';
-import 'package:termex/design/tokens.dart';
-import 'package:termex/widgets/slider.dart';
+import 'package:termex_shared/design/tokens.dart';
+import 'package:termex_shared/widgets/slider.dart';
 
 class SliderPage extends StatefulWidget {
   const SliderPage({super.key});

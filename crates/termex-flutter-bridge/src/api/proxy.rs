@@ -247,6 +247,19 @@ pub fn proxy_keychain_key(proxy_id: &str) -> String {
     format!("proxy:{}:password", proxy_id)
 }
 
+/// Stores a proxy password in the OS keychain. Empty value deletes the entry.
+/// Mirrors `ssh_store_passphrase` — keeps all credential I/O on the Rust side
+/// so the Dart layer never touches platform secret stores directly.
+pub fn proxy_store_password(proxy_id: String, password: String) -> Result<(), String> {
+    let key = proxy_keychain_key(&proxy_id);
+    if password.is_empty() {
+        let _ = termex_core::keychain::delete(&key);
+        return Ok(());
+    }
+    termex_core::keychain::store(&key, &password)
+        .map_err(|e| format!("failed to store proxy password: {e}"))
+}
+
 /// Updates (or inserts) a cached health latency for `proxy_id`.  Called by
 /// the background health-check job.
 pub fn proxy_record_health(proxy_id: String, latency_ms: Option<u32>) {

@@ -1,0 +1,48 @@
+default_platform(:ios)
+
+platform :ios do
+  # ── Code signing via match ─────────────────────────────────────────────────
+  desc "Sync App Store distribution certificates"
+  lane :certs do
+    match(
+      type: "appstore",
+      app_identifier: "com.termex.app",
+      readonly: is_ci
+    )
+  end
+
+  # ── TestFlight internal build ──────────────────────────────────────────────
+  desc "Build and upload to TestFlight (internal)"
+  lane :beta do
+    certs
+    build_app(
+      workspace: "../../app/ios/Runner.xcworkspace",
+      scheme: "Runner",
+      export_method: "app-store",
+      output_directory: "build/ios",
+      output_name: "Termex.ipa"
+    )
+    upload_to_testflight(
+      skip_waiting_for_build_processing: true
+    )
+  end
+
+  # ── App Store release ──────────────────────────────────────────────────────
+  desc "Archive, sign, and submit to App Store"
+  lane :release do
+    certs
+    build_app(
+      workspace: "../../app/ios/Runner.xcworkspace",
+      scheme: "Runner",
+      export_method: "app-store",
+      output_directory: "build/ios",
+      output_name: "Termex.ipa"
+    )
+    upload_to_app_store(
+      skip_screenshots: true,
+      skip_metadata: false,
+      submit_for_review: false,
+      automatic_release: false
+    )
+  end
+end

@@ -79,6 +79,8 @@ fn test_save_provider_config_returns_ok() {
         api_key: None,
         base_url: None,
         context_lines: 100,
+        temperature: None,
+        max_tokens: None,
     };
     let result = ai_save_provider_config(config);
     assert!(result.is_ok(), "save failed: {:?}", result);
@@ -121,6 +123,8 @@ fn unreachable_config() -> AiProviderConfig {
         api_key: Some("test-key".to_string()),
         base_url: Some("http://127.0.0.1:1".to_string()),
         context_lines: 100,
+        temperature: None,
+        max_tokens: None,
     }
 }
 

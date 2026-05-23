@@ -1,6 +1,6 @@
 import 'package:flutter_test/flutter_test.dart';
 
-import 'package:termex/shortcuts/shortcut_scope.dart';
+import 'package:termex_shared/shortcuts/shortcut_scope.dart';
 
 void main() {
   group('ShortcutScope', () {

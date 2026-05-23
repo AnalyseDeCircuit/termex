@@ -6,7 +6,7 @@ library;
 
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:flutter_test/flutter_test.dart';
-import 'package:termex/services/window_state_service.dart';
+import 'package:termex_shared/services/window_state_service.dart';
 
 void main() {
   group('WindowState model', () {

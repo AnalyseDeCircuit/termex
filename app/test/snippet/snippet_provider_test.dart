@@ -1,7 +1,7 @@
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:flutter_test/flutter_test.dart';
 
-import 'package:termex/features/snippet/state/snippet_provider.dart';
+import 'package:termex_shared/features/snippet/state/snippet_provider.dart';
 
 void main() {
   group('extractVariables', () {

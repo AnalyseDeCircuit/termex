@@ -1,6 +1,6 @@
 import 'package:flutter_test/flutter_test.dart';
 
-import 'package:termex/services/crash_reporter.dart';
+import 'package:termex_shared/services/crash_reporter.dart';
 
 class _RecordingReporter implements CrashReporter {
   final errors = <Object>[];

@@ -59,3 +59,11 @@ docs/iterations/
 *.tgz
 *.bak
 *.tmp
+
+# Sibling mobile repo (linked via ../termex-mobile)
+/termex-mobile
+
+# Sibling closed-source crate (consumed via optional --features private)
+# Lives at ../termex-core-private next to this repo. See Phase 1a notes
+# in docs/iterations/v0.54.0-pc-private-split.md
+/termex-core-private

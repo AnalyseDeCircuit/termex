@@ -1,6 +1,6 @@
 import 'package:flutter_test/flutter_test.dart';
 
-import 'package:termex/system/idle_timer.dart';
+import 'package:termex_shared/system/idle_timer.dart';
 
 void main() {
   setUp(() {

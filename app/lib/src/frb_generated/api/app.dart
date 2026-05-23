@@ -6,17 +6,33 @@
 import '../frb_generated.dart';
 import 'package:flutter_rust_bridge/flutter_rust_bridge_for_generated.dart';
 
-// These functions are ignored because they are not marked as `pub`: `process_alive`
+// These functions are ignored because they are not marked as `pub`: `master_password_set`, `process_alive`
 // These function are ignored because they are on traits that is not defined in current crate (put an empty `#[frb]` on it to unignore): `clone`, `fmt`
 
-/// Initialise the application state without unlocking SQLCipher.
+/// Initialise the application state.
 ///
-/// Checks for a stale lock file from a previous crash, writes a new one,
-/// and returns whether this is a first-time installation.
+/// Steps:
+/// 1. Check for a stale lock file from a previous crash, write a new one.
+/// 2. If the DB file exists, open it in plaintext mode. The Tauri/Vue
+///    schema stores the master password (when set) as a salt + verify token
+///    in the `settings` table — the DB file itself is plain SQLite.
+/// 3. If no master password row is present, the DB is "open" and we store
+///    it in the global db_state so all subsequent API calls work without
+///    prompting the user.
+/// 4. If a master password IS configured, we leave db_state empty and tell
+///    the UI to show the unlock dialog.
 ///
 /// Returns `Err("AnotherInstanceRunning")` if another Termex process is live.
 Future<AppInitState> initApp() =>
     TermexBridge.instance.api.crateApiAppInitApp();
+
+/// Returns true when an existing master password must be entered before the
+/// rest of the app is usable. Returns false when either:
+///   - this is a first run (no DB yet), or
+///   - the DB exists but has no `master_salt` row (no master password set),
+///     in which case [`init_app`] has already auto-opened it.
+Future<bool> masterPasswordRequired() =>
+    TermexBridge.instance.api.crateApiAppMasterPasswordRequired();
 
 /// Shut down gracefully: remove lock file and flush in-memory state.
 Future<void> closeApp() => TermexBridge.instance.api.crateApiAppCloseApp();

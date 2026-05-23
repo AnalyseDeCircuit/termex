@@ -1,7 +1,7 @@
 import 'package:flutter_test/flutter_test.dart';
-import 'package:termex/widgets/button.dart';
-import 'package:termex/widgets/checkbox.dart';
-import 'package:termex/widgets/toggle.dart';
+import 'package:termex_shared/widgets/button.dart';
+import 'package:termex_shared/widgets/checkbox.dart';
+import 'package:termex_shared/widgets/toggle.dart';
 
 import 'test_helpers.dart';
 

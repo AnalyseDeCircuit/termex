@@ -1,5 +1,5 @@
 import 'package:flutter_test/flutter_test.dart';
-import 'package:termex/terminal/features/search/search_engine.dart';
+import 'package:termex_shared/terminal/features/search/search_engine.dart';
 
 void main() {
   group('SearchEngine', () {

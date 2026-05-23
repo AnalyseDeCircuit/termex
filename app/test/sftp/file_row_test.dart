@@ -1,6 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_test/flutter_test.dart';
-import 'package:termex/features/sftp/widgets/file_row.dart';
+import 'package:termex_shared/features/sftp/widgets/file_row.dart';
 
 Widget wrapWidget(Widget w) => MaterialApp(home: Scaffold(body: w));
 
@@ -8,8 +8,8 @@ void main() {
   group('FileRow', () {
     testWidgets('renders file name', (tester) async {
       await tester.pumpWidget(wrapWidget(
-        FileRow(
-          data: const FileRowData(
+        const FileRow(
+          data: FileRowData(
             name: 'README.md',
             isDirectory: false,
             sizeBytes: 1024,
@@ -21,8 +21,8 @@ void main() {
 
     testWidgets('renders directory name', (tester) async {
       await tester.pumpWidget(wrapWidget(
-        FileRow(
-          data: const FileRowData(
+        const FileRow(
+          data: FileRowData(
             name: 'src',
             isDirectory: true,
           ),
@@ -45,8 +45,8 @@ void main() {
 
     testWidgets('shows selected background', (tester) async {
       await tester.pumpWidget(wrapWidget(
-        FileRow(
-          data: const FileRowData(name: 'file.txt', isDirectory: false),
+        const FileRow(
+          data: FileRowData(name: 'file.txt', isDirectory: false),
           isSelected: true,
         ),
       ));

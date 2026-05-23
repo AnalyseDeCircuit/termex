@@ -1,6 +1,6 @@
 import 'package:flutter/widgets.dart';
 import 'package:flutter_test/flutter_test.dart';
-import 'package:termex/widgets/card.dart';
+import 'package:termex_shared/widgets/card.dart';
 
 import 'test_helpers.dart';
 

@@ -1,7 +1,6 @@
 import 'package:flutter/widgets.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
-import 'package:flutter_test/flutter_test.dart';
-import 'package:termex/design/tokens.dart';
+import 'package:termex_shared/design/tokens.dart';
 
 Widget wrapWidget(Widget child, {TermexThemeData? theme}) {
   final themeData = theme ?? TermexThemeData.dark();

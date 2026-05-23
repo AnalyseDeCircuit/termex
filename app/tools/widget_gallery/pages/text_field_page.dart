@@ -1,7 +1,7 @@
 import 'package:flutter/widgets.dart';
-import 'package:termex/design/tokens.dart';
-import 'package:termex/widgets/text_field.dart';
-import 'package:termex/widgets/form_validators.dart';
+import 'package:termex_shared/design/tokens.dart';
+import 'package:termex_shared/widgets/text_field.dart';
+import 'package:termex_shared/widgets/form_validators.dart';
 
 class TextFieldPage extends StatefulWidget {
   const TextFieldPage({super.key});
@@ -60,7 +60,7 @@ class _TextFieldPageState extends State<TextFieldPage> {
             ),
           ),
           const SizedBox(height: 32),
-          _Section(
+          const _Section(
             title: 'Error State',
             child: SizedBox(
               width: 320,
@@ -72,7 +72,7 @@ class _TextFieldPageState extends State<TextFieldPage> {
             ),
           ),
           const SizedBox(height: 32),
-          _Section(
+          const _Section(
             title: 'Disabled',
             child: SizedBox(
               width: 320,

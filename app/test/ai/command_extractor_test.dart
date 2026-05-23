@@ -1,5 +1,5 @@
 import 'package:flutter_test/flutter_test.dart';
-import 'package:termex/features/ai/features/command_extractor.dart';
+import 'package:termex_shared/features/ai/features/command_extractor.dart';
 
 void main() {
   late CommandExtractor extractor;

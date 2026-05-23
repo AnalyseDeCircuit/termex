@@ -7,6 +7,7 @@ use termex_core::ssh::host_key::{self, HostKeyVerifyResult};
 use termex_core::ssh::session::SshSession;
 use termex_core::storage::models::AuthType;
 
+use crate::api::local_pty;
 use crate::frb_ssh_emitter::{self, FrbSshEmitter, SshStreamEvent};
 use crate::session_registry;
 
@@ -185,19 +186,29 @@ pub fn poll_ssh_events(session_id: String) -> Vec<SshStreamEvent> {
     frb_ssh_emitter::drain(&session_id)
 }
 
-/// Sends raw bytes to the shell stdin of the given session.
+/// Sends raw bytes to the shell stdin. Handles both SSH and local PTY sessions.
 pub fn write_stdin(session_id: String, data: Vec<u8>) -> Result<(), String> {
+    if local_pty::is_local_session(&session_id) {
+        return local_pty::write_stdin(&session_id, data);
+    }
     session_registry::send(&session_id, ChannelCommand::Write(data))
 }
 
-/// Resizes the pseudo-terminal of the given session.
+/// Resizes the pseudo-terminal. Handles both SSH and local PTY sessions.
 pub fn resize_terminal(session_id: String, cols: u32, rows: u32) -> Result<(), String> {
+    if local_pty::is_local_session(&session_id) {
+        return local_pty::resize(&session_id, cols, rows);
+    }
     session_registry::send(&session_id, ChannelCommand::Resize(cols, rows))
 }
 
-/// Closes the shell channel of the given session and removes it from the
-/// registry. Idempotent — does nothing if the session is not found.
+/// Closes a session. Handles both SSH and local PTY sessions.
 pub async fn close_ssh_session(session_id: String) -> Result<(), String> {
+    if local_pty::is_local_session(&session_id) {
+        local_pty::close(&session_id);
+        return Ok(());
+    }
+
     // Signal the channel task to exit. Errors are tolerated: the session
     // may have already died on the server side.
     let _ = session_registry::send(&session_id, ChannelCommand::Close);
@@ -289,6 +300,27 @@ pub fn check_host_key(
     })
 }
 
+/// Stores an SSH key passphrase in the OS keychain for [server_id]. Used by
+/// the Flutter passphrase prompt (P2.3) so encrypted private keys can be
+/// unlocked at connect time without requiring the user to re-enter the
+/// secret on each reconnect. An empty value deletes the stored entry.
+pub fn ssh_store_passphrase(server_id: String, passphrase: String) -> Result<(), String> {
+    let key = termex_core::keychain::ssh_passphrase_key(&server_id);
+    if passphrase.is_empty() {
+        let _ = termex_core::keychain::delete(&key);
+        return Ok(());
+    }
+    termex_core::keychain::store(&key, &passphrase)
+        .map_err(|e| format!("failed to store passphrase: {e}"))
+}
+
+/// Returns true if a key passphrase is currently stored in the keychain for
+/// [server_id]. The value itself is never returned across the bridge.
+pub fn ssh_has_passphrase(server_id: String) -> bool {
+    let key = termex_core::keychain::ssh_passphrase_key(&server_id);
+    termex_core::keychain::get(&key).is_ok()
+}
+
 /// Adds or updates a host-key entry in the `known_hosts` table.
 ///
 /// Uses `INSERT OR REPLACE` to handle both new hosts and key rotation while
@@ -319,4 +351,143 @@ pub fn trust_host_key(
         })
         .map_err(|e| e.to_string())
     })
+}
+
+// ─── Session pool stats (v0.68.0 G2) ─────────────────────────────────────────
+
+/// Snapshot of one entry in the proxy session pool. Surfaces via the debug
+/// panel in `about_tab.dart` so users can verify reuse of upstream
+/// connections when multiple servers share the same proxy/jump host.
+#[derive(Debug, Clone, serde::Serialize, serde::Deserialize)]
+#[serde(rename_all = "camelCase")]
+pub struct ProxyPoolStat {
+    /// One of `"socks5"` / `"socks4"` / `"http"` / `"tor"` / `"ssh-jump"`.
+    pub proxy_type: String,
+    pub host: String,
+    pub port: u16,
+    pub username: Option<String>,
+    pub ref_count: i32,
+    /// Unix epoch seconds when the underlying TCP connection was opened.
+    pub connected_since: i64,
+    pub bytes_transferred: i64,
+}
+
+/// Returns every active entry in the global proxy session pool. Cheap
+/// `RwLock<HashMap>` read; safe to poll at high frequency.
+pub async fn session_pool_stats() -> Result<Vec<ProxyPoolStat>, String> {
+    let pool = crate::session_pool_singleton::pool();
+    let rows = pool.stats().await;
+    Ok(rows
+        .into_iter()
+        .map(|s| ProxyPoolStat {
+            proxy_type: s.proxy_type,
+            host: s.host,
+            port: s.port,
+            username: s.username,
+            ref_count: s.ref_count as i32,
+            connected_since: s.connected_since,
+            bytes_transferred: s.bytes_transferred as i64,
+        })
+        .collect())
+}
+
+
+// ─── Chain progress events (v0.68.0 G3) ──────────────────────────────────────
+
+pub use crate::frb_chain_emitter::ChainProgressDto;
+
+/// Drains queued chain-progress events for [session_id]. Polls return any
+/// events accumulated since the last call; Flutter calls this on the same
+/// timer that already drains `poll_ssh_events`.
+pub fn poll_chain_progress(session_id: String) -> Vec<ChainProgressDto> {
+    crate::frb_chain_emitter::drain(&session_id)
+}
+
+/// HopConfig surfaced to Dart — mirrors `termex_core::ssh::chain::HopConfig`
+/// but lives here to dodge the FRB orphan-rule restriction on foreign types.
+#[derive(Debug, Clone, serde::Serialize, serde::Deserialize)]
+#[serde(rename_all = "camelCase")]
+pub struct ChainHopInfo {
+    pub hop_id: String,
+    pub name: String,
+    pub host: String,
+    pub port: u16,
+}
+
+/// Runs the chain algorithm against an in-memory fake connector that
+/// scripts hop outcomes via [hop_failures] — entry `i` is the number of
+/// transient failures the i-th hop simulates before succeeding (capped by
+/// `max_retries_per_hop = 3`; values higher than 3 cause that hop to
+/// permanently fail). Used by the v0.69+ integration tests and the
+/// Flutter reconnect-banner demo path; lets the UI exercise the full
+/// progress event stream without a real bastion.
+pub async fn chain_connect_simulate(
+    session_id: String,
+    hops: Vec<ChainHopInfo>,
+    hop_failures: Vec<i32>,
+    backoff_base_ms: u64,
+    backoff_max_ms: u64,
+) -> Result<(), String> {
+    use termex_core::ssh::chain::{
+        chain_connect_with, ChainConnectConfig, HopConfig, HopSession,
+    };
+
+    crate::frb_chain_emitter::register(session_id.clone());
+    let core_hops = hops
+        .into_iter()
+        .map(|h| HopConfig {
+            hop_id: h.hop_id,
+            name: h.name,
+            host: h.host,
+            port: h.port,
+        })
+        .collect();
+    let mut cfg = ChainConnectConfig::new(core_hops);
+    cfg.backoff_base_ms = backoff_base_ms.max(1);
+    cfg.backoff_max_ms = backoff_max_ms.max(cfg.backoff_base_ms);
+
+    let (tx, mut rx) = tokio::sync::mpsc::unbounded_channel();
+    let bridge_sid = session_id.clone();
+    let pump = tokio::spawn(async move {
+        while let Some(event) = rx.recv().await {
+            let dto = crate::frb_chain_emitter::ChainProgressDto::from_progress(event);
+            crate::frb_chain_emitter::enqueue(&bridge_sid, dto);
+        }
+    });
+
+    struct NoopHop;
+    impl HopSession for NoopHop {
+        fn close_boxed(self: Box<Self>) {}
+    }
+
+    let failure_budget = std::sync::Arc::new(hop_failures);
+    let result = chain_connect_with(
+        &cfg,
+        move |hop, attempt| {
+            let budget = failure_budget.clone();
+            let host = hop.host.clone();
+            let idx = budget
+                .iter()
+                .enumerate()
+                .find_map(|(i, _)| if host == format!("h{i}") { Some(i) } else { None });
+            async move {
+                let should_fail = match idx {
+                    Some(i) => attempt < budget[i] as u32,
+                    None => false,
+                };
+                if should_fail {
+                    Err(format!("simulated failure attempt {attempt}"))
+                } else {
+                    Ok(Box::new(NoopHop) as Box<dyn HopSession>)
+                }
+            }
+        },
+        tx,
+    )
+    .await
+    .map(|_| ());
+
+    // Drain the pump so all events land in the queue before we return.
+    pump.await.ok();
+    result
 }

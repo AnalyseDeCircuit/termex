@@ -216,3 +216,23 @@ impl RawCpuCounters {
         self.idle + self.iowait
     }
 }
+
+/// Flat per-tick local-host metrics snapshot returned by the closed-source
+/// `termex_core_private::monitor::local::collect_local_stats()`.
+///
+/// Lives in OSS so the FRB bridge can name this type in its signature even
+/// when the `private` feature is off (the function body then returns Err).
+#[derive(Debug, Clone, Serialize)]
+#[serde(rename_all = "camelCase")]
+pub struct LocalSystemStats {
+    pub cpu_percent: f32,
+    pub mem_used_mb: u64,
+    pub mem_total_mb: u64,
+    pub disk_used_gb: f32,
+    pub disk_total_gb: f32,
+    /// Network throughput in bytes/second, averaged over the interval since
+    /// the previous tick (0 on the first sample).
+    pub net_rx_bytes: u64,
+    pub net_tx_bytes: u64,
+    pub timestamp: String,
+}

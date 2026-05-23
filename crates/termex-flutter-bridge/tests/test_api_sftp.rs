@@ -52,6 +52,7 @@ async fn sftp_download_rejects_unknown_session() {
         "/remote/file".into(),
         "/local/file".into(),
         "xfer-1".into(),
+        0,
     )
     .await;
     assert!(result.is_err());
@@ -65,6 +66,7 @@ async fn sftp_upload_rejects_unknown_session() {
         "/local/file".into(),
         "/remote/file".into(),
         "xfer-2".into(),
+        0,
     )
     .await;
     assert!(result.is_err());

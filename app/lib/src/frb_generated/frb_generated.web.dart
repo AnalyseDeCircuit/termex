@@ -18,24 +18,32 @@ import 'api/group.dart';
 import 'api/keybindings.dart';
 import 'api/local_ai.dart';
 import 'api/local_fs.dart';
+import 'api/local_pty.dart';
+import 'api/mobile.dart';
+import 'api/mobile_auth.dart';
 import 'api/monitor.dart';
 import 'api/plugin.dart';
 import 'api/port_forward.dart';
 import 'api/proxy.dart';
+import 'api/push.dart';
 import 'api/recording.dart';
+import 'api/security.dart';
 import 'api/server.dart';
 import 'api/settings.dart';
 import 'api/sftp.dart';
 import 'api/snippet.dart';
 import 'api/ssh.dart';
 import 'api/ssh_config.dart';
+import 'api/sync.dart';
 import 'api/system.dart';
 import 'api/team.dart';
+import 'api/team_mobile.dart';
 import 'api/team_permissions.dart';
 import 'api/theme.dart';
 import 'api/update.dart';
 import 'dart:async';
 import 'dart:convert';
+import 'frb_chain_emitter.dart';
 import 'frb_generated.dart';
 import 'frb_sftp_emitter.dart';
 import 'frb_ssh_emitter.dart';
@@ -50,8 +58,36 @@ abstract class TermexBridgeApiImplPlatform
     required super.portManager,
   });
 
+  CrossPlatformFinalizerArg
+      get rust_arc_decrement_strong_count_DiscoveredDevicePtr => wire
+          .rust_arc_decrement_strong_count_RustOpaque_flutter_rust_bridgefor_generatedRustAutoOpaqueInnerDiscoveredDevice;
+
+  CrossPlatformFinalizerArg
+      get rust_arc_decrement_strong_count_SyncSummaryPtr => wire
+          .rust_arc_decrement_strong_count_RustOpaque_flutter_rust_bridgefor_generatedRustAutoOpaqueInnerSyncSummary;
+
   @protected
   AnyhowException dco_decode_AnyhowException(dynamic raw);
+
+  @protected
+  DiscoveredDevice
+      dco_decode_Auto_Owned_RustOpaque_flutter_rust_bridgefor_generatedRustAutoOpaqueInnerDiscoveredDevice(
+          dynamic raw);
+
+  @protected
+  SyncSummary
+      dco_decode_Auto_Owned_RustOpaque_flutter_rust_bridgefor_generatedRustAutoOpaqueInnerSyncSummary(
+          dynamic raw);
+
+  @protected
+  DiscoveredDevice
+      dco_decode_RustOpaque_flutter_rust_bridgefor_generatedRustAutoOpaqueInnerDiscoveredDevice(
+          dynamic raw);
+
+  @protected
+  SyncSummary
+      dco_decode_RustOpaque_flutter_rust_bridgefor_generatedRustAutoOpaqueInnerSyncSummary(
+          dynamic raw);
 
   @protected
   String dco_decode_String(dynamic raw);
@@ -81,6 +117,12 @@ abstract class TermexBridgeApiImplPlatform
   AuthType dco_decode_auth_type(dynamic raw);
 
   @protected
+  BackupHistory dco_decode_backup_history(dynamic raw);
+
+  @protected
+  BackupSchedule dco_decode_backup_schedule(dynamic raw);
+
+  @protected
   bool dco_decode_bool(dynamic raw);
 
   @protected
@@ -97,6 +139,9 @@ abstract class TermexBridgeApiImplPlatform
 
   @protected
   ConflictInfo dco_decode_box_autoadd_conflict_info(dynamic raw);
+
+  @protected
+  double dco_decode_box_autoadd_f_64(dynamic raw);
 
   @protected
   GitSyncInput dco_decode_box_autoadd_git_sync_input(dynamic raw);
@@ -136,6 +181,12 @@ abstract class TermexBridgeApiImplPlatform
 
   @protected
   WindowState dco_decode_box_autoadd_window_state(dynamic raw);
+
+  @protected
+  ChainHopInfo dco_decode_chain_hop_info(dynamic raw);
+
+  @protected
+  ChainProgressDto dco_decode_chain_progress_dto(dynamic raw);
 
   @protected
   CloudCredential dco_decode_cloud_credential(dynamic raw);
@@ -192,10 +243,16 @@ abstract class TermexBridgeApiImplPlatform
   GroupInput dco_decode_group_input(dynamic raw);
 
   @protected
+  HapticStyle dco_decode_haptic_style(dynamic raw);
+
+  @protected
   int dco_decode_i_32(dynamic raw);
 
   @protected
   PlatformInt64 dco_decode_i_64(dynamic raw);
+
+  @protected
+  InviteInfo dco_decode_invite_info(dynamic raw);
 
   @protected
   K8sContext dco_decode_k_8_s_context(dynamic raw);
@@ -205,6 +262,11 @@ abstract class TermexBridgeApiImplPlatform
 
   @protected
   KeybindingEntry dco_decode_keybinding_entry(dynamic raw);
+
+  @protected
+  List<DiscoveredDevice>
+      dco_decode_list_Auto_Owned_RustOpaque_flutter_rust_bridgefor_generatedRustAutoOpaqueInnerDiscoveredDevice(
+          dynamic raw);
 
   @protected
   List<String> dco_decode_list_String(dynamic raw);
@@ -217,6 +279,18 @@ abstract class TermexBridgeApiImplPlatform
 
   @protected
   List<AuditLogEntry> dco_decode_list_audit_log_entry(dynamic raw);
+
+  @protected
+  List<BackupHistory> dco_decode_list_backup_history(dynamic raw);
+
+  @protected
+  List<BackupSchedule> dco_decode_list_backup_schedule(dynamic raw);
+
+  @protected
+  List<ChainHopInfo> dco_decode_list_chain_hop_info(dynamic raw);
+
+  @protected
+  List<ChainProgressDto> dco_decode_list_chain_progress_dto(dynamic raw);
 
   @protected
   List<CommandHistoryEntry> dco_decode_list_command_history_entry(dynamic raw);
@@ -258,6 +332,12 @@ abstract class TermexBridgeApiImplPlatform
   List<PluginDto> dco_decode_list_plugin_dto(dynamic raw);
 
   @protected
+  List<int> dco_decode_list_prim_i_32_loose(dynamic raw);
+
+  @protected
+  Int32List dco_decode_list_prim_i_32_strict(dynamic raw);
+
+  @protected
   List<int> dco_decode_list_prim_u_8_loose(dynamic raw);
 
   @protected
@@ -268,6 +348,9 @@ abstract class TermexBridgeApiImplPlatform
 
   @protected
   List<ProxyConfig> dco_decode_list_proxy_config(dynamic raw);
+
+  @protected
+  List<ProxyPoolStat> dco_decode_list_proxy_pool_stat(dynamic raw);
 
   @protected
   List<QuickConnectEntry> dco_decode_list_quick_connect_entry(dynamic raw);
@@ -344,6 +427,9 @@ abstract class TermexBridgeApiImplPlatform
   ConflictInfo? dco_decode_opt_box_autoadd_conflict_info(dynamic raw);
 
   @protected
+  double? dco_decode_opt_box_autoadd_f_64(dynamic raw);
+
+  @protected
   GroupDto? dco_decode_opt_box_autoadd_group_dto(dynamic raw);
 
   @protected
@@ -380,6 +466,9 @@ abstract class TermexBridgeApiImplPlatform
   ProxyConfig dco_decode_proxy_config(dynamic raw);
 
   @protected
+  ProxyPoolStat dco_decode_proxy_pool_stat(dynamic raw);
+
+  @protected
   ProxyType dco_decode_proxy_type(dynamic raw);
 
   @protected
@@ -393,6 +482,9 @@ abstract class TermexBridgeApiImplPlatform
 
   @protected
   RecordingEntry dco_decode_recording_entry(dynamic raw);
+
+  @protected
+  SecurityStatus dco_decode_security_status(dynamic raw);
 
   @protected
   ServerDto dco_decode_server_dto(dynamic raw);
@@ -473,10 +565,33 @@ abstract class TermexBridgeApiImplPlatform
   UpdateManifest dco_decode_update_manifest(dynamic raw);
 
   @protected
+  BigInt dco_decode_usize(dynamic raw);
+
+  @protected
   WindowState dco_decode_window_state(dynamic raw);
 
   @protected
   AnyhowException sse_decode_AnyhowException(SseDeserializer deserializer);
+
+  @protected
+  DiscoveredDevice
+      sse_decode_Auto_Owned_RustOpaque_flutter_rust_bridgefor_generatedRustAutoOpaqueInnerDiscoveredDevice(
+          SseDeserializer deserializer);
+
+  @protected
+  SyncSummary
+      sse_decode_Auto_Owned_RustOpaque_flutter_rust_bridgefor_generatedRustAutoOpaqueInnerSyncSummary(
+          SseDeserializer deserializer);
+
+  @protected
+  DiscoveredDevice
+      sse_decode_RustOpaque_flutter_rust_bridgefor_generatedRustAutoOpaqueInnerDiscoveredDevice(
+          SseDeserializer deserializer);
+
+  @protected
+  SyncSummary
+      sse_decode_RustOpaque_flutter_rust_bridgefor_generatedRustAutoOpaqueInnerSyncSummary(
+          SseDeserializer deserializer);
 
   @protected
   String sse_decode_String(SseDeserializer deserializer);
@@ -506,6 +621,12 @@ abstract class TermexBridgeApiImplPlatform
   AuthType sse_decode_auth_type(SseDeserializer deserializer);
 
   @protected
+  BackupHistory sse_decode_backup_history(SseDeserializer deserializer);
+
+  @protected
+  BackupSchedule sse_decode_backup_schedule(SseDeserializer deserializer);
+
+  @protected
   bool sse_decode_bool(SseDeserializer deserializer);
 
   @protected
@@ -525,6 +646,9 @@ abstract class TermexBridgeApiImplPlatform
   @protected
   ConflictInfo sse_decode_box_autoadd_conflict_info(
       SseDeserializer deserializer);
+
+  @protected
+  double sse_decode_box_autoadd_f_64(SseDeserializer deserializer);
 
   @protected
   GitSyncInput sse_decode_box_autoadd_git_sync_input(
@@ -565,6 +689,12 @@ abstract class TermexBridgeApiImplPlatform
 
   @protected
   WindowState sse_decode_box_autoadd_window_state(SseDeserializer deserializer);
+
+  @protected
+  ChainHopInfo sse_decode_chain_hop_info(SseDeserializer deserializer);
+
+  @protected
+  ChainProgressDto sse_decode_chain_progress_dto(SseDeserializer deserializer);
 
   @protected
   CloudCredential sse_decode_cloud_credential(SseDeserializer deserializer);
@@ -623,10 +753,16 @@ abstract class TermexBridgeApiImplPlatform
   GroupInput sse_decode_group_input(SseDeserializer deserializer);
 
   @protected
+  HapticStyle sse_decode_haptic_style(SseDeserializer deserializer);
+
+  @protected
   int sse_decode_i_32(SseDeserializer deserializer);
 
   @protected
   PlatformInt64 sse_decode_i_64(SseDeserializer deserializer);
+
+  @protected
+  InviteInfo sse_decode_invite_info(SseDeserializer deserializer);
 
   @protected
   K8sContext sse_decode_k_8_s_context(SseDeserializer deserializer);
@@ -636,6 +772,11 @@ abstract class TermexBridgeApiImplPlatform
 
   @protected
   KeybindingEntry sse_decode_keybinding_entry(SseDeserializer deserializer);
+
+  @protected
+  List<DiscoveredDevice>
+      sse_decode_list_Auto_Owned_RustOpaque_flutter_rust_bridgefor_generatedRustAutoOpaqueInnerDiscoveredDevice(
+          SseDeserializer deserializer);
 
   @protected
   List<String> sse_decode_list_String(SseDeserializer deserializer);
@@ -649,6 +790,22 @@ abstract class TermexBridgeApiImplPlatform
 
   @protected
   List<AuditLogEntry> sse_decode_list_audit_log_entry(
+      SseDeserializer deserializer);
+
+  @protected
+  List<BackupHistory> sse_decode_list_backup_history(
+      SseDeserializer deserializer);
+
+  @protected
+  List<BackupSchedule> sse_decode_list_backup_schedule(
+      SseDeserializer deserializer);
+
+  @protected
+  List<ChainHopInfo> sse_decode_list_chain_hop_info(
+      SseDeserializer deserializer);
+
+  @protected
+  List<ChainProgressDto> sse_decode_list_chain_progress_dto(
       SseDeserializer deserializer);
 
   @protected
@@ -697,6 +854,12 @@ abstract class TermexBridgeApiImplPlatform
   List<PluginDto> sse_decode_list_plugin_dto(SseDeserializer deserializer);
 
   @protected
+  List<int> sse_decode_list_prim_i_32_loose(SseDeserializer deserializer);
+
+  @protected
+  Int32List sse_decode_list_prim_i_32_strict(SseDeserializer deserializer);
+
+  @protected
   List<int> sse_decode_list_prim_u_8_loose(SseDeserializer deserializer);
 
   @protected
@@ -707,6 +870,10 @@ abstract class TermexBridgeApiImplPlatform
 
   @protected
   List<ProxyConfig> sse_decode_list_proxy_config(SseDeserializer deserializer);
+
+  @protected
+  List<ProxyPoolStat> sse_decode_list_proxy_pool_stat(
+      SseDeserializer deserializer);
 
   @protected
   List<QuickConnectEntry> sse_decode_list_quick_connect_entry(
@@ -793,6 +960,9 @@ abstract class TermexBridgeApiImplPlatform
       SseDeserializer deserializer);
 
   @protected
+  double? sse_decode_opt_box_autoadd_f_64(SseDeserializer deserializer);
+
+  @protected
   GroupDto? sse_decode_opt_box_autoadd_group_dto(SseDeserializer deserializer);
 
   @protected
@@ -832,6 +1002,9 @@ abstract class TermexBridgeApiImplPlatform
   ProxyConfig sse_decode_proxy_config(SseDeserializer deserializer);
 
   @protected
+  ProxyPoolStat sse_decode_proxy_pool_stat(SseDeserializer deserializer);
+
+  @protected
   ProxyType sse_decode_proxy_type(SseDeserializer deserializer);
 
   @protected
@@ -847,6 +1020,9 @@ abstract class TermexBridgeApiImplPlatform
 
   @protected
   RecordingEntry sse_decode_recording_entry(SseDeserializer deserializer);
+
+  @protected
+  SecurityStatus sse_decode_security_status(SseDeserializer deserializer);
 
   @protected
   ServerDto sse_decode_server_dto(SseDeserializer deserializer);
@@ -932,11 +1108,34 @@ abstract class TermexBridgeApiImplPlatform
   UpdateManifest sse_decode_update_manifest(SseDeserializer deserializer);
 
   @protected
+  BigInt sse_decode_usize(SseDeserializer deserializer);
+
+  @protected
   WindowState sse_decode_window_state(SseDeserializer deserializer);
 
   @protected
   void sse_encode_AnyhowException(
       AnyhowException self, SseSerializer serializer);
+
+  @protected
+  void
+      sse_encode_Auto_Owned_RustOpaque_flutter_rust_bridgefor_generatedRustAutoOpaqueInnerDiscoveredDevice(
+          DiscoveredDevice self, SseSerializer serializer);
+
+  @protected
+  void
+      sse_encode_Auto_Owned_RustOpaque_flutter_rust_bridgefor_generatedRustAutoOpaqueInnerSyncSummary(
+          SyncSummary self, SseSerializer serializer);
+
+  @protected
+  void
+      sse_encode_RustOpaque_flutter_rust_bridgefor_generatedRustAutoOpaqueInnerDiscoveredDevice(
+          DiscoveredDevice self, SseSerializer serializer);
+
+  @protected
+  void
+      sse_encode_RustOpaque_flutter_rust_bridgefor_generatedRustAutoOpaqueInnerSyncSummary(
+          SyncSummary self, SseSerializer serializer);
 
   @protected
   void sse_encode_String(String self, SseSerializer serializer);
@@ -967,6 +1166,13 @@ abstract class TermexBridgeApiImplPlatform
   void sse_encode_auth_type(AuthType self, SseSerializer serializer);
 
   @protected
+  void sse_encode_backup_history(BackupHistory self, SseSerializer serializer);
+
+  @protected
+  void sse_encode_backup_schedule(
+      BackupSchedule self, SseSerializer serializer);
+
+  @protected
   void sse_encode_bool(bool self, SseSerializer serializer);
 
   @protected
@@ -987,6 +1193,9 @@ abstract class TermexBridgeApiImplPlatform
   @protected
   void sse_encode_box_autoadd_conflict_info(
       ConflictInfo self, SseSerializer serializer);
+
+  @protected
+  void sse_encode_box_autoadd_f_64(double self, SseSerializer serializer);
 
   @protected
   void sse_encode_box_autoadd_git_sync_input(
@@ -1035,6 +1244,13 @@ abstract class TermexBridgeApiImplPlatform
   @protected
   void sse_encode_box_autoadd_window_state(
       WindowState self, SseSerializer serializer);
+
+  @protected
+  void sse_encode_chain_hop_info(ChainHopInfo self, SseSerializer serializer);
+
+  @protected
+  void sse_encode_chain_progress_dto(
+      ChainProgressDto self, SseSerializer serializer);
 
   @protected
   void sse_encode_cloud_credential(
@@ -1095,10 +1311,16 @@ abstract class TermexBridgeApiImplPlatform
   void sse_encode_group_input(GroupInput self, SseSerializer serializer);
 
   @protected
+  void sse_encode_haptic_style(HapticStyle self, SseSerializer serializer);
+
+  @protected
   void sse_encode_i_32(int self, SseSerializer serializer);
 
   @protected
   void sse_encode_i_64(PlatformInt64 self, SseSerializer serializer);
+
+  @protected
+  void sse_encode_invite_info(InviteInfo self, SseSerializer serializer);
 
   @protected
   void sse_encode_k_8_s_context(K8sContext self, SseSerializer serializer);
@@ -1109,6 +1331,11 @@ abstract class TermexBridgeApiImplPlatform
   @protected
   void sse_encode_keybinding_entry(
       KeybindingEntry self, SseSerializer serializer);
+
+  @protected
+  void
+      sse_encode_list_Auto_Owned_RustOpaque_flutter_rust_bridgefor_generatedRustAutoOpaqueInnerDiscoveredDevice(
+          List<DiscoveredDevice> self, SseSerializer serializer);
 
   @protected
   void sse_encode_list_String(List<String> self, SseSerializer serializer);
@@ -1124,6 +1351,22 @@ abstract class TermexBridgeApiImplPlatform
   @protected
   void sse_encode_list_audit_log_entry(
       List<AuditLogEntry> self, SseSerializer serializer);
+
+  @protected
+  void sse_encode_list_backup_history(
+      List<BackupHistory> self, SseSerializer serializer);
+
+  @protected
+  void sse_encode_list_backup_schedule(
+      List<BackupSchedule> self, SseSerializer serializer);
+
+  @protected
+  void sse_encode_list_chain_hop_info(
+      List<ChainHopInfo> self, SseSerializer serializer);
+
+  @protected
+  void sse_encode_list_chain_progress_dto(
+      List<ChainProgressDto> self, SseSerializer serializer);
 
   @protected
   void sse_encode_list_command_history_entry(
@@ -1176,6 +1419,14 @@ abstract class TermexBridgeApiImplPlatform
       List<PluginDto> self, SseSerializer serializer);
 
   @protected
+  void sse_encode_list_prim_i_32_loose(
+      List<int> self, SseSerializer serializer);
+
+  @protected
+  void sse_encode_list_prim_i_32_strict(
+      Int32List self, SseSerializer serializer);
+
+  @protected
   void sse_encode_list_prim_u_8_loose(List<int> self, SseSerializer serializer);
 
   @protected
@@ -1189,6 +1440,10 @@ abstract class TermexBridgeApiImplPlatform
   @protected
   void sse_encode_list_proxy_config(
       List<ProxyConfig> self, SseSerializer serializer);
+
+  @protected
+  void sse_encode_list_proxy_pool_stat(
+      List<ProxyPoolStat> self, SseSerializer serializer);
 
   @protected
   void sse_encode_list_quick_connect_entry(
@@ -1279,6 +1534,9 @@ abstract class TermexBridgeApiImplPlatform
       ConflictInfo? self, SseSerializer serializer);
 
   @protected
+  void sse_encode_opt_box_autoadd_f_64(double? self, SseSerializer serializer);
+
+  @protected
   void sse_encode_opt_box_autoadd_group_dto(
       GroupDto? self, SseSerializer serializer);
 
@@ -1320,6 +1578,9 @@ abstract class TermexBridgeApiImplPlatform
   void sse_encode_proxy_config(ProxyConfig self, SseSerializer serializer);
 
   @protected
+  void sse_encode_proxy_pool_stat(ProxyPoolStat self, SseSerializer serializer);
+
+  @protected
   void sse_encode_proxy_type(ProxyType self, SseSerializer serializer);
 
   @protected
@@ -1336,6 +1597,10 @@ abstract class TermexBridgeApiImplPlatform
   @protected
   void sse_encode_recording_entry(
       RecordingEntry self, SseSerializer serializer);
+
+  @protected
+  void sse_encode_security_status(
+      SecurityStatus self, SseSerializer serializer);
 
   @protected
   void sse_encode_server_dto(ServerDto self, SseSerializer serializer);
@@ -1424,6 +1689,9 @@ abstract class TermexBridgeApiImplPlatform
       UpdateManifest self, SseSerializer serializer);
 
   @protected
+  void sse_encode_usize(BigInt self, SseSerializer serializer);
+
+  @protected
   void sse_encode_window_state(WindowState self, SseSerializer serializer);
 }
 
@@ -1431,6 +1699,30 @@ abstract class TermexBridgeApiImplPlatform
 
 class TermexBridgeWire implements BaseWire {
   TermexBridgeWire.fromExternalLibrary(ExternalLibrary lib);
+
+  void rust_arc_increment_strong_count_RustOpaque_flutter_rust_bridgefor_generatedRustAutoOpaqueInnerDiscoveredDevice(
+          int ptr) =>
+      wasmModule
+          .rust_arc_increment_strong_count_RustOpaque_flutter_rust_bridgefor_generatedRustAutoOpaqueInnerDiscoveredDevice(
+              ptr);
+
+  void rust_arc_decrement_strong_count_RustOpaque_flutter_rust_bridgefor_generatedRustAutoOpaqueInnerDiscoveredDevice(
+          int ptr) =>
+      wasmModule
+          .rust_arc_decrement_strong_count_RustOpaque_flutter_rust_bridgefor_generatedRustAutoOpaqueInnerDiscoveredDevice(
+              ptr);
+
+  void rust_arc_increment_strong_count_RustOpaque_flutter_rust_bridgefor_generatedRustAutoOpaqueInnerSyncSummary(
+          int ptr) =>
+      wasmModule
+          .rust_arc_increment_strong_count_RustOpaque_flutter_rust_bridgefor_generatedRustAutoOpaqueInnerSyncSummary(
+              ptr);
+
+  void rust_arc_decrement_strong_count_RustOpaque_flutter_rust_bridgefor_generatedRustAutoOpaqueInnerSyncSummary(
+          int ptr) =>
+      wasmModule
+          .rust_arc_decrement_strong_count_RustOpaque_flutter_rust_bridgefor_generatedRustAutoOpaqueInnerSyncSummary(
+              ptr);
 }
 
 @JS('wasm_bindgen')
@@ -1438,4 +1730,20 @@ external TermexBridgeWasmModule get wasmModule;
 
 @JS()
 @anonymous
-extension type TermexBridgeWasmModule._(JSObject _) implements JSObject {}
+extension type TermexBridgeWasmModule._(JSObject _) implements JSObject {
+  external void
+      rust_arc_increment_strong_count_RustOpaque_flutter_rust_bridgefor_generatedRustAutoOpaqueInnerDiscoveredDevice(
+          int ptr);
+
+  external void
+      rust_arc_decrement_strong_count_RustOpaque_flutter_rust_bridgefor_generatedRustAutoOpaqueInnerDiscoveredDevice(
+          int ptr);
+
+  external void
+      rust_arc_increment_strong_count_RustOpaque_flutter_rust_bridgefor_generatedRustAutoOpaqueInnerSyncSummary(
+          int ptr);
+
+  external void
+      rust_arc_decrement_strong_count_RustOpaque_flutter_rust_bridgefor_generatedRustAutoOpaqueInnerSyncSummary(
+          int ptr);
+}

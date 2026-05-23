@@ -1,0 +1,1724 @@
+{
+  "@@locale": "zh",
+  "@@last_modified": "2026-05-18",
+  "commonConfirm": "确认",
+  "@commonConfirm": {
+    "description": "Confirm button label"
+  },
+  "commonCancel": "取消",
+  "@commonCancel": {
+    "description": "Cancel button label"
+  },
+  "commonClose": "关闭",
+  "@commonClose": {
+    "description": "Close button label"
+  },
+  "commonSearch": "搜索...",
+  "@commonSearch": {
+    "description": "Search input placeholder"
+  },
+  "commonEmpty": "暂无数据",
+  "@commonEmpty": {
+    "description": "Empty list placeholder"
+  },
+  "commonLoading": "加载中...",
+  "@commonLoading": {
+    "description": "Loading state text"
+  },
+  "commonError": "出错了",
+  "@commonError": {
+    "description": "Generic error message"
+  },
+  "commonSave": "保存",
+  "@commonSave": {
+    "description": "Save button label"
+  },
+  "commonDelete": "删除",
+  "@commonDelete": {
+    "description": "Delete button label"
+  },
+  "commonEdit": "编辑",
+  "@commonEdit": {
+    "description": "Edit button label"
+  },
+  "commonRetry": "重试",
+  "@commonRetry": {
+    "description": "Retry button label"
+  },
+  "validatorRequired": "此项为必填",
+  "@validatorRequired": {
+    "description": "Required field validation error"
+  },
+  "validatorEmail": "邮箱格式不正确",
+  "@validatorEmail": {
+    "description": "Email format validation error"
+  },
+  "validatorMinLength": "至少 {n} 个字符",
+  "@validatorMinLength": {
+    "description": "Minimum length validation error",
+    "placeholders": {
+      "n": {
+        "type": "int"
+      }
+    }
+  },
+  "validatorMaxLength": "最多 {n} 个字符",
+  "@validatorMaxLength": {
+    "description": "Maximum length validation error",
+    "placeholders": {
+      "n": {
+        "type": "int"
+      }
+    }
+  },
+  "themeSaveError": "主题保存失败",
+  "@themeSaveError": {
+    "description": "Theme config write failure toast"
+  },
+  "selectNoOptions": "暂无选项",
+  "@selectNoOptions": {
+    "description": "Select dropdown empty state"
+  },
+  "dialogDefaultConfirm": "确认",
+  "@dialogDefaultConfirm": {
+    "description": "Default dialog confirm button"
+  },
+  "dialogDefaultCancel": "取消",
+  "@dialogDefaultCancel": {
+    "description": "Default dialog cancel button"
+  },
+  "shortcutsHintTitle": "当前可用快捷键",
+  "@shortcutsHintTitle": {
+    "description": "Title of the shortcut hint overlay"
+  },
+  "crossTabSearchPlaceholder": "在所有 Tab 中搜索...",
+  "@crossTabSearchPlaceholder": {
+    "description": "Placeholder for cross-tab search input"
+  },
+  "crossTabSearchNoMatches": "无命中",
+  "@crossTabSearchNoMatches": {
+    "description": "Cross-tab search empty result"
+  },
+  "crossTabSearchMatchesFound": "{count} 处命中",
+  "@crossTabSearchMatchesFound": {
+    "description": "Cross-tab search result count",
+    "placeholders": {
+      "count": {
+        "type": "int"
+      }
+    }
+  },
+  "idleLockTitle": "已锁定",
+  "@idleLockTitle": {
+    "description": "Idle lock screen title"
+  },
+  "idleLockHint": "长时间未活动，请输入主密码继续",
+  "@idleLockHint": {
+    "description": "Idle lock screen hint message"
+  },
+  "pluginsTitle": "插件",
+  "@pluginsTitle": {
+    "description": "Plugins panel title"
+  },
+  "pluginsInstall": "从 .zip 安装",
+  "@pluginsInstall": {
+    "description": "Install plugin from zip button label"
+  },
+  "pluginsDeveloperMode": "开发者模式",
+  "@pluginsDeveloperMode": {
+    "description": "Developer mode toggle label"
+  },
+  "pluginsPermissionTitle": "插件权限请求",
+  "@pluginsPermissionTitle": {
+    "description": "Plugin permission dialog title"
+  },
+  "pluginsPermissionDeny": "拒绝",
+  "@pluginsPermissionDeny": {
+    "description": "Deny permission button"
+  },
+  "pluginsPermissionGrantOnce": "仅本次",
+  "@pluginsPermissionGrantOnce": {
+    "description": "Grant permission for this session only"
+  },
+  "pluginsPermissionGrant": "授予",
+  "@pluginsPermissionGrant": {
+    "description": "Grant permission permanently button"
+  },
+  "appName": "Termex",
+  "appSlogan": "一款开源 AI 驱动的本地 SSH 客户端",
+  "sidebarServers": "服务器",
+  "sidebarSearch": "搜索服务器...",
+  "sidebarNewConnection": "新建连接",
+  "sidebarNewGroup": "新建分组",
+  "sidebarGroupNameHint": "请输入分组名称",
+  "sidebarGroupNameRequired": "分组名称不能为空",
+  "sidebarQuickConnect": "快速连接",
+  "sidebarImportConfig": "导入配置",
+  "sidebarExportConfig": "导出配置",
+  "sidebarBastionUsedBy": "被 {count} 个连接用作跳板機",
+  "@sidebarBastionUsedBy": {
+    "description": "Auto-imported from Tauri sidebar.bastionUsedBy",
+    "placeholders": {
+      "count": {
+        "type": "String"
+      }
+    }
+  },
+  "sidebarImportSshConfig": "导入 SSH 配置",
+  "sidebarSnippets": "命令片段",
+  "sidebarRecordings": "录制记录",
+  "sidebarCloud": "云原生",
+  "sidebarFilterall": "全部",
+  "sidebarFilterprivate": "私人",
+  "sidebarFilterteam": "团队",
+  "sidebarPrivateServers": "私人节点",
+  "sidebarTeamServers": "团队节点",
+  "sidebarTeamEmptyHint": "团队节点来自同步，不能直接创建。",
+  "sidebarTeamEmptySync": "先将私人节点共享给团队，再执行同步即可推送给队友。",
+  "sidebarGoToPrivate": "查看私人节点",
+  "terminalNewTab": "新建标签",
+  "terminalCloseTab": "关闭标签",
+  "terminalDisconnect": "断开连接",
+  "terminalReconnect": "重新连接",
+  "terminalReconnecting": "正在重连...",
+  "terminalReconnected": "已重连",
+  "terminalReconnectFailed": "重连失败",
+  "terminalReconnectAttempt": "正在重连... 第 {attempt}/{max} 次",
+  "@terminalReconnectAttempt": {
+    "description": "Auto-imported from Tauri terminal.reconnectAttempt",
+    "placeholders": {
+      "attempt": {
+        "type": "String"
+      },
+      "max": {
+        "type": "String"
+      }
+    }
+  },
+  "terminalReconnectAttemptFailed": "第 {attempt} 次尝试失败",
+  "@terminalReconnectAttemptFailed": {
+    "description": "Auto-imported from Tauri terminal.reconnectAttemptFailed",
+    "placeholders": {
+      "attempt": {
+        "type": "String"
+      }
+    }
+  },
+  "terminalReconnectGaveUp": "重连失败，已尝试 {max} 次",
+  "@terminalReconnectGaveUp": {
+    "description": "Auto-imported from Tauri terminal.reconnectGaveUp",
+    "placeholders": {
+      "max": {
+        "type": "String"
+      }
+    }
+  },
+  "terminalOpenLocalTerminal": "打开本地终端",
+  "terminalOpenLocalTerminalError": "无法打开终端",
+  "terminalSplitVertical": "向右分屏",
+  "terminalSplitHorizontal": "向下分屏",
+  "terminalClosePane": "关闭面板",
+  "terminalMaxSplitDepth": "已达最大分屏层数",
+  "terminalBroadcastOn": "广播中",
+  "terminalBroadcastOff": "广播",
+  "terminalBroadcastHintOn": "输入已发送到所有面板",
+  "terminalBroadcastToggle": "切换窗格广播",
+  "terminalBroadcastHintOff": "开启广播模式",
+  "terminalPaneCount": "{count} 个面板",
+  "@terminalPaneCount": {
+    "description": "Auto-imported from Tauri terminal.paneCount",
+    "placeholders": {
+      "count": {
+        "type": "String"
+      }
+    }
+  },
+  "terminalMouseReportingHint": "鼠标已被远程程序捕获。按住 {key}+拖拽可本地选择复制文本。",
+  "@terminalMouseReportingHint": {
+    "description": "Auto-imported from Tauri terminal.mouseReportingHint",
+    "placeholders": {
+      "key": {
+        "type": "String"
+      }
+    }
+  },
+  "terminalMouseReportingActive": "鼠标已捕获 · {key}+拖拽可选择",
+  "@terminalMouseReportingActive": {
+    "description": "Auto-imported from Tauri terminal.mouseReportingActive",
+    "placeholders": {
+      "key": {
+        "type": "String"
+      }
+    }
+  },
+  "settingsTitle": "设置",
+  "settingsAppearance": "外观",
+  "settingsTerminal": "终端",
+  "settingsKeybindings": "快捷键",
+  "settingsSecurity": "安全",
+  "settingsAiConfig": "AI 配置",
+  "settingsBackup": "备份",
+  "settingsHighlights": "高亮",
+  "settingsProxies": "代理",
+  "settingsMonitor": "监控",
+  "settingsTeam": "团队",
+  "settingsData": "数据",
+  "fontsFontFamily": "字体",
+  "fontsFontSize": "字号",
+  "fontsUploadFont": "上传字体",
+  "fontsBuiltIn": "内置字体",
+  "fontsCustom": "自定义字体",
+  "fontsDeleteConfirm": "确定删除字体「{name}」？",
+  "@fontsDeleteConfirm": {
+    "description": "Auto-imported from Tauri fonts.deleteConfirm",
+    "placeholders": {
+      "name": {
+        "type": "String"
+      }
+    }
+  },
+  "fontsDeleteTitle": "删除字体",
+  "fontsUploaded": "字体上传成功",
+  "fontsDeleted": "字体已删除",
+  "fontsInvalidFormat": "不支持的格式，请使用 .ttf、.otf、.woff 或 .woff2",
+  "fontsUploadFailed": "字体上传失败",
+  "tabClose": "关闭",
+  "tabCloseOthers": "关闭其他连接",
+  "tabDuplicate": "复制",
+  "tabSplitVertical": "左右分屏",
+  "tabSplitHorizontal": "上下分屏",
+  "tabRename": "重命名",
+  "tabRenameHint": "请输入新名称",
+  "tabReconnect": "刷新",
+  "tabReconnectAll": "刷新全部",
+  "appearanceTheme": "主题",
+  "appearanceLanguage": "语言",
+  "appearanceFollowSystem": "跟随系统",
+  "appearanceSidebarTransition": "侧边栏切换动画",
+  "appearanceTransFlip": "翻转门",
+  "appearanceTransSlide": "滑动",
+  "appearanceTransFade": "淡入淡出",
+  "appearanceTransScale": "缩放",
+  "appearanceTransSlideUp": "上滑",
+  "appearanceTransNone": "无",
+  "sftpTitle": "SFTP",
+  "sftpName": "名称",
+  "sftpSize": "大小",
+  "sftpPermissions": "权限",
+  "sftpModified": "修改时间",
+  "sftpGoUp": "返回上级",
+  "sftpRefresh": "刷新",
+  "sftpNewFolder": "新建文件夹",
+  "sftpNewFolderPrompt": "请输入文件夹名称",
+  "sftpClose": "关闭",
+  "sftpDelete": "删除",
+  "sftpDeleteConfirm": "确定删除 {name} 吗？",
+  "@sftpDeleteConfirm": {
+    "description": "Auto-imported from Tauri sftp.deleteConfirm",
+    "placeholders": {
+      "name": {
+        "type": "String"
+      }
+    }
+  },
+  "sftpDeleted": "已删除",
+  "sftpRename": "重命名",
+  "sftpRenamePrompt": "请输入新名称",
+  "sftpDownload": "下载",
+  "sftpDownloadPrompt": "保存到本地路径",
+  "sftpDownloadStarted": "下载已开始",
+  "sftpUpload": "上传",
+  "sftpUploadStarted": "上传已开始",
+  "sftpUploadError": "上传错误",
+  "sftpTransfers": "传输",
+  "sftpFiles": "文件",
+  "sftpCompleted": "已完成",
+  "sftpConnecting": "连接中",
+  "sftpClearCompleted": "清除已完成",
+  "sftpNoTransfers": "无传输",
+  "sftpConfirm": "确定",
+  "sftpCancel": "取消",
+  "sftpEmpty": "空目录",
+  "sftpLocal": "本地",
+  "sftpRemote": "远程",
+  "sftpOpenSftp": "打开 SFTP",
+  "sftpDropToUpload": "拖动文件到此处上传",
+  "sftpDropToDownload": "拖动到此处下载",
+  "sftpCwdSyncOn": "同步中 — 跟随终端工作目录",
+  "sftpCwdSyncOff": "同步 SFTP 路径与终端工作目录",
+  "sftpCloseSplit": "关闭分屏面板",
+  "sftpNotConnected": "SFTP 未连接",
+  "sftpDownloadError": "下载错误",
+  "sftpCleared": "已清除已完成的传输",
+  "sftpCopy": "复制",
+  "sftpCut": "剪切",
+  "sftpPaste": "粘贴",
+  "sftpMore": "更多",
+  "sftpCopyPath": "复制文件路径",
+  "sftpEditPath": "编辑路径",
+  "sftpNewFile": "新建文件",
+  "sftpMkdir": "新建文件夹",
+  "sftpSelectAll": "全选",
+  "sftpChmod": "编辑权限",
+  "sftpFileInfo": "文件信息",
+  "sftpEdit": "编辑",
+  "sftpType": "类型",
+  "sftpDirectory": "目录",
+  "sftpFile": "文件",
+  "sftpUid": "UID",
+  "sftpGid": "GID",
+  "sftpSymlink": "符号链接",
+  "sftpYes": "是",
+  "sftpNo": "否",
+  "sftpChmodFile": "文件",
+  "sftpChmodOctal": "八进制权限 (例如 755)",
+  "sftpChmodExample": "例如 755",
+  "sftpChmodHelp": "八进制表示法: 读=4, 写=2, 执行=1。示例: 755 = rwxr-xr-x",
+  "sftpChmodRequired": "请输入权限值",
+  "sftpChmodInvalid": "无效的八进制值 (0-7777)",
+  "sftpPermissionsUpdated": "权限已更新",
+  "sftpCopied": "已复制",
+  "sftpPathCopied": "路径已复制到剪贴板",
+  "sftpFileCreated": "文件已创建",
+  "sftpFolderCreated": "文件夹已创建",
+  "sftpNewFilePrompt": "请输入文件名",
+  "sftpSelectAllTodo": "多选功能即将上线",
+  "sftpEditTodo": "文件编辑功能即将上线",
+  "sftpPreparing": "准备中",
+  "sftpRemove": "移除",
+  "sftpError": "错误",
+  "sftpServerTransfer": "服务器间传输已开始",
+  "sftpTransferError": "传输失败：{error}",
+  "@sftpTransferError": {
+    "description": "Auto-imported from Tauri sftp.transferError",
+    "placeholders": {
+      "error": {
+        "type": "String"
+      }
+    }
+  },
+  "sftpServerDisconnected": "服务器已断连",
+  "sftpDirTransferTodo": "目录传输功能即将上线",
+  "aiPanelTitle": "AI 助手",
+  "aiInputPlaceholder": "描述你想执行的操作...",
+  "aiSend": "发送",
+  "aiCopy": "复制",
+  "aiInsert": "插入终端",
+  "aiCopied": "已复制",
+  "aiEmptyHint": "输入自然语言描述，AI 将生成对应命令",
+  "aiExplain": "解释命令",
+  "aiDanger": "危险命令",
+  "aiDangerWarning": "⚠️ 该命令可能有风险：{desc}",
+  "@aiDangerWarning": {
+    "description": "Auto-imported from Tauri ai.dangerWarning",
+    "placeholders": {
+      "desc": {
+        "type": "String"
+      }
+    }
+  },
+  "aiDangerCritical": "🚫 高危命令：{desc}",
+  "@aiDangerCritical": {
+    "description": "Auto-imported from Tauri ai.dangerCritical",
+    "placeholders": {
+      "desc": {
+        "type": "String"
+      }
+    }
+  },
+  "aiConfirm": "确认执行",
+  "aiCancel": "取消",
+  "aiClear": "清空对话",
+  "aiNoProviderHint": "尚未配置 AI 提供商，请先完成配置",
+  "aiNoProviderShort": "请先配置 AI",
+  "aiGoConfig": "前往配置",
+  "aiSaveAsSnippet": "保存为片段",
+  "aiIncludeContext": "附带终端上下文",
+  "aiThinking": "思考中...",
+  "aiErrorDetected": "检测到错误",
+  "aiAnalyzing": "正在分析错误...",
+  "aiDismiss": "忽略",
+  "aiCommand": "命令",
+  "aiRunFix": "执行修复",
+  "aiRunAll": "全部执行",
+  "aiRun": "执行",
+  "aiConfirmRun": "确认并执行",
+  "aiPlaybook": "操作手册",
+  "aiPlaybookGenerating": "正在生成步骤...",
+  "aiPlaybookReady": "就绪（{count} 个步骤）",
+  "@aiPlaybookReady": {
+    "description": "Auto-imported from Tauri ai.playbookReady",
+    "placeholders": {
+      "count": {
+        "type": "String"
+      }
+    }
+  },
+  "aiStepSuccess": "成功",
+  "aiStepFailed": "失败",
+  "aiSummarize": "会话总结",
+  "aiSummarizing": "正在生成总结...",
+  "aiExportMarkdown": "导出为 Markdown",
+  "aiDiagnosisTitle": "AI 诊断",
+  "aiAlertCpuThreshold": "CPU 告警阈值 (%)",
+  "aiAlertMemoryThreshold": "内存告警阈值 (%)",
+  "aiAlertDiskThreshold": "磁盘告警阈值 (%)",
+  "aiAutoDiagnose": "自动诊断错误",
+  "aiAutoDiagnoseHint": "AI 自动分析命令错误",
+  "portForwardTitle": "端口转发",
+  "portForwardLocal": "本地转发",
+  "portForwardRemote": "远程转发",
+  "portForwardDynamic": "动态转发",
+  "portForwardLocalHost": "本地地址",
+  "portForwardLocalPort": "本地端口",
+  "portForwardRemoteHost": "远程地址",
+  "portForwardRemotePort": "远程端口",
+  "portForwardAutoStart": "自动启动",
+  "portForwardStart": "启动",
+  "portForwardStop": "停止",
+  "portForwardAdd": "添加规则",
+  "portForwardDelete": "删除",
+  "portForwardRunning": "运行中",
+  "portForwardStopped": "已停止",
+  "configExportTitle": "导出配置",
+  "configImportTitle": "导入配置",
+  "configPassword": "导出密码",
+  "configPasswordHint": "设置一个独立的导出密码",
+  "configFilePath": "文件路径",
+  "configOnConflict": "冲突处理",
+  "configSkip": "跳过已存在",
+  "configOverwrite": "覆盖",
+  "configExportSuccess": "导出成功",
+  "configImportSuccess": "导入完成：导入 {imported} 项，跳过 {skipped} 项",
+  "@configImportSuccess": {
+    "description": "Auto-imported from Tauri config.importSuccess",
+    "placeholders": {
+      "imported": {
+        "type": "String"
+      },
+      "skipped": {
+        "type": "String"
+      }
+    }
+  },
+  "connectionEditConnection": "编辑连接",
+  "connectionName": "名称",
+  "connectionHost": "主机",
+  "connectionPort": "端口",
+  "connectionUsername": "用户名",
+  "connectionPassword": "密码",
+  "connectionAuthType": "认证方式",
+  "connectionPrivateKey": "私钥",
+  "connectionBrowseKey": "浏览文件",
+  "connectionSshAgent": "SSH Agent",
+  "connectionSshAgentInfo": "使用系统 SSH Agent ($SSH_AUTH_SOCK) 进行认证，无需在 Termex 中保存私钥凭证。",
+  "connectionGroup": "分组",
+  "connectionAuthorizationInfo": "授权信息",
+  "connectionSshTunnel": "SSH 隐转",
+  "connectionBastion": "跳板機 / 跳转主機",
+  "connectionBastionHint": "跳板機在侧边栏服务器列表中管理。任何已保存的服务器均可用作跳板機。",
+  "connectionSelectBastion": "搜索或选择跳板機服务器...",
+  "connectionConnectionPath": "连接路径",
+  "connectionNoProxyConfigured": "未配置跳板機，将直接连接目标服务器。",
+  "connectionRemoveTunnel": "删除",
+  "connectionSave": "保存",
+  "connectionCancel": "取消",
+  "connectionConnect": "连接",
+  "connectionTest": "测试连接",
+  "connectionTestSuccess": "连接测试成功",
+  "connectionProxy": "代理",
+  "connectionNetworkProxy": "网络代理",
+  "connectionNetworkProxyHint": "代理在侧边栏 Proxy 面板中管理。请切换到侧边栏的 Proxy 面板添加或编辑代理。",
+  "connectionProxyNone": "无（直连）",
+  "connectionProxyName": "代理名称",
+  "connectionProxyType": "代理类型",
+  "connectionProxySocks5": "SOCKS5",
+  "connectionProxySocks4": "SOCKS4",
+  "connectionProxyHttp": "HTTP CONNECT",
+  "connectionProxyHost": "代理主机",
+  "connectionProxyPort": "代理端口",
+  "connectionProxyUsername": "用户名",
+  "connectionProxyPassword": "密码",
+  "connectionProxyTestReachable": "代理可达",
+  "connectionProxyAdd": "添加代理",
+  "connectionProxyEdit": "编辑代理",
+  "connectionProxyDelete": "删除代理",
+  "connectionProxyDeleteConfirm": "确定删除代理「{name}」？使用该代理的服务器将切换为直连。",
+  "@connectionProxyDeleteConfirm": {
+    "description": "Auto-imported from Tauri connection.proxyDeleteConfirm",
+    "placeholders": {
+      "name": {
+        "type": "String"
+      }
+    }
+  },
+  "connectionProxyUsedBy": "被 {count} 个服务器使用",
+  "@connectionProxyUsedBy": {
+    "description": "Auto-imported from Tauri connection.proxyUsedBy",
+    "placeholders": {
+      "count": {
+        "type": "String"
+      }
+    }
+  },
+  "connectionProxyNoConfig": "暂无代理配置。",
+  "connectionProxyGoSettings": "前往 设置 → 代理 添加。",
+  "connectionProxyTor": "Tor",
+  "connectionProxyTorRunning": "检测到 Tor 服务，端口 {port}",
+  "@connectionProxyTorRunning": {
+    "description": "Auto-imported from Tauri connection.proxyTorRunning",
+    "placeholders": {
+      "port": {
+        "type": "String"
+      }
+    }
+  },
+  "connectionProxyTorNotFound": "未检测到 Tor 服务（请先安装并启动 Tor）",
+  "connectionProxyTlsEnable": "启用 TLS (HTTPS)",
+  "connectionProxyTlsVerify": "验证证书",
+  "connectionProxyCaCert": "CA 证书路径 (.pem)",
+  "connectionProxyClientCert": "客户端证书路径 (.pem/.crt)",
+  "connectionProxyClientKey": "客户端私钥路径 (.pem/.key)",
+  "connectionProxyCommand": "ProxyCommand",
+  "connectionProxyCommandPlaceholder": "例如 cloudflared access ssh --hostname %h",
+  "connectionProxyCommandHint": "变量: %h = 主机名, %p = 端口, %r = 用户名。通过 sh -c 执行。",
+  "connectionSync": "同步",
+  "connectionTmuxMode": "tmux 模式",
+  "connectionTmuxDisabled": "禁用 — 普通 shell",
+  "connectionTmuxAuto": "自动 — 检测并自动使用",
+  "connectionTmuxAlways": "始终 — 必须使用 tmux（不可用时报错）",
+  "connectionTmuxCloseAction": "关闭 Tab 行为",
+  "connectionTmuxDetach": "Detach — 保持远程会话运行",
+  "connectionTmuxKill": "Kill — 销毁远程会话",
+  "connectionGitSyncEnable": "启用 Git 自动同步",
+  "connectionGitSyncRemotePath": "远程仓库路径",
+  "connectionGitSyncLocalPath": "本地仓库路径",
+  "connectionGitSyncMode": "同步模式",
+  "connectionGitSyncNotify": "仅通知 — 推送完成时桌面通知",
+  "connectionGitSyncAutoPull": "自动拉取 — 自动 pull 到本地",
+  "connectionGitSyncHint": "请确保远程仓库的 .gitignore 已排除 .env 等敏感文件。",
+  "connectionForwarding": "端口转发",
+  "connectionForwardAdd": "添加转发规则",
+  "connectionForwardLocal": "本地转发",
+  "connectionForwardDynamic": "动态转发 (SOCKS5)",
+  "connectionForwardDynamicHint": "SOCKS5 代理 — 所有浏览器流量通过远程服务器转发",
+  "connectionForwardNone": "暂无转发规则。",
+  "contextConnect": "连接",
+  "contextEdit": "编辑",
+  "contextDuplicate": "复制",
+  "contextRename": "重命名",
+  "contextRenameHint": "请输入新名称",
+  "contextNameRequired": "名称不能为空",
+  "contextMoveTo": "移动到分组",
+  "contextUngroup": "取消分组",
+  "contextDelete": "删除",
+  "contextDeleteConfirm": "确定删除服务器「{name}」？",
+  "@contextDeleteConfirm": {
+    "description": "Auto-imported from Tauri context.deleteConfirm",
+    "placeholders": {
+      "name": {
+        "type": "String"
+      }
+    }
+  },
+  "contextShareWithTeam": "共享给团队",
+  "contextMakePrivate": "设为私有",
+  "contextDeleteGroupConfirm": "确定删除分组「{name}」？分组内服务器将变为未分组。",
+  "@contextDeleteGroupConfirm": {
+    "description": "Auto-imported from Tauri context.deleteGroupConfirm",
+    "placeholders": {
+      "name": {
+        "type": "String"
+      }
+    }
+  },
+  "contextNewSubgroup": "新建子分组",
+  "securityProtectionMode": "凭证保护方式",
+  "securityKeychainActive": "已启用 {platform}，所有密码和密钥安全存储在操作系统密钥管理器中",
+  "@securityKeychainActive": {
+    "description": "Auto-imported from Tauri security.keychainActive",
+    "placeholders": {
+      "platform": {
+        "type": "String"
+      }
+    }
+  },
+  "securityKeychainUnavailable": "操作系统密钥管理器不可用，当前使用本地加密存储",
+  "securityStoredCredentials": "已保护的凭证数量",
+  "securityCredentialHint": "SSH 密码、私钥口令、AI API Key",
+  "securityHowItWorks": "工作原理",
+  "securityHint1": "密码和密钥存储在操作系统的密钥管理器中，不存在 termex.db",
+  "securityHint2": "termex.db 仅保存密钥管理器的引用 ID",
+  "securityHint3": "即使 termex.db 文件泄露，也无法获取任何密码",
+  "hostKeyTitle": "主机密钥验证",
+  "hostKeyWarningTitle": "警告：主机密钥已变更！",
+  "hostKeyWarningDesc": "此服务器的主机密钥已发生变化。这可能表示中间人攻击，或服务器已重新配置。",
+  "hostKeyHost": "主机",
+  "hostKeyKeyType": "类型",
+  "hostKeyFingerprint": "指纹",
+  "hostKeyOldFingerprint": "原指纹",
+  "hostKeyNewFingerprint": "新指纹",
+  "hostKeyAccept": "信任",
+  "hostKeyAcceptChanged": "仍然信任",
+  "hostKeyReject": "拒绝",
+  "keybindingsNewConnection": "新建连接",
+  "keybindingsOpenSettings": "打开设置",
+  "keybindingsToggleSidebar": "切换侧边栏",
+  "keybindingsToggleAi": "切换 AI 面板",
+  "keybindingsCloseTab": "关闭当前标签",
+  "keybindingsNextTab": "下一个标签",
+  "keybindingsPrevTab": "上一个标签",
+  "keybindingsGoToTab": "跳转到第 N 个标签",
+  "keybindingsGoToTab1": "跳转到第 1 个标签",
+  "keybindingsGoToTab2": "跳转到第 2 个标签",
+  "keybindingsGoToTab3": "跳转到第 3 个标签",
+  "keybindingsGoToTab4": "跳转到第 4 个标签",
+  "keybindingsGoToTab5": "跳转到第 5 个标签",
+  "keybindingsGoToTab6": "跳转到第 6 个标签",
+  "keybindingsGoToTab7": "跳转到第 7 个标签",
+  "keybindingsGoToTab8": "跳转到第 8 个标签",
+  "keybindingsGoToTab9": "跳转到第 9 个标签",
+  "keybindingsSearch": "搜索终端",
+  "keybindingsSearchAllTabs": "搜索所有标签页",
+  "keybindingsSplitVertical": "垂直分屏",
+  "keybindingsSplitHorizontal": "水平分屏",
+  "keybindingsClosePaneOrTab": "关闭面板 / 标签",
+  "keybindingsFocusPaneNext": "聚焦下一面板",
+  "keybindingsFocusPanePrev": "聚焦上一面板",
+  "keybindingsFocusPaneUp": "聚焦上方面板",
+  "keybindingsFocusPaneDown": "聚焦下方面板",
+  "keybindingsFocusPaneLeft": "聚焦左侧面板",
+  "keybindingsFocusPaneRight": "聚焦右侧面板",
+  "keybindingsToggleBroadcast": "切换广播模式",
+  "keybindingsRecording": "请按下快捷键...",
+  "keybindingsConflict": "已被「{action}」占用",
+  "@keybindingsConflict": {
+    "description": "Auto-imported from Tauri keybindings.conflict",
+    "placeholders": {
+      "action": {
+        "type": "String"
+      }
+    }
+  },
+  "keybindingsResetOne": "恢复默认",
+  "keybindingsResetAll": "全部重置",
+  "keybindingsResetAllConfirm": "确定将所有快捷键恢复为默认值？",
+  "keybindingsRequireModifier": "快捷键必须包含 Cmd/Ctrl",
+  "keybindingsReserved": "该快捷键被系统保留",
+  "searchPlaceholder": "搜索...",
+  "searchNoResults": "无结果",
+  "searchMatchCount": "{current} / {total}",
+  "@searchMatchCount": {
+    "description": "Auto-imported from Tauri search.matchCount",
+    "placeholders": {
+      "current": {
+        "type": "String"
+      },
+      "total": {
+        "type": "String"
+      }
+    }
+  },
+  "searchCaseSensitive": "区分大小写",
+  "searchRegex": "正则表达式",
+  "searchWholeWord": "全词匹配",
+  "searchClose": "关闭",
+  "searchPreviousMatch": "上一个",
+  "searchNextMatch": "下一个",
+  "searchSearchAllTabs": "搜索所有标签页",
+  "searchSearchBtn": "搜索",
+  "searchSearching": "搜索中...",
+  "searchTotalMatches": "在 {tabs} 个标签页中找到 {count} 个匹配",
+  "@searchTotalMatches": {
+    "description": "Auto-imported from Tauri search.totalMatches",
+    "placeholders": {
+      "tabs": {
+        "type": "String"
+      },
+      "count": {
+        "type": "String"
+      }
+    }
+  },
+  "searchNoMatches": "未找到匹配",
+  "searchMoreMatches": "... 还有 {count} 个匹配",
+  "@searchMoreMatches": {
+    "description": "Auto-imported from Tauri search.moreMatches",
+    "placeholders": {
+      "count": {
+        "type": "String"
+      }
+    }
+  },
+  "searchLine": "行",
+  "searchJumpToMatch": "跳转到匹配",
+  "highlightsTitle": "关键词高亮",
+  "highlightsPattern": "匹配模式",
+  "highlightsRegex": "正则",
+  "highlightsCaseSensitive": "大小写",
+  "highlightsBgColor": "背景色",
+  "highlightsFgColor": "前景色",
+  "highlightsEnabled": "启用",
+  "highlightsAddRule": "添加规则",
+  "highlightsLoadPresets": "加载预设",
+  "highlightsDeleteRule": "删除",
+  "highlightsDeleteConfirm": "确定删除此高亮规则？",
+  "highlightsNoRules": "暂无关键词高亮规则，点击「添加规则」或「加载预设」开始使用。",
+  "highlightsPresetsLoaded": "预设规则已加载",
+  "highlightsPatternRequired": "请输入匹配模式",
+  "highlightsInvalidRegex": "无效的正则表达式",
+  "aiConfigAddProvider": "添加提供商",
+  "aiConfigNoProviders": "暂无 AI 提供商，点击上方添加",
+  "aiConfigProviderName": "名称",
+  "aiConfigProviderType": "类型",
+  "aiConfigModel": "模型",
+  "aiConfigSetDefault": "设为默认",
+  "aiConfigDefault": "默认",
+  "aiConfigDeleteConfirm": "确定删除该 AI 提供商？",
+  "aiConfigTest": "测试",
+  "aiConfigTestSuccess": "连接测试成功",
+  "aiConfigTestFailed": "连接测试失败",
+  "aiConfigLanOllama": "局域网",
+  "backupTitle": "备份与恢复",
+  "backupExport": "导出配置",
+  "backupExportDesc": "将服务器、分组、设置等数据加密导出为 .termex 文件",
+  "backupExportBtn": "导出",
+  "backupExportPasswordHint": "设置导出密码（至少 4 位）",
+  "backupExportSuccess": "导出成功",
+  "backupPasswordTooShort": "密码至少 4 位",
+  "backupImport": "导入配置",
+  "backupImportDesc": "从 .termex 加密文件恢复配置数据",
+  "backupImportBtn": "导入",
+  "backupImportPasswordHint": "输入导出时设置的密码",
+  "backupImportSuccess": "导入成功",
+  "backupRecordingDir": "录制目录",
+  "backupRecordingDirDesc": "终端会话录制文件存储位置",
+  "backupOpenDir": "打开目录",
+  "updateTitle": "版本信息",
+  "updateCurrentVersion": "当前版本",
+  "updateLatestVersion": "最新版本",
+  "updateChecking": "正在检查更新...",
+  "updateUpToDate": "已是最新版本！",
+  "updateCheckFailed": "检查更新失败",
+  "updateReleaseNotes": "更新内容",
+  "updateNoAsset": "没有适用于您平台的安装包，请手动下载",
+  "updateUpgrade": "升级",
+  "updateRetry": "重试",
+  "updateViewRelease": "查看发布",
+  "updateDownloading": "下载中...",
+  "updateDownloadFailed": "下载失败",
+  "updateInstallLaunched": "安装包已打开，应用即将关闭",
+  "updateNewVersion": "新版本可用",
+  "keychainVerificationTitle": "验证凭证",
+  "keychainVerificationMessage": "系统密码可能已经修改，请验证以访问保存的密码。",
+  "keychainVerificationVerify": "验证",
+  "keychainVerificationFailed": "验证失败。查末凭证可能不可用。您仍然可以使用 Termex，但可能需要重新输入密码。",
+  "autocompleteTitle": "智能补全",
+  "autocompleteEnabled": "启用终端内联智能补全",
+  "autocompleteDebounce": "触发延迟",
+  "autocompleteDebounceUnit": "毫秒",
+  "autocompleteMinChars": "最少字符数",
+  "autocompletePreferLocal": "优先使用本地 AI 模型",
+  "autocompletePreferLocalHint": "本地引擎运行时自动使用，延迟更低",
+  "localAiTitle": "本地 AI 模型",
+  "localAiEngineRunning": "推理引擎运行中",
+  "localAiEngineStopped": "推理引擎未运行",
+  "localAiMicroTier": "微型 (~200MB, 2GB 内存)",
+  "localAiMicroDesc": "超轻量级模型，资源使用最少",
+  "localAiSmallTier": "小型 (~400MB, 4GB 内存)",
+  "localAiSmallDesc": "轻量级模型，適合低配置环境，適合基础命令解释",
+  "localAiMediumTier": "中型 (~2GB, 8GB 内存)",
+  "localAiMediumDesc": "性能和质量均衡，適合日常使用",
+  "localAiLargeTier": "大型 (~5GB, 16GB 内存) ⭐ 推荐",
+  "localAiLargeDesc": "最佳质量和能力，推荐使用",
+  "localAiNotDownloaded": "未下载",
+  "localAiDownloading": "下载中",
+  "localAiDownloaded": "已下载",
+  "localAiError": "错误",
+  "localAiVerifying": "正在验证",
+  "localAiSize": "大小",
+  "localAiMinRam": "最低内存",
+  "localAiContextLength": "上下文",
+  "localAiLocalModels": "本地模型",
+  "localAiDownload": "下载",
+  "localAiCancel": "取消",
+  "localAiDelete": "删除",
+  "localAiRetry": "重试",
+  "localAiUseAsProvider": "用作 AI 提供商",
+  "localAiRecommended": "推荐",
+  "localAiDownloadStarted": "开始下载 {name}",
+  "@localAiDownloadStarted": {
+    "description": "Auto-imported from Tauri localAi.downloadStarted",
+    "placeholders": {
+      "name": {
+        "type": "String"
+      }
+    }
+  },
+  "localAiDownloadFailed": "下载失败: {error}",
+  "@localAiDownloadFailed": {
+    "description": "Auto-imported from Tauri localAi.downloadFailed",
+    "placeholders": {
+      "error": {
+        "type": "String"
+      }
+    }
+  },
+  "localAiDownloadCancelled": "已取消下载",
+  "localAiDeleted": "模型已删除",
+  "localAiAddedAsProvider": "已添加为 AI 提供商",
+  "localAiDeleteConfirm": "删除 {name}？此操作不可恢复。",
+  "@localAiDeleteConfirm": {
+    "description": "Auto-imported from Tauri localAi.deleteConfirm",
+    "placeholders": {
+      "name": {
+        "type": "String"
+      }
+    }
+  },
+  "localAiWarning": "警告",
+  "localAiCatalogUpdated": "模型目录已更新。请检查「本地 AI 模型」段落来查看新增模型。",
+  "localAiNoModels": "暂未下载任何本地模型。请先前往「本地 AI 模型」面板下载模型。",
+  "localAiOk": "确定",
+  "localAiAutoStarting": "正在启动本地 AI",
+  "localAiAutoStartingMsg": "{seconds} 秒后自动启动 {model}... 关闭可取消。",
+  "@localAiAutoStartingMsg": {
+    "description": "Auto-imported from Tauri localAi.autoStartingMsg",
+    "placeholders": {
+      "seconds": {
+        "type": "String"
+      },
+      "model": {
+        "type": "String"
+      }
+    }
+  },
+  "localAiStartingModel": "正在加载模型 {model}，请稍候...",
+  "@localAiStartingModel": {
+    "description": "Auto-imported from Tauri localAi.startingModel",
+    "placeholders": {
+      "model": {
+        "type": "String"
+      }
+    }
+  },
+  "localAiStartedModel": "本地 AI 已启动: {model}",
+  "@localAiStartedModel": {
+    "description": "Auto-imported from Tauri localAi.startedModel",
+    "placeholders": {
+      "model": {
+        "type": "String"
+      }
+    }
+  },
+  "localAiReusedInstance": "复用已运行实例: {model}",
+  "@localAiReusedInstance": {
+    "description": "Auto-imported from Tauri localAi.reusedInstance",
+    "placeholders": {
+      "model": {
+        "type": "String"
+      }
+    }
+  },
+  "localAiStartFailed": "本地 AI 启动失败",
+  "localAiSwitchModel": "切换",
+  "localAiAutoStart": "启动时自动加载",
+  "localAiAutoStartHint": "打开 Termex 时自动启动上次使用的模型",
+  "sshConfigImportTitle": "导入 SSH 配置",
+  "sshConfigImportDescription": "从 ~/.ssh/config 导入服务器",
+  "sshConfigPreview": "预览",
+  "sshConfigImporting": "导入中...",
+  "sshConfigSelectAll": "全选",
+  "sshConfigDeselectAll": "取消全选",
+  "sshConfigImportButton": "导入选中",
+  "sshConfigImported": "已导入",
+  "sshConfigSkipped": "已跳过",
+  "sshConfigErrors": "错误",
+  "sshConfigHostAlias": "主机别名",
+  "sshConfigHostname": "主机名",
+  "sshConfigPort": "端口",
+  "sshConfigUser": "用户",
+  "sshConfigAuthType": "认证",
+  "sshConfigAuthKey": "密钥认证",
+  "sshConfigAuthPassword": "密码认证",
+  "sshConfigNoEntries": "未找到 SSH 配置条目",
+  "sshConfigParseWarnings": "解析警告",
+  "sshConfigSelectedCount": "已选 {count}/{total}",
+  "@sshConfigSelectedCount": {
+    "description": "Auto-imported from Tauri sshConfig.selectedCount",
+    "placeholders": {
+      "count": {
+        "type": "String"
+      },
+      "total": {
+        "type": "String"
+      }
+    }
+  },
+  "sshConfigImport": "导入",
+  "sshConfigResultSummary": "已导入 {imported} 个，跳过 {skipped} 个，{errors} 个错误",
+  "@sshConfigResultSummary": {
+    "description": "Auto-imported from Tauri sshConfig.resultSummary",
+    "placeholders": {
+      "imported": {
+        "type": "String"
+      },
+      "skipped": {
+        "type": "String"
+      },
+      "errors": {
+        "type": "String"
+      }
+    }
+  },
+  "sshConfigErrorDetails": "错误详情",
+  "sshConfigDone": "完成",
+  "sshConfigNonInteractive": "非 SSH",
+  "snippetTitle": "命令片段",
+  "snippetSearch": "搜索片段...",
+  "snippetCreate": "新建片段",
+  "snippetCreateTitle": "新建片段",
+  "snippetEditTitle": "编辑片段",
+  "snippetEdit": "编辑片段",
+  "snippetDelete": "删除片段",
+  "snippetDeleteConfirm": "确定要删除这个片段吗？",
+  "snippetExecute": "执行",
+  "snippetSaveAsSnippet": "保存为片段",
+  "snippetSave": "保存",
+  "snippetCancel": "取消",
+  "snippetName": "标题",
+  "snippetTitleLabel": "标题",
+  "snippetTitlePlaceholder": "输入片段标题",
+  "snippetCommand": "命令",
+  "snippetCommandLabel": "命令",
+  "snippetCommandPlaceholder": "输入命令...",
+  "snippetDescription": "描述",
+  "snippetDescriptionLabel": "描述",
+  "snippetDescriptionPlaceholder": "可选描述",
+  "snippetTags": "标签",
+  "snippetTagsLabel": "标签",
+  "snippetTagsPlaceholder": "逗号分隔的标签",
+  "snippetTagsHint": "逗号分隔的标签",
+  "snippetFolder": "文件夹",
+  "snippetFolderLabel": "文件夹",
+  "snippetFolderNone": "无文件夹",
+  "snippetFavorite": "收藏",
+  "snippetFavoriteLabel": "收藏",
+  "snippetUnfavorite": "取消收藏",
+  "snippetNoSnippets": "暂无片段",
+  "snippetEmpty": "暂无片段",
+  "snippetCreateFirst": "创建第一个片段",
+  "snippetNoResults": "没有匹配的片段",
+  "snippetPalette": "片段面板",
+  "snippetPaletteSearch": "搜索片段...",
+  "snippetVariableTitle": "填写变量",
+  "snippetVariablesTitle": "填写变量",
+  "snippetVariableHint": "为模板变量输入值",
+  "snippetUsageCount": "已使用 {count} 次",
+  "@snippetUsageCount": {
+    "description": "Auto-imported from Tauri snippet.usageCount",
+    "placeholders": {
+      "count": {
+        "type": "String"
+      }
+    }
+  },
+  "snippetAllFolders": "全部",
+  "snippetAllFolder": "全部",
+  "snippetNewFolder": "新建文件夹",
+  "snippetFolderName": "文件夹名称",
+  "snippetNavigate": "导航",
+  "snippetRun": "运行",
+  "snippetClose": "关闭",
+  "monitorTitle": "服务器监控",
+  "monitorCollectionInterval": "采集间隔",
+  "monitorAutoStart": "连接时自动启动监控",
+  "monitorVisiblePanels": "显示面板",
+  "teamTitle": "团队协作",
+  "teamDescription": "通过 Git 仓库共享服务器配置。所有凭据使用团队密钥加密。",
+  "teamCreate": "创建团队",
+  "teamJoin": "加入团队",
+  "teamLeave": "离开团队",
+  "teamLeaveConfirm": "确定离开团队？已导入的服务器将保留但不再同步。",
+  "teamLeftSuccess": "已离开团队",
+  "teamSync": "同步到云端",
+  "teamSyncing": "同步到云端...",
+  "teamSyncSuccess": "同步完成：导入 {imported}，推送 {exported}",
+  "@teamSyncSuccess": {
+    "description": "Auto-imported from Tauri team.syncSuccess",
+    "placeholders": {
+      "imported": {
+        "type": "String"
+      },
+      "exported": {
+        "type": "String"
+      }
+    }
+  },
+  "teamSyncUpToDate": "已是最新",
+  "teamTeamName": "团队名称",
+  "teamPassphrase": "团队密码",
+  "teamPassphraseConfirm": "确认密码",
+  "teamPassphraseHint": "所有成员需使用相同密码。请通过安全渠道分享。",
+  "teamRepoUrl": "Git 仓库 URL",
+  "teamRepoUrlHint": "支持 SSH (git@...) 和 HTTPS (https://...)",
+  "teamGitAuth": "Git 认证方式",
+  "teamGitAuthSsh": "SSH Key",
+  "teamGitAuthToken": "HTTPS Token",
+  "teamGitAuthUserPass": "HTTPS 用户名密码",
+  "teamUsername": "你的用户名",
+  "teamUsernameHint": "在团队中显示的名称",
+  "teamRole": "角色",
+  "teamRoleAdmin": "管理员",
+  "teamRoleMember": "成员",
+  "teamRoleReadonly": "只读",
+  "teamMembers": "团队成员",
+  "teamMemberManage": "成员管理",
+  "teamMemberRemove": "移除成员",
+  "teamMemberRemoveConfirm": "确定移除 {name}？",
+  "@teamMemberRemoveConfirm": {
+    "description": "Auto-imported from Tauri team.memberRemoveConfirm",
+    "placeholders": {
+      "name": {
+        "type": "String"
+      }
+    }
+  },
+  "teamShareServer": "共享到团队",
+  "teamShareServerHint": "开启后此服务器配置将同步给所有团队成员",
+  "teamSharedBy": "由 {name} 共享",
+  "@teamSharedBy": {
+    "description": "Auto-imported from Tauri team.sharedBy",
+    "placeholders": {
+      "name": {
+        "type": "String"
+      }
+    }
+  },
+  "teamSharedWithTeam": "已共享给团队 · 下次同步时推送",
+  "teamMakePrivate": "设为私人",
+  "teamReceivedFrom": "来自 {name}",
+  "@teamReceivedFrom": {
+    "description": "Auto-imported from Tauri team.receivedFrom",
+    "placeholders": {
+      "name": {
+        "type": "String"
+      }
+    }
+  },
+  "teamTeamServers": "团队节点",
+  "teamLastSync": "最后同步",
+  "teamNeverSynced": "从未同步",
+  "teamJustNow": "刚刚",
+  "teamMinutesAgo": "分钟前",
+  "teamPendingChanges": "有未推送的变更",
+  "teamCreateSuccess": "团队创建成功",
+  "teamJoinSuccess": "已加入团队",
+  "teamStep1Info": "基本信息",
+  "teamStep2Repo": "仓库配置",
+  "teamStep3Done": "完成",
+  "teamNext": "下一步",
+  "teamDone": "完成",
+  "teamEnterPassphrase": "输入团队密码",
+  "teamPassphraseRequired": "需要团队密码才能同步共享配置。",
+  "teamPassphraseWrong": "团队密码错误",
+  "teamRememberPassphrase": "记住团队密码",
+  "teamRotateKey": "轮换密码",
+  "teamCurrentPassphrase": "当前密码",
+  "teamNewPassphrase": "新密码",
+  "teamPassphraseTooShort": "密码至少 8 个字符",
+  "teamPassphraseMismatch": "两次密码不一致",
+  "teamRotateKeySuccess": "团队密码轮换成功",
+  "recordingTitle": "会话录制",
+  "recordingRetentionPeriod": "保留周期",
+  "recordingRetentionDesc": "超过此期限的录制将在启动时自动清理。",
+  "recordingDays30": "30 天",
+  "recordingDays60": "60 天",
+  "recordingDays90": "90 天",
+  "recordingKeepForever": "永久保留",
+  "recordingCleanup": "清理过期录制",
+  "recordingCleanupResult": "已清理 {count} 条录制",
+  "@recordingCleanupResult": {
+    "description": "Auto-imported from Tauri recording.cleanupResult",
+    "placeholders": {
+      "count": {
+        "type": "String"
+      }
+    }
+  },
+  "recordingStartRecording": "开始录制",
+  "recordingStopRecording": "停止录制",
+  "cloudTitle": "云资源",
+  "cloudRefresh": "刷新",
+  "cloudFilterPods": "搜索 Pod...",
+  "cloudFilterInstances": "搜索实例...",
+  "cloudKubeClusters": "K8s 集群",
+  "cloudKubeConnect": "连接",
+  "cloudKubeViewLogs": "查看日志",
+  "cloudKubePodDetail": "Pod 详情",
+  "cloudKubeSelectContainer": "选择容器",
+  "cloudKubeSelectShell": "Shell",
+  "cloudKubeNoContexts": "未配置集群",
+  "cloudKubeNoPods": "当前命名空间无 Pod",
+  "cloudKubeExecFailed": "进入 Pod 失败",
+  "cloudKubeRbacDenied": "权限不足，需要: pods/exec",
+  "cloudSsmTitle": "AWS SSM",
+  "cloudSsmConnect": "连接",
+  "cloudSsmNoInstances": "无可连接的实例",
+  "cloudSsmAgentOffline": "SSM Agent 离线",
+  "cloudSsmCredExpired": "AWS 凭证已过期，请执行: aws sso login",
+  "cloudLogsTailLines": "尾部行数",
+  "cloudLogsSince": "起始时间",
+  "cloudLogsFollow": "实时跟踪",
+  "cloudLogsStreamEnded": "日志流已结束",
+  "cloudSetupTitle": "云原生配置",
+  "cloudSetupDesc": "连接 K8s 集群和 AWS EC2 实例",
+  "cloudSetupDetected": "已检测到",
+  "cloudSetupNotInstalled": "未安装",
+  "cloudSetupRefresh": "刷新检测",
+  "cloudSetupSkip": "稍后配置",
+  "cloudInstallCopy": "复制安装命令",
+  "cloudTimeout": "连接超时",
+  "cloudToolNotFound": "未找到 {tool}",
+  "@cloudToolNotFound": {
+    "description": "Auto-imported from Tauri cloud.toolNotFound",
+    "placeholders": {
+      "tool": {
+        "type": "String"
+      }
+    }
+  },
+  "cloudTeamFavorites": "团队云资源",
+  "cloudNoTeamFavorites": "暂无团队云资源。在私人区域将 K8s Context 或 AWS Profile 共享给团队。",
+  "teamV2RoleOps": "运维",
+  "teamV2RoleDeveloper": "开发者",
+  "teamV2RoleViewer": "只读",
+  "teamV2RoleCustom": "自定义角色",
+  "teamV2ManageRoles": "管理角色",
+  "teamV2CreateRole": "新建角色",
+  "teamV2DeleteRole": "删除",
+  "teamV2DeleteRoleConfirm": "确定删除此自定义角色？",
+  "teamV2PresetRoleReadonly": "预设",
+  "teamV2CapServerConnect": "连接",
+  "teamV2CapServerCreate": "创建服务器",
+  "teamV2CapServerEdit": "编辑服务器",
+  "teamV2CapServerDelete": "删除服务器",
+  "teamV2CapServerViewCredentials": "查看凭证",
+  "teamV2CapSnippetCreate": "创建片段",
+  "teamV2CapSnippetEdit": "编辑片段",
+  "teamV2CapSnippetDelete": "删除片段",
+  "teamV2CapSnippetExecute": "执行片段",
+  "teamV2CapTeamInvite": "邀请",
+  "teamV2CapTeamRemove": "移除成员",
+  "teamV2CapTeamRoleAssign": "分配角色",
+  "teamV2CapTeamSettingsEdit": "团队设置",
+  "teamV2CapSyncPush": "推送",
+  "teamV2CapSyncPull": "拉取",
+  "teamV2CapAuditView": "查看审计",
+  "teamV2CapAuditExport": "导出审计",
+  "teamV2EditRole": "编辑角色",
+  "teamV2RoleInUse": "该角色正被 {count} 个成员使用",
+  "@teamV2RoleInUse": {
+    "description": "Auto-imported from Tauri teamV2.roleInUse",
+    "placeholders": {
+      "count": {
+        "type": "String"
+      }
+    }
+  },
+  "teamV2CredProtected": "凭证受团队权限保护。",
+  "teamV2CredContactAdmin": "如需查看，请联系管理员。",
+  "teamV2PasswordUpdated": "团队密码已更新，请输入新密码。",
+  "teamV2PasswordPendingUpdate": "团队密码待更新",
+  "teamV2ConflictResolved": "已解决 {count} 个冲突",
+  "@teamV2ConflictResolved": {
+    "description": "Auto-imported from Tauri teamV2.conflictResolved",
+    "placeholders": {
+      "count": {
+        "type": "String"
+      }
+    }
+  },
+  "teamV2NoPermission": "无操作权限",
+  "teamV2NoPermissionDetail": "需要权限: {capability}",
+  "@teamV2NoPermissionDetail": {
+    "description": "Auto-imported from Tauri teamV2.noPermissionDetail",
+    "placeholders": {
+      "capability": {
+        "type": "String"
+      }
+    }
+  },
+  "teamV2AuditDashboard": "审计仪表盘",
+  "teamV2AuditExportReport": "导出...",
+  "teamV2AuditConnections": "连接",
+  "teamV2AuditCredAccess": "凭证",
+  "teamV2AuditConfigChanges": "变更",
+  "teamV2AuditMemberOps": "成员",
+  "teamV2AuditRecentOps": "最近",
+  "teamV2AuditViewAll": "查看全部",
+  "teamV2AuditFilterAll": "全部事件",
+  "teamV2AuditDateRange": "日期范围",
+  "teamV2AuditThisWeek": "本周",
+  "teamV2AuditThisMonth": "本月",
+  "teamV2AuditAll": "全部时间",
+  "teamV2AuditFormatJson": "JSON",
+  "teamV2AuditFormatCsv": "CSV",
+  "teamV2AuditFormatHtml": "HTML",
+  "teamV2InviteMember": "邀请成员",
+  "teamV2InviteRole": "邀请角色",
+  "teamV2InviteExpiry": "有效期",
+  "teamV2InviteGenerate": "生成邀请码",
+  "teamV2InviteCode": "邀请码",
+  "teamV2InviteCopied": "已复制",
+  "teamV2InviteHint": "请将邀请码和团队密码分别发送给被邀请者。",
+  "teamV2InviteExpired": "邀请码已过期",
+  "teamV2InviteInvalid": "无效的邀请码",
+  "teamV2InviteDays": "{n} 天",
+  "@teamV2InviteDays": {
+    "description": "Auto-imported from Tauri teamV2.inviteDays",
+    "placeholders": {
+      "n": {
+        "type": "String"
+      }
+    }
+  },
+  "teamV2JoinViaInvite": "邀请码",
+  "teamV2ConflictTitle": "同步冲突",
+  "teamV2ConflictDesc": "以下项目在本地和远程之间存在冲突变更：",
+  "teamV2ConflictLocalVersion": "本地 (你)",
+  "teamV2ConflictRemoteVersion": "远程 ({user})",
+  "@teamV2ConflictRemoteVersion": {
+    "description": "Auto-imported from Tauri teamV2.conflictRemoteVersion",
+    "placeholders": {
+      "user": {
+        "type": "String"
+      }
+    }
+  },
+  "teamV2ConflictKeepLocal": "保留本地",
+  "teamV2ConflictUseRemote": "使用远程",
+  "teamV2ConflictSkip": "跳过",
+  "teamV2ConflictApply": "应用",
+  "teamV2ConflictAllLocal": "全部本地",
+  "teamV2ConflictAllRemote": "全部远程",
+  "teamV2ConflictPending": "{count} 个冲突待解决",
+  "@teamV2ConflictPending": {
+    "description": "Auto-imported from Tauri teamV2.conflictPending",
+    "placeholders": {
+      "count": {
+        "type": "String"
+      }
+    }
+  },
+  "aboutTagline": "AI 时代永不断线的云端智能工作平台",
+  "aboutUpdateAvailable": "有可用更新 v{version}",
+  "@aboutUpdateAvailable": {
+    "description": "Auto-added for about_tab.dart i18n pilot",
+    "placeholders": {
+      "version": {
+        "type": "String"
+      }
+    }
+  },
+  "aboutUpdateReady": "准备就绪 v{version}",
+  "@aboutUpdateReady": {
+    "description": "Auto-added for about_tab.dart i18n pilot",
+    "placeholders": {
+      "version": {
+        "type": "String"
+      }
+    }
+  },
+  "aboutUpdateFailed": "更新失败: {error}",
+  "@aboutUpdateFailed": {
+    "description": "Auto-added for about_tab.dart i18n pilot",
+    "placeholders": {
+      "error": {
+        "type": "String"
+      }
+    }
+  },
+  "aboutAutoDownload": "自动下载更新",
+  "aboutCheckFrequencyLabel": "检查频率:",
+  "aboutFrequencyHourly": "每小时",
+  "aboutFrequencyDaily": "每天",
+  "aboutFrequencyWeekly": "每周",
+  "aboutCheckNow": "立即检查",
+  "aboutDownloadButton": "下载 v{version}",
+  "@aboutDownloadButton": {
+    "description": "Auto-added for about_tab.dart i18n pilot",
+    "placeholders": {
+      "version": {
+        "type": "String"
+      }
+    }
+  },
+  "aboutApplyAndRestart": "重启并应用",
+  "aboutWebsite": "官网",
+  "aboutSessionPoolTitle": "会话池状态（调试）",
+  "aboutSessionPoolHelp": "多 server 共用同一代理/跳板时复用上游 TCP 连接，每条 entry 显示引用计数与累计传输字节数。",
+  "aboutSessionPoolEmpty": "当前无活跃池条目",
+  "aboutUpdateDownloadingPercent": "下载中 {percent}%",
+  "@aboutUpdateDownloadingPercent": {
+    "description": "Auto-added for about_tab.dart i18n pilot",
+    "placeholders": {
+      "percent": {
+        "type": "String"
+      }
+    }
+  },
+  "commonRefresh": "刷新",
+  "commonLoadFailed": "加载失败：{error}",
+  "@commonLoadFailed": {
+    "description": "Auto-added for about_tab.dart i18n pilot",
+    "placeholders": {
+      "error": {
+        "type": "String"
+      }
+    }
+  },
+  "settingsAi": "AI 助手",
+  "settingsPrivacy": "隐私",
+  "settingsAudit": "审计日志",
+  "settingsLocalAi": "本地 AI",
+  "settingsAbout": "关于",
+  "settingsSearchPlaceholder": "搜索设置…",
+  "settingsSearchNoMatch": "无匹配的设置项",
+  "settingsIdxThemeLabel": "主题",
+  "settingsIdxThemeDesc": "浅色 / 深色 / 跟随系统",
+  "settingsIdxFontLabel": "字体",
+  "settingsIdxFontDesc": "终端字体与字号",
+  "settingsIdxCursorLabel": "光标",
+  "settingsIdxCursorDesc": "光标形状与闪烁",
+  "settingsIdxScrollbackLabel": "滚动缓冲",
+  "settingsIdxScrollbackDesc": "终端历史行数",
+  "settingsIdxTabWidthLabel": "Tab 宽度",
+  "settingsIdxTabWidthDesc": "2 / 4 / 8 空格",
+  "settingsIdxKeybindingsLabel": "快捷键",
+  "settingsIdxKeybindingsDesc": "自定义命令与冲突检测",
+  "settingsIdxAiProviderLabel": "AI Provider",
+  "settingsIdxAiProviderDesc": "Claude / OpenAI / Ollama / Local",
+  "settingsIdxAiContextLabel": "AI 上下文",
+  "settingsIdxAiContextDesc": "发送给 AI 的终端行数",
+  "settingsIdxTeamPassphraseLabel": "团队加密密码",
+  "settingsIdxTeamPassphraseDesc": "团队同步解锁",
+  "settingsIdxPrivacyClearLabel": "隐私数据清除",
+  "settingsIdxPrivacyClearDesc": "连接历史 / AI 对话 / Snippet 统计",
+  "settingsIdxGdprEraseLabel": "GDPR 数据擦除",
+  "settingsIdxGdprEraseDesc": "永久删除所有本地数据",
+  "settingsIdxBackupLabel": "备份导出/导入",
+  "settingsIdxBackupDesc": ".termex 加密文件",
+  "settingsIdxAuditLabel": "审计日志",
+  "settingsIdxAuditDesc": "事件查询 / CSV 导出",
+  "settingsIdxLocalAiLabel": "本地 AI",
+  "settingsIdxLocalAiDesc": "llama-server 端口与模型",
+  "settingsIdxAboutLabel": "关于",
+  "settingsIdxAboutDesc": "版本与许可证",
+  "backupAutoFreqLabel": "自动备份频率",
+  "backupAutoFreqHint": ".termex 加密备份的自动生成周期",
+  "backupFreqOff": "关闭",
+  "backupFreqDaily": "每日",
+  "backupFreqWeekly": "每周",
+  "backupEncryptionNote": ".termex 备份文件使用 AES-256-GCM + Argon2id 加密。",
+  "backupNow": "立即备份",
+  "backupImportConfig": "导入配置",
+  "backupEnterEncryptPassword": "输入加密密码",
+  "backupEnterDecryptPassword": "输入解密密码",
+  "backupDone": "备份完成：{file}",
+  "@backupDone": {
+    "description": "backup_tab.dart i18n",
+    "placeholders": {
+      "file": {
+        "type": "String"
+      }
+    }
+  },
+  "backupFailed": "备份失败：{error}",
+  "@backupFailed": {
+    "description": "backup_tab.dart i18n",
+    "placeholders": {
+      "error": {
+        "type": "String"
+      }
+    }
+  },
+  "backupPasswordHint": "密码（至少 12 位）",
+  "backupConfirm": "确定",
+  "backupHistoryTitle": "备份历史",
+  "backupHistoryClear": "清空",
+  "backupHistoryMaxNote": "保留最近 {max} 条记录",
+  "@backupHistoryMaxNote": {
+    "description": "backup_tab.dart i18n",
+    "placeholders": {
+      "max": {
+        "type": "String"
+      }
+    }
+  },
+  "backupHistoryEmpty": "尚无备份记录",
+  "cloudTabScheduledBackup": "定时备份",
+  "cloudK8sSelectContext": "选择 Context 查看 Pods",
+  "cloudK8sColName": "名称",
+  "cloudK8sColStatus": "状态",
+  "cloudK8sColRestarts": "重启",
+  "cloudK8sColAge": "Age",
+  "cloudK8sColImage": "镜像",
+  "cloudSsmEmpty": "未发现 SSM 实例",
+  "cloudSsmStartSession": "启动会话",
+  "cloudEcsFavoritesTitle": "ECS 收藏夹",
+  "cloudEcsAdd": "添加",
+  "cloudEcsFavoritesEmpty": "尚无收藏的 ECS 实例",
+  "cloudEcsConnect": "连接",
+  "cloudScheduleTitle": "定时备份",
+  "cloudScheduleNew": "新建",
+  "cloudScheduleEmpty": "尚未配置定时备份",
+  "cloudHistoryEmpty": "暂无备份记录",
+  "cloudScheduleWeekly": "每周 {weekday} · {hour}:{minute} UTC",
+  "@cloudScheduleWeekly": {
+    "description": "cloud_panel.dart i18n",
+    "placeholders": {
+      "weekday": {
+        "type": "String"
+      },
+      "hour": {
+        "type": "String"
+      },
+      "minute": {
+        "type": "String"
+      }
+    }
+  },
+  "cloudScheduleMonthly": "每月 {day} 号 · {hour}:{minute} UTC",
+  "@cloudScheduleMonthly": {
+    "description": "cloud_panel.dart i18n",
+    "placeholders": {
+      "day": {
+        "type": "String"
+      },
+      "hour": {
+        "type": "String"
+      },
+      "minute": {
+        "type": "String"
+      }
+    }
+  },
+  "cloudScheduleDaily": "每天 · {hour}:{minute} UTC",
+  "@cloudScheduleDaily": {
+    "description": "cloud_panel.dart i18n",
+    "placeholders": {
+      "hour": {
+        "type": "String"
+      },
+      "minute": {
+        "type": "String"
+      }
+    }
+  },
+  "cloudScheduleRunNow": "立即运行",
+  "cloudScheduleDelete": "删除",
+  "privacyDialogTitle": "隐私政策",
+  "privacyEffectiveDate": "生效日期 · 2026-05-07",
+  "privacyClose": "关闭",
+  "privacySec1Heading": "1. 概述",
+  "privacySec1Body": "Termex 是一款开源 SSH 客户端。我们重视您的隐私：本应用不收集、不传输、不存储任何用户数据到 Termex 服务器 —— Termex 没有任何后端服务器。",
+  "privacySec2Heading": "2. 数据存储",
+  "privacySec2Body": "所有数据仅存储在您的设备本地：\n· 服务器配置：本地 SQLite，SQLCipher AES-256 加密。\n· SSH 密码 / 密钥密语：系统 Keychain（macOS）/ Credential Manager（Windows）/ Secret Service（Linux）。\n· AI API 密钥：同上，存于系统 Keychain。\n· 会话录制：本地文件系统。\n· 监控历史：本地 SQLite，SQLCipher 加密。",
+  "privacySec3Heading": "3. 网络连接",
+  "privacySec3Body": "Termex 仅建立以下网络连接：\n· SSH 连接：直连您指定的服务器，不经过任何中间节点。\n· AI 请求：直连您配置的 AI 服务提供商（OpenAI、Anthropic 等），Termex 不作为代理或中转。\n· 应用更新：检查官方 appcast feed 以获取版本信息。",
+  "privacySec4Heading": "4. 团队同步（可选）",
+  "privacySec4Body": "若您启用团队功能，Termex 会通过您指定的 Git 仓库同步加密后的配置。Termex 不作为同步服务器；所有数据在传输前已用团队密钥加密。",
+  "privacySec5Heading": "5. 您的权利（GDPR / CCPA）",
+  "privacySec5Body": "由于 Termex 不收集任何个人数据：\n· 数据访问 / 导出：所有数据本地可读。\n· 数据删除：设置 → 隐私 → 擦除所有数据。\n· 数据可携：设置 → 数据 → 导出加密备份。",
+  "privacySec6Heading": "6. 联系方式",
+  "privacySec6Body": "完整版隐私政策请见项目仓库 docs/privacy-policy.md。如有任何隐私相关问题，请通过 GitHub Issues 联系我们。",
+  "proxiesTitle": "代理配置",
+  "proxiesAddProxy": "添加代理",
+  "proxiesEmpty": "尚未配置代理\n点击\"添加代理\"创建 HTTP 或 SOCKS5 代理",
+  "proxiesDefault": "默认",
+  "proxiesTestConn": "测试连接",
+  "proxiesTestOk": "代理连接正常 ✓",
+  "proxiesTestFail": "代理连接失败",
+  "proxiesTestError": "测试失败: {error}",
+  "@proxiesTestError": {
+    "placeholders": {
+      "error": {
+        "type": "String"
+      }
+    }
+  },
+  "proxiesSetDefault": "设为默认",
+  "proxiesDelete": "删除",
+  "proxiesDialogName": "名称",
+  "proxiesDialogType": "类型",
+  "proxiesDialogHost": "主机",
+  "proxiesDialogPort": "端口",
+  "proxiesDialogUsername": "用户名",
+  "proxiesDialogPassword": "密码",
+  "proxiesDialogOptional": "（可选）",
+  "proxiesDialogAdd": "添加",
+  "proxiesDefaultName": "代理",
+  "gitSyncExtraReposTitle": "附加仓库",
+  "gitSyncNoExtraRepos": "未配置附加仓库",
+  "gitSyncAddRepo": "添加仓库",
+  "gitSyncAddDialogTitle": "添加 Git Sync 仓库",
+  "gitSyncLocalPath": "本地路径",
+  "gitSyncRemoteUrl": "远端 URL",
+  "gitSyncRemoteUrlGitSsh": "远端 URL (git/ssh)",
+  "gitSyncAdd": "添加",
+  "gitSyncManualSync": "手动同步",
+  "gitSyncEnable": "启用",
+  "gitSyncRowLocal": "本地",
+  "gitSyncRowRemote": "远端",
+  "gitSyncRowLastSync": "最近同步",
+  "gitSyncResolveConflicts": "解决冲突 ({count})",
+  "@gitSyncResolveConflicts": {
+    "placeholders": {
+      "count": {
+        "type": "String"
+      }
+    }
+  },
+  "gitSyncEnableDialogTitle": "启用 Git Sync",
+  "gitSyncLocalRepoPath": "本地仓库路径",
+  "gitSyncRowError": "错误: {message}",
+  "@gitSyncRowError": {
+    "placeholders": {
+      "message": {
+        "type": "String"
+      }
+    }
+  },
+  "sftpSortNameAsc": "名称 ↑",
+  "sftpSortNameDesc": "名称 ↓",
+  "sftpSortSizeDesc": "大小",
+  "sftpSortModifiedDesc": "修改时间",
+  "sftpSortTypeFirst": "类型",
+  "sftpShowHidden": "显示隐藏",
+  "sftpSortTooltip": "排序",
+  "sftpColName": "名称",
+  "sftpColSize": "大小",
+  "sftpColModified": "修改时间",
+  "sftpColPermissions": "权限",
+  "sftpEmptyDir": "（空目录）",
+  "sftpActionDownload": "下载",
+  "sftpActionRename": "重命名",
+  "sftpActionDelete": "删除",
+  "sftpActionChmod": "修改权限",
+  "sftpActionNewFile": "新建文件",
+  "sftpActionNewFolder": "新建文件夹",
+  "sftpActionProperties": "属性",
+  "teamOfflineToast": "网络不可达，进入离线模式",
+  "teamLeaveTitle": "离开团队",
+  "teamLeaveBody": "离开后将删除本地团队数据，不可恢复。",
+  "teamStatMembers": "成员",
+  "teamStatSharedServers": "共享服务器",
+  "teamStatSharedProxies": "共享代理",
+  "teamOfflineBanner": "离线模式 — 仅可浏览本地",
+  "teamMyRole": "我的角色",
+  "teamConflictsCount": "{count} 个同步冲突 — 点击解决",
+  "@teamConflictsCount": {
+    "placeholders": {
+      "count": {
+        "type": "String"
+      }
+    }
+  },
+  "teamItemsCount": "{count} 项",
+  "@teamItemsCount": {
+    "placeholders": {
+      "count": {
+        "type": "String"
+      }
+    }
+  },
+  "teamSyncNow": "立即同步",
+  "teamRelJustNow": "刚刚",
+  "teamRelMinutesAgo": "{n} 分钟前",
+  "@teamRelMinutesAgo": {
+    "placeholders": {
+      "n": {
+        "type": "String"
+      }
+    }
+  },
+  "teamRelHoursAgo": "{n} 小时前",
+  "@teamRelHoursAgo": {
+    "placeholders": {
+      "n": {
+        "type": "String"
+      }
+    }
+  },
+  "teamRelDaysAgo": "{n} 天前",
+  "@teamRelDaysAgo": {
+    "placeholders": {
+      "n": {
+        "type": "String"
+      }
+    }
+  },
+  "teamLeaveButton": "离开团队",
+  "teamDashLocked": "团队功能已锁定",
+  "teamDashUnlock": "解锁团队协作",
+  "teamDashMembersTitle": "团队成员",
+  "teamDashMemberCount": "{count} 名成员",
+  "@teamDashMemberCount": {
+    "placeholders": {
+      "count": {
+        "type": "String"
+      }
+    }
+  },
+  "teamDashLastSyncShort": "上次同步: {ago}",
+  "@teamDashLastSyncShort": {
+    "placeholders": {
+      "ago": {
+        "type": "String"
+      }
+    }
+  },
+  "teamDashInviteMember": "邀请成员",
+  "teamDashConflictsShort": "{count} 个同步冲突",
+  "@teamDashConflictsShort": {
+    "placeholders": {
+      "count": {
+        "type": "String"
+      }
+    }
+  },
+  "teamDashPendingInvites": "待接受邀请",
+  "teamDashSyncShort": "同步",
+  "teamDashResolve": "解决",
+  "teamDashRevokeInvite": "撤销邀请",
+  "recordingCleanupDone": "已清理过期录制文件",
+  "recordingCleanupFailed": "清理失败: {error}",
+  "@recordingCleanupFailed": {
+    "placeholders": {
+      "error": {
+        "type": "String"
+      }
+    }
+  },
+  "recordingSaveSettings": "录制保存设置",
+  "recordingFormat": "录制格式",
+  "recordingFormatJsonSubtitle": "结构化 JSON 格式，支持 asciinema 播放器回放\n体积小，推荐用于分享",
+  "recordingFormatRawSubtitle": "原始终端字节流，适合离线回放\n体积较大，保存完整输出",
+  "recordingStorageNote": "录制文件保存在应用数据目录下的 recordings/ 子目录中。\n超过保留期限的录制文件将在每次启动时自动清理。",
+  "recordingRetentionForever": "永久保留",
+  "recordingRetentionNone": "不保留",
+  "recordingRetentionDays": "{days} 天",
+  "@recordingRetentionDays": {
+    "placeholders": {
+      "days": {
+        "type": "String"
+      }
+    }
+  },
+  "recordingRetentionTitle": "录制保留期限",
+  "recordingForever": "永久",
+  "recordingOneYear": "1年",
+  "recordingCleanupNow": "立即清理过期录制",
+  "recordingCleanupRunning": "清理中…"
+}

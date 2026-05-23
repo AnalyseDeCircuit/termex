@@ -1,7 +1,7 @@
 import 'package:flutter/widgets.dart';
 import 'package:flutter_test/flutter_test.dart';
-import 'package:termex/widgets/text_field.dart';
-import 'package:termex/widgets/form_validators.dart';
+import 'package:termex_shared/widgets/text_field.dart';
+import 'package:termex_shared/widgets/form_validators.dart';
 
 import 'test_helpers.dart';
 

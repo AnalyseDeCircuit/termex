@@ -1,6 +1,6 @@
 import 'package:flutter/widgets.dart';
 import 'package:flutter_test/flutter_test.dart';
-import 'package:termex/widgets/slider.dart';
+import 'package:termex_shared/widgets/slider.dart';
 
 import 'test_helpers.dart';
 
@@ -44,7 +44,7 @@ void main() {
     testWidgets('renders disabled', (tester) async {
       await tester.pumpWidget(
         wrapWidget(
-          SizedBox(
+          const SizedBox(
             width: 300,
             child: TermexSlider(
               value: 0.3,

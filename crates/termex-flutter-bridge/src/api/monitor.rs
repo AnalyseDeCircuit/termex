@@ -163,6 +163,32 @@ pub fn monitor_validate_signal(
 
 // ─── Stats / processes ───────────────────────────────────────────────────────
 
+/// Collects a real-time metrics snapshot for the local host.
+///
+/// Unlike [`monitor_get_stats`], this does not require an SSH session — it
+/// queries the machine Termex itself is running on via `sysinfo`. Used by
+/// local-PTY tabs whose monitor panel previously rendered hard-coded values.
+pub fn monitor_collect_local_stats() -> Result<SystemStats, String> {
+    #[cfg(not(feature = "private"))]
+    {
+        Err("monitor requires the commercial build".into())
+    }
+    #[cfg(feature = "private")]
+    {
+        let s = termex_core_private::monitor::local::collect_local_stats();
+        Ok(SystemStats {
+            cpu_percent: s.cpu_percent,
+            mem_used_mb: s.mem_used_mb,
+            mem_total_mb: s.mem_total_mb,
+            disk_used_gb: s.disk_used_gb,
+            disk_total_gb: s.disk_total_gb,
+            net_rx_bytes: s.net_rx_bytes,
+            net_tx_bytes: s.net_tx_bytes,
+            timestamp: s.timestamp,
+        })
+    }
+}
+
 pub fn monitor_get_stats(session_id: String) -> Result<SystemStats, String> {
     let _ = session_id;
     Ok(SystemStats {

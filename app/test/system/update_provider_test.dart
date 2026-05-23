@@ -1,9 +1,9 @@
 import 'package:flutter_test/flutter_test.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 
-import 'package:termex/system/auto_updater.dart';
-import 'package:termex/system/update_service.dart';
-import 'package:termex/system/state/update_provider.dart';
+import 'package:termex_shared/system/auto_updater.dart';
+import 'package:termex_shared/system/update_service.dart';
+import 'package:termex_shared/system/state/update_provider.dart';
 
 UpdateService _fakeSvc(String xml) => UpdateService(
       currentVersion: '0.48.0',

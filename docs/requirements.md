@@ -255,7 +255,7 @@ Termex:      ✓      ✓     ✓      ✓      ✓
 - **Sidebar 特殊渲染**（徽章 + 引用计数 + 链路预览）
 - **ConnectModal Tab 化重构**（授权信息 + SSH 隧道分离）
 
-详见 [V0.12.0 完整迭代文档](./iterations/v0.12.0-proxyjump-bastion.md)
+详见 [V0.12.0 完整迭代文档](./iterations/v0.12.0-core-proxyjump-bastion.md)
 
 #### V0.13.0 — SFTP 面板完整增强迭代
 
@@ -267,7 +267,7 @@ SFTP 面板生产级增强：修复布局问题、完整右键菜单、剪贴板
 - **权限修改**：chmod 操作，八进制权限编辑
 - **文件信息查看**：模态对话框，显示详细属性
 
-详见 [V0.13.0 完整迭代文档](./iterations/v0.13.0-sftp-enhancement-complete.md)
+详见 [V0.13.0 完整迭代文档](./iterations/v0.13.0-pc-sftp-enhancement-complete.md)
 
 #### V0.14.0 — 终端字体管理完整迭代
 
@@ -279,7 +279,7 @@ SFTP 面板生产级增强：修复布局问题、完整右键菜单、剪贴板
 - **字体删除管理**（下拉列表内直接删除自定义字体）
 - **终端实时热更新**（字体/字号更改即时生效，无需重启终端）
 
-详见 [V0.14.0 完整迭代文档](./iterations/v0.14.0-font-management.md)
+详见 [V0.14.0 完整迭代文档](./iterations/v0.14.0-pc-font-management.md)
 
 #### V0.15.0 — 终端搜索系统完整迭代
 
@@ -289,7 +289,7 @@ SFTP 面板生产级增强：修复布局问题、完整右键菜单、剪贴板
 - **持久化关键词高亮**（自定义规则自动着色 ERROR/WARNING 等关键词，Settings 管理，预设模板）
 - **跨 Tab 搜索**（Cmd+Shift+F 搜索所有打开的终端 Tab，结果分组展示，点击跳转定位）
 
-详见 [V0.15.0 完整迭代文档](./iterations/v0.15.0-terminal-search.md)
+详见 [V0.15.0 完整迭代文档](./iterations/v0.15.0-pc-terminal-search.md)
 
 #### V0.16.0 — 自定义快捷键迭代
 
@@ -301,7 +301,7 @@ SFTP 面板生产级增强：修复布局问题、完整右键菜单、剪贴板
 - **重置能力**（单项重置 + 全局重置到默认值）
 - **持久化**（仅存储差异项，与默认值合并加载，重启保持）
 
-详见 [V0.16.0 完整迭代文档](./iterations/v0.16.0-custom-keybindings.md)
+详见 [V0.16.0 完整迭代文档](./iterations/v0.16.0-pc-custom-keybindings.md)
 
 #### V0.17.0 — 服务器间 SFTP 文件传输迭代
 
@@ -313,7 +313,7 @@ SFTP 面板生产级增强：修复布局问题、完整右键菜单、剪贴板
 - **sftpStore 双栏重构**（单会话模型 → 双栏独立状态，保持向后兼容）
 - **传输进度 + 错误处理**（实时进度条，断连错误提示，与现有传输共存）
 
-详见 [V0.17.0 完整迭代文档](./iterations/v0.17.0-server-to-server-sftp.md)
+详见 [V0.17.0 完整迭代文档](./iterations/v0.17.0-core-server-to-server-sftp.md)
 
 #### V0.18.0 — SSH 代理连接协议支持
 
@@ -325,7 +325,7 @@ SFTP 面板生产级增强：修复布局问题、完整右键菜单、剪贴板
 - **代理 + 跳板机组合**（Client → Proxy → Bastion → Target 完整链路支持）
 - **代理密码安全存储**（OS Keychain + AES-256-GCM 加密，遵循现有凭证安全策略）
 
-详见 [V0.18.0 完整迭代文档](./iterations/v0.18.0-proxy-protocols.md)
+详见 [V0.18.0 完整迭代文档](./iterations/v0.18.0-core-proxy-protocols.md)
 
 #### V0.27.0 — SSH Config 导入 + 命令片段管理器
 
@@ -337,7 +337,7 @@ SFTP 面板生产级增强：修复布局问题、完整右键菜单、剪贴板
 - **片段快速调色板**（Cmd+Shift+P 风格搜索弹窗，一键发送到终端）
 - **AI 联动**（NL2Cmd 结果保存为片段，终端右键 "Save as Snippet"）
 
-详见 [V0.27.0 完整迭代文档](./iterations/v0.27.0-ssh-config-snippets.md)
+详见 [V0.27.0 完整迭代文档](./iterations/v0.27.0-pc-ssh-config-snippets.md)
 
 #### V0.28.0 — 服务器监控仪表盘
 
@@ -349,7 +349,7 @@ SFTP 面板生产级增强：修复布局问题、完整右键菜单、剪贴板
 - **多 OS 支持**（Linux /proc 解析 + macOS 命令适配）
 - **阈值告警**（CPU/磁盘超限桌面通知，侧边栏状态指示）
 
-详见 [V0.28.0 完整迭代文档](./iterations/v0.28.0-server-monitoring.md)
+详见 [V0.28.0 完整迭代文档](./iterations/v0.28.0-pc-server-monitoring.md)
 
 #### V0.29.0 — 会话录制与回放 + AI 会话摘要
 
@@ -361,7 +361,7 @@ SFTP 面板生产级增强：修复布局问题、完整右键菜单、剪贴板
 - **AI 会话摘要**（录制结束后 AI 自动分析操作内容、命令列表、错误处理）
 - **自动录制选项**（每个服务器可独立配置）
 
-详见 [V0.29.0 完整迭代文档](./iterations/v0.29.0-session-recording.md)
+详见 [V0.29.0 完整迭代文档](./iterations/v0.29.0-pc-session-recording.md)
 
 #### V0.30.0 — 团队协作 v1（Git 仓库配置共享）
 
@@ -373,7 +373,7 @@ SFTP 面板生产级增强：修复布局问题、完整右键菜单、剪贴板
 - **角色模型**（admin/member/readonly 三级权限）
 - **审计追踪**（基于 v0.25 audit_logs，记录同步事件）
 
-详见 [V0.30.0 完整迭代文档](./iterations/v0.30.0-team-collaboration.md)
+详见 [V0.30.0 完整迭代文档](./iterations/v0.30.0-core-team-collaboration.md)
 
 #### V0.31.0 — AI 运维助手进化
 
@@ -385,7 +385,7 @@ AI 从"工具级"升级到"助手级"，核心差异化护城河加深。
 - **命令编排**（描述目标 → AI 生成命令序列 → 分步执行）
 - **异常检测**（结合监控数据，AI 发现异常时主动提醒）
 
-详见 [V0.31.0 完整迭代文档](./iterations/v0.31.0-ai-assistant-evolution.md)
+详见 [V0.31.0 完整迭代文档](./iterations/v0.31.0-pc-ai-assistant-evolution.md)
 
 #### V0.32.0 — 终端分屏 + 广播输入
 
@@ -397,7 +397,7 @@ AI 从"工具级"升级到"助手级"，核心差异化护城河加深。
 - **选择性广播**（点击包含/排除特定分屏）
 - **焦点导航**（Cmd+Alt+Arrow 在分屏间移动）
 
-详见 [V0.32.0 完整迭代文档](./iterations/v0.32.0-terminal-split-pane.md)
+详见 [V0.32.0 完整迭代文档](./iterations/v0.32.0-pc-terminal-split-pane.md)
 
 #### V0.33.0 — 云原生集成 v1
 
@@ -409,7 +409,7 @@ AI 从"工具级"升级到"助手级"，核心差异化护城河加深。
 - **容器日志流**（实时 tail 容器日志）
 - **云资源侧边栏**（独立 Cloud 面板，树形浏览云资源）
 
-详见 [V0.33.0 完整迭代文档](./iterations/v0.33.0-cloud-native.md)
+详见 [V0.33.0 完整迭代文档](./iterations/v0.33.0-core-cloud-native.md)
 
 #### V0.34.0 — 团队协作 v2（角色权限 + 审计增强）
 
@@ -421,4 +421,4 @@ AI 从"工具级"升级到"助手级"，核心差异化护城河加深。
 - **冲突解决 UI**（可视化对比本地/远程版本，选择保留策略）
 - **成员管理**（邀请/移除、角色变更、密码轮换）
 
-详见 [V0.34.0 完整迭代文档](./iterations/v0.34.0-team-collaboration-v2.md)
+详见 [V0.34.0 完整迭代文档](./iterations/v0.34.0-core-team-collaboration-v2.md)

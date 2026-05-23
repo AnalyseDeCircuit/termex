@@ -313,7 +313,7 @@ PC 迁移完成后，移动端 4 个迭代重启：
 
 ## 十、相关文档
 
-- **v0.40.0 详细设计**: [v0.40.0-flutter-foundation.md](../iterations/v0.40.0-flutter-foundation.md)
+- **v0.40.0 详细设计**: [v0.40.0-pc-flutter-foundation.md](../iterations/v0.40.0-pc-flutter-foundation.md)
 - **v0.41.0 – v0.49.0**: 各自在 `docs/iterations/` 下
 - **历史 v0.39.0 及之前（Vue+Tauri 时代）**: 保留在 `docs/iterations/` 不变，v0.39.0 是最后一个 Vue+Tauri 正式版本
 - **移动端（保留，内容待调整）**: `v0.60.0-mobile-foundation.md` 等

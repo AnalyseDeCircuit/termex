@@ -1,8 +1,8 @@
 import 'package:flutter/widgets.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:flutter_test/flutter_test.dart';
-import 'package:termex/features/tabs/state/tab_controller.dart';
-import 'package:termex/features/tabs/widgets/tab_bar.dart';
+import 'package:termex_shared/features/tabs/state/tab_controller.dart';
+import 'package:termex_shared/features/tabs/widgets/tab_bar.dart';
 
 PageRoute<T> _route<T>(RouteSettings s, WidgetBuilder b) =>
     PageRouteBuilder<T>(settings: s, pageBuilder: (ctx, _, __) => b(ctx));

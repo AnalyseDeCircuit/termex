@@ -1,6 +1,6 @@
 # v0.52.0 Accessibility Walk Checklist
 
-> Operator-facing checklist for §C4 of [v0.52.0-gap-coverage.md](iterations/v0.52.0-gap-coverage.md).
+> Operator-facing checklist for §C4 of [v0.52.0-pc-gap-coverage.md](iterations/v0.52.0-pc-gap-coverage.md).
 > Automated coverage in `app/integration_test/accessibility_flow_test.dart` (Semantics assertions) is complementary; this checklist validates real AT navigation.
 
 ## Scope

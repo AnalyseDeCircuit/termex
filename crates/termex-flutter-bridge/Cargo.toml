@@ -1,5 +1,5 @@
 [package]
-name        = "termex-flutter-bridge"
+name        = "termex_flutter_bridge"
 version = "0.53.7"
 edition     = "2021"
 license     = "MIT"
@@ -21,16 +21,26 @@ flutter_rust_bridge   = "=2.12.0"
 dashmap               = "5"
 once_cell             = "1"
 chrono                = { version = "0.4", features = ["serde"] }
+time                  = { version = "0.3", features = ["formatting", "parsing"] }
 rusqlite              = { version = "0.32", features = ["bundled-sqlcipher"] }
 dirs                  = "6"
 open                  = "5"
 base64                = "0.22"
+portable-pty          = "0.8"
 ring                  = "0.17"
 regex                 = "1"
 
+# Closed-source companion crate lives in a SIBLING repo (`../../../termex-core-private`).
+# Only resolved when the `private` feature is activated; OSS clones don't need
+# this directory to exist.
+termex-core-private   = { path = "../../../termex-core-private", optional = true }
+
 [features]
 default  = []
-sentinel = ["termex-core/sentinel"]
+# Enables the closed-source sync/cloud/team/recording/monitor implementations
+# carved out of OSS termex-core in Phases 1b–3. Without this feature the
+# corresponding FRB API functions return `Err("... requires the commercial build")`.
+private  = ["dep:termex-core-private"]
 
 [dev-dependencies]
 tempfile.workspace = true

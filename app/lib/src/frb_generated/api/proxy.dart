@@ -6,7 +6,7 @@
 import '../frb_generated.dart';
 import 'package:flutter_rust_bridge/flutter_rust_bridge_for_generated.dart';
 
-// These function are ignored because they are on traits that is not defined in current crate (put an empty `#[frb]` on it to unignore): `assert_receiver_is_total_eq`, `clone`, `clone`, `clone`, `eq`, `fmt`, `fmt`, `fmt`
+// These function are ignored because they are on traits that is not defined in current crate (put an empty `#[frb]` on it to unignore): `assert_fields_are_eq`, `clone`, `clone`, `clone`, `eq`, `fmt`, `fmt`, `fmt`
 // These functions are ignored (category: IgnoreBecauseExplicitAttribute): `as_str`, `from_str`
 
 Future<List<ProxyConfig>> proxyList() =>
@@ -54,6 +54,14 @@ Future<bool> proxyTestConnection({required String id}) =>
 /// Returns the canonical keychain key used to store `proxy_id`'s password.
 Future<String> proxyKeychainKey({required String proxyId}) =>
     TermexBridge.instance.api.crateApiProxyProxyKeychainKey(proxyId: proxyId);
+
+/// Stores a proxy password in the OS keychain. Empty value deletes the entry.
+/// Mirrors `ssh_store_passphrase` — keeps all credential I/O on the Rust side
+/// so the Dart layer never touches platform secret stores directly.
+Future<void> proxyStorePassword(
+        {required String proxyId, required String password}) =>
+    TermexBridge.instance.api
+        .crateApiProxyProxyStorePassword(proxyId: proxyId, password: password);
 
 /// Updates (or inserts) a cached health latency for `proxy_id`.  Called by
 /// the background health-check job.

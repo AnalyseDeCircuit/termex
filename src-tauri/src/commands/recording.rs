@@ -225,7 +225,6 @@ pub async fn recording_summarize(
         .map_err(|e| e.to_string())?
         .ok_or("recording not found")?;
 
-    // Read and parse the .cast file
     let content = std::fs::read_to_string(&meta.file_path).map_err(|e| e.to_string())?;
     let cast = AsciicastFile::parse(&content).map_err(|e| e.to_string())?;
 

@@ -1,12 +1,12 @@
 import 'package:flutter/widgets.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:flutter_test/flutter_test.dart';
-import 'package:termex/features/server_list/models/group_dto.dart';
-import 'package:termex/features/server_list/models/server_dto.dart';
-import 'package:termex/features/server_list/state/group_provider.dart';
-import 'package:termex/features/server_list/state/server_provider.dart';
-import 'package:termex/features/server_list/widgets/server_form_dialog.dart';
-import 'package:termex/widgets/form_validators.dart';
+import 'package:termex_shared/features/server_list/models/group_dto.dart';
+import 'package:termex_shared/features/server_list/models/server_dto.dart';
+import 'package:termex_shared/features/server_list/state/group_provider.dart';
+import 'package:termex_shared/features/server_list/state/server_provider.dart';
+import 'package:termex_shared/features/server_list/widgets/server_form_dialog.dart';
+import 'package:termex_shared/widgets/form_validators.dart';
 
 PageRoute<T> _route<T>(RouteSettings s, WidgetBuilder b) =>
     PageRouteBuilder<T>(settings: s, pageBuilder: (ctx, _, __) => b(ctx));

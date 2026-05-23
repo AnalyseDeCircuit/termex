@@ -72,28 +72,66 @@ Future<String> sftpCanonicalize(
 
 /// Downloads a remote file to `local_path`. Returns immediately; progress
 /// is delivered via [`poll_sftp_progress`].
+///
+/// `offset` lets the Dart side resume a paused transfer by passing in the
+/// already-transferred byte count. A fresh transfer should pass `0`.
+/// Reads a small file entirely into memory. Used by the inline file editor
+/// dialog. Refuses to read if the file size exceeds `max_bytes`.
+Future<Uint8List> sftpReadFileBytes(
+        {required String sessionId,
+        required String path,
+        required int maxBytes}) =>
+    TermexBridge.instance.api.crateApiSftpSftpReadFileBytes(
+        sessionId: sessionId, path: path, maxBytes: maxBytes);
+
+/// Writes the in-memory editor buffer back to `path` (create-or-truncate).
+Future<void> sftpWriteFileBytes(
+        {required String sessionId,
+        required String path,
+        required List<int> data}) =>
+    TermexBridge.instance.api.crateApiSftpSftpWriteFileBytes(
+        sessionId: sessionId, path: path, data: data);
+
 Future<void> sftpDownload(
         {required String sessionId,
         required String remotePath,
         required String localPath,
-        required String transferId}) =>
+        required String transferId,
+        required BigInt offset}) =>
     TermexBridge.instance.api.crateApiSftpSftpDownload(
         sessionId: sessionId,
         remotePath: remotePath,
         localPath: localPath,
-        transferId: transferId);
+        transferId: transferId,
+        offset: offset);
 
 /// Uploads a local file to `remote_path`.
 Future<void> sftpUpload(
         {required String sessionId,
         required String localPath,
         required String remotePath,
-        required String transferId}) =>
+        required String transferId,
+        required BigInt offset}) =>
     TermexBridge.instance.api.crateApiSftpSftpUpload(
         sessionId: sessionId,
         localPath: localPath,
         remotePath: remotePath,
-        transferId: transferId);
+        transferId: transferId,
+        offset: offset);
+
+/// Cooperatively pauses a running transfer (P1.6). The download/upload loop
+/// checks the flag before each chunk and exits cleanly without emitting
+/// `done`. Resume by calling [`sftp_download`] / [`sftp_upload`] again with
+/// the latest `transferredBytes` as `offset`.
+Future<void> sftpPauseTransfer({required String transferId}) =>
+    TermexBridge.instance.api
+        .crateApiSftpSftpPauseTransfer(transferId: transferId);
+
+/// Clears the paused flag for a transfer so a fresh
+/// [`sftp_download`] / [`sftp_upload`] call can begin running. Idempotent.
+Future<void> sftpResumeTransfer({required String transferId}) =>
+    TermexBridge.instance.api
+        .crateApiSftpSftpResumeTransfer(transferId: transferId);
 
 /// Streams a file from one SFTP session to another (server-to-server copy).
 Future<void> sftpTransferBetween(
@@ -221,8 +259,11 @@ class SftpFileDto {
   /// Seconds since Unix epoch.
   final PlatformInt64 modifiedAt;
 
-  /// Owner username, if available.
+  /// Owner username (or uid as string), if available.
   final String? owner;
+
+  /// Group name (or gid as string), if available.
+  final String? group;
 
   const SftpFileDto({
     required this.name,
@@ -233,6 +274,7 @@ class SftpFileDto {
     required this.permissions,
     required this.modifiedAt,
     this.owner,
+    this.group,
   });
 
   @override
@@ -244,7 +286,8 @@ class SftpFileDto {
       size.hashCode ^
       permissions.hashCode ^
       modifiedAt.hashCode ^
-      owner.hashCode;
+      owner.hashCode ^
+      group.hashCode;
 
   @override
   bool operator ==(Object other) =>
@@ -258,5 +301,6 @@ class SftpFileDto {
           size == other.size &&
           permissions == other.permissions &&
           modifiedAt == other.modifiedAt &&
-          owner == other.owner;
+          owner == other.owner &&
+          group == other.group;
 }

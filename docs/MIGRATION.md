@@ -110,3 +110,64 @@ v0.49.0 第一次启动时会检测到现有 `termex.db`，直接读取。**没�
 - Email: feedback@termex.app
 
 **关键信号请在 v0.49 beta 阶段报告**（预计 2026-09 开放 beta），这样 GA 前还来得及修。
+
+---
+
+## v0.69 起：从 Tauri 桌面切换到 Flutter 桌面
+
+> 适用于：仍在使用 **Vue+Tauri** 版本（v0.34.x 及更早，包括从 v0.39 升到 v0.49+ 但仍走老栈的混合包）的用户。
+>
+> 完整退役计划见 [Tauri 退役计划 v0.70.0](iterations/v0.70.0-pc-tauri-retirement.md)。
+
+### 退役时间表（4 阶段，24 个月）
+
+| 版本 | 阶段 | 对你意味着 |
+|---|---|---|
+| v0.69 | **Deprecation 通知** | 老 Tauri 包仍可用；启动时弹一次 banner 建议切换 |
+| v0.70 | **Default switch** | 新安装默认 Flutter；AppCast 触发一次 critical update 让老用户切换 |
+| v0.75 | **CI 移除** | Tauri 不再随官方 release 发布；老栈源码仍在仓库 |
+| v0.80 | **源码删除** | `src-tauri/` + `src/` (Vue) 物理删除；老栈成 git 历史 |
+
+### 切换步骤（极简）
+
+**好消息**：数据库与凭据完全共享，**无需 export/import**：
+
+1. 下载 v0.69+ 的 Flutter 桌面包（DMG / MSIX / AppImage）
+2. 退出现有 Tauri 版 Termex（确保完整关闭，不只是窗口最小化）
+3. 替换 `.app` / `.exe` / AppImage 文件 — 与升级旧版同流程
+4. 启动 Flutter 版，主密码与首次启动一致
+
+完成后你的全部服务器、SSH 密钥、AI 配置、团队设置自动可见。
+
+### 数据兼容性详情
+
+| 数据类型 | 位置 | 是否需要迁移 |
+|---|---|---|
+| 服务器列表 + 设置 | SQLCipher `~/Library/Application Support/termex/termex.db`（同 Tauri） | ❌ 不需要 |
+| SSH 密码 / 密钥口令 | OS Keychain（同前缀 `termex:ssh:...`） | ❌ 不需要 |
+| AI API 密钥 | OS Keychain（同前缀 `termex:ai:apikey:...`） | ❌ 不需要 |
+| 会话录制 | `~/Library/Application Support/termex/recordings/`（同 Tauri） | ❌ 不需要 |
+| 配置文件 / Tab 状态 | `~/.config/termex/`（同 Tauri） | ❌ 不需要 |
+| 主密码 | 仅内存，每次启动输入 | — |
+
+**两栈可同时存在**：v0.69 期间可以并行装 Tauri + Flutter 两个版本，互相切换无副作用（但不要同时开两个实例 — SQLCipher 单文件锁会阻止）。
+
+### 已知行为差异
+
+由于 Flutter 自绘 widget 而非 Element Plus：
+- **视觉略异**：按钮圆角、阴影、动画曲线与 Tauri 版有细微差异；功能等价
+- **字体度量**：终端等宽字体在 Flutter Skia 渲染下 baseline 略有差异，行高可在「设置 → 终端」微调
+- **快捷键**：Cmd+N（新窗口）暂未实现 — Tauri 版有；计划 v0.71+ 恢复
+- **打印视图**：Tauri 版有；Flutter 版暂无（很少使用）
+
+### 回滚
+
+老栈在 v0.75 前都可下载：访问 https://termex.app/legacy 选择 v0.34.x 系列。**stable-legacy 通道保留至 2027-04**（与 v0.39→v0.49 同节奏）。
+
+### 反馈
+
+任何 Tauri → Flutter 切换问题：
+- GitHub: 打 issue 加 `tauri-retirement` 标签
+- 紧急 regression：邮件 feedback@termex.app 主题 `[v0.69]`
+
+我们承诺每 minor 版本发版前列入「Flutter 与 Tauri 行为差异清单」，让你判断切换时机。

@@ -33,8 +33,10 @@ pub struct SftpFileDto {
     pub permissions: u32,
     /// Seconds since Unix epoch.
     pub modified_at: i64,
-    /// Owner username, if available.
+    /// Owner username (or uid as string), if available.
     pub owner: Option<String>,
+    /// Group name (or gid as string), if available.
+    pub group: Option<String>,
 }
 
 // ─── Session lifecycle ────────────────────────────────────────────────────────
@@ -105,6 +107,7 @@ pub async fn sftp_list(
                 permissions: permissions_to_mode(&e.permissions),
                 modified_at: e.mtime.unwrap_or(0) as i64,
                 owner: e.uid.map(|u| u.to_string()),
+                group: e.gid.map(|g| g.to_string()),
             }
         })
         .collect();
@@ -172,19 +175,67 @@ pub async fn sftp_canonicalize(
 
 /// Downloads a remote file to `local_path`. Returns immediately; progress
 /// is delivered via [`poll_sftp_progress`].
+///
+/// `offset` lets the Dart side resume a paused transfer by passing in the
+/// already-transferred byte count. A fresh transfer should pass `0`.
+/// Reads a small file entirely into memory. Used by the inline file editor
+/// dialog. Refuses to read if the file size exceeds `max_bytes`.
+pub async fn sftp_read_file_bytes(
+    session_id: String,
+    path: String,
+    max_bytes: u32,
+) -> Result<Vec<u8>, String> {
+    let handle = session_registry::ensure_sftp(&session_id)
+        .await
+        .map_err(|e| e.to_string())?;
+    let data = handle
+        .read_file(&path)
+        .await
+        .map_err(|e| e.to_string())?;
+    if data.len() > max_bytes as usize {
+        return Err(format!(
+            "file too large: {} bytes (max {})",
+            data.len(),
+            max_bytes
+        ));
+    }
+    Ok(data)
+}
+
+/// Writes the in-memory editor buffer back to `path` (create-or-truncate).
+pub async fn sftp_write_file_bytes(
+    session_id: String,
+    path: String,
+    data: Vec<u8>,
+) -> Result<(), String> {
+    let handle = session_registry::ensure_sftp(&session_id)
+        .await
+        .map_err(|e| e.to_string())?;
+    handle
+        .write_file(&path, &data)
+        .await
+        .map_err(|e| e.to_string())
+}
+
 pub async fn sftp_download(
     session_id: String,
     remote_path: String,
     local_path: String,
     transfer_id: String,
+    offset: u64,
 ) -> Result<(), String> {
     let handle = session_registry::ensure_sftp(&session_id).await?;
     frb_sftp_emitter::register_transfer(transfer_id.clone());
+    let cancel = frb_sftp_emitter::cancel_flag(&transfer_id);
+    cancel.store(false, std::sync::atomic::Ordering::Relaxed);
     let emitter: BoxedSftpEmitter = Arc::new(FrbSftpEmitter);
     let tid = transfer_id.clone();
     tokio::spawn(async move {
         let err_emitter = emitter.clone();
-        if let Err(e) = handle.download(&remote_path, &local_path, &tid, &emitter).await {
+        if let Err(e) = handle
+            .download_resumable(&remote_path, &local_path, &tid, &emitter, offset, Some(cancel))
+            .await
+        {
             err_emitter.emit_error(&tid, &e.to_string());
         }
     });
@@ -197,17 +248,39 @@ pub async fn sftp_upload(
     local_path: String,
     remote_path: String,
     transfer_id: String,
+    offset: u64,
 ) -> Result<(), String> {
     let handle = session_registry::ensure_sftp(&session_id).await?;
     frb_sftp_emitter::register_transfer(transfer_id.clone());
+    let cancel = frb_sftp_emitter::cancel_flag(&transfer_id);
+    cancel.store(false, std::sync::atomic::Ordering::Relaxed);
     let emitter: BoxedSftpEmitter = Arc::new(FrbSftpEmitter);
     let tid = transfer_id.clone();
     tokio::spawn(async move {
         let err_emitter = emitter.clone();
-        if let Err(e) = handle.upload(&local_path, &remote_path, &tid, &emitter).await {
+        if let Err(e) = handle
+            .upload_resumable(&local_path, &remote_path, &tid, &emitter, offset, Some(cancel))
+            .await
+        {
             err_emitter.emit_error(&tid, &e.to_string());
         }
     });
+    Ok(())
+}
+
+/// Cooperatively pauses a running transfer (P1.6). The download/upload loop
+/// checks the flag before each chunk and exits cleanly without emitting
+/// `done`. Resume by calling [`sftp_download`] / [`sftp_upload`] again with
+/// the latest `transferredBytes` as `offset`.
+pub fn sftp_pause_transfer(transfer_id: String) -> Result<(), String> {
+    frb_sftp_emitter::set_paused(&transfer_id, true);
+    Ok(())
+}
+
+/// Clears the paused flag for a transfer so a fresh
+/// [`sftp_download`] / [`sftp_upload`] call can begin running. Idempotent.
+pub fn sftp_resume_transfer(transfer_id: String) -> Result<(), String> {
+    frb_sftp_emitter::set_paused(&transfer_id, false);
     Ok(())
 }
 

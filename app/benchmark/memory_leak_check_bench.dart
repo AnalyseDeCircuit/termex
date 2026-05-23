@@ -6,7 +6,7 @@ library;
 
 import 'package:flutter_test/flutter_test.dart';
 
-import 'package:termex/performance/memory_leak_check.dart';
+import 'package:termex_shared/performance/memory_leak_check.dart';
 
 void main() {
   group('MemoryLeakCheck benchmark', () {

@@ -3,12 +3,14 @@
 
 // ignore_for_file: invalid_use_of_internal_member, unused_import, unnecessary_import
 
+import '../frb_chain_emitter.dart';
 import '../frb_generated.dart';
 import '../frb_ssh_emitter.dart';
 import 'package:flutter_rust_bridge/flutter_rust_bridge_for_generated.dart';
 
 // These functions are ignored because they are not marked as `pub`: `connect_direct`, `load_connect_row`, `mark_last_connected`
 // These types are ignored because they are neither used by any `pub` functions nor (for structs and enums) marked `#[frb(unignore)]`: `ConnectRow`
+// These function are ignored because they are on traits that is not defined in current crate (put an empty `#[frb]` on it to unignore): `clone`, `clone`, `fmt`, `fmt`
 
 /// Opens an SSH session and starts streaming terminal events to a
 /// per-session queue that Dart polls via `poll_ssh_events`.
@@ -26,19 +28,18 @@ Future<String> openSshSession(
 Future<List<SshStreamEvent>> pollSshEvents({required String sessionId}) =>
     TermexBridge.instance.api.crateApiSshPollSshEvents(sessionId: sessionId);
 
-/// Sends raw bytes to the shell stdin of the given session.
+/// Sends raw bytes to the shell stdin. Handles both SSH and local PTY sessions.
 Future<void> writeStdin({required String sessionId, required List<int> data}) =>
     TermexBridge.instance.api
         .crateApiSshWriteStdin(sessionId: sessionId, data: data);
 
-/// Resizes the pseudo-terminal of the given session.
+/// Resizes the pseudo-terminal. Handles both SSH and local PTY sessions.
 Future<void> resizeTerminal(
         {required String sessionId, required int cols, required int rows}) =>
     TermexBridge.instance.api.crateApiSshResizeTerminal(
         sessionId: sessionId, cols: cols, rows: rows);
 
-/// Closes the shell channel of the given session and removes it from the
-/// registry. Idempotent — does nothing if the session is not found.
+/// Closes a session. Handles both SSH and local PTY sessions.
 Future<void> closeSshSession({required String sessionId}) =>
     TermexBridge.instance.api.crateApiSshCloseSshSession(sessionId: sessionId);
 
@@ -72,6 +73,20 @@ Future<String> checkHostKey(
     TermexBridge.instance.api.crateApiSshCheckHostKey(
         host: host, port: port, fingerprint: fingerprint, keyType: keyType);
 
+/// Stores an SSH key passphrase in the OS keychain for [server_id]. Used by
+/// the Flutter passphrase prompt (P2.3) so encrypted private keys can be
+/// unlocked at connect time without requiring the user to re-enter the
+/// secret on each reconnect. An empty value deletes the stored entry.
+Future<void> sshStorePassphrase(
+        {required String serverId, required String passphrase}) =>
+    TermexBridge.instance.api.crateApiSshSshStorePassphrase(
+        serverId: serverId, passphrase: passphrase);
+
+/// Returns true if a key passphrase is currently stored in the keychain for
+/// [server_id]. The value itself is never returned across the bridge.
+Future<bool> sshHasPassphrase({required String serverId}) =>
+    TermexBridge.instance.api.crateApiSshSshHasPassphrase(serverId: serverId);
+
 /// Adds or updates a host-key entry in the `known_hosts` table.
 ///
 /// Uses `INSERT OR REPLACE` to handle both new hosts and key rotation while
@@ -83,3 +98,114 @@ Future<void> trustHostKey(
         required String keyType}) =>
     TermexBridge.instance.api.crateApiSshTrustHostKey(
         host: host, port: port, fingerprint: fingerprint, keyType: keyType);
+
+/// Returns every active entry in the global proxy session pool. Cheap
+/// `RwLock<HashMap>` read; safe to poll at high frequency.
+Future<List<ProxyPoolStat>> sessionPoolStats() =>
+    TermexBridge.instance.api.crateApiSshSessionPoolStats();
+
+/// Drains queued chain-progress events for [session_id]. Polls return any
+/// events accumulated since the last call; Flutter calls this on the same
+/// timer that already drains `poll_ssh_events`.
+Future<List<ChainProgressDto>> pollChainProgress({required String sessionId}) =>
+    TermexBridge.instance.api
+        .crateApiSshPollChainProgress(sessionId: sessionId);
+
+/// Runs the chain algorithm against an in-memory fake connector that
+/// scripts hop outcomes via [hop_failures] — entry `i` is the number of
+/// transient failures the i-th hop simulates before succeeding (capped by
+/// `max_retries_per_hop = 3`; values higher than 3 cause that hop to
+/// permanently fail). Used by the v0.69+ integration tests and the
+/// Flutter reconnect-banner demo path; lets the UI exercise the full
+/// progress event stream without a real bastion.
+Future<void> chainConnectSimulate(
+        {required String sessionId,
+        required List<ChainHopInfo> hops,
+        required List<int> hopFailures,
+        required BigInt backoffBaseMs,
+        required BigInt backoffMaxMs}) =>
+    TermexBridge.instance.api.crateApiSshChainConnectSimulate(
+        sessionId: sessionId,
+        hops: hops,
+        hopFailures: hopFailures,
+        backoffBaseMs: backoffBaseMs,
+        backoffMaxMs: backoffMaxMs);
+
+/// HopConfig surfaced to Dart — mirrors `termex_core::ssh::chain::HopConfig`
+/// but lives here to dodge the FRB orphan-rule restriction on foreign types.
+class ChainHopInfo {
+  final String hopId;
+  final String name;
+  final String host;
+  final int port;
+
+  const ChainHopInfo({
+    required this.hopId,
+    required this.name,
+    required this.host,
+    required this.port,
+  });
+
+  @override
+  int get hashCode =>
+      hopId.hashCode ^ name.hashCode ^ host.hashCode ^ port.hashCode;
+
+  @override
+  bool operator ==(Object other) =>
+      identical(this, other) ||
+      other is ChainHopInfo &&
+          runtimeType == other.runtimeType &&
+          hopId == other.hopId &&
+          name == other.name &&
+          host == other.host &&
+          port == other.port;
+}
+
+/// Snapshot of one entry in the proxy session pool. Surfaces via the debug
+/// panel in `about_tab.dart` so users can verify reuse of upstream
+/// connections when multiple servers share the same proxy/jump host.
+class ProxyPoolStat {
+  /// One of `"socks5"` / `"socks4"` / `"http"` / `"tor"` / `"ssh-jump"`.
+  final String proxyType;
+  final String host;
+  final int port;
+  final String? username;
+  final int refCount;
+
+  /// Unix epoch seconds when the underlying TCP connection was opened.
+  final PlatformInt64 connectedSince;
+  final PlatformInt64 bytesTransferred;
+
+  const ProxyPoolStat({
+    required this.proxyType,
+    required this.host,
+    required this.port,
+    this.username,
+    required this.refCount,
+    required this.connectedSince,
+    required this.bytesTransferred,
+  });
+
+  @override
+  int get hashCode =>
+      proxyType.hashCode ^
+      host.hashCode ^
+      port.hashCode ^
+      username.hashCode ^
+      refCount.hashCode ^
+      connectedSince.hashCode ^
+      bytesTransferred.hashCode;
+
+  @override
+  bool operator ==(Object other) =>
+      identical(this, other) ||
+      other is ProxyPoolStat &&
+          runtimeType == other.runtimeType &&
+          proxyType == other.proxyType &&
+          host == other.host &&
+          port == other.port &&
+          username == other.username &&
+          refCount == other.refCount &&
+          connectedSince == other.connectedSince &&
+          bytesTransferred == other.bytesTransferred;
+}

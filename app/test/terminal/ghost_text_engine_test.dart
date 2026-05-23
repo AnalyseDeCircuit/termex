@@ -1,5 +1,5 @@
 import 'package:flutter_test/flutter_test.dart';
-import 'package:termex/terminal/features/ghost_text/ghost_text_engine.dart';
+import 'package:termex_shared/terminal/features/ghost_text/ghost_text_engine.dart';
 
 void main() {
   group('GhostTextEngine', () {

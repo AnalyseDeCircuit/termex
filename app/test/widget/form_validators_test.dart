@@ -1,5 +1,5 @@
 import 'package:flutter_test/flutter_test.dart';
-import 'package:termex/widgets/form_validators.dart';
+import 'package:termex_shared/widgets/form_validators.dart';
 
 void main() {
   group('Validators.required', () {

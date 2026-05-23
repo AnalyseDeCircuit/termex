@@ -2,9 +2,10 @@ import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:flutter_test/flutter_test.dart';
 
-import 'package:termex/features/settings/tabs/about_tab.dart';
-import 'package:termex/system/update_service.dart';
-import 'package:termex/system/state/update_provider.dart';
+import 'package:termex_shared/features/settings/tabs/about_tab.dart';
+import 'package:termex_shared/l10n/app_localizations.dart';
+import 'package:termex_shared/system/update_service.dart';
+import 'package:termex_shared/system/state/update_provider.dart';
 
 const _xmlWithUpdate = '''
   <rss><channel><item>
@@ -21,7 +22,14 @@ UpdateService _svc(String xml) => UpdateService(
 
 Widget _wrap(UpdateService svc) => ProviderScope(
       overrides: [updateServiceProvider.overrideWithValue(svc)],
-      child: const MaterialApp(home: Scaffold(body: AboutTab())),
+      child: const MaterialApp(
+        // Force zh locale + register l10n delegates so AppLocalizations.of
+        // resolves to the Chinese strings the assertions below check for.
+        locale: Locale('zh'),
+        localizationsDelegates: AppLocalizations.localizationsDelegates,
+        supportedLocales: AppLocalizations.supportedLocales,
+        home: Scaffold(body: AboutTab()),
+      ),
     );
 
 void main() {
@@ -43,8 +51,8 @@ void main() {
     await tester.pumpWidget(_wrap(svc));
     await tester.pump();
 
-    // Default state = idle → "已是最新版本"
-    expect(find.text('已是最新版本'), findsOneWidget);
+    // Default state = idle → updateUpToDate ("已是最新版本！" in zh ARB)
+    expect(find.textContaining('已是最新版本'), findsOneWidget);
 
     // Tap check (TextButton.icon wraps in a subclass on some Flutter versions,
     // so target the label text directly — hit-testing bubbles up to the button)

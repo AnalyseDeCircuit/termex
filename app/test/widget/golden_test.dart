@@ -1,14 +1,13 @@
 import 'package:flutter/widgets.dart';
 import 'package:flutter_test/flutter_test.dart';
 import 'package:golden_toolkit/golden_toolkit.dart';
-import 'package:termex/widgets/avatar.dart';
-import 'package:termex/widgets/badge.dart';
-import 'package:termex/widgets/button.dart';
-import 'package:termex/widgets/card.dart';
-import 'package:termex/widgets/checkbox.dart';
-import 'package:termex/widgets/divider.dart';
-import 'package:termex/widgets/tabs.dart';
-import 'package:termex/widgets/toggle.dart';
+import 'package:termex_shared/widgets/avatar.dart';
+import 'package:termex_shared/widgets/badge.dart';
+import 'package:termex_shared/widgets/button.dart';
+import 'package:termex_shared/widgets/card.dart';
+import 'package:termex_shared/widgets/checkbox.dart';
+import 'package:termex_shared/widgets/divider.dart';
+import 'package:termex_shared/widgets/toggle.dart';
 
 import 'test_helpers.dart';
 

@@ -54,9 +54,16 @@ whoami = "1"
 base64 = "0.22"
 git2 = { version = "0.19", default-features = false, features = ["ssh", "https", "vendored-openssl"] }
 
+# Closed-source companion crate at sibling path. Only resolved when the
+# `private` feature is selected; OSS users don't need the directory to exist.
+termex-core-private = { path = "../../termex-core-private", optional = true }
+
 [features]
 default = []
-sentinel = ["termex-core/sentinel"]
+# Enables closed-source cloud/sync/etc. implementations carved out of OSS.
+# Without this, the corresponding Tauri commands return
+# `Err("... requires the commercial build")`.
+private = ["dep:termex-core-private"]
 
 [dev-dependencies]
 tempfile = "3"

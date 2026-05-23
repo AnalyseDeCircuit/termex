@@ -1,5 +1,6 @@
 use std::collections::VecDeque;
-use std::sync::Mutex;
+use std::sync::atomic::{AtomicBool, Ordering};
+use std::sync::{Arc, Mutex};
 
 use dashmap::DashMap;
 use once_cell::sync::Lazy;
@@ -35,6 +36,35 @@ pub fn register_transfer(transfer_id: String) {
 /// Removes the queue after the final event has been delivered.
 pub fn unregister_transfer(transfer_id: &str) {
     PROGRESS_QUEUES.remove(transfer_id);
+    CANCEL_FLAGS.remove(transfer_id);
+}
+
+/// Per-transfer cancel/pause flags (P1.6).
+///
+/// `sftp_pause_transfer` flips the flag; the running download/upload loop
+/// checks it before each chunk and exits cleanly. `sftp_resume_transfer`
+/// re-arms the flag (sets to false) and spawns a fresh task that calls the
+/// resumable variant with the previously transferred byte count as offset.
+static CANCEL_FLAGS: Lazy<DashMap<String, Arc<AtomicBool>>> = Lazy::new(DashMap::new);
+
+/// Returns (and inserts if missing) the cancel flag for a transfer.
+pub fn cancel_flag(transfer_id: &str) -> Arc<AtomicBool> {
+    if let Some(existing) = CANCEL_FLAGS.get(transfer_id) {
+        return existing.clone();
+    }
+    let flag = Arc::new(AtomicBool::new(false));
+    CANCEL_FLAGS.insert(transfer_id.to_string(), flag.clone());
+    flag
+}
+
+/// Sets the cancel flag to `paused`. Returns true if a flag existed.
+pub fn set_paused(transfer_id: &str, paused: bool) -> bool {
+    if let Some(flag) = CANCEL_FLAGS.get(transfer_id) {
+        flag.store(paused, Ordering::Relaxed);
+        true
+    } else {
+        false
+    }
 }
 
 /// Drains the per-transfer queue. Returns all events queued since the last

@@ -1,17 +1,25 @@
 use once_cell::sync::Lazy;
-use std::sync::Mutex;
+use std::sync::{Arc, Mutex};
 use termex_core::storage::db::Database;
 
-static DB: Lazy<Mutex<Option<Database>>> = Lazy::new(|| Mutex::new(None));
+static DB: Lazy<Mutex<Option<Arc<Database>>>> = Lazy::new(|| Mutex::new(None));
 
 /// Set the global database after unlock. Replaces any existing instance.
 pub fn set_db(db: Database) {
-    *DB.lock().unwrap() = Some(db);
+    *DB.lock().unwrap() = Some(Arc::new(db));
 }
 
 /// Returns true if a database is currently open.
 pub fn is_unlocked() -> bool {
     DB.lock().unwrap().is_some()
+}
+
+/// Returns a cloned `Arc` of the currently-open database, or `None` when no
+/// master password has been verified yet. Used by long-running background
+/// tasks (e.g. the backup scheduler) that need to outlive a single
+/// `with_db` call.
+pub fn arc() -> Option<Arc<Database>> {
+    DB.lock().unwrap().clone()
 }
 
 /// Run a closure with the open database, returning Err("MasterKeyNotUnlocked") if not set.
@@ -21,7 +29,7 @@ where
 {
     let guard = DB.lock().unwrap();
     match guard.as_ref() {
-        Some(db) => f(db),
+        Some(db) => f(db.as_ref()),
         None => Err("MasterKeyNotUnlocked: call verify_master_password first".into()),
     }
 }

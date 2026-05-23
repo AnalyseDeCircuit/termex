@@ -5,40 +5,63 @@ use std::collections::HashMap;
 use portable_pty::{CommandBuilder, NativePtySystem, PtySize, PtySystem};
 use tauri::{AppHandle, Emitter};
 
+// DTOs (always available via OSS termex-core); the async impls that invoke
+// `kubectl` / `aws` subprocesses live in `termex-core-private` and are only
+// linked when the `private` Cargo feature is selected.
 use crate::cloud::{detection, kube, ssm};
 use crate::local_pty::PtyRegistry;
 use crate::state::AppState;
 use crate::storage::cloud_favorites::{CloudFavorite, CloudFavoriteInput};
 
+#[cfg(not(feature = "private"))]
+const NO_PRIVATE_MSG: &str = "cloud features require the commercial build";
+
 // ── Detection ────────────────────────────────────────────────
 
 #[tauri::command]
 pub async fn cloud_detect_tools() -> Result<Vec<detection::ToolStatus>, String> {
-    Ok(detection::detect_all().await)
+    #[cfg(feature = "private")]
+    { Ok(termex_core_private::cloud::detection::detect_all().await) }
+    #[cfg(not(feature = "private"))]
+    { Err(NO_PRIVATE_MSG.into()) }
 }
 
 #[tauri::command]
 pub async fn cloud_kube_available() -> Result<bool, String> {
-    Ok(detection::detect_kubectl().await.available)
+    #[cfg(feature = "private")]
+    { Ok(termex_core_private::cloud::detection::detect_kubectl().await.available) }
+    #[cfg(not(feature = "private"))]
+    { Ok(false) }
 }
 
 #[tauri::command]
 pub async fn cloud_ssm_available() -> Result<bool, String> {
-    let aws = detection::detect_aws_cli().await;
-    let ssm = detection::detect_ssm_plugin().await;
-    Ok(aws.available && ssm.available)
+    #[cfg(feature = "private")]
+    {
+        let aws = termex_core_private::cloud::detection::detect_aws_cli().await;
+        let ssm = termex_core_private::cloud::detection::detect_ssm_plugin().await;
+        Ok(aws.available && ssm.available)
+    }
+    #[cfg(not(feature = "private"))]
+    { Ok(false) }
 }
 
 // ── K8s ──────────────────────────────────────────────────────
 
 #[tauri::command]
 pub async fn cloud_kube_list_contexts() -> Result<Vec<kube::KubeContext>, String> {
-    kube::list_contexts().await
+    #[cfg(feature = "private")]
+    { termex_core_private::cloud::kube::list_contexts().await }
+    #[cfg(not(feature = "private"))]
+    { Err(NO_PRIVATE_MSG.into()) }
 }
 
 #[tauri::command]
 pub async fn cloud_kube_list_namespaces(context: String) -> Result<Vec<String>, String> {
-    kube::list_namespaces(&context).await
+    #[cfg(feature = "private")]
+    { termex_core_private::cloud::kube::list_namespaces(&context).await }
+    #[cfg(not(feature = "private"))]
+    { let _ = context; Err(NO_PRIVATE_MSG.into()) }
 }
 
 #[tauri::command]
@@ -46,7 +69,10 @@ pub async fn cloud_kube_list_pods(
     context: String,
     namespace: String,
 ) -> Result<Vec<kube::PodInfo>, String> {
-    kube::list_pods(&context, &namespace).await
+    #[cfg(feature = "private")]
+    { termex_core_private::cloud::kube::list_pods(&context, &namespace).await }
+    #[cfg(not(feature = "private"))]
+    { let _ = (context, namespace); Err(NO_PRIVATE_MSG.into()) }
 }
 
 #[tauri::command]
@@ -113,7 +139,10 @@ pub fn cloud_kube_exec(
 
 #[tauri::command]
 pub async fn cloud_ssm_list_profiles() -> Result<Vec<String>, String> {
-    ssm::list_profiles().await
+    #[cfg(feature = "private")]
+    { termex_core_private::cloud::ssm::list_profiles().await }
+    #[cfg(not(feature = "private"))]
+    { Err(NO_PRIVATE_MSG.into()) }
 }
 
 #[tauri::command]
@@ -121,7 +150,10 @@ pub async fn cloud_ssm_list_instances(
     profile: Option<String>,
     region: Option<String>,
 ) -> Result<Vec<ssm::SsmInstance>, String> {
-    ssm::list_instances(profile.as_deref(), region.as_deref()).await
+    #[cfg(feature = "private")]
+    { termex_core_private::cloud::ssm::list_instances(profile.as_deref(), region.as_deref()).await }
+    #[cfg(not(feature = "private"))]
+    { let _ = (profile, region); Err(NO_PRIVATE_MSG.into()) }
 }
 
 #[tauri::command]

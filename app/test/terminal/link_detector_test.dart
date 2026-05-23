@@ -1,5 +1,5 @@
 import 'package:flutter_test/flutter_test.dart';
-import 'package:termex/terminal/features/link_detect/link_detector.dart';
+import 'package:termex_shared/terminal/features/link_detect/link_detector.dart';
 
 void main() {
   group('LinkDetector', () {

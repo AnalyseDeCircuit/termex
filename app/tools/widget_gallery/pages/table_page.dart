@@ -1,6 +1,6 @@
 import 'package:flutter/widgets.dart';
-import 'package:termex/design/tokens.dart';
-import 'package:termex/widgets/table.dart';
+import 'package:termex_shared/design/tokens.dart';
+import 'package:termex_shared/widgets/table.dart';
 
 class _ServerRow {
   final String name;

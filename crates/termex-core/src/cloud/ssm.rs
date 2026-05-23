@@ -1,8 +1,7 @@
-use std::time::Duration;
-use tokio::process::Command;
-use tokio::time::timeout;
-
-const CLI_TIMEOUT: Duration = Duration::from_secs(30);
+//! DTOs and pure parsers for AWS SSM Session Manager.
+//!
+//! The async `aws` CLI invocations (list_profiles, list_instances) live
+//! in `termex-core-private::cloud::ssm`.
 
 #[derive(Debug, Clone, serde::Serialize, serde::Deserialize)]
 #[serde(rename_all = "camelCase")]
@@ -15,32 +14,7 @@ pub struct SsmInstance {
     pub ping_status: String,
 }
 
-async fn run_aws(args: &[&str]) -> Result<String, String> {
-    let output = timeout(
-        CLI_TIMEOUT,
-        Command::new("aws").args(args).output(),
-    )
-    .await
-    .map_err(|_| format!("aws cli timed out after {}s", CLI_TIMEOUT.as_secs()))?
-    .map_err(|e| format!("aws cli not found: {}", e))?;
-
-    if !output.status.success() {
-        let stderr = String::from_utf8_lossy(&output.stderr);
-        return Err(stderr.trim().to_string());
-    }
-
-    Ok(String::from_utf8_lossy(&output.stdout).to_string())
-}
-
-pub async fn list_profiles() -> Result<Vec<String>, String> {
-    let output = run_aws(&["configure", "list-profiles"]).await?;
-    Ok(output
-        .lines()
-        .map(|s| s.trim().to_string())
-        .filter(|s| !s.is_empty())
-        .collect())
-}
-
+/// Parses `aws ssm describe-instance-information --output json` output.
 pub fn parse_instances(json_str: &str) -> Result<Vec<SsmInstance>, String> {
     let doc: serde_json::Value =
         serde_json::from_str(json_str).map_err(|e| format!("Invalid JSON: {}", e))?;
@@ -99,31 +73,4 @@ pub fn parse_instances(json_str: &str) -> Result<Vec<SsmInstance>, String> {
     }
 
     Ok(result)
-}
-
-pub async fn list_instances(
-    profile: Option<&str>,
-    region: Option<&str>,
-) -> Result<Vec<SsmInstance>, String> {
-    let mut args = vec![
-        "ssm",
-        "describe-instance-information",
-        "--output",
-        "json",
-    ];
-    let profile_flag;
-    if let Some(p) = profile {
-        profile_flag = p.to_string();
-        args.push("--profile");
-        args.push(&profile_flag);
-    }
-    let region_flag;
-    if let Some(r) = region {
-        region_flag = r.to_string();
-        args.push("--region");
-        args.push(&region_flag);
-    }
-
-    let output = run_aws(&args).await?;
-    parse_instances(&output)
 }

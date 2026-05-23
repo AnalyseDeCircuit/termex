@@ -1,6 +1,6 @@
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:flutter_test/flutter_test.dart';
-import 'package:termex/features/ai/state/conversation_provider.dart';
+import 'package:termex_shared/features/ai/state/conversation_provider.dart';
 
 void main() {
   group('ConversationNotifier', () {

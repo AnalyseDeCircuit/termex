@@ -1,3 +1,5 @@
+#![cfg(feature = "private")]
+
 use termex_lib::team::crypto::{
     create_verify_token, derive_team_key, generate_team_salt, re_encrypt,
     team_decrypt, team_encrypt, verify_passphrase, VERIFY_PLAINTEXT,

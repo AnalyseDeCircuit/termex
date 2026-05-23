@@ -8,7 +8,7 @@ import 'package:flutter_rust_bridge/flutter_rust_bridge_for_generated.dart';
 
 // These functions are ignored because they are not marked as `pub`: `build_request`, `build_terminal_context`, `default_model_for`, `provider_from_str`, `provider_to_str`, `redact_sensitive`, `role_from_str`, `role_to_str`, `to_kind`
 // These types are ignored because they are neither used by any `pub` functions nor (for structs and enums) marked `#[frb(unignore)]`: `TokenUsage`
-// These function are ignored because they are on traits that is not defined in current crate (put an empty `#[frb]` on it to unignore): `assert_receiver_is_total_eq`, `assert_receiver_is_total_eq`, `clone`, `clone`, `clone`, `clone`, `clone`, `clone`, `clone`, `eq`, `eq`, `fmt`, `fmt`, `fmt`, `fmt`, `fmt`, `fmt`, `fmt`
+// These function are ignored because they are on traits that is not defined in current crate (put an empty `#[frb]` on it to unignore): `assert_fields_are_eq`, `assert_fields_are_eq`, `clone`, `clone`, `clone`, `clone`, `clone`, `clone`, `clone`, `eq`, `eq`, `fmt`, `fmt`, `fmt`, `fmt`, `fmt`, `fmt`, `fmt`
 
 /// Create a new conversation, persist its header, and return the DTO.
 Future<ConversationDto> aiCreateConversation(
@@ -277,12 +277,20 @@ class AiProviderConfig {
   /// Max tokens to send as context from terminal scrollback.
   final int contextLines;
 
+  /// Sampling temperature [0.0, 2.0]. None = provider default.
+  final double? temperature;
+
+  /// Maximum tokens for completion output. None = provider default.
+  final int? maxTokens;
+
   const AiProviderConfig({
     required this.provider,
     required this.model,
     this.apiKey,
     this.baseUrl,
     required this.contextLines,
+    this.temperature,
+    this.maxTokens,
   });
 
   @override
@@ -291,7 +299,9 @@ class AiProviderConfig {
       model.hashCode ^
       apiKey.hashCode ^
       baseUrl.hashCode ^
-      contextLines.hashCode;
+      contextLines.hashCode ^
+      temperature.hashCode ^
+      maxTokens.hashCode;
 
   @override
   bool operator ==(Object other) =>
@@ -302,7 +312,9 @@ class AiProviderConfig {
           model == other.model &&
           apiKey == other.apiKey &&
           baseUrl == other.baseUrl &&
-          contextLines == other.contextLines;
+          contextLines == other.contextLines &&
+          temperature == other.temperature &&
+          maxTokens == other.maxTokens;
 }
 
 /// A stored conversation header (no messages).

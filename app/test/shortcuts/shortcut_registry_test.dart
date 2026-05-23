@@ -1,7 +1,7 @@
 import 'package:flutter_test/flutter_test.dart';
 
-import 'package:termex/shortcuts/shortcut_registry.dart';
-import 'package:termex/shortcuts/shortcut_scope.dart';
+import 'package:termex_shared/shortcuts/shortcut_registry.dart';
+import 'package:termex_shared/shortcuts/shortcut_scope.dart';
 
 void main() {
   setUp(() => ShortcutRegistry.instance.clear());
@@ -32,9 +32,9 @@ void main() {
     });
 
     test('unregister removes binding', () {
-      ShortcutRegistry.instance.register(ShortcutBinding(
+      ShortcutRegistry.instance.register(const ShortcutBinding(
         commandId: 'rm.action',
-        combo: const KeyCombination('ctrl+d'),
+        combo: KeyCombination('ctrl+d'),
         scope: ShortcutScope.global,
       ));
       ShortcutRegistry.instance.unregister('rm.action');
@@ -44,14 +44,14 @@ void main() {
     });
 
     test('register overwrites existing commandId', () {
-      ShortcutRegistry.instance.register(ShortcutBinding(
+      ShortcutRegistry.instance.register(const ShortcutBinding(
         commandId: 'dup.action',
-        combo: const KeyCombination('cmd+a'),
+        combo: KeyCombination('cmd+a'),
         scope: ShortcutScope.global,
       ));
-      ShortcutRegistry.instance.register(ShortcutBinding(
+      ShortcutRegistry.instance.register(const ShortcutBinding(
         commandId: 'dup.action',
-        combo: const KeyCombination('cmd+b'),
+        combo: KeyCombination('cmd+b'),
         scope: ShortcutScope.global,
       ));
       expect(ShortcutRegistry.instance.all.length, equals(1));
@@ -81,14 +81,14 @@ void main() {
     });
 
     test('forScope returns only capturable bindings', () {
-      ShortcutRegistry.instance.register(ShortcutBinding(
+      ShortcutRegistry.instance.register(const ShortcutBinding(
         commandId: 'global.action',
-        combo: const KeyCombination('cmd+g'),
+        combo: KeyCombination('cmd+g'),
         scope: ShortcutScope.global,
       ));
-      ShortcutRegistry.instance.register(ShortcutBinding(
+      ShortcutRegistry.instance.register(const ShortcutBinding(
         commandId: 'terminal.action',
-        combo: const KeyCombination('cmd+f'),
+        combo: KeyCombination('cmd+f'),
         scope: ShortcutScope.terminal,
       ));
 
@@ -123,9 +123,9 @@ void main() {
     });
 
     test('checkConflict detects collision', () {
-      ShortcutRegistry.instance.register(ShortcutBinding(
+      ShortcutRegistry.instance.register(const ShortcutBinding(
         commandId: 'existing',
-        combo: const KeyCombination('cmd+k'),
+        combo: KeyCombination('cmd+k'),
         scope: ShortcutScope.global,
       ));
       final conflict = ShortcutRegistry.instance.checkConflict(
@@ -134,9 +134,9 @@ void main() {
     });
 
     test('checkConflict ignores excluded commandId', () {
-      ShortcutRegistry.instance.register(ShortcutBinding(
+      ShortcutRegistry.instance.register(const ShortcutBinding(
         commandId: 'self',
-        combo: const KeyCombination('cmd+k'),
+        combo: KeyCombination('cmd+k'),
         scope: ShortcutScope.global,
       ));
       final conflict = ShortcutRegistry.instance.checkConflict(

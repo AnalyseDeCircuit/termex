@@ -1,0 +1,503 @@
+/// Single-layer inline form for editing one provider's configuration.
+/// Replaces the previous dialog-based flow so the entire AI settings page
+/// works without nested popups.
+library;
+
+import 'package:flutter/material.dart';
+import 'package:flutter_riverpod/flutter_riverpod.dart';
+
+import '../../../design/tokens.dart';
+import '../local_ai/local_model_picker.dart';
+import '../local_ai/server_status.dart';
+import '../state/conversation_provider.dart';
+import '../state/local_ai_provider.dart';
+import '../state/provider_config_provider.dart';
+import '../../settings/state/settings_provider.dart';
+import 'provider_registry.dart';
+
+class ProviderInlineForm extends ConsumerStatefulWidget {
+  final AiProvider provider;
+  final VoidCallback onClose;
+
+  const ProviderInlineForm({
+    super.key,
+    required this.provider,
+    required this.onClose,
+  });
+
+  @override
+  ConsumerState<ProviderInlineForm> createState() => _ProviderInlineFormState();
+}
+
+class _ProviderInlineFormState extends ConsumerState<ProviderInlineForm> {
+  late TextEditingController _apiKeyCtrl;
+  late TextEditingController _baseUrlCtrl;
+  late String _model;
+  late int _contextLines;
+  bool _obscureKey = true;
+  String? _statusMessage;
+  bool _statusOk = false;
+
+  @override
+  void initState() {
+    super.initState();
+    final meta = metaFor(widget.provider);
+    final cfg = ref.read(providerConfigProvider).configs[widget.provider];
+    _apiKeyCtrl = TextEditingController(text: cfg?.apiKey ?? '');
+    _baseUrlCtrl = TextEditingController(
+      text: cfg?.baseUrl ??
+          (widget.provider == AiProvider.ollama
+              ? 'http://localhost:11434'
+              : ''),
+    );
+    final fallback =
+        meta.models.isNotEmpty ? meta.models.first : '';
+    _model = (cfg?.model.isNotEmpty ?? false) ? cfg!.model : fallback;
+    _contextLines = cfg?.contextLines ?? 100;
+  }
+
+  @override
+  void dispose() {
+    _apiKeyCtrl.dispose();
+    _baseUrlCtrl.dispose();
+    super.dispose();
+  }
+
+  void _save() {
+    if (_model.isEmpty) {
+      setState(() {
+        _statusOk = false;
+        _statusMessage = '请选择模型';
+      });
+      return;
+    }
+    final config = AiProviderConfig(
+      provider: widget.provider,
+      model: _model,
+      apiKey: _apiKeyCtrl.text.trim().isEmpty ? null : _apiKeyCtrl.text.trim(),
+      baseUrl:
+          _baseUrlCtrl.text.trim().isEmpty ? null : _baseUrlCtrl.text.trim(),
+      contextLines: _contextLines,
+    );
+    ref.read(providerConfigProvider.notifier).updateConfig(config);
+    widget.onClose();
+  }
+
+  Future<void> _verify() async {
+    final key = _apiKeyCtrl.text.trim();
+    if (key.isEmpty) {
+      setState(() {
+        _statusOk = false;
+        _statusMessage = '请填写 API Key';
+      });
+      return;
+    }
+    final ok = await ref
+        .read(providerConfigProvider.notifier)
+        .verifyApiKey(widget.provider, key);
+    if (!mounted) return;
+    final err = ref.read(providerConfigProvider).verifyError;
+    setState(() {
+      _statusOk = ok;
+      _statusMessage = ok ? '验证成功' : (err ?? '验证失败');
+    });
+  }
+
+  @override
+  Widget build(BuildContext context) {
+    final meta = metaFor(widget.provider);
+    final cfgState = ref.watch(providerConfigProvider);
+    final isLocal = widget.provider == AiProvider.localLlama;
+
+    return Container(
+      decoration: const BoxDecoration(
+        color: TermexColors.backgroundSecondary,
+        border: Border(top: BorderSide(color: TermexColors.border)),
+      ),
+      padding: const EdgeInsets.all(12),
+      child: Column(
+        crossAxisAlignment: CrossAxisAlignment.stretch,
+        children: [
+          Text(meta.description,
+              style: const TextStyle(
+                  fontSize: 11, color: TermexColors.textSecondary)),
+          const SizedBox(height: 12),
+
+          if (meta.requiresApiKey) ...[
+            const _Label('API Key'),
+            Row(
+              children: [
+                Expanded(
+                  child: _textField(
+                    controller: _apiKeyCtrl,
+                    hint: '${meta.label} API key',
+                    obscure: _obscureKey,
+                    suffix: GestureDetector(
+                      onTap: () =>
+                          setState(() => _obscureKey = !_obscureKey),
+                      child: Icon(
+                        _obscureKey
+                            ? Icons.visibility_off
+                            : Icons.visibility,
+                        size: 14,
+                        color: TermexColors.textSecondary,
+                      ),
+                    ),
+                  ),
+                ),
+                const SizedBox(width: 8),
+                _SmallBtn(
+                  label: cfgState.isVerifying ? '…' : '验证',
+                  onTap: cfgState.isVerifying ? null : _verify,
+                ),
+              ],
+            ),
+            const SizedBox(height: 10),
+          ],
+
+          if (meta.requiresBaseUrl) ...[
+            const _Label('Base URL'),
+            _textField(
+              controller: _baseUrlCtrl,
+              hint: 'http://localhost:11434',
+            ),
+            const SizedBox(height: 10),
+          ],
+
+          // Model selector — local provider gets the embedded picker.
+          const _Label('模型'),
+          if (isLocal)
+            LocalModelPicker(
+              selectedModelId: _model,
+              onSelected: (id) => setState(() => _model = id),
+            )
+          else
+            _modelDropdown(meta.models),
+          const SizedBox(height: 10),
+
+          const _Label('终端上下文行数'),
+          DropdownButtonFormField<int>(
+            initialValue: _contextLines,
+            isDense: true,
+            dropdownColor: TermexColors.backgroundSecondary,
+            style:
+                const TextStyle(fontSize: 12, color: TermexColors.textPrimary),
+            decoration: _decoration(''),
+            items: const [50, 100, 200, 500]
+                .map((n) =>
+                    DropdownMenuItem(value: n, child: Text('$n 行')))
+                .toList(),
+            onChanged: (v) => setState(() => _contextLines = v!),
+          ),
+
+          if (isLocal) ...[
+            const SizedBox(height: 16),
+            const Divider(color: TermexColors.border, height: 1),
+            const SizedBox(height: 12),
+            const Text('llama-server 引擎',
+                style: TextStyle(
+                  fontSize: 12,
+                  fontWeight: FontWeight.w600,
+                  color: TermexColors.textPrimary,
+                )),
+            const SizedBox(height: 10),
+            const _LocalEngineSettings(),
+            const SizedBox(height: 12),
+            const _LocalEngineStatus(),
+          ],
+
+          if (_statusMessage != null) ...[
+            const SizedBox(height: 10),
+            Text(
+              _statusMessage!,
+              style: TextStyle(
+                fontSize: 11,
+                color: _statusOk
+                    ? TermexColors.success
+                    : TermexColors.danger,
+              ),
+            ),
+          ],
+
+          const SizedBox(height: 12),
+          Row(
+            mainAxisAlignment: MainAxisAlignment.end,
+            children: [
+              _SmallBtn(label: '取消', onTap: widget.onClose),
+              const SizedBox(width: 8),
+              _SmallBtn(
+                label: '保存',
+                primary: true,
+                onTap: _save,
+              ),
+            ],
+          ),
+        ],
+      ),
+    );
+  }
+
+  Widget _textField({
+    required TextEditingController controller,
+    required String hint,
+    bool obscure = false,
+    Widget? suffix,
+  }) {
+    return TextField(
+      controller: controller,
+      obscureText: obscure,
+      style: const TextStyle(fontSize: 12, color: TermexColors.textPrimary),
+      decoration: _decoration(hint, suffix: suffix),
+    );
+  }
+
+  Widget _modelDropdown(List<String> models) {
+    final value = models.contains(_model)
+        ? _model
+        : (models.isNotEmpty ? models.first : null);
+    return DropdownButtonFormField<String>(
+      initialValue: value,
+      isDense: true,
+      dropdownColor: TermexColors.backgroundSecondary,
+      style: const TextStyle(fontSize: 12, color: TermexColors.textPrimary),
+      decoration: _decoration(''),
+      items: models
+          .map((m) => DropdownMenuItem(value: m, child: Text(m)))
+          .toList(),
+      onChanged: (v) => setState(() => _model = v ?? _model),
+    );
+  }
+
+  InputDecoration _decoration(String hint, {Widget? suffix}) =>
+      InputDecoration(
+        hintText: hint,
+        hintStyle:
+            const TextStyle(fontSize: 12, color: TermexColors.textSecondary),
+        suffixIcon: suffix == null
+            ? null
+            : Padding(
+                padding: const EdgeInsets.only(right: 8),
+                child: suffix,
+              ),
+        suffixIconConstraints:
+            const BoxConstraints(minHeight: 0, minWidth: 0),
+        contentPadding:
+            const EdgeInsets.symmetric(horizontal: 10, vertical: 8),
+        isDense: true,
+        border: OutlineInputBorder(
+          borderRadius: BorderRadius.circular(6),
+          borderSide: const BorderSide(color: TermexColors.border),
+        ),
+        enabledBorder: OutlineInputBorder(
+          borderRadius: BorderRadius.circular(6),
+          borderSide: const BorderSide(color: TermexColors.border),
+        ),
+      );
+}
+
+class _Label extends StatelessWidget {
+  final String text;
+  const _Label(this.text);
+
+  @override
+  Widget build(BuildContext context) {
+    return Padding(
+      padding: const EdgeInsets.only(bottom: 4),
+      child: Text(
+        text,
+        style: const TextStyle(
+          fontSize: 11,
+          fontWeight: FontWeight.w600,
+          color: TermexColors.textSecondary,
+        ),
+      ),
+    );
+  }
+}
+
+class _SmallBtn extends StatelessWidget {
+  final String label;
+  final VoidCallback? onTap;
+  final bool primary;
+
+  const _SmallBtn({
+    required this.label,
+    required this.onTap,
+    this.primary = false,
+  });
+
+  @override
+  Widget build(BuildContext context) {
+    final disabled = onTap == null;
+    final bg = primary
+        ? (disabled
+            ? TermexColors.primary.withOpacity(0.5)
+            : TermexColors.primary)
+        : TermexColors.backgroundTertiary;
+    final fg = primary ? Colors.white : TermexColors.textPrimary;
+    return GestureDetector(
+      onTap: onTap,
+      child: Container(
+        padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 6),
+        decoration: BoxDecoration(
+          color: bg,
+          borderRadius: BorderRadius.circular(4),
+          border: Border.all(
+            color: primary ? Colors.transparent : TermexColors.border,
+          ),
+        ),
+        child: Text(label, style: TextStyle(fontSize: 12, color: fg)),
+      ),
+    );
+  }
+}
+
+/// Engine port / threads / context-size — formerly in the standalone
+/// LocalAiTab; lives inside the inline form when Local AI is selected.
+class _LocalEngineSettings extends ConsumerWidget {
+  const _LocalEngineSettings();
+
+  @override
+  Widget build(BuildContext context, WidgetRef ref) {
+    final settings = ref.watch(settingsProvider).settings;
+    final notifier = ref.read(settingsProvider.notifier);
+    return Column(
+      crossAxisAlignment: CrossAxisAlignment.stretch,
+      children: [
+        _row(
+          '服务端口',
+          _NumberField(
+            value: settings.localAiPort,
+            onChanged: (v) =>
+                notifier.update(settings.copyWith(localAiPort: v)),
+          ),
+        ),
+        _row(
+          '推理线程数',
+          _NumberField(
+            value: settings.localAiThreads,
+            onChanged: (v) =>
+                notifier.update(settings.copyWith(localAiThreads: v)),
+          ),
+        ),
+        _row(
+          '上下文窗口 (token)',
+          _NumberField(
+            value: settings.localAiContextSize,
+            onChanged: (v) =>
+                notifier.update(settings.copyWith(localAiContextSize: v)),
+          ),
+        ),
+        _row(
+          '启动时自动启动引擎',
+          Switch(
+            value: settings.localAiAutoStart,
+            onChanged: (v) =>
+                notifier.update(settings.copyWith(localAiAutoStart: v)),
+          ),
+        ),
+      ],
+    );
+  }
+
+  Widget _row(String label, Widget child) {
+    return Padding(
+      padding: const EdgeInsets.only(bottom: 6),
+      child: Row(
+        children: [
+          Expanded(
+            child: Text(label,
+                style: const TextStyle(
+                    fontSize: 12, color: TermexColors.textSecondary)),
+          ),
+          child,
+        ],
+      ),
+    );
+  }
+}
+
+class _NumberField extends StatefulWidget {
+  final int value;
+  final ValueChanged<int> onChanged;
+  const _NumberField({required this.value, required this.onChanged});
+
+  @override
+  State<_NumberField> createState() => _NumberFieldState();
+}
+
+class _NumberFieldState extends State<_NumberField> {
+  late final TextEditingController _ctrl;
+
+  @override
+  void initState() {
+    super.initState();
+    _ctrl = TextEditingController(text: '${widget.value}');
+  }
+
+  @override
+  void didUpdateWidget(covariant _NumberField old) {
+    super.didUpdateWidget(old);
+    if (widget.value != old.value && _ctrl.text != '${widget.value}') {
+      _ctrl.text = '${widget.value}';
+    }
+  }
+
+  @override
+  void dispose() {
+    _ctrl.dispose();
+    super.dispose();
+  }
+
+  @override
+  Widget build(BuildContext context) {
+    return SizedBox(
+      width: 110,
+      child: TextField(
+        controller: _ctrl,
+        keyboardType: TextInputType.number,
+        style: const TextStyle(fontSize: 12, color: TermexColors.textPrimary),
+        onSubmitted: (s) {
+          final v = int.tryParse(s);
+          if (v != null && v > 0) widget.onChanged(v);
+        },
+        decoration: InputDecoration(
+          isDense: true,
+          contentPadding:
+              const EdgeInsets.symmetric(horizontal: 8, vertical: 6),
+          border: OutlineInputBorder(
+            borderRadius: BorderRadius.circular(4),
+            borderSide: const BorderSide(color: TermexColors.border),
+          ),
+          enabledBorder: OutlineInputBorder(
+            borderRadius: BorderRadius.circular(4),
+            borderSide: const BorderSide(color: TermexColors.border),
+          ),
+        ),
+      ),
+    );
+  }
+}
+
+class _LocalEngineStatus extends ConsumerWidget {
+  const _LocalEngineStatus();
+
+  @override
+  Widget build(BuildContext context, WidgetRef ref) {
+    final state = ref.watch(localAiProvider);
+    return Column(
+      crossAxisAlignment: CrossAxisAlignment.stretch,
+      children: [
+        const LocalAiServerStatus(),
+        if (state.errorMessage != null)
+          Padding(
+            padding: const EdgeInsets.only(top: 6),
+            child: Text(
+              state.errorMessage!,
+              style: const TextStyle(fontSize: 11, color: TermexColors.danger),
+            ),
+          ),
+      ],
+    );
+  }
+}

@@ -27,6 +27,7 @@ const MIGRATIONS: &[(i32, &str, &str)] = &[
     (22, "user keybindings", MIGRATION_V22),
     (23, "recording encryption + git sync repos + port forward bind_ip", MIGRATION_V23),
     (24, "team members and invites v2 (v0.52 gap coverage)", MIGRATION_V24),
+    (25, "backup schedules and history (v0.68.0 G1)", MIGRATION_V25),
 ];
 
 /// Runs all pending migrations in order.
@@ -600,4 +601,48 @@ CREATE TABLE IF NOT EXISTS team_invites (
     accepted_by TEXT,
     created_at  TEXT NOT NULL
 );
+";
+
+// ============================================================
+// V25: Backup schedules + history (v0.68.0 G1 — cloud scheduler)
+// ============================================================
+//
+// `backup_schedules` drives the BackupScheduler tick loop. To avoid a heavy
+// cron dependency we only support three preset frequencies and store the
+// pre-computed `next_run_at` so the tick is a cheap `SELECT ... WHERE
+// enabled = 1 AND next_run_at <= now`.
+//
+// `backup_history` is the canonical log of every backup attempt — manual
+// (schedule_id NULL) and scheduled. The v0.67.0 P1.12 Dart-side
+// SharedPreferences list is superseded by this table starting in v0.68.0.
+const MIGRATION_V25: &str = "
+CREATE TABLE IF NOT EXISTS backup_schedules (
+    id                     TEXT PRIMARY KEY,
+    name                   TEXT NOT NULL,
+    frequency              TEXT NOT NULL CHECK (frequency IN ('daily','weekly','monthly')),
+    hour                   INTEGER NOT NULL DEFAULT 3,
+    minute                 INTEGER NOT NULL DEFAULT 0,
+    weekday                INTEGER,            -- 0=Sun .. 6=Sat, NULL for daily/monthly
+    day_of_month           INTEGER,            -- 1..28, NULL for daily/weekly
+    target_dir             TEXT NOT NULL,
+    password_keychain_ref  TEXT NOT NULL,
+    enabled                INTEGER NOT NULL DEFAULT 1,
+    next_run_at            TEXT NOT NULL,      -- RFC3339 UTC
+    created_at             TEXT NOT NULL
+);
+CREATE INDEX IF NOT EXISTS idx_backup_schedules_next ON backup_schedules(enabled, next_run_at);
+
+CREATE TABLE IF NOT EXISTS backup_history (
+    id            TEXT PRIMARY KEY,
+    schedule_id   TEXT,                          -- NULL = manual backup
+    file_path     TEXT NOT NULL,
+    size_bytes    INTEGER NOT NULL DEFAULT 0,
+    status        TEXT NOT NULL CHECK (status IN ('success','failed')),
+    started_at    TEXT NOT NULL,
+    completed_at  TEXT,
+    error_msg     TEXT,
+    FOREIGN KEY (schedule_id) REFERENCES backup_schedules(id) ON DELETE SET NULL
+);
+CREATE INDEX IF NOT EXISTS idx_backup_history_schedule ON backup_history(schedule_id);
+CREATE INDEX IF NOT EXISTS idx_backup_history_started ON backup_history(started_at DESC);
 ";
