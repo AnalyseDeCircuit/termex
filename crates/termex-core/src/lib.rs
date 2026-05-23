@@ -4,6 +4,7 @@ pub mod backup;
 pub mod cloud;
 pub mod cost;
 pub mod crypto;
+pub mod desktop;
 pub mod egress;
 pub mod handoff;
 pub mod keychain;
