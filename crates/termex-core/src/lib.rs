@@ -12,6 +12,7 @@ pub mod monitor;
 pub mod paths;
 pub mod plugin;
 pub mod recording;
+pub mod reliability;
 pub mod session;
 pub mod sftp;
 pub mod ssh;
