@@ -2,6 +2,7 @@ pub mod ai;
 pub mod audit;
 pub mod backup;
 pub mod cloud;
+pub mod cost;
 pub mod crypto;
 pub mod egress;
 pub mod keychain;
