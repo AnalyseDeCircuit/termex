@@ -171,6 +171,78 @@ pub enum ServerMessage {
         ts_ms: u64,
     },
 
+    /// v0.71.1 — MCP progress notification. `ratio` is 0.0..=1.0;
+    /// `note` is an optional human-readable status line.
+    #[serde(rename = "task.progress")]
+    TaskProgress {
+        task_id: String,
+        ratio: f32,
+        #[serde(skip_serializing_if = "Option::is_none")]
+        note: Option<String>,
+        seq: u64,
+        ts_ms: u64,
+    },
+
+    /// v0.71.1 — MCP tool-use trace. `stage` is "start" or
+    /// "complete". `input_summary` / `output_summary` are
+    /// daemon-side digests so the wire stays small even for tools
+    /// that take/produce huge payloads.
+    #[serde(rename = "task.tool_use")]
+    TaskToolUse {
+        task_id: String,
+        tool: String,
+        stage: String,
+        #[serde(skip_serializing_if = "Option::is_none")]
+        input_summary: Option<String>,
+        #[serde(skip_serializing_if = "Option::is_none")]
+        output_summary: Option<String>,
+        seq: u64,
+        ts_ms: u64,
+    },
+
+    /// v0.71.1 — Structured artifact emitted by an MCP-aware CLI.
+    /// `payload` is the full JSON for the given `kind` (see
+    /// `task::artifact::TaskArtifact` for the schemas).
+    #[serde(rename = "task.artifact")]
+    TaskArtifact {
+        task_id: String,
+        artifact_id: String,
+        kind: String,
+        payload: serde_json::Value,
+        seq: u64,
+        ts_ms: u64,
+    },
+
+    /// v0.71.1 — Task is paused waiting for user input. The Dart
+    /// side renders an "Approve / Provide input" UI; subsequent
+    /// `task.decide` (v0.72.1) resumes the task.
+    #[serde(rename = "task.awaiting_input")]
+    TaskAwaitingInput {
+        task_id: String,
+        prompt: String,
+        #[serde(skip_serializing_if = "Option::is_none")]
+        schema: Option<serde_json::Value>,
+        seq: u64,
+        ts_ms: u64,
+    },
+
+    /// v0.71.1 — Token / cost reporting. Emitted whenever the MCP
+    /// `usage` notification fires (typically once per LLM call).
+    /// `estimated_cost_usd` is what the CLI reports; the daemon
+    /// also records its own pricing-table-based estimate to the
+    /// `task_costs` table in v0.74.1.
+    #[serde(rename = "task.usage")]
+    TaskUsage {
+        task_id: String,
+        input_tokens: u64,
+        output_tokens: u64,
+        model: String,
+        #[serde(skip_serializing_if = "Option::is_none")]
+        estimated_cost_usd: Option<f64>,
+        seq: u64,
+        ts_ms: u64,
+    },
+
     #[serde(rename = "pong")]
     Pong {
         request_id: String,

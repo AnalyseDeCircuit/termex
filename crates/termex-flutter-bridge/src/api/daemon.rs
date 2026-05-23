@@ -161,27 +161,89 @@ impl From<Task> for TaskDto {
 
 /// Tagged event the Dart side drains. Keep variants flat (no
 /// discriminator union) — FRB tagged enums are still imperfect.
+///
+/// `kind` discriminator (Dart pattern-matches on it):
+/// - `output` — raw PTY chunk
+/// - `status` — terminal lifecycle change
+/// - `progress` — MCP progress (v0.71.1+)
+/// - `tool_use` — MCP tool-use trace (v0.71.1+)
+/// - `artifact` — MCP structured artifact (v0.71.1+)
+/// - `awaiting_input` — MCP wait-for-input prompt (v0.71.1+)
+/// - `usage` — MCP token / cost report (v0.71.1+)
 #[derive(Debug, Clone, Serialize, Deserialize)]
 pub struct DaemonEvent {
-    /// One of: `output`, `status`, `closed`.
     pub kind: String,
     pub task_id: String,
-    /// For kind = "output": the chunk.
-    pub data: Option<String>,
-    /// For kind = "output": "stdout" | "stderr".
-    pub stream: Option<String>,
-    /// For kind = "output": monotonic per-daemon seq.
     pub seq: Option<u64>,
-    /// For kind = "status": one of TaskStatusDto.
-    pub status: Option<TaskStatusDto>,
-    /// For kind = "status": process exit code if known.
-    pub exit_code: Option<i32>,
-    /// For kind = "status": milliseconds from spawn to terminal.
-    pub duration_ms: Option<u64>,
     pub ts_ms: u64,
+
+    // output
+    pub data: Option<String>,
+    pub stream: Option<String>,
+
+    // status
+    pub status: Option<TaskStatusDto>,
+    pub exit_code: Option<i32>,
+    pub duration_ms: Option<u64>,
+
+    // progress
+    pub progress_ratio: Option<f32>,
+    pub progress_note: Option<String>,
+
+    // tool_use
+    pub tool: Option<String>,
+    pub tool_stage: Option<String>,
+    pub tool_input_summary: Option<String>,
+    pub tool_output_summary: Option<String>,
+
+    // artifact
+    pub artifact_id: Option<String>,
+    pub artifact_kind: Option<String>,
+    /// JSON-encoded payload (serialize/parse on the Dart side).
+    pub artifact_payload_json: Option<String>,
+
+    // awaiting_input
+    pub awaiting_prompt: Option<String>,
+    /// JSON-encoded schema (or None).
+    pub awaiting_schema_json: Option<String>,
+
+    // usage
+    pub usage_input_tokens: Option<u64>,
+    pub usage_output_tokens: Option<u64>,
+    pub usage_model: Option<String>,
+    pub usage_estimated_cost_usd: Option<f64>,
 }
 
 impl DaemonEvent {
+    fn empty(kind: &str, task_id: String, seq: Option<u64>, ts_ms: u64) -> Self {
+        Self {
+            kind: kind.into(),
+            task_id,
+            seq,
+            ts_ms,
+            data: None,
+            stream: None,
+            status: None,
+            exit_code: None,
+            duration_ms: None,
+            progress_ratio: None,
+            progress_note: None,
+            tool: None,
+            tool_stage: None,
+            tool_input_summary: None,
+            tool_output_summary: None,
+            artifact_id: None,
+            artifact_kind: None,
+            artifact_payload_json: None,
+            awaiting_prompt: None,
+            awaiting_schema_json: None,
+            usage_input_tokens: None,
+            usage_output_tokens: None,
+            usage_model: None,
+            usage_estimated_cost_usd: None,
+        }
+    }
+
     fn from_server_message(m: ServerMessage) -> Option<Self> {
         match m {
             ServerMessage::TaskOutput {
@@ -190,37 +252,98 @@ impl DaemonEvent {
                 data,
                 seq,
                 ts_ms,
-            } => Some(Self {
-                kind: "output".into(),
-                task_id,
-                data: Some(data),
-                stream: Some(match stream {
+            } => {
+                let mut e = Self::empty("output", task_id, Some(seq), ts_ms);
+                e.data = Some(data);
+                e.stream = Some(match stream {
                     termex_core::daemon::OutputStream::Stdout => "stdout".into(),
                     termex_core::daemon::OutputStream::Stderr => "stderr".into(),
-                }),
-                seq: Some(seq),
-                status: None,
-                exit_code: None,
-                duration_ms: None,
-                ts_ms,
-            }),
+                });
+                Some(e)
+            }
             ServerMessage::TaskStatus {
                 task_id,
                 status,
                 exit_code,
                 duration_ms,
                 ts_ms,
-            } => Some(Self {
-                kind: "status".into(),
+            } => {
+                let mut e = Self::empty("status", task_id, None, ts_ms);
+                e.status = Some(status.into());
+                e.exit_code = exit_code;
+                e.duration_ms = duration_ms;
+                Some(e)
+            }
+            ServerMessage::TaskProgress {
                 task_id,
-                data: None,
-                stream: None,
-                seq: None,
-                status: Some(status.into()),
-                exit_code,
-                duration_ms,
+                ratio,
+                note,
+                seq,
                 ts_ms,
-            }),
+            } => {
+                let mut e = Self::empty("progress", task_id, Some(seq), ts_ms);
+                e.progress_ratio = Some(ratio);
+                e.progress_note = note;
+                Some(e)
+            }
+            ServerMessage::TaskToolUse {
+                task_id,
+                tool,
+                stage,
+                input_summary,
+                output_summary,
+                seq,
+                ts_ms,
+            } => {
+                let mut e = Self::empty("tool_use", task_id, Some(seq), ts_ms);
+                e.tool = Some(tool);
+                e.tool_stage = Some(stage);
+                e.tool_input_summary = input_summary;
+                e.tool_output_summary = output_summary;
+                Some(e)
+            }
+            ServerMessage::TaskArtifact {
+                task_id,
+                artifact_id,
+                kind,
+                payload,
+                seq,
+                ts_ms,
+            } => {
+                let mut e = Self::empty("artifact", task_id, Some(seq), ts_ms);
+                e.artifact_id = Some(artifact_id);
+                e.artifact_kind = Some(kind);
+                e.artifact_payload_json = Some(payload.to_string());
+                Some(e)
+            }
+            ServerMessage::TaskAwaitingInput {
+                task_id,
+                prompt,
+                schema,
+                seq,
+                ts_ms,
+            } => {
+                let mut e = Self::empty("awaiting_input", task_id, Some(seq), ts_ms);
+                e.awaiting_prompt = Some(prompt);
+                e.awaiting_schema_json = schema.map(|v| v.to_string());
+                Some(e)
+            }
+            ServerMessage::TaskUsage {
+                task_id,
+                input_tokens,
+                output_tokens,
+                model,
+                estimated_cost_usd,
+                seq,
+                ts_ms,
+            } => {
+                let mut e = Self::empty("usage", task_id, Some(seq), ts_ms);
+                e.usage_input_tokens = Some(input_tokens);
+                e.usage_output_tokens = Some(output_tokens);
+                e.usage_model = Some(model);
+                e.usage_estimated_cost_usd = estimated_cost_usd;
+                Some(e)
+            }
             ServerMessage::Pong { .. } | ServerMessage::Response { .. } => None,
         }
     }

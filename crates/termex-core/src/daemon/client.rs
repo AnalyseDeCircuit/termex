@@ -357,7 +357,12 @@ async fn connection_task<S>(
                         }
                     }
                     ServerMessage::TaskOutput { task_id, .. }
-                    | ServerMessage::TaskStatus { task_id, .. } => {
+                    | ServerMessage::TaskStatus { task_id, .. }
+                    | ServerMessage::TaskProgress { task_id, .. }
+                    | ServerMessage::TaskToolUse { task_id, .. }
+                    | ServerMessage::TaskArtifact { task_id, .. }
+                    | ServerMessage::TaskAwaitingInput { task_id, .. }
+                    | ServerMessage::TaskUsage { task_id, .. } => {
                         let s = subs.lock().await;
                         if let Some(tx) = s.get(task_id) {
                             let _ = tx.send(msg);

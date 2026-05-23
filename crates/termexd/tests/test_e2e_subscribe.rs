@@ -33,6 +33,10 @@ mod server;
 #[allow(dead_code)]
 mod supervisor;
 
+#[path = "../src/mcp/mod.rs"]
+#[allow(dead_code)]
+mod mcp;
+
 use std::time::Duration;
 
 use futures_util::{SinkExt, StreamExt};

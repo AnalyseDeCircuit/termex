@@ -19,6 +19,7 @@ mod db;
 mod error;
 mod event_bus;
 mod handler;
+mod mcp;
 mod server;
 mod supervisor;
 

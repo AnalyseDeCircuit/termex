@@ -29,6 +29,10 @@ mod server;
 #[allow(dead_code)]
 mod supervisor;
 
+#[path = "../src/mcp/mod.rs"]
+#[allow(dead_code)]
+mod mcp;
+
 use std::sync::Arc;
 use std::time::Duration;
 

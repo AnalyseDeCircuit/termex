@@ -16,7 +16,7 @@
 //! See `docs/iterations/v0.71.0-core-termexd-daemon.md` §2.4.
 
 use std::collections::HashMap;
-use std::io::Read;
+use std::io::{BufRead, BufReader, Read};
 use std::sync::Arc;
 use std::time::{SystemTime, UNIX_EPOCH};
 
@@ -30,6 +30,7 @@ use termex_core::task::{AiCliKind, TaskStatus};
 use crate::db::Database;
 use crate::error::DaemonError;
 use crate::event_bus::EventBus;
+use crate::mcp::{mcp_notification_to_server_event, McpClient};
 
 const TAIL_BYTES: usize = 8 * 1024;
 const CANCEL_GRACE_MS: u64 = 10_000;
@@ -117,8 +118,18 @@ impl TaskSupervisor {
         let started_ms = now_ms();
         let task_id_owned = task_id.to_string();
 
+        // Decide whether to attempt the MCP handshake. Only the
+        // CLIs that ship a stdio-MCP mode get the attempt;
+        // TERMEXD_DISABLE_MCP=1 forces stdout adapter for all of
+        // them (debugging escape hatch). Aider + Generic always go
+        // straight to stdout because they have no MCP support.
+        let mcp_attempt = mcp_attempt_for(ai_cli);
+
         // Background reader: pulls chunks off the master, broadcasts
         // each to the event bus, and updates the rolling output_tail.
+        // If MCP is attempted, the same thread first tries an
+        // initialize handshake; on success it switches to the
+        // notification-pump loop instead of the stdout-tail loop.
         let bus_for_reader = self.inner.bus.clone();
         let db_for_reader = self.inner.db.clone();
         let task_id_for_reader = task_id_owned.clone();
@@ -132,6 +143,7 @@ impl TaskSupervisor {
                 bus_for_reader,
                 db_for_reader,
                 rt_for_reader,
+                mcp_attempt,
             );
         });
 
@@ -278,33 +290,111 @@ fn run_reader(
     bus: EventBus,
     db: Arc<Mutex<Database>>,
     rt: tokio::runtime::Handle,
+    mcp_attempt: bool,
 ) {
-    let mut reader = match master.blocking_lock().try_clone_reader() {
+    let reader = match master.blocking_lock().try_clone_reader() {
         Ok(r) => r,
         Err(e) => {
             warn!(task = %task_id, error = %e, "clone_reader failed");
             return;
         }
     };
+
+    if mcp_attempt {
+        // Take the writer from the master so MCP can send
+        // `initialize`. If we can't take it, drop straight to
+        // stdout adapter (legacy path).
+        let maybe_writer = master.blocking_lock().take_writer();
+        match maybe_writer {
+            Ok(writer) => {
+                let buf_reader = BufReader::new(reader);
+                let mut client = McpClient::new(writer, buf_reader);
+                match client.handshake() {
+                    Ok(info) => {
+                        info!(
+                            task = %task_id,
+                            server = %info.server_info.name,
+                            version = %info.server_info.version,
+                            "mcp handshake ok"
+                        );
+                        run_mcp_pump(task_id, client, bus, db, rt);
+                        return;
+                    }
+                    Err(e) => {
+                        warn!(
+                            task = %task_id,
+                            error = %e,
+                            "mcp handshake failed, falling back to stdout adapter"
+                        );
+                        // We've already consumed the writer; the
+                        // McpClient owns it. Drop the client (its
+                        // BufReader will close), then re-clone a
+                        // fresh reader to drive the stdout adapter.
+                        drop(client);
+                        let fresh = match master.blocking_lock().try_clone_reader() {
+                            Ok(r) => r,
+                            Err(e2) => {
+                                warn!(task = %task_id, error = %e2, "fallback clone_reader failed");
+                                return;
+                            }
+                        };
+                        run_stdout_pump(task_id, fresh, bus, db, rt);
+                        return;
+                    }
+                }
+            }
+            Err(e) => {
+                warn!(
+                    task = %task_id,
+                    error = %e,
+                    "take_writer failed, falling back to stdout adapter"
+                );
+                run_stdout_pump(task_id, reader, bus, db, rt);
+                return;
+            }
+        }
+    }
+
+    run_stdout_pump(task_id, reader, bus, db, rt);
+}
+
+/// Determine whether to attempt MCP for the given AI CLI.
+///
+/// `TERMEXD_DISABLE_MCP=1` forces stdout adapter for all CLIs —
+/// debugging escape hatch documented in
+/// `v0.71.2-core-termexd-install-and-ops.md` §11.21.
+fn mcp_attempt_for(ai_cli: AiCliKind) -> bool {
+    if std::env::var("TERMEXD_DISABLE_MCP").ok().as_deref() == Some("1") {
+        return false;
+    }
+    matches!(ai_cli, AiCliKind::ClaudeCode | AiCliKind::Codex)
+}
+
+/// Stdout-tail loop (legacy path + MCP fallback). Pulls raw chunks
+/// from the PTY, broadcasts each as a `task.output` event, and
+/// persists a rolling tail to the DB on EOF.
+fn run_stdout_pump(
+    task_id: String,
+    mut reader: Box<dyn Read + Send>,
+    bus: EventBus,
+    db: Arc<Mutex<Database>>,
+    rt: tokio::runtime::Handle,
+) {
     let mut buf = vec![0u8; 4096];
     let mut tail = String::with_capacity(TAIL_BYTES);
-
     loop {
         match reader.read(&mut buf) {
             Ok(0) => {
-                debug!(task = %task_id, "pty EOF");
+                debug!(task = %task_id, "pty EOF (stdout pump)");
                 break;
             }
             Ok(n) => {
                 let chunk = String::from_utf8_lossy(&buf[..n]).into_owned();
-                // Append to rolling tail, truncating from the front
-                // to keep at most TAIL_BYTES.
                 tail.push_str(&chunk);
                 if tail.len() > TAIL_BYTES {
                     let drop_n = tail.len() - TAIL_BYTES;
                     tail.drain(..drop_n);
                 }
-                // Broadcast event (with monotonic seq).
                 let seq = bus.next_seq();
                 let msg = ServerMessage::TaskOutput {
                     task_id: task_id.clone(),
@@ -313,27 +403,79 @@ fn run_reader(
                     seq,
                     ts_ms: now_ms(),
                 };
-                let bus = bus.clone();
-                let task_id_clone = task_id.clone();
-                // Fire-and-forget broadcast on the tokio runtime.
+                let bus_clone = bus.clone();
+                let id_clone = task_id.clone();
                 rt.spawn(async move {
-                    bus.broadcast(&task_id_clone, msg).await;
+                    bus_clone.broadcast(&id_clone, msg).await;
                 });
             }
             Err(e) => {
-                debug!(task = %task_id, error = %e, "pty read error");
+                debug!(task = %task_id, error = %e, "pty read error (stdout pump)");
                 break;
             }
         }
     }
-
-    // Persist the final tail to DB.
     let db_clone = db.clone();
-    let task_id_clone = task_id.clone();
+    let id_clone = task_id.clone();
     let tail_owned = tail;
     rt.spawn(async move {
-        if let Err(e) = update_tail(db_clone, &task_id_clone, &tail_owned).await {
-            warn!(task = %task_id_clone, error = %e, "update tail failed");
+        if let Err(e) = update_tail(db_clone, &id_clone, &tail_owned).await {
+            warn!(task = %id_clone, error = %e, "update tail failed");
+        }
+    });
+}
+
+/// MCP notification pump. After handshake, the CLI streams
+/// `notifications/*` until exit. Each is translated via
+/// `mcp_notification_to_server_event` and fan-outed on the event
+/// bus alongside the legacy stream.
+fn run_mcp_pump<W, R>(
+    task_id: String,
+    mut client: McpClient<W, R>,
+    bus: EventBus,
+    db: Arc<Mutex<Database>>,
+    rt: tokio::runtime::Handle,
+) where
+    W: std::io::Write + Send + 'static,
+    R: BufRead + Send + 'static,
+{
+    let mut tail = String::with_capacity(TAIL_BYTES);
+    loop {
+        match client.next_notification() {
+            Ok(Some(note)) => {
+                // Mirror artifact / progress text into the rolling
+                // tail so the DB summary still reflects what
+                // happened even when MCP is the primary stream.
+                tail.push_str(&format!("{note:?}\n"));
+                if tail.len() > TAIL_BYTES {
+                    let drop_n = tail.len() - TAIL_BYTES;
+                    tail.drain(..drop_n);
+                }
+                let seq = bus.next_seq();
+                if let Some(event) = mcp_notification_to_server_event(&task_id, seq, note) {
+                    let bus_clone = bus.clone();
+                    let id_clone = task_id.clone();
+                    rt.spawn(async move {
+                        bus_clone.broadcast(&id_clone, event).await;
+                    });
+                }
+            }
+            Ok(None) => {
+                debug!(task = %task_id, "mcp EOF");
+                break;
+            }
+            Err(e) => {
+                debug!(task = %task_id, error = %e, "mcp pump error");
+                break;
+            }
+        }
+    }
+    let db_clone = db.clone();
+    let id_clone = task_id.clone();
+    let tail_owned = tail;
+    rt.spawn(async move {
+        if let Err(e) = update_tail(db_clone, &id_clone, &tail_owned).await {
+            warn!(task = %id_clone, error = %e, "update tail failed");
         }
     });
 }
