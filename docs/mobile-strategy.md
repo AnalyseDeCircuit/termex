@@ -147,21 +147,46 @@ EgressProfile 只解决 (1)，不解决 (2)。如果用户真要 (2)，需要把
 
 ---
 
-## 6. 路线图（执行依据）
+## 6. 路线图（执行依据 v3）
 
-| 迭代 | 主题 | 目标 |
-|---|---|---|
-| **v0.70.5** | [termexd 远端守护进程](iterations/v0.70.5-core-termexd-daemon.md) | **架构底座** — 在远端持久化任务状态、暴露 WS API、MCP-aware、反向 SSH 隧道支持 |
-| **v0.71** | [任务监控 MVP](iterations/v0.71-mobile-task-delivery-loop.md) | 任务模型 + 4 个 adapter + **语音输入** + **安全护栏** + **结构化摘要主视图** + WS 主推送 |
-| **v0.72** | [实时反馈 + 移动 AI 面板](iterations/v0.72-mobile-terminal-and-ai-panel.md) | 结构化摘要为主、terminal view 为辅、多 tab + AI 抽屉 |
-| **v0.73** | [网络路径同步 + 成本透明](iterations/v0.73-mobile-network-path-parity.md) | EgressProfile sync（**砍编辑器**） + 成本面板 + Cross-device handoff 基础 |
-| **v0.74** | [后台保活 + 可靠性](iterations/v0.74-mobile-background-and-reliability.md) | Android Foreground Service + iOS BGTask + 网络抗抖 + handoff 完成 + 通知冷启动恢复 |
-| **v0.75+** | （后续）国内推送 + 语音深化 + Live Activity | 极光/小米/华为/OPPO/vivo 厂商推送适配；Siri Shortcuts；语音摘要播报；iOS Live Activity |
+> **v3 调整**：v2 把所有功能塞进 5 个迭代，单迭代过载，风险集中。v3 拆成 12 个**小步快跑**的迭代，每个独立可发版、独立可放鸽子不阻塞下游。版本号严格遵循 x.y.z（参见 [`docs/iteration-standards.md`](iteration-standards.md) §1）。
 
-**关键变化 vs v1**：
-- 新增 v0.70.5 termexd daemon 作为前置
-- v0.73 砍掉 chain/proxy/forward 编辑器，加入成本透明面板 + handoff
-- 国内推送 / Live Activity 推迟到 v0.75+（避免 v0.71-v0.74 范围爆炸）
+```
+轨道 1 — 桌面退役维护轨（约 20% 工程容量）
+  v0.70.0 ───► Tauri/Vue 退役（12 周，v0.69 启动 / v0.80 物理删除）
+
+轨道 2 — termexd 远端守护进程轨（约 30% 工程容量）
+  v0.71.0 ───► termexd 核心（WS + PTY + SQLite + bearer token + SSH tunnel）
+  v0.71.1 ───► termexd MCP 客户端模块
+  v0.71.2 ───► termexd install scripts + multi-arch CI + event replay
+
+轨道 3 — 移动端 AI 监控控制台轨（约 50% 工程容量）
+  v0.72.0 ───► 任务监控核心闭环（Task UI + WS 主推送 + 摘要主视图 + Dashboard + Deep link）
+  v0.72.1 ───► 安全护栏（PendingConfirmation + risk scorer + 生物识别）+ 4 adapter 完整
+  v0.72.2 ───► 语音输入 + FCM Pro 兜底 + 屏幕常亮
+  v0.73.0 ───► summary 深化 + terminal 折叠 + AI 抽屉 + 多 tab
+  v0.74.0 ───► EgressProfile + sync 扩展（网络路径一致性）
+  v0.74.1 ───► 成本透明面板 + cap 拦截
+  v0.74.2 ───► Cross-device handoff（含 PC 接收端 stub）
+  v0.75.0 ───► Android Foreground Service + iOS BGTask + 网络抗抖
+
+轨道 4 — PC 桌面接入新核心轨（保后期）
+  v0.76.0 ───► PC 客户端镜像 termexd 协议（与 mobile 真正同源）
+
+后续（v0.77.0+，按需）
+  • iOS Live Activity / Dynamic Island
+  • 国内厂商推送（极光 / Xiaomi / Huawei / OPPO / vivo）
+  • Siri Shortcuts / App Intents / 语音摘要播报
+  • 桌面端 task panel 深化
+```
+
+**全部 12 个迭代的标准与协议**（migration ID 注册表 / 测试金字塔 / i18n 政策 / release notes / rollback / telemetry）见 [`docs/iteration-standards.md`](iteration-standards.md)，每个迭代文档不再重复，只引用。
+
+**关键变化 vs v2**：
+- 5 迭代 → 12 迭代，单个交付≤2周，可独立放鸽子
+- 强制每迭代实施 [`iteration-standards.md`](iteration-standards.md) 全部 6 项政策
+- 新增 v0.76.0 PC 接入 termexd（避免长期"两条产品形态"分裂）
+- 桌面退役（v0.70.0）与功能新增（v0.71.0+）明确为**并行不阻塞**两条轨道
 
 ---
 
