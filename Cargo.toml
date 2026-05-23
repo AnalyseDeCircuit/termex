@@ -4,6 +4,7 @@ members = [
     "src-tauri",
     "crates/termex-core",
     "crates/termex-flutter-bridge",
+    "crates/termexd",
 ]
 
 [workspace.dependencies]

@@ -10,6 +10,10 @@ name = "termex_core"
 
 [features]
 default  = []
+# v0.71.0+: enables the daemon client SDK (`DaemonClient`) and shared
+# wire-protocol DTOs. Pulls in `tokio-tungstenite` for WebSocket and
+# `chrono` for RFC3339 timestamps. The termexd binary always enables this.
+daemon   = ["dep:tokio-tungstenite", "dep:chrono"]
 
 [dependencies]
 serde.workspace       = true
@@ -47,6 +51,10 @@ glob         = "0.3"
 whoami       = "1"
 base64       = "0.22"
 fs2          = "0.4"
+
+# Optional deps (gated by `daemon` feature)
+tokio-tungstenite = { version = "0.21", optional = true }
+chrono            = { version = "0.4", features = ["serde"], optional = true }
 
 [dev-dependencies]
 tempfile.workspace = true

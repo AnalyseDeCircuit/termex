@@ -14,4 +14,8 @@ pub mod sftp;
 pub mod ssh;
 pub mod storage;
 pub mod sync;
+pub mod task;
 pub mod team;
+
+#[cfg(feature = "daemon")]
+pub mod daemon;

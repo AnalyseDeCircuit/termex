@@ -1,0 +1,34 @@
+[package]
+name        = "termexd"
+version     = "0.71.0"
+edition     = "2021"
+license     = "MIT"
+description = "Termex remote daemon — owns task state on the remote machine"
+
+[[bin]]
+name = "termexd"
+path = "src/main.rs"
+
+[dependencies]
+termex-core = { path = "../termex-core", features = ["daemon"] }
+tokio              = { workspace = true }
+tokio-tungstenite  = "0.21"
+futures-util       = "0.3"
+serde              = { workspace = true }
+serde_json         = { workspace = true }
+clap               = { version = "4", features = ["derive"] }
+tracing            = "0.1"
+tracing-subscriber = { version = "0.3", features = ["env-filter", "json"] }
+portable-pty       = "0.8"
+uuid               = { workspace = true }
+chrono             = { version = "0.4", features = ["serde"] }
+rusqlite           = { version = "0.32", features = ["bundled"] }
+ring               = "0.17"
+hex                = "0.4"
+anyhow             = { workspace = true }
+thiserror          = { workspace = true }
+dirs               = "6"
+
+[dev-dependencies]
+tempfile           = { workspace = true }
+tokio-test         = "0.4"
