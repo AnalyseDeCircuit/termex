@@ -12,10 +12,13 @@ import 'package:flutter/widgets.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 
 import '../../../design/colors.dart';
-// Monitor feature temporarily removed during the desktop/mobile package split
-// (v0.69.0+).  The _SubTab.monitor case renders a placeholder until the
-// monitor panel lands in its final location (termex_shared / termex-mobile).
-// import '../../monitor/monitor_panel.dart';
+// Monitor is a Pro-edition feature shipped from termex_shared_pro (a sibling
+// closed-source package under termex-core-private/). The open-source desktop
+// edition does not ship MonitorPanel by design — the _SubTab.monitor case
+// renders a permanent informational placeholder. The Pro/Mobile edition
+// composes termex_shared + termex_shared_pro and wires the real MonitorPanel
+// at the app shell level. See docs/iterations/v0.69.0-pc-restructure-stabilization.md §7.
+// import '../../monitor/monitor_panel.dart';  // moved to termex_shared_pro
 import '../../sftp/sftp_panel.dart';
 import '../../sftp/state/sftp_transfer_provider.dart'
     show sftpTransferProvider, TransferDirection, TransferItem;
@@ -282,15 +285,15 @@ class _TabWorkspaceState extends ConsumerState<TabWorkspace> {
       case _SubTab.sftp:
         return SftpPanel(sessionId: widget.sessionId);
       case _SubTab.monitor:
-        // Placeholder during v0.69.0+ desktop/mobile package split; the
-        // MonitorPanel will be re-introduced once its target package is
-        // settled (see v0.69.0 stabilization doc §6).
+        // Pro-edition placeholder: MonitorPanel ships in termex_shared_pro
+        // (closed-source, mobile / paid desktop editions only). The
+        // open-source desktop build keeps this informational stub by design.
         return const Center(
           child: Padding(
             padding: EdgeInsets.all(24),
             child: Text(
-              'Monitor panel is being relocated; please retry after the '
-              'restructure stabilizes.',
+              'Monitor 是 Pro 版功能，开源桌面版不包含此面板。\n'
+              '如需服务器监控仪表盘，请使用 Termex 移动版或 Pro 桌面版。',
               textAlign: TextAlign.center,
             ),
           ),

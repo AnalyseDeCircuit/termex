@@ -19,6 +19,8 @@
 | **Intelligent** | AI 原生集成：危险命令拦截、自然语言转命令、智能补全 |
 | **Free & Open** | MIT 协议，完全开源免费，配置自由迁移 |
 
+> 📱 **移动端独立战略定位**（since v0.71）：Termex Mobile 是 **持续性移动 Remote 工作交付终端** — 把工作交付从"以办公桌为原点"演变为"任意时间任意地点"。详见 [`docs/mobile-strategy.md`](mobile-strategy.md)。
+
 ### 1.3 目标用户
 
 | 优先级 | 用户群 | 特征 |

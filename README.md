@@ -330,12 +330,24 @@ git push origin main --tags     # triggers GitHub Actions build
 - [ ] v0.35.0 -- Desktop v1.0 Stable (performance optimization, stability polish)
 - [ ] v0.53.0 -- **macOS Code Signing & Notarization** (signed/notarized DMG via Apple Developer ID, no xattr workaround needed)
 
+### Desktop vs Mobile — Strategic Positioning
+
+Termex follows two complementary product routes:
+
+- **Desktop (Route A · Terminal-first)** — full xterm + SSH chain editing + AI sidebar; for long-form deep operations
+- **Mobile (Route B · AI Operator Console)** — *monitor and react* to long-running AI tasks on remote servers; structured summaries are the primary view, terminal is "advanced details". See [`docs/mobile-strategy.md`](docs/mobile-strategy.md).
+
+Mobile retains terminal viewing as a baseline capability (Route A底座) but its main value is **monitoring + feedback for long-running AI CLI tasks**: voice-first dispatch with safety guardrails, structured outcome cards, WebSocket-primary push (FCM fallback for backgrounded apps), same-bastion network identity as your desktop.
+
 ### Mobile — Planned
 
-- [ ] v0.40.0 -- Mobile Foundation (Tauri mobile init, minimal SSH client on iOS/Android)
-- [ ] v0.42.0 -- Mobile Server Management + SFTP + Cross-Device Sync
-- [ ] v0.44.0 -- Mobile AI + Native Keychain (iOS Keychain / Android Keystore)
-- [ ] v0.46.0 -- Mobile Polish + App Store / Google Play Release
+- [x] v0.40 – v0.61 -- Mobile foundation through App Store release (functional parity with desktop)
+- [ ] **v0.70.5** -- [`termexd` remote daemon](docs/iterations/v0.70.5-core-termexd-daemon.md) — single Rust binary on the remote, owns task state, WebSocket API, MCP-aware (prerequisite for v0.71+)
+- [ ] **v0.71** -- [Task monitoring MVP](docs/iterations/v0.71-mobile-task-delivery-loop.md) — task model + voice input + safety guardrails (PendingConfirmation) + structured summary primary view + WS-primary push
+- [ ] **v0.72** -- [Structured summary view + terminal as advanced expansion](docs/iterations/v0.72-mobile-terminal-and-ai-panel.md)
+- [ ] **v0.73** -- [Network path parity (EgressProfile, **PC-edited / mobile-consumed**) + cost transparency + Cross-device handoff](docs/iterations/v0.73-mobile-network-path-parity.md)
+- [ ] **v0.74** -- [Background execution + reliability + handoff completion](docs/iterations/v0.74-mobile-background-and-reliability.md) (Android Foreground Service / iOS BGTask / network resilience)
+- [ ] v0.75+ -- China-region push services (JPush / Xiaomi / Huawei / OPPO / vivo) + iOS Live Activity + Siri Shortcuts + voice summary announcements
 
 ## Contributing
 

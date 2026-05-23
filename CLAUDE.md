@@ -10,6 +10,14 @@ Termex is an open-source, AI-native SSH client. Built on SSH as the foundation, 
 
 **⚠️ For new feature development**: write **Flutter only** (under `packages/termex_shared/lib/` or `app/lib/`). Do not add new code to `src-tauri/` or `src/` (Vue) — those are in retirement mode and accept critical security PRs only.
 
+**🛣 Two product routes** (since v0.71):
+- **Desktop = Route A · Terminal-first**: full xterm + chain/proxy/forward editing + AI sidebar; deep long-form ops
+- **Mobile = Route B · AI Operator Console**: monitor & react to long-running AI tasks; structured summaries primary; terminal is "advanced details" only; voice-first dispatch with safety guardrails
+
+Mobile **retains** Route A baseline (terminal view, etc.) but never makes terminal the primary experience. See [`docs/mobile-strategy.md`](docs/mobile-strategy.md). New mobile features must map to one of the four strategic pillars (Persistent Channel / Structured Outcome / Trustworthy Execution / Network Path Parity) or be explicitly justified.
+
+**Push channel policy**: WebSocket long-lived connection (OSS, via `termexd` daemon) is the **primary** channel — app foreground + screen-always-on (toggleable) keeps it alive. FCM (Pro) is **fallback only** for backgrounded apps. Never design features that hard-depend on FCM — OSS / self-hosted / China-region users must still get core functionality. China-region push (JPush / Xiaomi / Huawei / OPPO / vivo) is deferred to v0.75+.
+
 ## Tech Stack
 
 ### A. Tauri/Vue stack (production, current v0.34.x)
