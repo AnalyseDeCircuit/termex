@@ -6153,6 +6153,7 @@ dependencies = [
  "futures-util",
  "hex",
  "libc",
+ "parking_lot",
  "portable-pty",
  "ring",
  "rusqlite",

@@ -527,7 +527,8 @@ fn run_waiter(
         ) {
             warn!(task = %task_id_for_async, error = %e, "db update_status failed");
         }
-        // Broadcast terminal status
+        // Broadcast terminal status (with monotonic seq for replay).
+        let seq = bus_for_async.next_seq();
         bus_for_async
             .broadcast(
                 &task_id_for_async,
@@ -536,6 +537,7 @@ fn run_waiter(
                     status: final_status,
                     exit_code: Some(exit_code),
                     duration_ms: Some(duration_ms),
+                    seq,
                     ts_ms: now_ms(),
                 },
             )

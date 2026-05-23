@@ -132,6 +132,7 @@ fn server_message_task_status_wire_shape() {
         status: TaskStatus::Succeeded,
         exit_code: Some(0),
         duration_ms: Some(12345),
+        seq: 7,
         ts_ms: 1,
     };
     let v: serde_json::Value = serde_json::to_value(&m).unwrap();
@@ -139,6 +140,7 @@ fn server_message_task_status_wire_shape() {
     assert_eq!(v["status"], "succeeded");
     assert_eq!(v["exit_code"], 0);
     assert_eq!(v["duration_ms"], 12345);
+    assert_eq!(v["seq"], 7);
 }
 
 #[test]

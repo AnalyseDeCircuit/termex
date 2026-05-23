@@ -18,6 +18,7 @@ mod auth;
 mod db;
 mod error;
 mod event_bus;
+mod event_log;
 mod handler;
 mod mcp;
 mod server;
@@ -79,13 +80,21 @@ async fn main() -> anyhow::Result<()> {
         "starting termexd"
     );
 
-    // Initialize auth token + DB. The full WS server wires up in a
-    // follow-up commit; this milestone bootstraps the persistent
-    // state.
+    // Initialize auth token + DB + event log + retention.
     let token = auth::load_or_create_token(&termex_home)?;
     let db = Database::open(&termex_home.join("tasks.db"))?;
     let bus = EventBus::new();
     let ctx = HandlerCtx::new(db, bus);
+
+    // Nightly retention job — prunes events_log rows older than 7 days
+    // every hour. Hold the join handle so we never drop it; tokio
+    // will keep running until the process exits.
+    if let Some(log) = ctx.event_log.clone() {
+        let _retention =
+            event_log::start_retention_job(log, std::time::Duration::from_secs(60 * 60));
+        // Intentionally leak the handle for the process lifetime.
+        std::mem::forget(_retention);
+    }
 
     println!();
     println!("termexd is running.");

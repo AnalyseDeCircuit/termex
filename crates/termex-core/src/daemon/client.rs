@@ -188,6 +188,21 @@ impl DaemonClient {
         Ok(())
     }
 
+    /// Ask the daemon to backfill events the client missed while
+    /// disconnected. The returned count is the number of events the
+    /// daemon queued for replay; the actual events arrive on
+    /// existing subscriptions immediately after this call returns.
+    pub async fn stream_replay(&self, last_seq: u64, limit: u32) -> Result<u64, ClientError> {
+        let msg = ClientMessage::StreamReplay {
+            request_id: self.next_request_id(),
+            last_seq,
+            limit,
+        };
+        let resp = self.send_with_timeout(msg, DEFAULT_REQUEST_TIMEOUT).await?;
+        let data = unwrap_response(resp)?;
+        Ok(data["replayed"].as_u64().unwrap_or(0))
+    }
+
     /// Subscribe to events for `task_id`. The returned receiver
     /// yields every [`ServerMessage`] the daemon broadcasts for that
     /// task. Drop the receiver to unsubscribe (the daemon-side sub

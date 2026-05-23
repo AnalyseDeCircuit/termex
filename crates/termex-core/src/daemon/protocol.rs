@@ -81,6 +81,22 @@ pub enum ClientMessage {
         request_id: String,
         ts_ms: u64,
     },
+
+    /// v0.71.2 — Ask the daemon to backfill events the client missed
+    /// while disconnected. The daemon responds with the count via
+    /// `Response`, then streams the actual events as normal
+    /// (task.output / task.status / etc.) in seq order.
+    #[serde(rename = "stream.replay")]
+    StreamReplay {
+        request_id: String,
+        last_seq: u64,
+        #[serde(default = "default_replay_limit")]
+        limit: u32,
+    },
+}
+
+fn default_replay_limit() -> u32 {
+    500
 }
 
 impl ClientMessage {
@@ -93,7 +109,8 @@ impl ClientMessage {
             | Self::TaskUnsubscribe { request_id, .. }
             | Self::TaskCancel { request_id, .. }
             | Self::TaskDecide { request_id, .. }
-            | Self::Ping { request_id, .. } => request_id,
+            | Self::Ping { request_id, .. }
+            | Self::StreamReplay { request_id, .. } => request_id,
         }
     }
 }
@@ -159,7 +176,10 @@ pub enum ServerMessage {
         ts_ms: u64,
     },
 
-    /// Task lifecycle status change.
+    /// Task lifecycle status change. `seq` added in v0.71.2 for
+    /// event replay; defaults to 0 for forward-compat with v0.71.0
+    /// producers (the replay path ignores 0-seq entries since they
+    /// can't be reliably ordered).
     #[serde(rename = "task.status")]
     TaskStatus {
         task_id: String,
@@ -168,6 +188,8 @@ pub enum ServerMessage {
         exit_code: Option<i32>,
         #[serde(skip_serializing_if = "Option::is_none")]
         duration_ms: Option<u64>,
+        #[serde(default)]
+        seq: u64,
         ts_ms: u64,
     },
 

@@ -266,9 +266,10 @@ impl DaemonEvent {
                 status,
                 exit_code,
                 duration_ms,
+                seq,
                 ts_ms,
             } => {
-                let mut e = Self::empty("status", task_id, None, ts_ms);
+                let mut e = Self::empty("status", task_id, Some(seq), ts_ms);
                 e.status = Some(status.into());
                 e.exit_code = exit_code;
                 e.duration_ms = duration_ms;

@@ -21,6 +21,7 @@ use termex_core::task::{Task, TaskStatus};
 use crate::db::Database;
 use crate::error::DaemonError;
 use crate::event_bus::EventBus;
+use crate::event_log::EventLog;
 use crate::supervisor::{CancelKind, TaskSupervisor};
 
 /// Shared context the handler needs. Held in an Arc so the WS server
@@ -29,6 +30,9 @@ pub struct HandlerCtx {
     pub db: Arc<Mutex<Database>>,
     pub bus: EventBus,
     pub supervisor: TaskSupervisor,
+    /// Optional event log for v0.71.2 replay. When None, `stream.replay`
+    /// returns `{ replayed: 0 }` silently.
+    pub event_log: Option<EventLog>,
     /// When true, `task.assign` skips the PTY spawn step (DB-only
     /// behaviour). Used by tests to avoid forking real subprocesses.
     pub spawn_disabled: bool,
@@ -38,10 +42,13 @@ impl HandlerCtx {
     pub fn new(db: Database, bus: EventBus) -> Arc<Self> {
         let db = Arc::new(Mutex::new(db));
         let supervisor = TaskSupervisor::new(db.clone(), bus.clone());
+        let event_log = EventLog::new(db.clone());
+        bus.attach_event_log(event_log.clone());
         Arc::new(Self {
             db,
             bus,
             supervisor,
+            event_log: Some(event_log),
             spawn_disabled: false,
         })
     }
@@ -54,10 +61,13 @@ impl HandlerCtx {
     pub fn new_no_spawn(db: Database, bus: EventBus) -> Arc<Self> {
         let db = Arc::new(Mutex::new(db));
         let supervisor = TaskSupervisor::new(db.clone(), bus.clone());
+        let event_log = EventLog::new(db.clone());
+        bus.attach_event_log(event_log.clone());
         Arc::new(Self {
             db,
             bus,
             supervisor,
+            event_log: Some(event_log),
             spawn_disabled: true,
         })
     }
@@ -142,6 +152,7 @@ async fn route(
 
             // Broadcast initial status (any future subscribers will
             // see it; current subscribers wired in server.rs).
+            let seq = ctx.bus.next_seq();
             ctx.bus
                 .broadcast(
                     &task_id,
@@ -150,6 +161,7 @@ async fn route(
                         status: TaskStatus::Running,
                         exit_code: None,
                         duration_ms: None,
+                        seq,
                         ts_ms: now_ms(),
                     },
                 )
@@ -200,6 +212,7 @@ async fn route(
                         None,
                         None,
                     )?;
+                    let seq = ctx.bus.next_seq();
                     ctx.bus
                         .broadcast(
                             &task_id,
@@ -208,6 +221,7 @@ async fn route(
                                 status: TaskStatus::Cancelled,
                                 exit_code: None,
                                 duration_ms: None,
+                                seq,
                                 ts_ms: now_ms(),
                             },
                         )
@@ -227,6 +241,42 @@ async fn route(
         }
 
         ClientMessage::Ping { ts_ms, .. } => Ok(json!({ "echo_ts_ms": ts_ms })),
+
+        ClientMessage::StreamReplay {
+            last_seq, limit, ..
+        } => {
+            // Replay-side effect: emit the matched events through the
+            // event bus so the server.rs subscription pump streams
+            // them back over the WS as normal task.* messages.
+            //
+            // We return the count via the Response; actual events
+            // arrive after the response on the same connection.
+            let log = match ctx.event_log.as_ref() {
+                Some(l) => l,
+                None => return Ok(json!({ "replayed": 0u64 })),
+            };
+            let events = log.replay_since(last_seq, limit as usize).await;
+            let count = events.len() as u64;
+            for ev in events {
+                if let Some(task_id) = task_id_for_replay(&ev.message) {
+                    ctx.bus.broadcast(&task_id, ev.message).await;
+                }
+            }
+            Ok(json!({ "replayed": count }))
+        }
+    }
+}
+
+fn task_id_for_replay(msg: &ServerMessage) -> Option<String> {
+    match msg {
+        ServerMessage::TaskOutput { task_id, .. }
+        | ServerMessage::TaskStatus { task_id, .. }
+        | ServerMessage::TaskProgress { task_id, .. }
+        | ServerMessage::TaskToolUse { task_id, .. }
+        | ServerMessage::TaskArtifact { task_id, .. }
+        | ServerMessage::TaskAwaitingInput { task_id, .. }
+        | ServerMessage::TaskUsage { task_id, .. } => Some(task_id.clone()),
+        _ => None,
     }
 }
 

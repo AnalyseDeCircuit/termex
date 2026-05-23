@@ -29,9 +29,9 @@ fn sample_task(id: &str, status: TaskStatus) -> Task {
 }
 
 #[test]
-fn in_memory_db_creates_schema_version_1() {
+fn in_memory_db_creates_current_schema_version() {
     let db = Database::in_memory().unwrap();
-    assert_eq!(db.schema_version().unwrap(), 1);
+    assert_eq!(db.schema_version().unwrap(), db::DAEMON_DB_SCHEMA_VERSION);
 }
 
 #[test]

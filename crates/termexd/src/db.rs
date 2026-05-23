@@ -15,7 +15,12 @@ use termex_core::task::{AiCliKind, Task, TaskStatus};
 
 use crate::error::DaemonError;
 
-const DAEMON_DB_SCHEMA_VERSION: i32 = 1;
+/// Current daemon DB schema version. Bump when adding tables /
+/// columns and add a matching `apply_vN` step in `ensure_schema`.
+/// History:
+/// - v1 (v0.71.0): meta + tasks
+/// - v2 (v0.71.2): + events_log for stream replay
+pub const DAEMON_DB_SCHEMA_VERSION: i32 = 2;
 
 pub struct Database {
     conn: Connection,
@@ -39,12 +44,43 @@ impl Database {
     }
 
     fn ensure_schema(&self) -> Result<(), DaemonError> {
+        // meta table is the schema-version anchor.
         self.conn.execute_batch(
             "CREATE TABLE IF NOT EXISTS meta (
                  key   TEXT PRIMARY KEY,
                  value TEXT
-             );
-             CREATE TABLE IF NOT EXISTS tasks (
+             );",
+        )?;
+
+        let current = self.current_schema_version()?;
+        if current < 1 {
+            self.apply_v1()?;
+        }
+        if current < 2 {
+            self.apply_v2()?;
+        }
+        self.conn.execute(
+            "INSERT OR REPLACE INTO meta (key, value) VALUES ('schema_version', ?1)",
+            params![DAEMON_DB_SCHEMA_VERSION.to_string()],
+        )?;
+        Ok(())
+    }
+
+    fn current_schema_version(&self) -> Result<i32, DaemonError> {
+        let v: Option<String> = self
+            .conn
+            .query_row(
+                "SELECT value FROM meta WHERE key = 'schema_version'",
+                [],
+                |r| r.get(0),
+            )
+            .optional()?;
+        Ok(v.and_then(|s| s.parse().ok()).unwrap_or(0))
+    }
+
+    fn apply_v1(&self) -> Result<(), DaemonError> {
+        self.conn.execute_batch(
+            "CREATE TABLE IF NOT EXISTS tasks (
                  id               TEXT PRIMARY KEY,
                  ai_cli_kind      TEXT NOT NULL,
                  prompt           TEXT NOT NULL,
@@ -60,10 +96,23 @@ impl Database {
              CREATE INDEX IF NOT EXISTS idx_tasks_status  ON tasks(status);
              CREATE INDEX IF NOT EXISTS idx_tasks_started ON tasks(started_at);",
         )?;
+        Ok(())
+    }
 
-        self.conn.execute(
-            "INSERT OR REPLACE INTO meta (key, value) VALUES ('schema_version', ?1)",
-            params![DAEMON_DB_SCHEMA_VERSION.to_string()],
+    fn apply_v2(&self) -> Result<(), DaemonError> {
+        // events_log enables v0.71.2's stream replay: clients reconnecting
+        // pass their last seen `seq` so the daemon can backfill missed events.
+        // Cold-storage tier (retention pruned nightly to 7 days).
+        self.conn.execute_batch(
+            "CREATE TABLE IF NOT EXISTS events_log (
+                 seq       INTEGER PRIMARY KEY,
+                 task_id   TEXT,
+                 type      TEXT NOT NULL,
+                 payload   TEXT NOT NULL,
+                 ts_ms     INTEGER NOT NULL
+             );
+             CREATE INDEX IF NOT EXISTS idx_events_task ON events_log(task_id);
+             CREATE INDEX IF NOT EXISTS idx_events_ts   ON events_log(ts_ms);",
         )?;
         Ok(())
     }
@@ -163,6 +212,69 @@ impl Database {
             .optional()?
             .unwrap_or_else(|| "0".to_string());
         Ok(v.parse().unwrap_or(0))
+    }
+
+    // ── events_log (v0.71.2) ──────────────────────────────────────
+
+    /// Persist one event for later replay. `seq` must be monotonic
+    /// (the caller — typically `EventLog::push` — pre-allocates it
+    /// via `EventBus::next_seq`).
+    pub fn insert_event(
+        &self,
+        seq: u64,
+        task_id: Option<&str>,
+        ty: &str,
+        payload_json: &str,
+        ts_ms: u64,
+    ) -> Result<(), DaemonError> {
+        self.conn.execute(
+            "INSERT OR IGNORE INTO events_log (seq, task_id, type, payload, ts_ms)
+             VALUES (?1, ?2, ?3, ?4, ?5)",
+            params![seq as i64, task_id, ty, payload_json, ts_ms as i64],
+        )?;
+        Ok(())
+    }
+
+    /// Pull events with `seq > last_seq`, ordered ascending, up to
+    /// `limit` rows. Returns `(seq, payload_json)` pairs — the
+    /// caller deserializes back into ServerMessage.
+    pub fn query_events_since(
+        &self,
+        last_seq: u64,
+        limit: usize,
+    ) -> Result<Vec<(u64, String)>, DaemonError> {
+        let mut stmt = self.conn.prepare(
+            "SELECT seq, payload FROM events_log
+             WHERE seq > ?1 ORDER BY seq ASC LIMIT ?2",
+        )?;
+        let rows = stmt.query_map(params![last_seq as i64, limit as i64], |r| {
+            Ok((r.get::<_, i64>(0)? as u64, r.get::<_, String>(1)?))
+        })?;
+        let mut out = Vec::new();
+        for row in rows {
+            out.push(row?);
+        }
+        Ok(out)
+    }
+
+    /// Delete events older than `older_than_ms` (typically 7 days).
+    /// Returns the number of rows deleted — used by the nightly
+    /// retention job + manual SOP `sqlite3` walks.
+    pub fn prune_events_before(&self, older_than_ms: u64) -> Result<u64, DaemonError> {
+        let n = self.conn.execute(
+            "DELETE FROM events_log WHERE ts_ms < ?1",
+            params![older_than_ms as i64],
+        )?;
+        Ok(n as u64)
+    }
+
+    /// Total number of rows in `events_log`. Surfaced by
+    /// `/metrics` so SOPs can spot runaway growth.
+    pub fn events_log_count(&self) -> Result<u64, DaemonError> {
+        let n: i64 = self
+            .conn
+            .query_row("SELECT COUNT(*) FROM events_log", [], |r| r.get(0))?;
+        Ok(n as u64)
     }
 }
 

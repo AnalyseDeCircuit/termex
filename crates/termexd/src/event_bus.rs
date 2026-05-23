@@ -18,9 +18,14 @@ use tokio::sync::{broadcast, RwLock};
 
 use termex_core::daemon::ServerMessage;
 
+use crate::event_log::EventLog;
+
 const PER_TASK_CHANNEL_CAPACITY: usize = 1024;
 
 /// Multi-producer, multi-consumer event bus keyed by task id.
+///
+/// v0.71.2: also persists every broadcast through an optional
+/// [`EventLog`] so reconnecting clients can replay missed events.
 #[derive(Clone, Default)]
 pub struct EventBus {
     inner: Arc<EventBusInner>,
@@ -30,11 +35,25 @@ pub struct EventBus {
 struct EventBusInner {
     channels: RwLock<HashMap<String, broadcast::Sender<ServerMessage>>>,
     next_seq: AtomicU64,
+    /// Optional event log. When `Some`, every broadcast is persisted
+    /// before fan-out. Test helpers may leave this `None` for speed.
+    event_log: parking_lot::Mutex<Option<EventLog>>,
 }
 
 impl EventBus {
     pub fn new() -> Self {
-        Self::default()
+        let bus = Self::default();
+        // Start the seq counter at 1 so `stream.replay(0, …)` (the
+        // canonical "give me everything from the start" query)
+        // matches the very first event.
+        bus.inner.next_seq.store(1, Ordering::SeqCst);
+        bus
+    }
+
+    /// Attach an [`EventLog`] so subsequent broadcasts are persisted
+    /// for replay. Idempotent; replaces any prior log.
+    pub fn attach_event_log(&self, log: EventLog) {
+        *self.inner.event_log.lock() = Some(log);
     }
 
     /// Reserve a monotonic sequence number. Used by callers building
@@ -53,13 +72,22 @@ impl EventBus {
         tx.subscribe()
     }
 
-    /// Broadcast a message for a given task. No-ops if no subscribers
-    /// (and discards the message — daemon DB / event log persist the
-    /// state separately).
+    /// Broadcast a message for a given task. Persists to the
+    /// attached [`EventLog`] (if any) BEFORE fan-out so reconnecting
+    /// clients can always replay what live subscribers saw.
     ///
     /// Returns the number of receivers that got the message (0 if
-    /// nobody was listening).
+    /// nobody was listening or no channel has been registered).
     pub async fn broadcast(&self, task_id: &str, msg: ServerMessage) -> usize {
+        // Capture the seq from inside the message if present; this
+        // is the same value the producer pre-allocated via
+        // `next_seq()`.
+        if let Some(seq) = seq_of(&msg) {
+            let log_opt = self.inner.event_log.lock().clone();
+            if let Some(log) = log_opt {
+                log.push(seq, &msg).await;
+            }
+        }
         let chans = self.inner.channels.read().await;
         match chans.get(task_id) {
             Some(tx) => tx.send(msg).unwrap_or(0),
@@ -80,5 +108,21 @@ impl EventBus {
     #[allow(dead_code)]
     pub async fn drop_channel(&self, task_id: &str) {
         self.inner.channels.write().await.remove(task_id);
+    }
+}
+
+/// Extract the `seq` field from any v0.71.2+ task-scoped server
+/// message. Returns `None` for variants that have no seq (Response,
+/// Pong) — those are never replayed.
+fn seq_of(m: &ServerMessage) -> Option<u64> {
+    match m {
+        ServerMessage::TaskOutput { seq, .. }
+        | ServerMessage::TaskStatus { seq, .. }
+        | ServerMessage::TaskProgress { seq, .. }
+        | ServerMessage::TaskToolUse { seq, .. }
+        | ServerMessage::TaskArtifact { seq, .. }
+        | ServerMessage::TaskAwaitingInput { seq, .. }
+        | ServerMessage::TaskUsage { seq, .. } => Some(*seq),
+        ServerMessage::Response { .. } | ServerMessage::Pong { .. } => None,
     }
 }

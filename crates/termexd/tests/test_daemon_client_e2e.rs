@@ -19,6 +19,10 @@ mod error;
 #[allow(dead_code)]
 mod event_bus;
 
+#[path = "../src/event_log.rs"]
+#[allow(dead_code)]
+mod event_log;
+
 #[path = "../src/handler.rs"]
 #[allow(dead_code)]
 mod handler;

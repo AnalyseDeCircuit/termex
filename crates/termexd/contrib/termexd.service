@@ -1,0 +1,14 @@
+[Unit]
+Description=Termex remote daemon
+After=network.target
+
+[Service]
+# Adjust ExecStart if termexd is not on $HOME/.local/bin
+ExecStart=%h/.local/bin/termexd
+Restart=on-failure
+RestartSec=5
+StandardOutput=append:%h/.termex/termexd.log
+StandardError=append:%h/.termex/termexd.log
+
+[Install]
+WantedBy=default.target
