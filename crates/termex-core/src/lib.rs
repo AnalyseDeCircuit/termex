@@ -3,6 +3,7 @@ pub mod audit;
 pub mod backup;
 pub mod cloud;
 pub mod crypto;
+pub mod egress;
 pub mod keychain;
 pub mod local_ai;
 pub mod monitor;
