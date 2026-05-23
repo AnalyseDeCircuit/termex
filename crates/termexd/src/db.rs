@@ -142,6 +142,16 @@ impl Database {
         Ok(())
     }
 
+    /// Replace the rolling `output_tail` for a task (called by the
+    /// supervisor when the PTY EOFs).
+    pub fn update_output_tail(&self, id: &str, tail: &str) -> Result<(), DaemonError> {
+        self.conn.execute(
+            "UPDATE tasks SET output_tail = ?1 WHERE id = ?2",
+            params![tail, id],
+        )?;
+        Ok(())
+    }
+
     pub fn schema_version(&self) -> Result<i32, DaemonError> {
         let v: String = self
             .conn

@@ -20,6 +20,7 @@ mod error;
 mod event_bus;
 mod handler;
 mod server;
+mod supervisor;
 
 use crate::db::Database;
 use crate::event_bus::EventBus;

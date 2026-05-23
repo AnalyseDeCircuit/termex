@@ -15,26 +15,59 @@ use serde_json::json;
 use tokio::sync::Mutex;
 use uuid::Uuid;
 
-use termex_core::daemon::{ClientMessage, ServerMessage};
+use termex_core::daemon::{CancelSignal, ClientMessage, ServerMessage};
 use termex_core::task::{Task, TaskStatus};
 
 use crate::db::Database;
 use crate::error::DaemonError;
 use crate::event_bus::EventBus;
+use crate::supervisor::{CancelKind, TaskSupervisor};
 
 /// Shared context the handler needs. Held in an Arc so the WS server
 /// can hand it to each connection task.
 pub struct HandlerCtx {
-    pub db: Mutex<Database>,
+    pub db: Arc<Mutex<Database>>,
     pub bus: EventBus,
+    pub supervisor: TaskSupervisor,
+    /// When true, `task.assign` skips the PTY spawn step (DB-only
+    /// behaviour). Used by tests to avoid forking real subprocesses.
+    pub spawn_disabled: bool,
 }
 
 impl HandlerCtx {
     pub fn new(db: Database, bus: EventBus) -> Arc<Self> {
+        let db = Arc::new(Mutex::new(db));
+        let supervisor = TaskSupervisor::new(db.clone(), bus.clone());
         Arc::new(Self {
-            db: Mutex::new(db),
+            db,
             bus,
+            supervisor,
+            spawn_disabled: false,
         })
+    }
+
+    /// Test-only constructor: `task.assign` still inserts the row
+    /// and broadcasts the initial status, but no subprocess starts.
+    /// Always public so integration tests (which can't see
+    /// `cfg(test)` of the bin crate) can use it; behaviourally
+    /// equivalent to `new` for everything except actual PTY spawn.
+    pub fn new_no_spawn(db: Database, bus: EventBus) -> Arc<Self> {
+        let db = Arc::new(Mutex::new(db));
+        let supervisor = TaskSupervisor::new(db.clone(), bus.clone());
+        Arc::new(Self {
+            db,
+            bus,
+            supervisor,
+            spawn_disabled: true,
+        })
+    }
+}
+
+fn cancel_signal_to_kind(s: CancelSignal) -> CancelKind {
+    match s {
+        CancelSignal::Sigint => CancelKind::Sigint,
+        CancelSignal::Sigterm => CancelKind::Sigterm,
+        CancelSignal::Sigkill => CancelKind::Sigkill,
     }
 }
 
@@ -87,8 +120,8 @@ async fn route(
             let task = Task {
                 id: task_id.clone(),
                 ai_cli_kind: ai_cli,
-                prompt,
-                workdir,
+                prompt: prompt.clone(),
+                workdir: workdir.clone(),
                 status: TaskStatus::Running, // v0.72.1 will branch on risk
                 started_at: now_rfc3339(),
                 ended_at: None,
@@ -98,7 +131,17 @@ async fn route(
                 error: None,
             };
             ctx.db.lock().await.insert_task(&task)?;
-            // Broadcast status (any future subscribers will see it).
+
+            // Spawn the PTY subprocess unless the test harness has
+            // disabled it.
+            if !ctx.spawn_disabled {
+                ctx.supervisor
+                    .spawn(&task_id, ai_cli, &prompt, workdir.as_deref())
+                    .await?;
+            }
+
+            // Broadcast initial status (any future subscribers will
+            // see it; current subscribers wired in server.rs).
             ctx.bus
                 .broadcast(
                     &task_id,
@@ -133,29 +176,46 @@ async fn route(
 
         ClientMessage::TaskUnsubscribe { task_id, .. } => Ok(json!({ "unsubscribed": task_id })),
 
-        ClientMessage::TaskCancel { task_id, .. } => {
-            // PTY-aware cancel lands with the supervisor commit;
-            // milestone behaviour is DB-only.
-            ctx.db.lock().await.update_status(
-                &task_id,
-                TaskStatus::Cancelled,
-                Some(&now_rfc3339()),
-                None,
-                None,
-            )?;
-            ctx.bus
-                .broadcast(
-                    &task_id,
-                    ServerMessage::TaskStatus {
-                        task_id: task_id.clone(),
-                        status: TaskStatus::Cancelled,
-                        exit_code: None,
-                        duration_ms: None,
-                        ts_ms: now_ms(),
-                    },
-                )
+        ClientMessage::TaskCancel {
+            task_id, signal, ..
+        } => {
+            // Try to signal the live PTY first. If the task isn't
+            // active (e.g. it already finished), fall back to a
+            // DB-only status flip so the user's intent is recorded.
+            let supervisor_result = ctx
+                .supervisor
+                .cancel(&task_id, cancel_signal_to_kind(signal))
                 .await;
-            Ok(serde_json::Value::Null)
+            match supervisor_result {
+                Ok(()) => {
+                    // Waiter will broadcast the terminal status when
+                    // the child actually exits; no extra event here.
+                    Ok(serde_json::Value::Null)
+                }
+                Err(DaemonError::TaskNotFound(_)) => {
+                    ctx.db.lock().await.update_status(
+                        &task_id,
+                        TaskStatus::Cancelled,
+                        Some(&now_rfc3339()),
+                        None,
+                        None,
+                    )?;
+                    ctx.bus
+                        .broadcast(
+                            &task_id,
+                            ServerMessage::TaskStatus {
+                                task_id: task_id.clone(),
+                                status: TaskStatus::Cancelled,
+                                exit_code: None,
+                                duration_ms: None,
+                                ts_ms: now_ms(),
+                            },
+                        )
+                        .await;
+                    Ok(serde_json::Value::Null)
+                }
+                Err(e) => Err(e),
+            }
         }
 
         ClientMessage::TaskDecide { task_id, .. } => {

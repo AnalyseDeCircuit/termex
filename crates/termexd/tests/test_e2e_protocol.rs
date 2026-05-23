@@ -29,6 +29,10 @@ mod handler;
 #[allow(dead_code)]
 mod server;
 
+#[path = "../src/supervisor.rs"]
+#[allow(dead_code)]
+mod supervisor;
+
 use std::sync::Arc;
 use std::time::Duration;
 
@@ -56,7 +60,10 @@ async fn spawn_server() -> (String, tokio::task::JoinHandle<anyhow::Result<()>>)
 
     let db = Database::in_memory().unwrap();
     let bus = EventBus::new();
-    let ctx = HandlerCtx::new(db, bus);
+    // Use the no-spawn variant so basic protocol tests don't fork
+    // actual bash subprocesses; supervisor.rs has dedicated tests
+    // covering real spawn / cancel.
+    let ctx = HandlerCtx::new_no_spawn(db, bus);
     let listen = format!("127.0.0.1:{}", addr.port());
     let token = TOKEN.to_string();
     let handle = tokio::spawn(async move { server::run(&listen, token, ctx).await });
