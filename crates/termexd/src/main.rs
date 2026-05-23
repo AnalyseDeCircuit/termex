@@ -17,9 +17,13 @@ use tracing_subscriber::EnvFilter;
 mod auth;
 mod db;
 mod error;
+mod event_bus;
+mod handler;
+mod server;
 
 use crate::db::Database;
-use crate::error::DaemonError;
+use crate::event_bus::EventBus;
+use crate::handler::HandlerCtx;
 
 /// CLI for the termexd binary.
 #[derive(Parser, Debug)]
@@ -77,12 +81,17 @@ async fn main() -> anyhow::Result<()> {
     // follow-up commit; this milestone bootstraps the persistent
     // state.
     let token = auth::load_or_create_token(&termex_home)?;
-    let _db = Database::open(&termex_home.join("tasks.db"))?;
+    let db = Database::open(&termex_home.join("tasks.db"))?;
+    let bus = EventBus::new();
+    let ctx = HandlerCtx::new(db, bus);
 
     println!();
     println!("termexd is running.");
     println!();
-    println!("Token (also saved to {}/daemon.token, mode 0600):", termex_home.display());
+    println!(
+        "Token (also saved to {}/daemon.token, mode 0600):",
+        termex_home.display()
+    );
     println!("    {}", token);
     println!();
     println!(
@@ -92,15 +101,18 @@ async fn main() -> anyhow::Result<()> {
     );
     println!();
 
-    // TODO(v0.71.0): wire up WebSocket server (server.rs / handler.rs)
-    // + PTY supervisor (supervisor.rs) + event bus (event_bus.rs).
-    // This milestone leaves the binary as a token+DB bootstrapper so
-    // the SDK / bridge wiring can land in parallel.
-    let _: DaemonError = DaemonError::Auth("placeholder".into()); // silence dead_code for now
-    let _ = cli.listen; // same
+    let listen = cli.listen.clone();
+    let server_handle = tokio::spawn(async move { server::run(&listen, token, ctx).await });
 
-    // Keep the process alive so users can verify the token print.
-    tokio::signal::ctrl_c().await.ok();
-    info!("shutting down");
+    tokio::select! {
+        _ = tokio::signal::ctrl_c() => {
+            info!("ctrl-c received, shutting down");
+        }
+        res = server_handle => match res {
+            Ok(Ok(())) => info!("server returned cleanly"),
+            Ok(Err(e)) => return Err(e),
+            Err(e) => return Err(anyhow::anyhow!("server task panicked: {e}")),
+        },
+    }
     Ok(())
 }
