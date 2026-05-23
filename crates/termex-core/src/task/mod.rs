@@ -2,9 +2,11 @@
 //!
 //! v0.71.0 — defines the `Task` DTO + `TaskStatus` / `AiCliKind` enums.
 //! v0.71.1 will add the `task::adapter` module (CompletionDetector + the
-//! 4 AI CLI adapters). v0.72.1 will add `task::risk` (RiskScorer).
+//! 4 AI CLI adapters). v0.72.1 adds `task::risk` (RiskScorer).
 //!
 //! See `docs/iterations/v0.71.0-core-termexd-daemon.md` §2.3 for design.
+
+pub mod risk;
 
 use serde::{Deserialize, Serialize};
 
