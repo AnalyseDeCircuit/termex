@@ -4,6 +4,7 @@ pub mod audit_catalogue;
 pub mod backup;
 pub mod cloud;
 pub mod crypto;
+pub mod daemon;
 pub mod external_tools;
 pub mod git_sync;
 pub mod group;

@@ -6124,6 +6124,7 @@ dependencies = [
  "dashmap",
  "dirs",
  "flutter_rust_bridge",
+ "futures-util",
  "once_cell",
  "open",
  "portable-pty",
@@ -6137,6 +6138,7 @@ dependencies = [
  "termex-core-private",
  "time",
  "tokio",
+ "tokio-tungstenite",
  "uuid",
 ]
 

@@ -10,5 +10,5 @@
 pub mod client;
 pub mod protocol;
 
-pub use client::DaemonClient;
+pub use client::{ClientError, DaemonClient};
 pub use protocol::*;

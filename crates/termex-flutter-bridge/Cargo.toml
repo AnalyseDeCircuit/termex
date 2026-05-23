@@ -10,7 +10,9 @@ name       = "termex_flutter_bridge"
 crate-type = ["cdylib", "staticlib", "lib"]
 
 [dependencies]
-termex-core.workspace = true
+# Always pull termex-core with the `daemon` feature so the bridge can
+# expose api/daemon.rs (v0.71.0+ task daemon SDK).
+termex-core           = { path = "../termex-core", features = ["daemon"] }
 anyhow.workspace      = true
 tokio.workspace       = true
 serde.workspace       = true
@@ -44,4 +46,6 @@ private  = ["dep:termex-core-private"]
 
 [dev-dependencies]
 tempfile.workspace = true
-tokio = { version = "1", features = ["rt", "macros"] }
+tokio = { version = "1", features = ["rt", "macros", "rt-multi-thread", "net", "sync", "time"] }
+tokio-tungstenite = "0.21"
+futures-util      = "0.3"
