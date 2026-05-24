@@ -1,0 +1,14 @@
+<?xml version="1.0" encoding="utf-8"?>
+<!-- Splash shown by Android while the Flutter engine boots. The
+     OS swaps this out for Flutter's first frame the moment it's
+     ready, so we keep it cheap: a white background with the
+     launcher icon centered so the user sees brand continuity
+     between tapping the home-screen icon and the app opening. -->
+<layer-list xmlns:android="http://schemas.android.com/apk/res/android">
+    <item android:drawable="@android:color/white" />
+    <item>
+        <bitmap
+            android:gravity="center"
+            android:src="@mipmap/ic_launcher" />
+    </item>
+</layer-list>

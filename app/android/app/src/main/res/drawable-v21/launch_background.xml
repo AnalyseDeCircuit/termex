@@ -1,0 +1,12 @@
+<?xml version="1.0" encoding="utf-8"?>
+<!-- API 21+ variant: uses the system-themed colorBackground so
+     dark-mode users get a black splash instead of white. Logo
+     centered for brand continuity (see drawable/launch_background.xml). -->
+<layer-list xmlns:android="http://schemas.android.com/apk/res/android">
+    <item android:drawable="?android:colorBackground" />
+    <item>
+        <bitmap
+            android:gravity="center"
+            android:src="@mipmap/ic_launcher" />
+    </item>
+</layer-list>
