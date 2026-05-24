@@ -345,6 +345,58 @@ impl DaemonEvent {
                 e.usage_estimated_cost_usd = estimated_cost_usd;
                 Some(e)
             }
+            // v0.74.2 handoff broadcasts. Surfaced as their own
+            // DaemonEvent kinds so the Dart side can branch in the
+            // task-detail provider; payload encoded as a JSON blob to
+            // keep the DTO field-count manageable.
+            ServerMessage::TaskWatchersUpdate {
+                task_id,
+                watchers,
+                ts_ms,
+            } => {
+                let mut e = Self::empty("watchers_update", task_id, None, ts_ms);
+                e.data = Some(
+                    serde_json::to_string(&watchers).unwrap_or_else(|_| "[]".into()),
+                );
+                Some(e)
+            }
+            ServerMessage::HandoffReceived {
+                task_id,
+                from_device,
+                deep_link,
+                ts_ms,
+            } => {
+                let mut e = Self::empty("handoff_received", task_id, None, ts_ms);
+                let payload = serde_json::json!({
+                    "from_device": from_device,
+                    "deep_link": deep_link,
+                });
+                e.data = Some(payload.to_string());
+                Some(e)
+            }
+            ServerMessage::TaskTakenOver {
+                task_id,
+                new_owner,
+                ts_ms,
+            } => {
+                let mut e = Self::empty("taken_over", task_id, None, ts_ms);
+                e.data = Some(serde_json::to_string(&new_owner).unwrap_or_else(|_| "{}".into()));
+                Some(e)
+            }
+            ServerMessage::TaskClientState {
+                task_id,
+                from_device,
+                ui_state,
+                ts_ms,
+            } => {
+                let mut e = Self::empty("client_state", task_id, None, ts_ms);
+                let payload = serde_json::json!({
+                    "from_device": from_device,
+                    "ui_state": ui_state,
+                });
+                e.data = Some(payload.to_string());
+                Some(e)
+            }
             ServerMessage::Pong { .. } | ServerMessage::Response { .. } => None,
         }
     }
