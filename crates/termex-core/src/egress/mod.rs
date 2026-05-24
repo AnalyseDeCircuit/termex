@@ -9,6 +9,7 @@
 //!
 //! See `docs/iterations/v0.74.0-mobile-egress-profile-and-sync.md`.
 
+pub mod resolver;
 pub mod storage;
 
 use serde::{Deserialize, Serialize};
