@@ -416,3 +416,28 @@ impl DeviceSink for ChannelSink {
         let _ = self.tx.send(msg);
     }
 }
+
+/// Production sink — wraps the bounded mpsc channel that
+/// `server.rs` uses to fan inbound subscription events out to the
+/// WS sink. Non-blocking: a full queue means the client is too
+/// slow, so we drop and log rather than block the runtime.
+pub struct WsSink {
+    tx: mpsc::Sender<ServerMessage>,
+}
+
+impl WsSink {
+    pub fn new(tx: mpsc::Sender<ServerMessage>) -> Self {
+        Self { tx }
+    }
+}
+
+impl DeviceSink for WsSink {
+    fn send(&self, msg: ServerMessage) {
+        // try_send avoids blocking the runtime when the client
+        // can't keep up; the alternative is the producer-side
+        // BroadcastLagged path the EventBus already handles.
+        if let Err(e) = self.tx.try_send(msg) {
+            tracing::debug!(error = %e, "handoff: WsSink dropped a message");
+        }
+    }
+}

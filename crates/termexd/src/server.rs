@@ -110,6 +110,16 @@ async fn handle_connection(
     let (tx, mut rx) = mpsc::channel::<ServerMessage>(SUBSCRIPTION_CHANNEL_CAP);
     let mut subs: HashMap<String, tokio::task::JoinHandle<()>> = HashMap::new();
 
+    // v0.74.2 — per-connection identity. Populated when the client
+    // sends `client.register_device`; used as the `from_device` for
+    // every subsequent handoff.* message so the runtime no longer
+    // sees the "self" placeholder.
+    let mut connection_device: Option<termex_core::daemon::DeviceWireDto> = None;
+    // Wire the connection up to the handoff runtime so HandoffSend
+    // can find this device's WS sink for `HandoffReceived` pushes.
+    let device_sink: Arc<crate::handoff::WsSink> =
+        Arc::new(crate::handoff::WsSink::new(tx.clone()));
+
     loop {
         tokio::select! {
             // Inbound frames
@@ -137,7 +147,8 @@ async fn handle_connection(
                 let parsed: Result<ClientMessage, _> = serde_json::from_str(&text);
                 let response: ServerMessage = match parsed {
                     Ok(msg) => {
-                        // Side-effect: subscribe / unsubscribe.
+                        // Side-effect: subscribe / unsubscribe + capture
+                        // per-connection identity for handoff routing.
                         match &msg {
                             ClientMessage::TaskSubscribe { task_id, .. } => {
                                 attach_subscription(
@@ -146,15 +157,55 @@ async fn handle_connection(
                                     tx.clone(),
                                     &mut subs,
                                 ).await;
+                                if let Some(dev) = &connection_device {
+                                    ctx.handoff.subscribe(task_id, &dev.id).await;
+                                }
                             }
                             ClientMessage::TaskUnsubscribe { task_id, .. } => {
                                 if let Some(h) = subs.remove(task_id) {
                                     h.abort();
                                 }
+                                if let Some(dev) = &connection_device {
+                                    ctx.handoff.unsubscribe(task_id, &dev.id).await;
+                                }
+                            }
+                            ClientMessage::ClientRegisterDevice {
+                                device_id,
+                                name,
+                                platform,
+                                ..
+                            } => {
+                                // Stash identity for downstream handoff arms
+                                // + connect this device's WS sink so
+                                // HandoffSend can route messages back.
+                                let dev = termex_core::daemon::DeviceWireDto {
+                                    id: device_id.clone(),
+                                    name: name.clone(),
+                                    platform: platform.clone(),
+                                };
+                                if let Err(e) = ctx
+                                    .handoff
+                                    .on_connect(device_id, device_sink.clone())
+                                    .await
+                                {
+                                    warn!(error = %e, "handoff on_connect failed");
+                                }
+                                connection_device = Some(dev);
                             }
                             _ => {}
                         }
-                        handler::handle(&ctx, msg).await
+                        // v0.74.2 — Server-side handoff intercept. We
+                        // bypass the handler for these three messages
+                        // because handler.rs uses a "self" placeholder
+                        // for the from-device identity; here we have
+                        // the real per-connection identity.
+                        if let Some(resp) =
+                            try_intercept_handoff(&ctx, &msg, &connection_device).await
+                        {
+                            resp
+                        } else {
+                            handler::handle(&ctx, msg).await
+                        }
                     },
                     Err(e) => ServerMessage::Response {
                         request_id: "unknown".into(),
@@ -177,12 +228,131 @@ async fn handle_connection(
         }
     }
 
-    // Cleanup: abort all subscription pump tasks.
+    // Cleanup: abort all subscription pump tasks + tell the handoff
+    // runtime this device is now offline.
     for (_, h) in subs.drain() {
         h.abort();
     }
+    if let Some(dev) = &connection_device {
+        let touched = ctx.handoff.on_disconnect(&dev.id);
+        debug!(device = %dev.id, watcher_tasks = ?touched, "handoff: client disconnected");
+    }
     info!(?peer, "client disconnected");
     Ok(())
+}
+
+/// Server-side intercept for the 3 handoff messages whose handler
+/// arm uses a "self" placeholder. Returns `Some(response)` when the
+/// message was handled here; `None` falls through to the regular
+/// handler (preserves the in-process test path that calls
+/// `handler::handle` directly without a per-connection identity).
+///
+/// `pub(crate)` so integration tests can drive it without spinning
+/// up a real WebSocket listener.
+pub(crate) async fn try_intercept_handoff(
+    ctx: &Arc<HandlerCtx>,
+    msg: &ClientMessage,
+    connection_device: &Option<termex_core::daemon::DeviceWireDto>,
+) -> Option<ServerMessage> {
+    let dev = match connection_device {
+        Some(d) => d.clone(),
+        None => return None,
+    };
+
+    use serde_json::json;
+    use termex_core::handoff::TakeoverOutcome;
+
+    match msg {
+        ClientMessage::HandoffSend {
+            request_id,
+            task_id,
+            target_device_id,
+            deep_link,
+        } => {
+            let outcome = ctx
+                .handoff
+                .send_handoff(task_id, dev, target_device_id, deep_link)
+                .await;
+            let (ok, code, path) = match outcome {
+                crate::handoff::DeliveryOutcome::DeliveredWs => (true, None, "ws"),
+                crate::handoff::DeliveryOutcome::Offline => (true, None, "queued"),
+                crate::handoff::DeliveryOutcome::UnknownTarget => {
+                    (false, Some("ERR_NOT_FOUND".to_string()), "unknown")
+                }
+            };
+            Some(ServerMessage::Response {
+                request_id: request_id.clone(),
+                ok,
+                data: json!({ "delivered": ok, "delivery_path": path }),
+                error: if ok { None } else {
+                    Some(format!("unknown device: {target_device_id}"))
+                },
+                code,
+            })
+        }
+
+        ClientMessage::HandoffTakeover {
+            request_id,
+            task_id,
+            expected_previous_owner,
+        } => {
+            let result = ctx
+                .handoff
+                .try_take_over(task_id, &dev, expected_previous_owner.as_deref())
+                .await;
+            match result {
+                Ok(TakeoverOutcome::Won { previous_owner_id }) => {
+                    Some(ServerMessage::Response {
+                        request_id: request_id.clone(),
+                        ok: true,
+                        data: json!({
+                            "ok": true,
+                            "previous_owner_id": previous_owner_id,
+                        }),
+                        error: None,
+                        code: None,
+                    })
+                }
+                Ok(TakeoverOutcome::RaceLost { actual_owner_id }) => {
+                    Some(ServerMessage::Response {
+                        request_id: request_id.clone(),
+                        ok: false,
+                        data: json!({
+                            "actual_owner_id": actual_owner_id,
+                        }),
+                        error: Some("ownership changed concurrently".into()),
+                        code: Some("OWNERSHIP_CHANGED".into()),
+                    })
+                }
+                Err(e) => Some(ServerMessage::Response {
+                    request_id: request_id.clone(),
+                    ok: false,
+                    data: serde_json::Value::Null,
+                    error: Some(e.to_string()),
+                    code: Some("ERR_INTERNAL".into()),
+                }),
+            }
+        }
+
+        ClientMessage::HandoffStateSync {
+            request_id,
+            task_id,
+            ui_state,
+        } => {
+            let fanout = ctx
+                .handoff
+                .broadcast_state(task_id, dev, ui_state.clone());
+            Some(ServerMessage::Response {
+                request_id: request_id.clone(),
+                ok: true,
+                data: json!({ "fanout": fanout }),
+                error: None,
+                code: None,
+            })
+        }
+
+        _ => None,
+    }
 }
 
 /// Subscribe to a task on the EventBus and pipe its events into the
