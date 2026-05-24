@@ -15,6 +15,7 @@ use tracing::info;
 use tracing_subscriber::EnvFilter;
 
 mod auth;
+mod cost_recorder;
 mod db;
 mod error;
 mod event_bus;

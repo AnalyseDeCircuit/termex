@@ -30,7 +30,9 @@ use termex_core::task::{AiCliKind, TaskStatus};
 use crate::db::Database;
 use crate::error::DaemonError;
 use crate::event_bus::EventBus;
+use crate::cost_recorder::CostRecorder;
 use crate::mcp::{mcp_notification_to_server_event, McpClient};
+use termex_core::cost::CostKind;
 
 const TAIL_BYTES: usize = 8 * 1024;
 const CANCEL_GRACE_MS: u64 = 10_000;
@@ -317,7 +319,8 @@ fn run_reader(
                             version = %info.server_info.version,
                             "mcp handshake ok"
                         );
-                        run_mcp_pump(task_id, client, bus, db, rt);
+                        let recorder = CostRecorder::new(db.clone());
+                        run_mcp_pump(task_id, client, bus, db, rt, recorder);
                         return;
                     }
                     Err(e) => {
@@ -435,6 +438,7 @@ fn run_mcp_pump<W, R>(
     bus: EventBus,
     db: Arc<Mutex<Database>>,
     rt: tokio::runtime::Handle,
+    recorder: CostRecorder,
 ) where
     W: std::io::Write + Send + 'static,
     R: BufRead + Send + 'static,
@@ -450,6 +454,34 @@ fn run_mcp_pump<W, R>(
                 if tail.len() > TAIL_BYTES {
                     let drop_n = tail.len() - TAIL_BYTES;
                     tail.drain(..drop_n);
+                }
+                // v0.74.1: record the cost row before consuming the
+                // note. The recorder runs on the runtime so we don't
+                // block the MCP read loop on SQLite I/O.
+                if let crate::mcp::protocol::McpNotification::Usage {
+                    input_tokens,
+                    output_tokens,
+                    model,
+                    ..
+                } = &note
+                {
+                    let recorder_clone = recorder.clone();
+                    let task_id_clone = task_id.clone();
+                    let model_owned = model.clone();
+                    let inp = *input_tokens;
+                    let out = *output_tokens;
+                    rt.spawn(async move {
+                        recorder_clone
+                            .record_usage(
+                                &task_id_clone,
+                                "",
+                                CostKind::PrimaryAiCall,
+                                &model_owned,
+                                inp,
+                                out,
+                            )
+                            .await;
+                    });
                 }
                 let seq = bus.next_seq();
                 if let Some(event) = mcp_notification_to_server_event(&task_id, seq, note) {

@@ -33,6 +33,10 @@ mod handler;
 #[allow(dead_code)]
 mod server;
 
+
+#[path = "../src/cost_recorder.rs"]
+#[allow(dead_code)]
+mod cost_recorder;
 #[path = "../src/supervisor.rs"]
 #[allow(dead_code)]
 mod supervisor;
