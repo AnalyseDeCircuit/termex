@@ -16,7 +16,7 @@ use termex_core::desktop::probe::{
 /// flatten avoids a wrapper class).
 #[derive(Debug, Clone, Serialize, Deserialize)]
 #[serde(rename_all = "camelCase")]
-pub struct DaemonProbeDto {
+pub struct DesktopDaemonProbeDto {
     /// "available" / "not_installed" / "unreachable" / "outdated" / "protocol_error".
     pub kind: String,
     /// Populated only for Available / Outdated.
@@ -25,7 +25,7 @@ pub struct DaemonProbeDto {
     pub min_version: Option<String>,
 }
 
-impl From<CoreProbe> for DaemonProbeDto {
+impl From<CoreProbe> for DesktopDaemonProbeDto {
     fn from(p: CoreProbe) -> Self {
         match p {
             CoreProbe::Available { version } => Self {
@@ -64,7 +64,7 @@ impl From<CoreProbe> for DaemonProbeDto {
 #[serde(rename_all = "camelCase")]
 pub struct ServerProbeResultDto {
     pub server_id: String,
-    pub probe: DaemonProbeDto,
+    pub probe: DesktopDaemonProbeDto,
 }
 
 #[derive(Debug, Clone, Serialize, Deserialize)]
@@ -104,7 +104,7 @@ impl From<CoreSummary> for ProbeBatchSummaryDto {
 pub fn desktop_probe_classify(
     outcome: String,
     version: Option<String>,
-) -> Result<DaemonProbeDto, String> {
+) -> Result<DesktopDaemonProbeDto, String> {
     let core_outcome = match outcome.as_str() {
         "handshake_ok" => ProbeOutcome::HandshakeOk {
             version: version.ok_or("version required for handshake_ok outcome")?,

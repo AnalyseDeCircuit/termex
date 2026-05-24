@@ -84,3 +84,30 @@ pub fn record_handoff(m: &TaskMetrics, now_rfc3339: impl Into<String>) -> TaskMe
         ..m.clone()
     }
 }
+
+/// Batch helper for the reconnect path: bump `reconnect_count` for
+/// every currently-subscribed task in one transaction. Each row is
+/// read-modify-written; tasks without a metrics row yet get a fresh
+/// `TaskMetrics::empty(...)` first.
+pub fn bump_reconnect_for_tasks(
+    conn: &rusqlite::Connection,
+    task_ids: &[String],
+    now_rfc3339: &str,
+) -> Result<usize, super::ReliabilityError> {
+    use super::storage::{get, save};
+    use super::TaskMetrics;
+    if task_ids.is_empty() {
+        return Ok(0);
+    }
+    let tx = conn.unchecked_transaction()?;
+    let mut bumped = 0usize;
+    for id in task_ids {
+        let current = get(&tx, id)?
+            .unwrap_or_else(|| TaskMetrics::empty(id.clone(), now_rfc3339.to_string()));
+        let next = record_reconnect(&current, now_rfc3339);
+        save(&tx, &next)?;
+        bumped += 1;
+    }
+    tx.commit()?;
+    Ok(bumped)
+}

@@ -47,7 +47,7 @@ fn summary_counts_each_bucket() {
     let mk = |id: &str, kind: &str, version: Option<&str>, min: Option<&str>| {
         ServerProbeResultDto {
             server_id: id.into(),
-            probe: DaemonProbeDto {
+            probe: DesktopDaemonProbeDto {
                 kind: kind.into(),
                 version: version.map(str::to_string),
                 min_version: min.map(str::to_string),

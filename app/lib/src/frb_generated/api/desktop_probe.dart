@@ -15,7 +15,7 @@ import 'package:flutter_rust_bridge/flutter_rust_bridge_for_generated.dart';
 /// `outcome` is one of: `"handshake_ok"`, `"not_reachable"`,
 /// `"binary_missing"`, `"protocol_error"`. For `handshake_ok` the
 /// `version` parameter is required; otherwise it is ignored.
-Future<DaemonProbeDto> desktopProbeClassify(
+Future<DesktopDaemonProbeDto> desktopProbeClassify(
         {required String outcome, String? version}) =>
     TermexBridge.instance.api.crateApiDesktopProbeDesktopProbeClassify(
         outcome: outcome, version: version);
@@ -35,7 +35,7 @@ Future<String> desktopProbeMinVersion() =>
 /// Mirror of `termex_core::desktop::probe::DaemonProbe` flattened
 /// for the FRB wire (Dart doesn't get the tagged enum directly —
 /// flatten avoids a wrapper class).
-class DaemonProbeDto {
+class DesktopDaemonProbeDto {
   /// "available" / "not_installed" / "unreachable" / "outdated" / "protocol_error".
   final String kind;
 
@@ -45,7 +45,7 @@ class DaemonProbeDto {
   /// Populated only for Outdated.
   final String? minVersion;
 
-  const DaemonProbeDto({
+  const DesktopDaemonProbeDto({
     required this.kind,
     this.version,
     this.minVersion,
@@ -57,7 +57,7 @@ class DaemonProbeDto {
   @override
   bool operator ==(Object other) =>
       identical(this, other) ||
-      other is DaemonProbeDto &&
+      other is DesktopDaemonProbeDto &&
           runtimeType == other.runtimeType &&
           kind == other.kind &&
           version == other.version &&
@@ -109,7 +109,7 @@ class ProbeBatchSummaryDto {
 
 class ServerProbeResultDto {
   final String serverId;
-  final DaemonProbeDto probe;
+  final DesktopDaemonProbeDto probe;
 
   const ServerProbeResultDto({
     required this.serverId,

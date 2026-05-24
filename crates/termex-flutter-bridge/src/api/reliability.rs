@@ -5,7 +5,9 @@
 
 use termex_core::reliability::metrics;
 use termex_core::reliability::storage as rel_storage;
-use termex_core::reliability::TaskMetrics;
+// pub use so the FRB generated `reliability_save -> TaskMetrics`
+// wire fn can resolve the bare type at the api module root.
+pub use termex_core::reliability::TaskMetrics;
 
 use crate::db_state;
 
@@ -46,6 +48,23 @@ pub fn reliability_list() -> Result<Vec<TaskMetrics>, String> {
 pub fn reliability_record_reconnect(task_id: String, now_rfc3339: String) -> Result<(), String> {
     write_helper(task_id, now_rfc3339, |m, now| {
         metrics::record_reconnect(m, now)
+    })
+}
+
+/// Batch reconnect — called by the app-level orchestrator after a
+/// successful WS reconnect with the list of task ids the user was
+/// subscribed to. Returns the number of rows bumped.
+pub fn reliability_record_reconnect_batch(
+    task_ids: Vec<String>,
+    now_rfc3339: String,
+) -> Result<u32, String> {
+    db_state::with_db(|db| {
+        db.with_conn(|conn| {
+            metrics::bump_reconnect_for_tasks(conn, &task_ids, &now_rfc3339)
+                .map(|n| n as u32)
+                .map_err(sql_box)
+        })
+        .map_err(|e| e.to_string())
     })
 }
 

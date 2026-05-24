@@ -28,6 +28,15 @@ Future<void> reliabilityRecordReconnect(
     TermexBridge.instance.api.crateApiReliabilityReliabilityRecordReconnect(
         taskId: taskId, nowRfc3339: nowRfc3339);
 
+/// Batch reconnect — called by the app-level orchestrator after a
+/// successful WS reconnect with the list of task ids the user was
+/// subscribed to. Returns the number of rows bumped.
+Future<int> reliabilityRecordReconnectBatch(
+        {required List<String> taskIds, required String nowRfc3339}) =>
+    TermexBridge.instance.api
+        .crateApiReliabilityReliabilityRecordReconnectBatch(
+            taskIds: taskIds, nowRfc3339: nowRfc3339);
+
 Future<void> reliabilityRecordWsSession(
         {required String taskId,
         required BigInt durationMs,

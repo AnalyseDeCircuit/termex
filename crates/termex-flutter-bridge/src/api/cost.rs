@@ -12,7 +12,10 @@ use termex_core::cost::estimator::{
 };
 use termex_core::cost::pricing::ModelPricing;
 use termex_core::cost::storage as cost_storage;
-use termex_core::cost::{CapDecision, CapKind, CostKind, CostRecord, CostSummary, UserCostCap};
+use termex_core::cost::{CapDecision, CapKind, CostKind, CostRecord, UserCostCap};
+// Re-exported so the FRB generated code can resolve the bare name
+// when binding `cost_summary -> CostSummary`.
+pub use termex_core::cost::CostSummary;
 use termex_core::task::AiCliKind;
 
 use crate::db_state;

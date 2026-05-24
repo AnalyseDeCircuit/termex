@@ -266,6 +266,9 @@ abstract class TermexBridgeApiImplPlatform
   DaemonProbeDto dco_decode_daemon_probe_dto(dynamic raw);
 
   @protected
+  DesktopDaemonProbeDto dco_decode_desktop_daemon_probe_dto(dynamic raw);
+
+  @protected
   DeviceDto dco_decode_device_dto(dynamic raw);
 
   @protected
@@ -876,6 +879,10 @@ abstract class TermexBridgeApiImplPlatform
 
   @protected
   DaemonProbeDto sse_decode_daemon_probe_dto(SseDeserializer deserializer);
+
+  @protected
+  DesktopDaemonProbeDto sse_decode_desktop_daemon_probe_dto(
+      SseDeserializer deserializer);
 
   @protected
   DeviceDto sse_decode_device_dto(SseDeserializer deserializer);
@@ -1544,6 +1551,10 @@ abstract class TermexBridgeApiImplPlatform
   @protected
   void sse_encode_daemon_probe_dto(
       DaemonProbeDto self, SseSerializer serializer);
+
+  @protected
+  void sse_encode_desktop_daemon_probe_dto(
+      DesktopDaemonProbeDto self, SseSerializer serializer);
 
   @protected
   void sse_encode_device_dto(DeviceDto self, SseSerializer serializer);

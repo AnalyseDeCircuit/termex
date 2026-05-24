@@ -113,7 +113,26 @@ pub fn save(conn: &Connection, profile: &EgressProfile) -> Result<(), EgressErro
     Ok(())
 }
 
+/// Delete a profile. Any `servers.egress_profile_id` rows pointing
+/// at it are first set to NULL so dangling bindings don't survive —
+/// the column was added in migration #28 without an FK clause
+/// (SQLite enforces FKs only when the user opts in), so cascade
+/// must be done in code.
 pub fn delete(conn: &Connection, id: &str) -> Result<(), EgressError> {
+    let has_server_link = conn
+        .query_row(
+            "SELECT 1 FROM pragma_table_info('servers') WHERE name = 'egress_profile_id'",
+            [],
+            |_| Ok(()),
+        )
+        .optional()?
+        .is_some();
+    if has_server_link {
+        conn.execute(
+            "UPDATE servers SET egress_profile_id = NULL WHERE egress_profile_id = ?1",
+            params![id],
+        )?;
+    }
     let n = conn.execute("DELETE FROM egress_profiles WHERE id = ?1", params![id])?;
     if n == 0 {
         return Err(EgressError::NotFound(id.to_string()));

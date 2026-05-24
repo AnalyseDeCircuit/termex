@@ -4,8 +4,9 @@
 // ignore_for_file: invalid_use_of_internal_member, unused_import, unnecessary_import
 
 import '../frb_generated.dart';
-import 'desktop_probe.dart';
 import 'package:flutter_rust_bridge/flutter_rust_bridge_for_generated.dart';
+import 'package:freezed_annotation/freezed_annotation.dart' hide protected;
+part 'daemon.freezed.dart';
 
 // These functions are ignored because they are not marked as `pub`: `empty`, `event_queues`, `from_server_message`, `get_client`, `handles`, `map_err`, `ssh_exec_capture`
 // These function are ignored because they are on traits that is not defined in current crate (put an empty `#[frb]` on it to unignore): `assert_fields_are_eq`, `assert_fields_are_eq`, `clone`, `clone`, `clone`, `clone`, `clone`, `eq`, `eq`, `fmt`, `fmt`, `fmt`, `fmt`, `fmt`, `from`, `from`, `from`, `from`, `from`
@@ -239,6 +240,19 @@ class DaemonEvent {
           usageOutputTokens == other.usageOutputTokens &&
           usageModel == other.usageModel &&
           usageEstimatedCostUsd == other.usageEstimatedCostUsd;
+}
+
+@freezed
+sealed class DaemonProbeDto with _$DaemonProbeDto {
+  const DaemonProbeDto._();
+
+  const factory DaemonProbeDto.available(
+    String field0,
+  ) = DaemonProbeDto_Available;
+  const factory DaemonProbeDto.notInstalled() = DaemonProbeDto_NotInstalled;
+  const factory DaemonProbeDto.error(
+    String field0,
+  ) = DaemonProbeDto_Error;
 }
 
 class TaskDto {

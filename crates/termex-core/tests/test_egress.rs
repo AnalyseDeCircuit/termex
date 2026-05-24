@@ -113,6 +113,55 @@ fn delete_unknown_id_errors_not_found() {
 }
 
 #[test]
+fn delete_cascades_null_on_bound_servers() {
+    let c = db();
+    // Sentinel + insert two server rows that will both bind to the
+    // same profile so we can verify *both* get NULLed on delete.
+    let _ = bind_server(&c, "bootstrap", None);
+    c.execute(
+        "INSERT OR REPLACE INTO servers (id, name) VALUES ('s1', 'home-dev'),
+                                                          ('s2', 'prod-edge'),
+                                                          ('s3', 'unrelated')",
+        [],
+    )
+    .unwrap();
+    let p = sample("office", None);
+    save(&c, &p).unwrap();
+    let other = sample("home", None);
+    save(&c, &other).unwrap();
+
+    bind_server(&c, "s1", Some(&p.id)).unwrap();
+    bind_server(&c, "s2", Some(&p.id)).unwrap();
+    bind_server(&c, "s3", Some(&other.id)).unwrap();
+
+    delete(&c, &p.id).unwrap();
+
+    let check = |sid: &str| -> Option<String> {
+        c.query_row(
+            "SELECT egress_profile_id FROM servers WHERE id = ?1",
+            rusqlite::params![sid],
+            |r| r.get::<_, Option<String>>(0),
+        )
+        .unwrap()
+    };
+    assert!(check("s1").is_none(), "s1 must be unbound");
+    assert!(check("s2").is_none(), "s2 must be unbound");
+    assert_eq!(check("s3").as_deref(), Some(other.id.as_str()),
+               "unrelated profile binding must survive");
+}
+
+#[test]
+fn delete_when_servers_table_absent_does_not_error() {
+    // Fresh DB with no `servers` table at all — the cascade probe
+    // should detect the column's absence and just delete the profile.
+    let c = db();
+    let p = sample("home", None);
+    save(&c, &p).unwrap();
+    delete(&c, &p.id).unwrap();
+    assert!(get(&c, &p.id).unwrap().is_none());
+}
+
+#[test]
 fn list_summaries_reports_hop_proxy_counts() {
     let c = db();
     save(&c, &sample("office", None)).unwrap();
