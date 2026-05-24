@@ -28,6 +28,11 @@ const MIGRATIONS: &[(i32, &str, &str)] = &[
     (23, "recording encryption + git sync repos + port forward bind_ip", MIGRATION_V23),
     (24, "team members and invites v2 (v0.52 gap coverage)", MIGRATION_V24),
     (25, "backup schedules and history (v0.68.0 G1)", MIGRATION_V25),
+    (26, "tasks (v0.71.0 daemon + client shared schema)", MIGRATION_V26),
+    (27, "device push tokens (v0.72.2)", MIGRATION_V27),
+    (28, "egress profiles + servers.egress_profile_id (v0.74.0)", MIGRATION_V28),
+    (29, "task costs (v0.74.1 cost transparency)", MIGRATION_V29),
+    (30, "task metrics (v0.75.0 reliability)", MIGRATION_V30),
 ];
 
 /// Runs all pending migrations in order.
@@ -139,6 +144,11 @@ pub fn run_migrations(conn: &Connection) -> Result<(), rusqlite::Error> {
                 add_column_if_missing(conn, "recordings", "is_encrypted", "INTEGER DEFAULT 0");
                 add_column_if_missing(conn, "port_forwards", "bind_ip", "TEXT DEFAULT '127.0.0.1'");
                 add_column_if_missing(conn, "port_forwards", "auto_start_order", "INTEGER DEFAULT 0");
+            }
+            if version == 28 {
+                // Migration v28: bind a server to an egress profile (nullable, no FK
+                // enforcement so older rows survive unchanged).
+                add_column_if_missing(conn, "servers", "egress_profile_id", "TEXT");
             }
             conn.execute(
                 "INSERT INTO _migrations (version, description, applied_at) VALUES (?1, ?2, ?3)",
@@ -645,4 +655,121 @@ CREATE TABLE IF NOT EXISTS backup_history (
 );
 CREATE INDEX IF NOT EXISTS idx_backup_history_schedule ON backup_history(schedule_id);
 CREATE INDEX IF NOT EXISTS idx_backup_history_started ON backup_history(started_at DESC);
+";
+
+// ============================================================
+// V26: tasks (v0.71.0 — shared between daemon DB and client app)
+// ============================================================
+//
+// Mirrors the daemon-side schema so the mobile client can render
+// task history offline (the daemon is the source of truth for the
+// running state). Status enum matches `task::TaskStatus`.
+const MIGRATION_V26: &str = "
+CREATE TABLE IF NOT EXISTS tasks (
+    id                    TEXT PRIMARY KEY,
+    session_id            TEXT,
+    server_id             TEXT,
+    ai_cli_kind           TEXT NOT NULL,
+    prompt                TEXT NOT NULL,
+    status                TEXT NOT NULL,
+    output_tail           TEXT,
+    exit_code             INTEGER,
+    started_at            TEXT,
+    ended_at              TEXT,
+    primary_device_id     TEXT,
+    ownership_changed_at  TEXT,
+    created_at            TEXT NOT NULL
+);
+CREATE INDEX IF NOT EXISTS idx_tasks_status     ON tasks(status);
+CREATE INDEX IF NOT EXISTS idx_tasks_server     ON tasks(server_id, started_at);
+CREATE INDEX IF NOT EXISTS idx_tasks_created    ON tasks(created_at DESC);
+";
+
+// ============================================================
+// V27: device push tokens (v0.72.2)
+// ============================================================
+//
+// Stores FCM / APNs tokens so the mobile shell can re-register
+// after token rotation and so the team-mode push fan-out has a
+// per-device target. `push_token` is treated as a credential —
+// callers should keep the row TEXT but never log the value.
+const MIGRATION_V27: &str = "
+CREATE TABLE IF NOT EXISTS device_push_tokens (
+    device_id       TEXT PRIMARY KEY,
+    push_token      TEXT NOT NULL,
+    push_platform   TEXT NOT NULL CHECK (push_platform IN ('ios_apns','android_fcm')),
+    registered_at   TEXT NOT NULL,
+    refreshed_at    TEXT NOT NULL
+);
+CREATE INDEX IF NOT EXISTS idx_device_push_tokens_refreshed
+    ON device_push_tokens(refreshed_at DESC);
+";
+
+// ============================================================
+// V28: egress profiles + servers.egress_profile_id (v0.74.0)
+// ============================================================
+//
+// `egress_profiles` describes a named chain of SSH hops + optional
+// SOCKS proxy that a server can be bound to. The chain hops live in
+// JSON to keep this migration single-table; the egress::storage
+// module owns parse/serialize.
+const MIGRATION_V28: &str = "
+CREATE TABLE IF NOT EXISTS egress_profiles (
+    id              TEXT PRIMARY KEY,
+    name            TEXT NOT NULL,
+    chain_hops      TEXT NOT NULL DEFAULT '[]',  -- JSON array of HopRef
+    proxy_id        TEXT,
+    owner_device    TEXT,
+    created_at      TEXT NOT NULL,
+    updated_at      TEXT NOT NULL
+);
+-- Uniqueness scoped to (name, owner_device); NULL owner is treated as
+-- its own bucket per egress::storage upsert semantics.
+CREATE UNIQUE INDEX IF NOT EXISTS idx_egress_profiles_name_owner
+    ON egress_profiles(name, COALESCE(owner_device, ''));
+";
+
+// ============================================================
+// V29: task_costs (v0.74.1)
+// ============================================================
+//
+// Per-call cost rows; aggregates roll up via cost::storage helpers.
+// Lives client-side so the dashboard works without a live daemon
+// connection.
+const MIGRATION_V29: &str = "
+CREATE TABLE IF NOT EXISTS task_costs (
+    id              TEXT PRIMARY KEY,
+    task_id         TEXT NOT NULL,
+    server_id       TEXT NOT NULL,
+    kind            TEXT NOT NULL,
+    model           TEXT NOT NULL,
+    input_tokens    INTEGER NOT NULL,
+    output_tokens   INTEGER NOT NULL,
+    cost_usd        REAL    NOT NULL,
+    ts              TEXT    NOT NULL
+);
+CREATE INDEX IF NOT EXISTS idx_task_costs_task   ON task_costs(task_id);
+CREATE INDEX IF NOT EXISTS idx_task_costs_server ON task_costs(server_id, ts);
+CREATE INDEX IF NOT EXISTS idx_task_costs_ts     ON task_costs(ts);
+";
+
+// ============================================================
+// V30: task_metrics (v0.75.0)
+// ============================================================
+//
+// Per-task reliability counters. PRIMARY KEY = task_id so each row
+// is an UPSERT target; the dev-mode footer renders the latest
+// snapshot. ON DELETE CASCADE keeps this in sync if the row in
+// `tasks` (#26) is purged.
+const MIGRATION_V30: &str = "
+CREATE TABLE IF NOT EXISTS task_metrics (
+    task_id           TEXT PRIMARY KEY REFERENCES tasks(id) ON DELETE CASCADE,
+    ws_uptime_ms      INTEGER NOT NULL DEFAULT 0,
+    reconnect_count   INTEGER NOT NULL DEFAULT 0,
+    bg_duration_ms    INTEGER NOT NULL DEFAULT 0,
+    push_latency_ms   INTEGER,
+    handoff_count     INTEGER NOT NULL DEFAULT 0,
+    updated_at        TEXT NOT NULL
+);
+CREATE INDEX IF NOT EXISTS idx_task_metrics_updated ON task_metrics(updated_at);
 ";

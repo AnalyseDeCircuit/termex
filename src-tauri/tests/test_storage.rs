@@ -17,8 +17,10 @@ fn test_migrations_idempotent() {
     let version: i32 = conn
         .query_row("SELECT MAX(version) FROM _migrations", [], |row| row.get(0))
         .unwrap();
-    // Updated for v0.52 gap coverage: V24 adds team_members + team_invites tables.
-    assert_eq!(version, 25);
+    // Bumped through v0.74.x/v0.75.0 — see iteration-standards.md §2 for the
+    // current registry. #26 tasks · #27 device_push_tokens · #28 egress_profiles
+    // (+ servers.egress_profile_id) · #29 task_costs · #30 task_metrics.
+    assert_eq!(version, 30);
 }
 
 #[test]
@@ -28,7 +30,7 @@ fn test_all_migrations_applied() {
     let count: i32 = conn
         .query_row("SELECT COUNT(*) FROM _migrations", [], |row| row.get(0))
         .unwrap();
-    assert_eq!(count, 25);
+    assert_eq!(count, 30);
 }
 
 #[test]

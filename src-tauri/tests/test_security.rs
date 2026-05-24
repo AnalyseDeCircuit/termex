@@ -844,8 +844,8 @@ fn test_migration_count_is_16() {
     let count: i32 = conn
         .query_row("SELECT COUNT(*) FROM _migrations", [], |r| r.get(0))
         .unwrap();
-    // Updated for v0.52 gap coverage: V24 adds team_members + team_invites tables.
-    assert_eq!(count, 25);
+    // Bumped through v0.74.x/v0.75.0 — see iteration-standards.md §2.
+    assert_eq!(count, 30);
 }
 
 #[test]
@@ -855,5 +855,5 @@ fn test_max_migration_version_is_16() {
     let version: i32 = conn
         .query_row("SELECT MAX(version) FROM _migrations", [], |r| r.get(0))
         .unwrap();
-    assert_eq!(version, 25);
+    assert_eq!(version, 30);
 }
