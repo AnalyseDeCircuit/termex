@@ -180,6 +180,7 @@ async fn daemon_task_assign_round_trip() {
         "fix bug".into(),
         Some("/repo".into()),
         30,
+        None,
     )
     .await
     .unwrap();
@@ -218,6 +219,7 @@ async fn daemon_task_list_with_status_filter_round_trips() {
         "x".into(),
         None,
         30,
+        None,
     )
     .await
     .unwrap();
@@ -251,6 +253,7 @@ async fn daemon_task_cancel_flips_status() {
         "sleep".into(),
         None,
         30,
+        None,
     )
     .await
     .unwrap();
@@ -290,6 +293,7 @@ async fn daemon_subscribe_then_drain_yields_no_events_until_emitted() {
         "x".into(),
         None,
         30,
+        None,
     )
     .await
     .unwrap();

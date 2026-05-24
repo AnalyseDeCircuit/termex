@@ -29,13 +29,15 @@ Future<String> daemonTaskAssign(
         required AiCliKindDto aiCli,
         required String prompt,
         String? workdir,
-        required int idleTimeoutSec}) =>
+        required int idleTimeoutSec,
+        String? serverId}) =>
     TermexBridge.instance.api.crateApiDaemonDaemonTaskAssign(
         handleId: handleId,
         aiCli: aiCli,
         prompt: prompt,
         workdir: workdir,
-        idleTimeoutSec: idleTimeoutSec);
+        idleTimeoutSec: idleTimeoutSec,
+        serverId: serverId);
 
 Future<List<TaskDto>> daemonTaskList(
         {required String handleId, TaskStatusDto? status}) =>

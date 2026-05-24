@@ -29,6 +29,14 @@ pub struct Task {
     /// Optional working directory passed to the AI CLI (`--workdir`).
     pub workdir: Option<String>,
 
+    /// Client-side server identifier this task is attributed to.
+    /// v0.74.1 cost recorder + dashboards aggregate against it.
+    /// `None` collapses to a single anonymous bucket so v0.71.x
+    /// clients that don't supply server_id still produce a
+    /// renderable cost summary.
+    #[serde(default, skip_serializing_if = "Option::is_none")]
+    pub server_id: Option<String>,
+
     /// Current lifecycle state.
     pub status: TaskStatus,
 

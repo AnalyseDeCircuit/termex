@@ -89,6 +89,7 @@ impl TaskSupervisor {
         ai_cli: AiCliKind,
         prompt: &str,
         workdir: Option<&str>,
+        server_id: Option<&str>,
     ) -> Result<(), DaemonError> {
         let mut cmd = build_command(ai_cli, prompt);
         if let Some(dir) = workdir {
@@ -119,6 +120,7 @@ impl TaskSupervisor {
 
         let started_ms = now_ms();
         let task_id_owned = task_id.to_string();
+        let server_id_owned = server_id.map(str::to_string);
 
         // Decide whether to attempt the MCP handshake. Only the
         // CLIs that ship a stdio-MCP mode get the attempt;
@@ -135,6 +137,7 @@ impl TaskSupervisor {
         let bus_for_reader = self.inner.bus.clone();
         let db_for_reader = self.inner.db.clone();
         let task_id_for_reader = task_id_owned.clone();
+        let server_id_for_reader = server_id_owned.clone();
         let master_for_reader = master.clone();
         let rt = tokio::runtime::Handle::current();
         let rt_for_reader = rt.clone();
@@ -146,6 +149,7 @@ impl TaskSupervisor {
                 db_for_reader,
                 rt_for_reader,
                 mcp_attempt,
+                server_id_for_reader,
             );
         });
 
@@ -293,6 +297,7 @@ fn run_reader(
     db: Arc<Mutex<Database>>,
     rt: tokio::runtime::Handle,
     mcp_attempt: bool,
+    server_id: Option<String>,
 ) {
     let reader = match master.blocking_lock().try_clone_reader() {
         Ok(r) => r,
@@ -320,7 +325,7 @@ fn run_reader(
                             "mcp handshake ok"
                         );
                         let recorder = CostRecorder::new(db.clone());
-                        run_mcp_pump(task_id, client, bus, db, rt, recorder);
+                        run_mcp_pump(task_id, client, bus, db, rt, recorder, server_id);
                         return;
                     }
                     Err(e) => {
@@ -439,6 +444,7 @@ fn run_mcp_pump<W, R>(
     db: Arc<Mutex<Database>>,
     rt: tokio::runtime::Handle,
     recorder: CostRecorder,
+    server_id: Option<String>,
 ) where
     W: std::io::Write + Send + 'static,
     R: BufRead + Send + 'static,
@@ -468,13 +474,14 @@ fn run_mcp_pump<W, R>(
                     let recorder_clone = recorder.clone();
                     let task_id_clone = task_id.clone();
                     let model_owned = model.clone();
+                    let server_id_clone = server_id.clone().unwrap_or_default();
                     let inp = *input_tokens;
                     let out = *output_tokens;
                     rt.spawn(async move {
                         recorder_clone
                             .record_usage(
                                 &task_id_clone,
-                                "",
+                                &server_id_clone,
                                 CostKind::PrimaryAiCall,
                                 &model_owned,
                                 inp,

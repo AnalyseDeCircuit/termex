@@ -36,6 +36,7 @@ fn task_serde_roundtrip() {
         idle_timeout_sec: 30,
         output_tail: Some("running tests...".into()),
         error: None,
+        server_id: Some("home-dev".into()),
     };
     let json = serde_json::to_string(&task).unwrap();
     let back: Task = serde_json::from_str(&json).unwrap();

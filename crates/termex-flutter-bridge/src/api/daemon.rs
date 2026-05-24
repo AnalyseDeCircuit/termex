@@ -451,6 +451,7 @@ pub async fn daemon_task_assign(
     prompt: String,
     workdir: Option<String>,
     idle_timeout_sec: u32,
+    server_id: Option<String>,
 ) -> Result<String, String> {
     let client = get_client(&handle_id)?;
     client
@@ -459,6 +460,7 @@ pub async fn daemon_task_assign(
             prompt,
             workdir,
             idle_timeout_sec,
+            server_id,
         })
         .await
         .map_err(map_err)

@@ -420,7 +420,8 @@ abstract class TermexBridgeApi extends BaseApi {
       required AiCliKindDto aiCli,
       required String prompt,
       String? workdir,
-      required int idleTimeoutSec});
+      required int idleTimeoutSec,
+      String? serverId});
 
   Future<void> crateApiDaemonDaemonTaskCancel(
       {required String handleId,
@@ -3711,7 +3712,8 @@ class TermexBridgeApiImpl extends TermexBridgeApiImplPlatform
       required AiCliKindDto aiCli,
       required String prompt,
       String? workdir,
-      required int idleTimeoutSec}) {
+      required int idleTimeoutSec,
+      String? serverId}) {
     return handler.executeNormal(NormalTask(
       callFfi: (port_) {
         final serializer = SseSerializer(generalizedFrbRustBinding);
@@ -3720,6 +3722,7 @@ class TermexBridgeApiImpl extends TermexBridgeApiImplPlatform
         sse_encode_String(prompt, serializer);
         sse_encode_opt_String(workdir, serializer);
         sse_encode_u_32(idleTimeoutSec, serializer);
+        sse_encode_opt_String(serverId, serializer);
         pdeCallFfi(generalizedFrbRustBinding, serializer,
             funcId: 94, port: port_);
       },
@@ -3728,7 +3731,7 @@ class TermexBridgeApiImpl extends TermexBridgeApiImplPlatform
         decodeErrorData: sse_decode_String,
       ),
       constMeta: kCrateApiDaemonDaemonTaskAssignConstMeta,
-      argValues: [handleId, aiCli, prompt, workdir, idleTimeoutSec],
+      argValues: [handleId, aiCli, prompt, workdir, idleTimeoutSec, serverId],
       apiImpl: this,
     ));
   }
@@ -3736,7 +3739,14 @@ class TermexBridgeApiImpl extends TermexBridgeApiImplPlatform
   TaskConstMeta get kCrateApiDaemonDaemonTaskAssignConstMeta =>
       const TaskConstMeta(
         debugName: "daemon_task_assign",
-        argNames: ["handleId", "aiCli", "prompt", "workdir", "idleTimeoutSec"],
+        argNames: [
+          "handleId",
+          "aiCli",
+          "prompt",
+          "workdir",
+          "idleTimeoutSec",
+          "serverId"
+        ],
       );
 
   @override

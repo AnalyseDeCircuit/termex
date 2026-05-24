@@ -84,12 +84,13 @@ async fn spawn_simple_echo_emits_output_and_succeeded() {
             idle_timeout_sec: 30,
             output_tail: None,
             error: None,
+        server_id: None,
         })
         .unwrap();
 
     let mut rx = bus.subscribe(&task_id).await;
 
-    sup.spawn(&task_id, AiCliKind::Generic, "echo hello", None)
+    sup.spawn(&task_id, AiCliKind::Generic, "echo hello", None, None)
         .await
         .unwrap();
 
@@ -148,11 +149,12 @@ async fn spawn_failing_command_emits_failed_status() {
             idle_timeout_sec: 30,
             output_tail: None,
             error: None,
+        server_id: None,
         })
         .unwrap();
     let mut rx = bus.subscribe(&task_id).await;
 
-    sup.spawn(&task_id, AiCliKind::Generic, "exit 7", None)
+    sup.spawn(&task_id, AiCliKind::Generic, "exit 7", None, None)
         .await
         .unwrap();
 
@@ -191,11 +193,12 @@ async fn active_count_increments_and_drops() {
             idle_timeout_sec: 30,
             output_tail: None,
             error: None,
+        server_id: None,
         })
         .unwrap();
 
     assert_eq!(sup.active_count().await, 0);
-    sup.spawn(&task_id, AiCliKind::Generic, "echo hi", None)
+    sup.spawn(&task_id, AiCliKind::Generic, "echo hi", None, None)
         .await
         .unwrap();
     assert_eq!(sup.active_count().await, 1);
@@ -235,11 +238,12 @@ async fn cancel_sigterm_terminates_long_running_task() {
             idle_timeout_sec: 30,
             output_tail: None,
             error: None,
+        server_id: None,
         })
         .unwrap();
     let mut rx = bus.subscribe(&task_id).await;
 
-    sup.spawn(&task_id, AiCliKind::Generic, "sleep 60", None)
+    sup.spawn(&task_id, AiCliKind::Generic, "sleep 60", None, None)
         .await
         .unwrap();
     tokio::time::sleep(Duration::from_millis(300)).await;

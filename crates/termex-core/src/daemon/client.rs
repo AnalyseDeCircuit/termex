@@ -125,6 +125,7 @@ impl DaemonClient {
             prompt: req.prompt,
             workdir: req.workdir,
             idle_timeout_sec: req.idle_timeout_sec,
+            server_id: req.server_id,
         };
         let resp = self.send_with_timeout(msg, DEFAULT_REQUEST_TIMEOUT).await?;
         let data = unwrap_response(resp)?;

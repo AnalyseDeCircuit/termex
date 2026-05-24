@@ -3436,6 +3436,7 @@ fn wire__crate__api__daemon__daemon_task_assign_impl(
             let api_prompt = <String>::sse_decode(&mut deserializer);
             let api_workdir = <Option<String>>::sse_decode(&mut deserializer);
             let api_idle_timeout_sec = <u32>::sse_decode(&mut deserializer);
+            let api_server_id = <Option<String>>::sse_decode(&mut deserializer);
             deserializer.end();
             move |context| async move {
                 transform_result_sse::<_, String>(
@@ -3446,6 +3447,7 @@ fn wire__crate__api__daemon__daemon_task_assign_impl(
                             api_prompt,
                             api_workdir,
                             api_idle_timeout_sec,
+                            api_server_id,
                         )
                         .await?;
                         Ok(output_ok)

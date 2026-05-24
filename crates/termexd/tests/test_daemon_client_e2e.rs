@@ -109,6 +109,7 @@ async fn task_assign_returns_task_id() {
             prompt: "noop".into(),
             workdir: None,
             idle_timeout_sec: 30,
+            server_id: None,
         })
         .await
         .unwrap();
@@ -234,6 +235,7 @@ async fn subscribe_receives_live_output_with_real_pty() {
             prompt: "echo daemonclient-marker && exit 0".into(),
             workdir: None,
             idle_timeout_sec: 30,
+            server_id: None,
         })
         .await
         .unwrap();

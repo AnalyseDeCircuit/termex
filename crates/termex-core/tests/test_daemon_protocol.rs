@@ -18,6 +18,7 @@ fn client_message_task_assign_wire_shape() {
         prompt: "fix bug".into(),
         workdir: Some("/repo".into()),
         idle_timeout_sec: 30,
+        server_id: None,
     };
     let v: serde_json::Value = serde_json::to_value(&msg).unwrap();
     assert_eq!(v["type"], "task.assign");
@@ -36,6 +37,7 @@ fn client_message_task_assign_workdir_omitted_when_none() {
         prompt: "ls".into(),
         workdir: None,
         idle_timeout_sec: 30,
+        server_id: None,
     };
     let json = serde_json::to_string(&msg).unwrap();
     assert!(!json.contains("workdir"), "Some-only field must skip None");

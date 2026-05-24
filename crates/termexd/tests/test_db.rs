@@ -25,6 +25,7 @@ fn sample_task(id: &str, status: TaskStatus) -> Task {
         idle_timeout_sec: 30,
         output_tail: None,
         error: None,
+        server_id: None,
     }
 }
 

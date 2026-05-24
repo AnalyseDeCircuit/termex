@@ -158,6 +158,9 @@ impl Database {
         // them defensively.
         add_column_if_missing(&self.conn, "tasks", "primary_device_id", "TEXT");
         add_column_if_missing(&self.conn, "tasks", "ownership_changed_at", "TEXT");
+        // v0.74.1 — client-side server attribution for the cost
+        // dashboard. Idempotent like the other v3 column adds.
+        add_column_if_missing(&self.conn, "tasks", "server_id", "TEXT");
         Ok(())
     }
 
@@ -165,8 +168,9 @@ impl Database {
         self.conn.execute(
             "INSERT INTO tasks
                  (id, ai_cli_kind, prompt, workdir, status, started_at,
-                  ended_at, exit_code, idle_timeout_sec, output_tail, error)
-             VALUES (?1, ?2, ?3, ?4, ?5, ?6, ?7, ?8, ?9, ?10, ?11)",
+                  ended_at, exit_code, idle_timeout_sec, output_tail, error,
+                  server_id)
+             VALUES (?1, ?2, ?3, ?4, ?5, ?6, ?7, ?8, ?9, ?10, ?11, ?12)",
             params![
                 task.id,
                 ai_cli_kind_as_str(task.ai_cli_kind),
@@ -179,6 +183,7 @@ impl Database {
                 task.idle_timeout_sec,
                 task.output_tail,
                 task.error,
+                task.server_id,
             ],
         )?;
         Ok(())
@@ -189,7 +194,8 @@ impl Database {
             .conn
             .query_row(
                 "SELECT id, ai_cli_kind, prompt, workdir, status, started_at,
-                        ended_at, exit_code, idle_timeout_sec, output_tail, error
+                        ended_at, exit_code, idle_timeout_sec, output_tail, error,
+                        server_id
                  FROM tasks WHERE id = ?1",
                 params![id],
                 map_row_to_task,
@@ -201,7 +207,8 @@ impl Database {
     pub fn list_tasks(&self, status_filter: Option<TaskStatus>) -> Result<Vec<Task>, DaemonError> {
         let mut stmt = self.conn.prepare(
             "SELECT id, ai_cli_kind, prompt, workdir, status, started_at,
-                    ended_at, exit_code, idle_timeout_sec, output_tail, error
+                    ended_at, exit_code, idle_timeout_sec, output_tail, error,
+                    server_id
              FROM tasks
              WHERE (?1 IS NULL OR status = ?1)
              ORDER BY started_at DESC",
@@ -335,6 +342,7 @@ fn map_row_to_task(row: &rusqlite::Row) -> rusqlite::Result<Task> {
         idle_timeout_sec: row.get::<_, i64>(8)? as u32,
         output_tail: row.get(9)?,
         error: row.get(10)?,
+        server_id: row.get::<_, Option<String>>(11).ok().flatten(),
     })
 }
 

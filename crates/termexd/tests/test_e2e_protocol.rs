@@ -289,6 +289,7 @@ async fn event_bus_broadcasts_status_on_assign() {
             prompt: "echo hi".into(),
             workdir: None,
             idle_timeout_sec: 30,
+            server_id: None,
         },
     )
     .await;

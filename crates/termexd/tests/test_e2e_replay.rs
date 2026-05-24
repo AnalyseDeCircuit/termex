@@ -118,6 +118,7 @@ async fn stream_replay_with_real_pty_includes_output_and_terminal() {
             prompt: "echo replay-marker && exit 0".into(),
             workdir: None,
             idle_timeout_sec: 30,
+            server_id: None,
         })
         .await
         .unwrap();

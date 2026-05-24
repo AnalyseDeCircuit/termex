@@ -133,6 +133,7 @@ async fn route(
             prompt,
             workdir,
             idle_timeout_sec,
+            server_id,
             ..
         } => {
             let task_id = Uuid::new_v4().to_string();
@@ -148,6 +149,7 @@ async fn route(
                 idle_timeout_sec,
                 output_tail: None,
                 error: None,
+                server_id: server_id.clone(),
             };
             ctx.db.lock().await.insert_task(&task)?;
 
@@ -155,7 +157,13 @@ async fn route(
             // disabled it.
             if !ctx.spawn_disabled {
                 ctx.supervisor
-                    .spawn(&task_id, ai_cli, &prompt, workdir.as_deref())
+                    .spawn(
+                        &task_id,
+                        ai_cli,
+                        &prompt,
+                        workdir.as_deref(),
+                        server_id.as_deref(),
+                    )
                     .await?;
             }
 

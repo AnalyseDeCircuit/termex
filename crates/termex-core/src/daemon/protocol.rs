@@ -31,6 +31,11 @@ pub enum ClientMessage {
         workdir: Option<String>,
         #[serde(default = "default_idle_timeout")]
         idle_timeout_sec: u32,
+        /// Client-side server identifier. Threaded into the cost
+        /// recorder so per-server dashboards aggregate properly.
+        /// Optional for backward-compat with v0.71.x clients.
+        #[serde(default, skip_serializing_if = "Option::is_none")]
+        server_id: Option<String>,
     },
 
     #[serde(rename = "task.list")]
@@ -386,6 +391,11 @@ pub struct AssignRequest {
     pub prompt: String,
     pub workdir: Option<String>,
     pub idle_timeout_sec: u32,
+    /// Client-side server identifier this task is attributed to.
+    /// v0.74.1 cost recorder threads this through so per-server
+    /// dashboards aggregate against the client's `servers` table.
+    /// `None` collapses to a single anonymous bucket.
+    pub server_id: Option<String>,
 }
 
 impl Default for AssignRequest {
@@ -395,6 +405,7 @@ impl Default for AssignRequest {
             prompt: String::new(),
             workdir: None,
             idle_timeout_sec: 30,
+            server_id: None,
         }
     }
 }
