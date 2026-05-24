@@ -6,11 +6,7 @@
 import '../frb_generated.dart';
 import 'package:flutter_rust_bridge/flutter_rust_bridge_for_generated.dart';
 
-// These functions are ignored because they are not marked as `pub`: `state`
-
 /// Starts the mDNS advertising and listening service on the given `port`.
-///
-/// Full mDNS implementation is delegated to the platform layer (v0.57.0).
 Future<void> startSyncService({required int port}) =>
     TermexBridge.instance.api.crateApiSyncStartSyncService(port: port);
 
@@ -19,6 +15,8 @@ Future<void> stopSyncService() =>
     TermexBridge.instance.api.crateApiSyncStopSyncService();
 
 /// Returns the list of peer devices currently discovered on the local network.
+///
+/// OSS builds always return an empty list (no real mDNS impl is shipped).
 Future<List<DiscoveredDevice>> getDiscoveredDevices() =>
     TermexBridge.instance.api.crateApiSyncGetDiscoveredDevices();
 
@@ -32,7 +30,7 @@ Future<String> initiatePairing(
         .crateApiSyncInitiatePairing(peerHost: peerHost, peerPort: peerPort);
 
 /// Confirms a pairing by submitting the 6-digit code displayed on the peer
-/// device.  Returns an opaque session token on success.
+/// device. Returns an opaque session token on success.
 Future<String> confirmPairing(
         {required String pairingToken, required String code}) =>
     TermexBridge.instance.api
@@ -47,7 +45,7 @@ Future<(String, String)> generatePairingCode() =>
 /// Accepts or rejects an incoming pairing `request_id`.
 ///
 /// When `accept` is `true` a new pairing is created and `Some(code)` is
-/// returned so the UI can display the confirmation code.  When `accept` is
+/// returned so the UI can display the confirmation code. When `accept` is
 /// `false` returns `Ok(None)`.
 Future<String?> respondToPairing(
         {required String requestId, required bool accept}) =>
@@ -56,8 +54,6 @@ Future<String?> respondToPairing(
 
 /// Pulls data from the peer identified by `session_token` and merges it into
 /// the local database.
-///
-/// Full network + DB implementation is planned for v0.56.0 final phase.
 Future<SyncSummary> syncFromPeer(
         {required String sessionToken,
         required bool includeCredentials,
@@ -68,8 +64,6 @@ Future<SyncSummary> syncFromPeer(
         credentialPassword: credentialPassword);
 
 /// Pushes local data to the peer identified by `session_token`.
-///
-/// Full network + DB implementation is planned for v0.56.0 final phase.
 Future<SyncSummary> syncToPeer(
         {required String sessionToken,
         required bool includeCredentials,
