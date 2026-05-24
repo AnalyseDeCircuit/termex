@@ -15,13 +15,15 @@ use serde_json::json;
 use tokio::sync::Mutex;
 use uuid::Uuid;
 
-use termex_core::daemon::{CancelSignal, ClientMessage, ServerMessage};
+use termex_core::daemon::{CancelSignal, ClientMessage, DeviceWireDto, ServerMessage};
+use termex_core::handoff::TakeoverOutcome;
 use termex_core::task::{Task, TaskStatus};
 
 use crate::db::Database;
 use crate::error::DaemonError;
 use crate::event_bus::EventBus;
 use crate::event_log::EventLog;
+use crate::handoff::{DeliveryOutcome, HandoffRuntime};
 use crate::supervisor::{CancelKind, TaskSupervisor};
 
 /// Shared context the handler needs. Held in an Arc so the WS server
@@ -33,6 +35,9 @@ pub struct HandlerCtx {
     /// Optional event log for v0.71.2 replay. When None, `stream.replay`
     /// returns `{ replayed: 0 }` silently.
     pub event_log: Option<EventLog>,
+    /// v0.74.2 — cross-device handoff runtime. Tracks connected
+    /// devices, watcher sets, and ownership transitions.
+    pub handoff: HandoffRuntime,
     /// When true, `task.assign` skips the PTY spawn step (DB-only
     /// behaviour). Used by tests to avoid forking real subprocesses.
     pub spawn_disabled: bool,
@@ -44,11 +49,13 @@ impl HandlerCtx {
         let supervisor = TaskSupervisor::new(db.clone(), bus.clone());
         let event_log = EventLog::new(db.clone());
         bus.attach_event_log(event_log.clone());
+        let handoff = HandoffRuntime::new(db.clone());
         Arc::new(Self {
             db,
             bus,
             supervisor,
             event_log: Some(event_log),
+            handoff,
             spawn_disabled: false,
         })
     }
@@ -63,11 +70,13 @@ impl HandlerCtx {
         let supervisor = TaskSupervisor::new(db.clone(), bus.clone());
         let event_log = EventLog::new(db.clone());
         bus.attach_event_log(event_log.clone());
+        let handoff = HandoffRuntime::new(db.clone());
         Arc::new(Self {
             db,
             bus,
             supervisor,
             event_log: Some(event_log),
+            handoff,
             spawn_disabled: true,
         })
     }
@@ -241,6 +250,104 @@ async fn route(
         }
 
         ClientMessage::Ping { ts_ms, .. } => Ok(json!({ "echo_ts_ms": ts_ms })),
+
+        ClientMessage::ClientRegisterDevice {
+            device_id,
+            name,
+            platform,
+            push_token,
+            push_platform,
+            ..
+        } => {
+            ctx.handoff
+                .register_device(
+                    &device_id,
+                    &name,
+                    &platform,
+                    push_token.as_deref(),
+                    push_platform.as_deref(),
+                )
+                .await
+                .map_err(|e| DaemonError::Internal(format!("handoff: {e}")))?;
+            Ok(json!({ "device_id": device_id }))
+        }
+
+        ClientMessage::HandoffSend {
+            task_id,
+            target_device_id,
+            deep_link,
+            ..
+        } => {
+            // Resolve "from" identity from any device the caller
+            // happens to have registered. Real wire calls carry
+            // request-context auth that names the caller — for the
+            // v0.74.2 skeleton we leave it as the target id's mirror
+            // so the runtime decision (delivered vs offline) is
+            // testable without that scaffolding.
+            let from = DeviceWireDto {
+                id: "self".into(),
+                name: "self".into(),
+                platform: "unknown".into(),
+            };
+            let outcome = ctx
+                .handoff
+                .send_handoff(&task_id, from, &target_device_id, &deep_link)
+                .await;
+            let path = match outcome {
+                DeliveryOutcome::DeliveredWs => "ws",
+                DeliveryOutcome::Offline => "queued",
+                DeliveryOutcome::UnknownTarget => {
+                    return Err(DaemonError::BadRequest(format!(
+                        "unknown device: {target_device_id}"
+                    )));
+                }
+            };
+            Ok(json!({ "delivered": outcome == DeliveryOutcome::DeliveredWs,
+                       "delivery_path": path }))
+        }
+
+        ClientMessage::HandoffTakeover {
+            task_id,
+            expected_previous_owner,
+            ..
+        } => {
+            // Same identity caveat as HandoffSend — real wire pulls
+            // this off the auth context. Skeleton uses a placeholder
+            // so the ownership lock path is exercisable end-to-end.
+            let new_owner = DeviceWireDto {
+                id: "self".into(),
+                name: "self".into(),
+                platform: "unknown".into(),
+            };
+            let outcome = ctx
+                .handoff
+                .try_take_over(&task_id, &new_owner, expected_previous_owner.as_deref())
+                .await
+                .map_err(|e| DaemonError::Internal(format!("handoff: {e}")))?;
+            match outcome {
+                TakeoverOutcome::Won { previous_owner_id } => Ok(json!({
+                    "ok": true,
+                    "previous_owner_id": previous_owner_id,
+                })),
+                TakeoverOutcome::RaceLost { actual_owner_id } => Ok(json!({
+                    "ok": false,
+                    "code": "OWNERSHIP_CHANGED",
+                    "actual_owner_id": actual_owner_id,
+                })),
+            }
+        }
+
+        ClientMessage::HandoffStateSync {
+            task_id, ui_state, ..
+        } => {
+            let from = DeviceWireDto {
+                id: "self".into(),
+                name: "self".into(),
+                platform: "unknown".into(),
+            };
+            let fanout = ctx.handoff.broadcast_state(&task_id, from, ui_state);
+            Ok(json!({ "fanout": fanout }))
+        }
 
         ClientMessage::StreamReplay {
             last_seq, limit, ..

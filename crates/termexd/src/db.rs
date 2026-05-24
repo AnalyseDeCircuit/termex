@@ -20,13 +20,28 @@ use crate::error::DaemonError;
 /// History:
 /// - v1 (v0.71.0): meta + tasks
 /// - v2 (v0.71.2): + events_log for stream replay
-pub const DAEMON_DB_SCHEMA_VERSION: i32 = 2;
+/// - v3 (v0.74.2): + devices table + tasks.primary_device_id /
+///   ownership_changed_at columns for cross-device handoff
+pub const DAEMON_DB_SCHEMA_VERSION: i32 = 3;
 
 pub struct Database {
     conn: Connection,
 }
 
 impl Database {
+    /// Borrow the raw connection — used by the v0.74.2 handoff
+    /// runtime so it can call `termex_core::handoff::*` helpers
+    /// against the daemon DB without duplicating SQL.
+    pub fn conn(&self) -> &Connection {
+        &self.conn
+    }
+
+    /// Mutable connection borrow — required for `try_takeover`
+    /// which begins an IMMEDIATE transaction.
+    pub fn conn_mut(&mut self) -> &mut Connection {
+        &mut self.conn
+    }
+
     pub fn open(path: &Path) -> Result<Self, DaemonError> {
         let conn = Connection::open(path)?;
         conn.execute_batch("PRAGMA journal_mode=WAL;")?;
@@ -58,6 +73,9 @@ impl Database {
         }
         if current < 2 {
             self.apply_v2()?;
+        }
+        if current < 3 {
+            self.apply_v3()?;
         }
         self.conn.execute(
             "INSERT OR REPLACE INTO meta (key, value) VALUES ('schema_version', ?1)",
@@ -114,6 +132,32 @@ impl Database {
              CREATE INDEX IF NOT EXISTS idx_events_task ON events_log(task_id);
              CREATE INDEX IF NOT EXISTS idx_events_ts   ON events_log(ts_ms);",
         )?;
+        Ok(())
+    }
+
+    fn apply_v3(&self) -> Result<(), DaemonError> {
+        // v0.74.2: handoff registry + per-task ownership. The
+        // `devices` schema mirrors `termex_core::handoff::registry`
+        // so the daemon and any client-side cache speak the same
+        // table shape.
+        self.conn.execute_batch(
+            "CREATE TABLE IF NOT EXISTS devices (
+                 id              TEXT PRIMARY KEY,
+                 name            TEXT NOT NULL,
+                 platform        TEXT NOT NULL,
+                 first_seen_at   TEXT NOT NULL,
+                 last_seen_at    TEXT NOT NULL,
+                 push_token      TEXT,
+                 push_platform   TEXT
+             );
+             CREATE INDEX IF NOT EXISTS idx_devices_last_seen
+                 ON devices(last_seen_at);",
+        )?;
+        // The columns may already exist (fresh DBs created by
+        // older versions of `apply_v1` won't have them), so add
+        // them defensively.
+        add_column_if_missing(&self.conn, "tasks", "primary_device_id", "TEXT");
+        add_column_if_missing(&self.conn, "tasks", "ownership_changed_at", "TEXT");
         Ok(())
     }
 
@@ -332,4 +376,10 @@ fn status_from_str(s: &str) -> TaskStatus {
         "cancelled" => TaskStatus::Cancelled,
         _ => TaskStatus::Pending,
     }
+}
+
+fn add_column_if_missing(conn: &Connection, table: &str, column: &str, col_type: &str) {
+    let sql = format!("ALTER TABLE {table} ADD COLUMN {column} {col_type}");
+    // Idempotent: SQLite errors when the column already exists; swallow.
+    let _ = conn.execute(&sql, []);
 }

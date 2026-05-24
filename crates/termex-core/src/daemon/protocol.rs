@@ -93,6 +93,53 @@ pub enum ClientMessage {
         #[serde(default = "default_replay_limit")]
         limit: u32,
     },
+
+    /// v0.74.2 — Client tells the daemon "this device exists; remember
+    /// my name + platform". Sent immediately after the WS upgrade so
+    /// the daemon can build the watchers / handoff target lists.
+    #[serde(rename = "client.register_device")]
+    ClientRegisterDevice {
+        request_id: String,
+        device_id: String,
+        name: String,
+        /// "ios" / "android" / "macos" / "linux" / "windows".
+        platform: String,
+        #[serde(skip_serializing_if = "Option::is_none")]
+        push_token: Option<String>,
+        #[serde(skip_serializing_if = "Option::is_none")]
+        push_platform: Option<String>,
+    },
+
+    /// v0.74.2 — Push a task's deep link to another of the user's
+    /// devices. The daemon routes to an online subscriber over WS or
+    /// falls back to FCM (Pro) for offline targets.
+    #[serde(rename = "handoff.send")]
+    HandoffSend {
+        request_id: String,
+        task_id: String,
+        target_device_id: String,
+        deep_link: String,
+    },
+
+    /// v0.74.2 — Claim ownership of `task_id`. `expected_previous_owner`
+    /// = Some when the UI already knows who owns the task and wants
+    /// to detect concurrent takeovers; None for idempotent (re-)claim.
+    #[serde(rename = "handoff.takeover")]
+    HandoffTakeover {
+        request_id: String,
+        task_id: String,
+        #[serde(skip_serializing_if = "Option::is_none")]
+        expected_previous_owner: Option<String>,
+    },
+
+    /// v0.74.2 — Broadcast UI state (scroll position, expanded
+    /// artifacts) so other watchers can "Pull state from device X".
+    #[serde(rename = "handoff.state_sync")]
+    HandoffStateSync {
+        request_id: String,
+        task_id: String,
+        ui_state: serde_json::Value,
+    },
 }
 
 fn default_replay_limit() -> u32 {
@@ -110,7 +157,11 @@ impl ClientMessage {
             | Self::TaskCancel { request_id, .. }
             | Self::TaskDecide { request_id, .. }
             | Self::Ping { request_id, .. }
-            | Self::StreamReplay { request_id, .. } => request_id,
+            | Self::StreamReplay { request_id, .. }
+            | Self::ClientRegisterDevice { request_id, .. }
+            | Self::HandoffSend { request_id, .. }
+            | Self::HandoffTakeover { request_id, .. }
+            | Self::HandoffStateSync { request_id, .. } => request_id,
         }
     }
 }
@@ -270,6 +321,54 @@ pub enum ServerMessage {
         request_id: String,
         ts_ms: u64,
     },
+
+    /// v0.74.2 — Subscriber set for `task_id` changed (someone
+    /// joined / left). Pushed only to current watchers.
+    #[serde(rename = "task.watchers_update")]
+    TaskWatchersUpdate {
+        task_id: String,
+        watchers: Vec<DeviceWireDto>,
+        ts_ms: u64,
+    },
+
+    /// v0.74.2 — Target device receives the deep-link push. Sent
+    /// only to the device named in `handoff.send`'s
+    /// `target_device_id`.
+    #[serde(rename = "handoff.received")]
+    HandoffReceived {
+        task_id: String,
+        from_device: DeviceWireDto,
+        deep_link: String,
+        ts_ms: u64,
+    },
+
+    /// v0.74.2 — Previous owner is notified their task was claimed.
+    #[serde(rename = "task.taken_over")]
+    TaskTakenOver {
+        task_id: String,
+        new_owner: DeviceWireDto,
+        ts_ms: u64,
+    },
+
+    /// v0.74.2 — Broadcast a watcher's UI state to other watchers
+    /// so they can "Pull state from {name}".
+    #[serde(rename = "task.client_state")]
+    TaskClientState {
+        task_id: String,
+        from_device: DeviceWireDto,
+        ui_state: serde_json::Value,
+        ts_ms: u64,
+    },
+}
+
+/// Trimmed device view used in wire payloads. Never includes the
+/// push token — handoff messages broadcast widely and the token is
+/// a credential.
+#[derive(Debug, Clone, PartialEq, Eq, Serialize, Deserialize)]
+pub struct DeviceWireDto {
+    pub id: String,
+    pub name: String,
+    pub platform: String,
 }
 
 #[derive(Debug, Clone, Copy, PartialEq, Eq, Serialize, Deserialize)]

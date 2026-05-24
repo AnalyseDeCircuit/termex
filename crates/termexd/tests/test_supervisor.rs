@@ -21,6 +21,10 @@ mod event_bus;
 #[allow(dead_code)]
 mod event_log;
 
+
+#[path = "../src/handoff.rs"]
+#[allow(dead_code)]
+mod handoff;
 #[path = "../src/handler.rs"]
 #[allow(dead_code)]
 mod handler;

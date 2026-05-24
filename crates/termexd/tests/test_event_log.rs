@@ -155,7 +155,7 @@ async fn prune_events_drops_old_rows() {
 }
 
 #[tokio::test]
-async fn schema_version_is_two_after_open() {
+async fn schema_version_matches_current_constant() {
     let db = Database::in_memory().unwrap();
-    assert_eq!(db.schema_version().unwrap(), 2);
+    assert_eq!(db.schema_version().unwrap(), db::DAEMON_DB_SCHEMA_VERSION);
 }

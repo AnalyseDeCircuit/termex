@@ -20,6 +20,7 @@ mod error;
 mod event_bus;
 mod event_log;
 mod handler;
+mod handoff;
 mod mcp;
 mod server;
 mod supervisor;

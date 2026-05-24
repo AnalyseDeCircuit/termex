@@ -123,6 +123,14 @@ fn seq_of(m: &ServerMessage) -> Option<u64> {
         | ServerMessage::TaskArtifact { seq, .. }
         | ServerMessage::TaskAwaitingInput { seq, .. }
         | ServerMessage::TaskUsage { seq, .. } => Some(*seq),
-        ServerMessage::Response { .. } | ServerMessage::Pong { .. } => None,
+        // v0.74.2 handoff broadcasts are ephemeral — they describe
+        // current device state, not historical events, so they're
+        // intentionally absent from the replay log.
+        ServerMessage::TaskWatchersUpdate { .. }
+        | ServerMessage::HandoffReceived { .. }
+        | ServerMessage::TaskTakenOver { .. }
+        | ServerMessage::TaskClientState { .. }
+        | ServerMessage::Response { .. }
+        | ServerMessage::Pong { .. } => None,
     }
 }

@@ -172,6 +172,10 @@ fn server_message_type(m: &ServerMessage) -> &'static str {
         ServerMessage::TaskAwaitingInput { .. } => "task.awaiting_input",
         ServerMessage::TaskUsage { .. } => "task.usage",
         ServerMessage::Pong { .. } => "pong",
+        ServerMessage::TaskWatchersUpdate { .. } => "task.watchers_update",
+        ServerMessage::HandoffReceived { .. } => "handoff.received",
+        ServerMessage::TaskTakenOver { .. } => "task.taken_over",
+        ServerMessage::TaskClientState { .. } => "task.client_state",
     }
 }
 
@@ -183,7 +187,11 @@ fn task_id_of(m: &ServerMessage) -> Option<String> {
         | ServerMessage::TaskToolUse { task_id, .. }
         | ServerMessage::TaskArtifact { task_id, .. }
         | ServerMessage::TaskAwaitingInput { task_id, .. }
-        | ServerMessage::TaskUsage { task_id, .. } => Some(task_id.clone()),
+        | ServerMessage::TaskUsage { task_id, .. }
+        | ServerMessage::TaskWatchersUpdate { task_id, .. }
+        | ServerMessage::HandoffReceived { task_id, .. }
+        | ServerMessage::TaskTakenOver { task_id, .. }
+        | ServerMessage::TaskClientState { task_id, .. } => Some(task_id.clone()),
         ServerMessage::Response { .. } | ServerMessage::Pong { .. } => None,
     }
 }
@@ -196,7 +204,11 @@ fn ts_ms_of(m: &ServerMessage) -> u64 {
         | ServerMessage::TaskToolUse { ts_ms, .. }
         | ServerMessage::TaskArtifact { ts_ms, .. }
         | ServerMessage::TaskAwaitingInput { ts_ms, .. }
-        | ServerMessage::TaskUsage { ts_ms, .. } => *ts_ms,
+        | ServerMessage::TaskUsage { ts_ms, .. }
+        | ServerMessage::TaskWatchersUpdate { ts_ms, .. }
+        | ServerMessage::HandoffReceived { ts_ms, .. }
+        | ServerMessage::TaskTakenOver { ts_ms, .. }
+        | ServerMessage::TaskClientState { ts_ms, .. } => *ts_ms,
         ServerMessage::Pong { ts_ms, .. } => *ts_ms,
         ServerMessage::Response { .. } => current_ms(),
     }
