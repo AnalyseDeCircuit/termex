@@ -58,3 +58,9 @@ dev_dependencies:
 flutter:
   uses-material-design: true
   generate: true
+  assets:
+    # Brand logo shown by SplashGate on cold start. 512×512 so a
+    # 128–256pt CenterAlign render stays crisp on 3x displays.
+    # Path is relative to the package root; consumers reference it
+    # as AssetImage('assets/logo/logo.png', package: 'termex_shared').
+    - assets/logo/logo.png
