@@ -40,6 +40,10 @@ dependencies:
   battery_plus: ^6.0.0
   # 网络质量检测（system/network/network_quality_detector.dart）
   connectivity_plus: ^6.0.0
+  # path_provider explicit — Android/iOS sandboxes don't expose XDG-style
+  # data dirs to the `dirs` Rust crate. Dart resolves the writable app dir
+  # and seeds it into the bridge via `app::init_app` before any other call.
+  path_provider: ^2.1.0
 
 dev_dependencies:
   flutter_test:
@@ -52,6 +56,30 @@ dev_dependencies:
   integration_test:
     sdk: flutter
   golden_toolkit: ^0.15.0
+  # Cross-platform launcher-icon generator. Run after editing the
+  # source PNG (see `flutter_launcher_icons:` block below) with:
+  #   dart run flutter_launcher_icons
+  # Regenerates Android mipmap-* / iOS AppIcon.appiconset /
+  # macOS AppIcon.appiconset / Windows .ico / Linux PNG in one go
+  # so the human only has to manage a single 1024×1024 source.
+  flutter_launcher_icons: ^0.14.1
+
+# Source: packages/termex_shared/assets/logo/logo.png (512×512).
+# Replace + bump to regenerate everything per platform.
+flutter_launcher_icons:
+  image_path: "../packages/termex_shared/assets/logo/logo.png"
+  android: "ic_launcher"
+  ios: true
+  remove_alpha_ios: true
+  macos:
+    generate: true
+    image_path: "../packages/termex_shared/assets/logo/logo.png"
+  windows:
+    generate: true
+    image_path: "../packages/termex_shared/assets/logo/logo.png"
+    icon_size: 256
+  web:
+    generate: false
 
 flutter:
   uses-material-design: true
