@@ -1,0 +1,13 @@
+[Desktop Entry]
+Type=Application
+Name=Termex
+GenericName=SSH Client
+Comment=AI-native SSH client — always-on cloud AI workspace powered by SSH
+Exec=termex %U
+Icon=termex
+Terminal=false
+Categories=Development;Network;
+StartupNotify=true
+StartupWMClass=termex
+MimeType=x-scheme-handler/ssh;x-scheme-handler/termex;
+Keywords=ssh;terminal;ai;remote;
