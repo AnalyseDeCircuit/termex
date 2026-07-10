@@ -10,6 +10,7 @@ import 'api/ai.dart';
 import 'api/app.dart';
 import 'api/audit_catalogue.dart';
 import 'api/backup.dart';
+import 'api/chain.dart';
 import 'api/cloud.dart';
 import 'api/cost.dart';
 import 'api/crypto.dart';
@@ -206,6 +207,10 @@ abstract class TermexBridgeApiImplPlatform
   PlatformInt64 dco_decode_box_autoadd_i_64(dynamic raw);
 
   @protected
+  LocalAiDownloadProgress dco_decode_box_autoadd_local_ai_download_progress(
+      dynamic raw);
+
+  @protected
   ProxyConfig dco_decode_box_autoadd_proxy_config(dynamic raw);
 
   @protected
@@ -213,6 +218,10 @@ abstract class TermexBridgeApiImplPlatform
 
   @protected
   ServerInput dco_decode_box_autoadd_server_input(dynamic raw);
+
+  @protected
+  SshConnectionTestParams dco_decode_box_autoadd_ssh_connection_test_params(
+      dynamic raw);
 
   @protected
   TaskDto dco_decode_box_autoadd_task_dto(dynamic raw);
@@ -239,7 +248,13 @@ abstract class TermexBridgeApiImplPlatform
   CapCheckDto dco_decode_cap_check_dto(dynamic raw);
 
   @protected
+  ChainHopDto dco_decode_chain_hop_dto(dynamic raw);
+
+  @protected
   ChainHopInfo dco_decode_chain_hop_info(dynamic raw);
+
+  @protected
+  ChainHopInputDto dco_decode_chain_hop_input_dto(dynamic raw);
 
   @protected
   ChainProgressDto dco_decode_chain_progress_dto(dynamic raw);
@@ -363,7 +378,13 @@ abstract class TermexBridgeApiImplPlatform
   List<BackupSchedule> dco_decode_list_backup_schedule(dynamic raw);
 
   @protected
+  List<ChainHopDto> dco_decode_list_chain_hop_dto(dynamic raw);
+
+  @protected
   List<ChainHopInfo> dco_decode_list_chain_hop_info(dynamic raw);
+
+  @protected
+  List<ChainHopInputDto> dco_decode_list_chain_hop_input_dto(dynamic raw);
 
   @protected
   List<ChainProgressDto> dco_decode_list_chain_progress_dto(dynamic raw);
@@ -486,6 +507,9 @@ abstract class TermexBridgeApiImplPlatform
   List<TeamMember> dco_decode_list_team_member(dynamic raw);
 
   @protected
+  LocalAiDownloadProgress dco_decode_local_ai_download_progress(dynamic raw);
+
+  @protected
   LocalAiHealth dco_decode_local_ai_health(dynamic raw);
 
   @protected
@@ -537,6 +561,10 @@ abstract class TermexBridgeApiImplPlatform
 
   @protected
   PlatformInt64? dco_decode_opt_box_autoadd_i_64(dynamic raw);
+
+  @protected
+  LocalAiDownloadProgress?
+      dco_decode_opt_box_autoadd_local_ai_download_progress(dynamic raw);
 
   @protected
   ProxyConfig? dco_decode_opt_box_autoadd_proxy_config(dynamic raw);
@@ -624,6 +652,9 @@ abstract class TermexBridgeApiImplPlatform
 
   @protected
   SshConfigPreviewEntry dco_decode_ssh_config_preview_entry(dynamic raw);
+
+  @protected
+  SshConnectionTestParams dco_decode_ssh_connection_test_params(dynamic raw);
 
   @protected
   SshStreamEvent dco_decode_ssh_stream_event(dynamic raw);
@@ -819,6 +850,10 @@ abstract class TermexBridgeApiImplPlatform
   PlatformInt64 sse_decode_box_autoadd_i_64(SseDeserializer deserializer);
 
   @protected
+  LocalAiDownloadProgress sse_decode_box_autoadd_local_ai_download_progress(
+      SseDeserializer deserializer);
+
+  @protected
   ProxyConfig sse_decode_box_autoadd_proxy_config(SseDeserializer deserializer);
 
   @protected
@@ -826,6 +861,10 @@ abstract class TermexBridgeApiImplPlatform
 
   @protected
   ServerInput sse_decode_box_autoadd_server_input(SseDeserializer deserializer);
+
+  @protected
+  SshConnectionTestParams sse_decode_box_autoadd_ssh_connection_test_params(
+      SseDeserializer deserializer);
 
   @protected
   TaskDto sse_decode_box_autoadd_task_dto(SseDeserializer deserializer);
@@ -853,7 +892,13 @@ abstract class TermexBridgeApiImplPlatform
   CapCheckDto sse_decode_cap_check_dto(SseDeserializer deserializer);
 
   @protected
+  ChainHopDto sse_decode_chain_hop_dto(SseDeserializer deserializer);
+
+  @protected
   ChainHopInfo sse_decode_chain_hop_info(SseDeserializer deserializer);
+
+  @protected
+  ChainHopInputDto sse_decode_chain_hop_input_dto(SseDeserializer deserializer);
 
   @protected
   ChainProgressDto sse_decode_chain_progress_dto(SseDeserializer deserializer);
@@ -984,7 +1029,14 @@ abstract class TermexBridgeApiImplPlatform
       SseDeserializer deserializer);
 
   @protected
+  List<ChainHopDto> sse_decode_list_chain_hop_dto(SseDeserializer deserializer);
+
+  @protected
   List<ChainHopInfo> sse_decode_list_chain_hop_info(
+      SseDeserializer deserializer);
+
+  @protected
+  List<ChainHopInputDto> sse_decode_list_chain_hop_input_dto(
       SseDeserializer deserializer);
 
   @protected
@@ -1123,6 +1175,10 @@ abstract class TermexBridgeApiImplPlatform
   List<TeamMember> sse_decode_list_team_member(SseDeserializer deserializer);
 
   @protected
+  LocalAiDownloadProgress sse_decode_local_ai_download_progress(
+      SseDeserializer deserializer);
+
+  @protected
   LocalAiHealth sse_decode_local_ai_health(SseDeserializer deserializer);
 
   @protected
@@ -1178,6 +1234,11 @@ abstract class TermexBridgeApiImplPlatform
 
   @protected
   PlatformInt64? sse_decode_opt_box_autoadd_i_64(SseDeserializer deserializer);
+
+  @protected
+  LocalAiDownloadProgress?
+      sse_decode_opt_box_autoadd_local_ai_download_progress(
+          SseDeserializer deserializer);
 
   @protected
   ProxyConfig? sse_decode_opt_box_autoadd_proxy_config(
@@ -1276,6 +1337,10 @@ abstract class TermexBridgeApiImplPlatform
 
   @protected
   SshConfigPreviewEntry sse_decode_ssh_config_preview_entry(
+      SseDeserializer deserializer);
+
+  @protected
+  SshConnectionTestParams sse_decode_ssh_connection_test_params(
       SseDeserializer deserializer);
 
   @protected
@@ -1481,6 +1546,10 @@ abstract class TermexBridgeApiImplPlatform
       PlatformInt64 self, SseSerializer serializer);
 
   @protected
+  void sse_encode_box_autoadd_local_ai_download_progress(
+      LocalAiDownloadProgress self, SseSerializer serializer);
+
+  @protected
   void sse_encode_box_autoadd_proxy_config(
       ProxyConfig self, SseSerializer serializer);
 
@@ -1491,6 +1560,10 @@ abstract class TermexBridgeApiImplPlatform
   @protected
   void sse_encode_box_autoadd_server_input(
       ServerInput self, SseSerializer serializer);
+
+  @protected
+  void sse_encode_box_autoadd_ssh_connection_test_params(
+      SshConnectionTestParams self, SseSerializer serializer);
 
   @protected
   void sse_encode_box_autoadd_task_dto(TaskDto self, SseSerializer serializer);
@@ -1520,7 +1593,14 @@ abstract class TermexBridgeApiImplPlatform
   void sse_encode_cap_check_dto(CapCheckDto self, SseSerializer serializer);
 
   @protected
+  void sse_encode_chain_hop_dto(ChainHopDto self, SseSerializer serializer);
+
+  @protected
   void sse_encode_chain_hop_info(ChainHopInfo self, SseSerializer serializer);
+
+  @protected
+  void sse_encode_chain_hop_input_dto(
+      ChainHopInputDto self, SseSerializer serializer);
 
   @protected
   void sse_encode_chain_progress_dto(
@@ -1658,8 +1738,16 @@ abstract class TermexBridgeApiImplPlatform
       List<BackupSchedule> self, SseSerializer serializer);
 
   @protected
+  void sse_encode_list_chain_hop_dto(
+      List<ChainHopDto> self, SseSerializer serializer);
+
+  @protected
   void sse_encode_list_chain_hop_info(
       List<ChainHopInfo> self, SseSerializer serializer);
+
+  @protected
+  void sse_encode_list_chain_hop_input_dto(
+      List<ChainHopInputDto> self, SseSerializer serializer);
 
   @protected
   void sse_encode_list_chain_progress_dto(
@@ -1813,6 +1901,10 @@ abstract class TermexBridgeApiImplPlatform
       List<TeamMember> self, SseSerializer serializer);
 
   @protected
+  void sse_encode_local_ai_download_progress(
+      LocalAiDownloadProgress self, SseSerializer serializer);
+
+  @protected
   void sse_encode_local_ai_health(LocalAiHealth self, SseSerializer serializer);
 
   @protected
@@ -1870,6 +1962,10 @@ abstract class TermexBridgeApiImplPlatform
   @protected
   void sse_encode_opt_box_autoadd_i_64(
       PlatformInt64? self, SseSerializer serializer);
+
+  @protected
+  void sse_encode_opt_box_autoadd_local_ai_download_progress(
+      LocalAiDownloadProgress? self, SseSerializer serializer);
 
   @protected
   void sse_encode_opt_box_autoadd_proxy_config(
@@ -1973,6 +2069,10 @@ abstract class TermexBridgeApiImplPlatform
   @protected
   void sse_encode_ssh_config_preview_entry(
       SshConfigPreviewEntry self, SseSerializer serializer);
+
+  @protected
+  void sse_encode_ssh_connection_test_params(
+      SshConnectionTestParams self, SseSerializer serializer);
 
   @protected
   void sse_encode_ssh_stream_event(

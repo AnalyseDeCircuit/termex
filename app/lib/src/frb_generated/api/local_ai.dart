@@ -7,7 +7,7 @@ import '../frb_generated.dart';
 import 'package:flutter_rust_bridge/flutter_rust_bridge_for_generated.dart';
 
 // These types are ignored because they are neither used by any `pub` functions nor (for structs and enums) marked `#[frb(unignore)]`: `ModelDownloadProgress`
-// These function are ignored because they are on traits that is not defined in current crate (put an empty `#[frb]` on it to unignore): `assert_fields_are_eq`, `clone`, `clone`, `clone`, `clone`, `eq`, `fmt`, `fmt`, `fmt`, `fmt`
+// These function are ignored because they are on traits that is not defined in current crate (put an empty `#[frb]` on it to unignore): `assert_fields_are_eq`, `clone`, `clone`, `clone`, `clone`, `clone`, `eq`, `fmt`, `fmt`, `fmt`, `fmt`, `fmt`
 
 /// Start the local AI server with the given model.
 /// Returns immediately; use [local_ai_health] to poll readiness.
@@ -47,20 +47,36 @@ Future<List<LocalModelDto>> localAiListModels() =>
 ///
 /// Runs HTTP range-aware download from the curated catalog URL into
 /// `<data_dir>/models/<id>.gguf`. On failure the primary URL is retried once
-/// against the configured mirror URL. Progress is not yet streamed through
-/// FRB (that lands with the `StreamSink`-based emitter in a follow-up); the
-/// Dart layer should call this and drive its own progress UI from an adjacent
-/// polling timer or treat the call as atomic.
+/// against the configured mirror URL.
+///
+/// **Progress reporting (v0.77.0)**: the downloader's per-chunk callback
+/// writes `(downloaded, total)` bytes into [`local_ai_state::DOWNLOAD_PROGRESS`].
+/// Dart polls [`local_ai_download_progress`] every ~250 ms to drive the
+/// progress bar; the entry is removed when the download completes or is
+/// cancelled, so an absent entry signals "no active download for this id".
 ///
 /// Use [local_ai_cancel_download] to abort an in-flight download.
 Future<void> localAiDownloadModel({required String modelId}) =>
     TermexBridge.instance.api
         .crateApiLocalAiLocalAiDownloadModel(modelId: modelId);
 
+/// Polls the current download progress for `model_id`. Returns `None`
+/// when no download is active for that model. The Dart UI calls this
+/// on a 250 ms timer while the download future is pending.
+Future<LocalAiDownloadProgress?> localAiDownloadProgress(
+        {required String modelId}) =>
+    TermexBridge.instance.api
+        .crateApiLocalAiLocalAiDownloadProgress(modelId: modelId);
+
 /// Delete a downloaded model from disk.
 ///
-/// Looks up the canonical model filename in `app_data_dir/models/` and
-/// unlinks it. Missing files are treated as successful (idempotent delete).
+/// v0.79.58: resolve the on-disk filename through the catalog (was
+/// `format!("{id}.gguf")` — only correct by coincidence for the current
+/// catalog). Also unlinks the matching `.tmp` partial when present so a
+/// cancelled-then-deleted model doesn't leave half-downloaded bytes
+/// occupying user disk space.
+///
+/// Missing files are treated as successful (idempotent delete).
 Future<void> localAiDeleteModel({required String modelId}) =>
     TermexBridge.instance.api
         .crateApiLocalAiLocalAiDeleteModel(modelId: modelId);
@@ -103,6 +119,30 @@ Future<bool> localAiAutoStartIsCancelled() =>
 /// sequence before polling [local_ai_auto_start_is_cancelled].
 Future<void> localAiAutoStartReset() =>
     TermexBridge.instance.api.crateApiLocalAiLocalAiAutoStartReset();
+
+/// DTO returned by [`local_ai_download_progress`]: bytes downloaded so
+/// far + total content length (zero when the server didn't send
+/// `Content-Length`, meaning the UI should show indeterminate spinner).
+class LocalAiDownloadProgress {
+  final BigInt downloaded;
+  final BigInt total;
+
+  const LocalAiDownloadProgress({
+    required this.downloaded,
+    required this.total,
+  });
+
+  @override
+  int get hashCode => downloaded.hashCode ^ total.hashCode;
+
+  @override
+  bool operator ==(Object other) =>
+      identical(this, other) ||
+      other is LocalAiDownloadProgress &&
+          runtimeType == other.runtimeType &&
+          downloaded == other.downloaded &&
+          total == other.total;
+}
 
 /// Health report from the running local AI server.
 class LocalAiHealth {

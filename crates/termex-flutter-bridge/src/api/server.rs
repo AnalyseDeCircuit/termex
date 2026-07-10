@@ -9,9 +9,10 @@ use uuid::Uuid;
 // ============================================================
 
 /// Auth type exposed to Flutter — superset of core AuthType.
-#[derive(Debug, Clone, serde::Serialize, serde::Deserialize, PartialEq)]
+#[derive(Debug, Clone, Default, serde::Serialize, serde::Deserialize, PartialEq)]
 #[serde(rename_all = "lowercase")]
 pub enum AuthType {
+    #[default]
     Password,
     Key,
     Agent,
@@ -58,6 +59,12 @@ impl AuthType {
 // ============================================================
 
 /// Lightweight server DTO for Flutter.
+///
+/// v0.77.0 PC final parity: surfaced `proxy_id`, `has_bastion`, `shared`
+/// so the Flutter sidebar can paint per-server badges that mirror the
+/// legacy Tauri tree (proxy chip + bastion chip + 共享 chip). These fields
+/// are read-only summaries — actual chain editing still goes through
+/// the dedicated `chain.rs` API.
 #[derive(Debug, Clone, serde::Serialize, serde::Deserialize)]
 #[serde(rename_all = "camelCase")]
 pub struct ServerDto {
@@ -74,10 +81,38 @@ pub struct ServerDto {
     pub last_connected: Option<String>,
     pub created_at: String,
     pub updated_at: String,
+    /// ID of a network proxy (SOCKS5/HTTP/Tor) attached to this server,
+    /// or None when the server connects directly.
+    pub proxy_id: Option<String>,
+    /// True when this server connects via one or more SSH bastion hops
+    /// recorded in the `connection_chain` table. Derived from a COUNT(*)
+    /// subquery so we don't ship the full chain on every list call.
+    pub has_bastion: bool,
+    /// True when this server was shared into a team workspace.
+    pub shared: bool,
+    /// Team identifier — populated only when `shared = true`.
+    pub team_id: Option<String>,
+    /// tmux mode: 'disabled' | 'auto' | 'always'. Per-server, falls back to
+    /// 'disabled' when the column is NULL on legacy rows.
+    pub tmux_mode: String,
+    /// Action on tmux session disconnect: 'detach' | 'kill'. Defaults to 'detach'.
+    pub tmux_close_action: String,
+    /// Git Auto Sync enable flag.
+    pub git_sync_enabled: bool,
+    /// Git remote path (e.g. `/home/user/project`).
+    pub git_sync_remote_path: Option<String>,
+    /// Git local path on this machine (e.g. `/Users/me/project`).
+    pub git_sync_local_path: Option<String>,
+    /// Git sync mode: 'notify' | 'auto_pull'. Defaults to 'notify'.
+    pub git_sync_mode: String,
 }
 
 /// Input for creating or editing a server.
-#[derive(Debug, Clone, serde::Serialize, serde::Deserialize)]
+///
+/// Optional sync/tmux fields default at the SQL layer when `None`
+/// (column defaults: `tmux_mode='disabled'`, `tmux_close_action='detach'`,
+/// `git_sync_enabled=0`, `git_sync_mode='notify'`).
+#[derive(Debug, Clone, Default, serde::Serialize, serde::Deserialize)]
 #[serde(rename_all = "camelCase")]
 pub struct ServerInput {
     pub name: String,
@@ -86,9 +121,18 @@ pub struct ServerInput {
     pub username: String,
     pub auth_type: AuthType,
     pub password: Option<String>,
+    /// Private-key passphrase. Stored in the OS keychain under
+    /// `termex:ssh:passphrase:{id}`. Empty string clears the entry.
+    pub passphrase: Option<String>,
     pub key_path: Option<String>,
     pub group_id: Option<String>,
     pub tags: Vec<String>,
+    pub tmux_mode: Option<String>,
+    pub tmux_close_action: Option<String>,
+    pub git_sync_enabled: Option<bool>,
+    pub git_sync_remote_path: Option<String>,
+    pub git_sync_local_path: Option<String>,
+    pub git_sync_mode: Option<String>,
 }
 
 /// Quick connect history entry.
@@ -106,6 +150,7 @@ pub struct QuickConnectEntry {
 // Internal helpers
 // ============================================================
 
+#[allow(clippy::too_many_arguments)]
 fn row_to_dto(
     id: String,
     name: String,
@@ -120,6 +165,16 @@ fn row_to_dto(
     last_connected: Option<String>,
     created_at: String,
     updated_at: String,
+    proxy_id: Option<String>,
+    has_bastion: bool,
+    shared: bool,
+    team_id: Option<String>,
+    tmux_mode: Option<String>,
+    tmux_close_action: Option<String>,
+    git_sync_enabled: bool,
+    git_sync_remote_path: Option<String>,
+    git_sync_local_path: Option<String>,
+    git_sync_mode: Option<String>,
 ) -> ServerDto {
     let auth_type = AuthType::from_str(&auth_type_str);
     let tags: Vec<String> = tags_json
@@ -139,6 +194,16 @@ fn row_to_dto(
         last_connected,
         created_at,
         updated_at,
+        proxy_id,
+        has_bastion,
+        shared,
+        team_id,
+        tmux_mode: tmux_mode.unwrap_or_else(|| "disabled".to_string()),
+        tmux_close_action: tmux_close_action.unwrap_or_else(|| "detach".to_string()),
+        git_sync_enabled,
+        git_sync_remote_path,
+        git_sync_local_path,
+        git_sync_mode: git_sync_mode.unwrap_or_else(|| "notify".to_string()),
     }
 }
 
@@ -152,7 +217,16 @@ pub fn list_servers() -> Result<Vec<ServerDto>, String> {
         db.with_conn(|conn| {
             let mut stmt = conn.prepare(
                 "SELECT id, name, host, port, username, auth_type, key_path, group_id,
-                        sort_order, tags, last_connected, created_at, updated_at
+                        sort_order, tags, last_connected, created_at, updated_at,
+                        proxy_id,
+                        EXISTS (SELECT 1 FROM connection_chain c
+                                WHERE c.server_id = servers.id
+                                  AND c.hop_type = 'bastion') AS has_bastion,
+                        COALESCE(shared, 0) AS shared,
+                        team_id,
+                        tmux_mode, tmux_close_action,
+                        COALESCE(git_sync_enabled, 0) AS git_sync_enabled,
+                        git_sync_remote_path, git_sync_local_path, git_sync_mode
                  FROM servers
                  ORDER BY sort_order, name",
             )?;
@@ -171,6 +245,16 @@ pub fn list_servers() -> Result<Vec<ServerDto>, String> {
                     row.get(10)?,
                     row.get(11)?,
                     row.get(12)?,
+                    row.get(13)?,
+                    row.get::<_, i64>(14)? != 0,
+                    row.get::<_, i64>(15)? != 0,
+                    row.get(16)?,
+                    row.get(17)?,
+                    row.get(18)?,
+                    row.get::<_, i64>(19)? != 0,
+                    row.get(20)?,
+                    row.get(21)?,
+                    row.get(22)?,
                 ))
             })?;
             let mut out = Vec::new();
@@ -189,7 +273,16 @@ pub fn get_server(id: String) -> Result<Option<ServerDto>, String> {
         db.with_conn(|conn| {
             let mut stmt = conn.prepare(
                 "SELECT id, name, host, port, username, auth_type, key_path, group_id,
-                        sort_order, tags, last_connected, created_at, updated_at
+                        sort_order, tags, last_connected, created_at, updated_at,
+                        proxy_id,
+                        EXISTS (SELECT 1 FROM connection_chain c
+                                WHERE c.server_id = servers.id
+                                  AND c.hop_type = 'bastion') AS has_bastion,
+                        COALESCE(shared, 0) AS shared,
+                        team_id,
+                        tmux_mode, tmux_close_action,
+                        COALESCE(git_sync_enabled, 0) AS git_sync_enabled,
+                        git_sync_remote_path, git_sync_local_path, git_sync_mode
                  FROM servers WHERE id = ?1",
             )?;
             let mut rows = stmt.query_map([&id], |row| {
@@ -207,6 +300,16 @@ pub fn get_server(id: String) -> Result<Option<ServerDto>, String> {
                     row.get(10)?,
                     row.get(11)?,
                     row.get(12)?,
+                    row.get(13)?,
+                    row.get::<_, i64>(14)? != 0,
+                    row.get::<_, i64>(15)? != 0,
+                    row.get(16)?,
+                    row.get(17)?,
+                    row.get(18)?,
+                    row.get::<_, i64>(19)? != 0,
+                    row.get(20)?,
+                    row.get(21)?,
+                    row.get(22)?,
                 ))
             })?;
             match rows.next() {
@@ -218,7 +321,7 @@ pub fn get_server(id: String) -> Result<Option<ServerDto>, String> {
     })
 }
 
-/// Create a new server entry, storing password in keychain if provided.
+/// Create a new server entry, storing password / passphrase in keychain if provided.
 pub fn create_server(input: ServerInput) -> Result<ServerDto, String> {
     let id = Uuid::new_v4().to_string();
     let now = Utc::now().to_rfc3339();
@@ -232,14 +335,38 @@ pub fn create_server(input: ServerInput) -> Result<ServerDto, String> {
             keychain::store(&key, pw).map_err(|e| e.to_string())?;
         }
     }
+    // Same for the private-key passphrase. Empty string is treated as
+    // "no passphrase" — we skip writing rather than storing an empty secret.
+    if let Some(ref pp) = input.passphrase {
+        if !pp.is_empty() {
+            let key = format!("termex:ssh:passphrase:{id}");
+            keychain::store(&key, pp).map_err(|e| e.to_string())?;
+        }
+    }
+
+    // Defaults match the v8 migration column defaults exactly.
+    let tmux_mode = input.tmux_mode.clone().unwrap_or_else(|| "disabled".to_string());
+    let tmux_close_action = input
+        .tmux_close_action
+        .clone()
+        .unwrap_or_else(|| "detach".to_string());
+    let git_sync_enabled = input.git_sync_enabled.unwrap_or(false);
+    let git_sync_mode = input
+        .git_sync_mode
+        .clone()
+        .unwrap_or_else(|| "notify".to_string());
 
     db_state::with_db(|db| {
         db.with_conn(|conn| {
             conn.execute(
                 "INSERT INTO servers
                     (id, name, host, port, username, auth_type, key_path, group_id,
-                     sort_order, tags, created_at, updated_at)
-                 VALUES (?1,?2,?3,?4,?5,?6,?7,?8,?9,?10,?11,?12)",
+                     sort_order, tags, created_at, updated_at,
+                     tmux_mode, tmux_close_action,
+                     git_sync_enabled, git_sync_mode,
+                     git_sync_remote_path, git_sync_local_path)
+                 VALUES (?1,?2,?3,?4,?5,?6,?7,?8,?9,?10,?11,?12,
+                         ?13,?14,?15,?16,?17,?18)",
                 rusqlite::params![
                     id,
                     input.name,
@@ -253,6 +380,12 @@ pub fn create_server(input: ServerInput) -> Result<ServerDto, String> {
                     tags_json,
                     now,
                     now,
+                    tmux_mode,
+                    tmux_close_action,
+                    if git_sync_enabled { 1i64 } else { 0i64 },
+                    git_sync_mode,
+                    input.git_sync_remote_path,
+                    input.git_sync_local_path,
                 ],
             )?;
             Ok(ServerDto {
@@ -269,31 +402,67 @@ pub fn create_server(input: ServerInput) -> Result<ServerDto, String> {
                 last_connected: None,
                 created_at: now.clone(),
                 updated_at: now,
+                // Newly-created servers start with no proxy, no bastion,
+                // unshared. The user wires those up via subsequent calls
+                // to chain.rs / proxy_id update / share-with-team.
+                proxy_id: None,
+                has_bastion: false,
+                shared: false,
+                team_id: None,
+                tmux_mode,
+                tmux_close_action,
+                git_sync_enabled,
+                git_sync_remote_path: input.git_sync_remote_path.clone(),
+                git_sync_local_path: input.git_sync_local_path.clone(),
+                git_sync_mode,
             })
         })
         .map_err(|e| e.to_string())
     })
 }
 
-/// Update an existing server, refreshing keychain entry for password.
+/// Update an existing server, refreshing keychain entry for password / passphrase
+/// and persisting sync / tmux fields.
 pub fn update_server(id: String, input: ServerInput) -> Result<ServerDto, String> {
     let now = Utc::now().to_rfc3339();
     let tags_json = serde_json::to_string(&input.tags).map_err(|e| e.to_string())?;
     let auth_str = input.auth_type.as_str().to_string();
 
-    // Update keychain entry if password provided
+    // Update keychain entry if password provided. Empty string is treated as
+    // "leave existing secret untouched" — matches the legacy Tauri behaviour
+    // where Edit-mode opens with blanks so the user only types when rotating.
     if let Some(ref pw) = input.password {
         if !pw.is_empty() {
             let key = format!("termex:ssh:password:{id}");
             keychain::store(&key, pw).map_err(|e| e.to_string())?;
         }
     }
+    if let Some(ref pp) = input.passphrase {
+        if !pp.is_empty() {
+            let key = format!("termex:ssh:passphrase:{id}");
+            keychain::store(&key, pp).map_err(|e| e.to_string())?;
+        }
+    }
+
+    let tmux_mode = input.tmux_mode.clone().unwrap_or_else(|| "disabled".to_string());
+    let tmux_close_action = input
+        .tmux_close_action
+        .clone()
+        .unwrap_or_else(|| "detach".to_string());
+    let git_sync_enabled = input.git_sync_enabled.unwrap_or(false);
+    let git_sync_mode = input
+        .git_sync_mode
+        .clone()
+        .unwrap_or_else(|| "notify".to_string());
 
     db_state::with_db(|db| {
         db.with_conn(|conn| {
             conn.execute(
                 "UPDATE servers SET name=?2, host=?3, port=?4, username=?5, auth_type=?6,
-                          key_path=?7, group_id=?8, tags=?9, updated_at=?10
+                          key_path=?7, group_id=?8, tags=?9, updated_at=?10,
+                          tmux_mode=?11, tmux_close_action=?12,
+                          git_sync_enabled=?13, git_sync_mode=?14,
+                          git_sync_remote_path=?15, git_sync_local_path=?16
                  WHERE id=?1",
                 rusqlite::params![
                     id,
@@ -306,6 +475,12 @@ pub fn update_server(id: String, input: ServerInput) -> Result<ServerDto, String
                     input.group_id,
                     tags_json,
                     now,
+                    tmux_mode,
+                    tmux_close_action,
+                    if git_sync_enabled { 1i64 } else { 0i64 },
+                    git_sync_mode,
+                    input.git_sync_remote_path,
+                    input.git_sync_local_path,
                 ],
             )?;
             Ok(())

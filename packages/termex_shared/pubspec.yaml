@@ -29,7 +29,10 @@ dependencies:
 
   # UI primitives
   flutter_svg: ^2.0.0
-  lucide_icons: ^0.257.0
+  # lucide_icons 0.257.0 extends IconData, which Flutter 3.44+ made final.
+  # lucide_icons_flutter is the maintained fork that exposes constants
+  # without subclassing IconData — same glyph set.
+  lucide_icons_flutter: ^3.1.14
 
   # Syntax highlighting (used by editor dialogs / snippet preview)
   highlight: ^0.7.0
@@ -44,6 +47,7 @@ dependencies:
   # File ops
   file_picker: ^8.0.0
   share_plus: ^10.0.0
+  path_provider: ^2.1.0
 
   # Monitoring (kept here because monitor panel + battery + connectivity live in the shared layer)
   fl_chart: ^0.69.0

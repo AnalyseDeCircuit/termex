@@ -1,3 +1,17 @@
+# ⚠️ v0.78.0 PC cutover — this crate is NO LONGER in the workspace.
+# ====================================================================
+# Building from the repo root will not compile this crate any more:
+#   ✗  cargo build --workspace        # skips src-tauri/
+#   ✗  cargo test  --workspace        # skips src-tauri/
+#
+# To produce a Tauri DMG / MSI / AppImage for rollback or forensic
+# purposes, build inside this directory explicitly:
+#   ✓  cd src-tauri && cargo build --release --manifest-path Cargo.toml
+#   ✓  scripts/legacy/build-tauri.sh release
+#
+# Physical deletion of `src-tauri/` is planned for v0.80.0. See
+# docs/iterations/v0.78.0-pc-cutover.md for the full retirement plan.
+
 [package]
 name = "termex"
 version = "0.53.7"

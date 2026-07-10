@@ -1,5 +1,5 @@
 import 'package:flutter/widgets.dart';
-import 'package:lucide_icons/lucide_icons.dart';
+import 'package:lucide_icons_flutter/lucide_icons.dart';
 
 /// Termex icon set — line icons matching the Vue/Tauri build's design.
 ///
@@ -36,6 +36,7 @@ class TermexIcons {
   static const IconData help     = LucideIcons.helpCircle;
   static const IconData moon     = LucideIcons.moon;
   static const IconData sun      = LucideIcons.sun;
+  static const IconData history  = LucideIcons.history;
 
   // ── Common actions ───────────────────────────────────────────────────────
   static const IconData add     = LucideIcons.plus;
@@ -74,6 +75,7 @@ class TermexIcons {
   static const IconData warning = LucideIcons.alertTriangle;
   static const IconData error   = LucideIcons.alertCircle;
   static const IconData success = LucideIcons.checkCircle;
+  static const IconData bell    = LucideIcons.bell;
 
   // ── Arrows / Chevrons ────────────────────────────────────────────────────
   static const IconData arrowUp      = LucideIcons.arrowUp;

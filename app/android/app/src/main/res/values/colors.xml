@@ -1,0 +1,9 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+    <!-- TermexColors.backgroundPrimary, kept in sync with
+         packages/termex_shared/lib/design/colors.dart so the Android
+         launch background, status / navigation bars, and Flutter chrome
+         all paint the same dark surface during cold start. -->
+    <color name="termex_background">#FF0D1117</color>
+    <color name="termex_background_secondary">#FF161B22</color>
+</resources>

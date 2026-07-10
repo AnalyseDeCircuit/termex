@@ -1,0 +1,61 @@
+#!/usr/bin/env bash
+#
+# pre-commit hook — FRB codegen drift check (v0.79.45)
+#
+# Runs `./scripts/frb-codegen.sh --check` ONLY when staged changes touch
+# the Rust ↔ Dart bridge surface (any `.rs` under crates/termex-flutter-
+# bridge/src/api/ or the bridge crate's Cargo.toml). Other commits are
+# untouched — keeps the hook cheap for the common case (Dart-only / docs
+# / Rust core changes that don't reshape FRB).
+#
+# **Opt-in**: this hook is activated by running `./scripts/install-git-
+# hooks.sh` (sets `git config core.hooksPath .githooks`). Plain `git
+# clone` does NOT enable it — keeps the safety net for devs who want it
+# without surprising new contributors.
+#
+# Bypass: `git commit --no-verify` (standard escape hatch).
+
+set -euo pipefail
+
+# Sentinel paths whose staged change implies a possible FRB drift.
+TRIGGER_PATHS=(
+  'crates/termex-flutter-bridge/src/api/'
+  'crates/termex-flutter-bridge/Cargo.toml'
+)
+
+# Collect just the names of *staged* files. --cached limits to the
+# index (matches what the user is about to commit, not unstaged
+# work-tree mess).
+STAGED="$(git diff --cached --name-only --diff-filter=ACMR 2>/dev/null || true)"
+
+if [[ -z "$STAGED" ]]; then
+  exit 0
+fi
+
+# Cheap substring scan: any staged path under a TRIGGER_PATHS prefix?
+NEEDS_CHECK=0
+for path in $STAGED; do
+  for prefix in "${TRIGGER_PATHS[@]}"; do
+    if [[ "$path" == "$prefix"* ]]; then
+      NEEDS_CHECK=1
+      break 2
+    fi
+  done
+done
+
+if [[ $NEEDS_CHECK -eq 0 ]]; then
+  exit 0
+fi
+
+echo "▶ FRB bridge sources changed — running drift check..."
+echo "  (skip with \`git commit --no-verify\` if you know what you're doing)"
+echo
+
+# The repo-relative path resolves regardless of where `git commit` was
+# invoked from (subdirectory commits are common).
+REPO_ROOT="$(git rev-parse --show-toplevel)"
+cd "$REPO_ROOT"
+
+# Run the existing CI-shared check. It already emits readable failure
+# output (stat + first 50 lines of diff + fix command) per v0.79.44.
+exec ./scripts/frb-codegen.sh --check

@@ -3,6 +3,8 @@ import 'package:flutter/services.dart';
 import 'package:flutter/widgets.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 
+import 'desktop_tray.dart';
+
 import 'package:termex_shared/design/colors.dart';
 import 'package:termex_shared/design/spacing.dart';
 import 'package:termex_shared/design/typography.dart';
@@ -54,6 +56,28 @@ class DesktopShell extends ConsumerStatefulWidget {
 }
 
 class _DesktopShellState extends ConsumerState<DesktopShell> {
+  @override
+  void initState() {
+    super.initState();
+    // v0.77.0 PC final parity: tray icon + context menu. Wires the
+    // "新建本地终端" / "设置…" entries to the same handlers the
+    // top-bar uses so behaviour stays consistent regardless of which
+    // surface the user invokes the action from. install() is
+    // idempotent so hot-restart cycles don't stack listeners.
+    WidgetsBinding.instance.addPostFrameCallback((_) {
+      DesktopTray.instance.install(
+        onNewLocalTerminal: _openLocalTerminal,
+        onOpenSettings: _openSettingsDialog,
+      );
+    });
+  }
+
+  @override
+  void dispose() {
+    DesktopTray.instance.dispose();
+    super.dispose();
+  }
+
   // ── Tab → server connect ──────────────────────────────────────────────────
 
   void _connectServerById(String serverId) {
@@ -318,6 +342,7 @@ class _DesktopShellState extends ConsumerState<DesktopShell> {
                                 onClose: () => ref
                                     .read(desktopSidePanelProvider.notifier)
                                     .state = DesktopSidePanel.none,
+                                onConfigureAi: _openSettingsAi,
                               ),
                           ],
                         ),
@@ -348,18 +373,22 @@ class _DesktopShellState extends ConsumerState<DesktopShell> {
     return result?.passphrase;
   }
 
-  void _openSettingsDialog() {
+  void _openSettingsDialog({SettingsTab? initialTab}) {
     showTermexDialog<void>(
       context: context,
       title: '设置',
       size: DialogSize.large,
-      body: const SizedBox(
+      body: SizedBox(
         width: 680,
         height: 500,
-        child: SettingsPage(embedded: true),
+        child: SettingsPage(embedded: true, initialTab: initialTab),
       ),
     );
   }
+
+  /// v0.79.56: AiPanel onboarding CTA hook — opens the settings modal
+  /// already landed on the AI tab.
+  void _openSettingsAi() => _openSettingsDialog(initialTab: SettingsTab.ai);
 }
 
 // ─── Top bar ────────────────────────────────────────────────────────────────
@@ -386,11 +415,12 @@ class _DesktopTopBar extends ConsumerWidget {
     final leftInset = sidebarVisible ? 240.0 : 78.0;
     return Container(
       height: 38,
+      // No full-width bottom border: only the active TabItem shows a
+      // 2px primary underline (see tab_item.dart). This matches the
+      // user's spec — "默认底部 border 透明，激活 tab 卡片才显示卡片底部
+      // border".
       decoration: const BoxDecoration(
         color: TermexColors.backgroundPrimary,
-        border: Border(
-          bottom: BorderSide(color: TermexColors.border),
-        ),
       ),
       child: Row(
         crossAxisAlignment: CrossAxisAlignment.end,
@@ -500,11 +530,13 @@ class _SidePanelContainer extends StatelessWidget {
   final DesktopSidePanel panel;
   final String? sessionId;
   final VoidCallback onClose;
+  final VoidCallback? onConfigureAi;
 
   const _SidePanelContainer({
     required this.panel,
     required this.sessionId,
     required this.onClose,
+    this.onConfigureAi,
   });
 
   @override
@@ -519,7 +551,7 @@ class _SidePanelContainer extends StatelessWidget {
         DesktopSidePanel.sftp => sessionId != null
             ? SftpPanel(sessionId: sessionId!)
             : const _NoSessionPane(),
-        DesktopSidePanel.ai => const AiPanel(),
+        DesktopSidePanel.ai => AiPanel(onConfigureAi: onConfigureAi),
         DesktopSidePanel.settings => const SettingsPage(),
         DesktopSidePanel.portForward => sessionId != null
             ? PortForwardPanel(sessionId: sessionId!)

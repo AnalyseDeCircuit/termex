@@ -7,6 +7,7 @@ export 'package:termex/src/frb_generated/api/ai.dart';
 export 'package:termex/src/frb_generated/api/app.dart';
 export 'package:termex/src/frb_generated/api/audit_catalogue.dart';
 export 'package:termex/src/frb_generated/api/backup.dart';
+export 'package:termex/src/frb_generated/api/chain.dart';
 export 'package:termex/src/frb_generated/api/cloud.dart';
 export 'package:termex/src/frb_generated/api/cost.dart';
 export 'package:termex/src/frb_generated/api/crypto.dart';

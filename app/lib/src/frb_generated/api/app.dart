@@ -9,6 +9,16 @@ import 'package:flutter_rust_bridge/flutter_rust_bridge_for_generated.dart';
 // These functions are ignored because they are not marked as `pub`: `master_password_set`, `process_alive`
 // These function are ignored because they are on traits that is not defined in current crate (put an empty `#[frb]` on it to unignore): `clone`, `fmt`
 
+/// Tells the Rust core where to place its writable data + app directories.
+///
+/// Required on mobile platforms (iOS / Android) where the `dirs` crate
+/// cannot infer a sandbox-writable location. Dart should call this once,
+/// before [`init_app`], passing the result of
+/// `path_provider.getApplicationSupportDirectory()`. Desktop builds can
+/// skip the call — they'll fall back to `dirs::data_dir()` as before.
+Future<void> setAppDataDir({required String path}) =>
+    TermexBridge.instance.api.crateApiAppSetAppDataDir(path: path);
+
 /// Initialise the application state.
 ///
 /// Steps:

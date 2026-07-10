@@ -33,7 +33,9 @@ dependencies:
   shared_preferences: ^2.2.0
   flutter_localizations:
     sdk: flutter
-  lucide_icons: ^0.257.0
+  # Maintained fork of lucide_icons that works with Flutter 3.44+
+  # (the old package extends IconData which is now a final class).
+  lucide_icons_flutter: ^3.1.14
   # 监控指标折线图（monitor/widgets/metric_chart.dart）
   fl_chart: ^0.69.0
   # 电池监控（system/battery/battery_monitor.dart）— 桌面端笔记本/平板也有电池
@@ -44,6 +46,9 @@ dependencies:
   # data dirs to the `dirs` Rust crate. Dart resolves the writable app dir
   # and seeds it into the bridge via `app::init_app` before any other call.
   path_provider: ^2.1.0
+  # Local notifications — v0.79.21 mobile primitive for AI task completion
+  # alerts. Remote push (FCM) deferred to v0.79.23+.
+  flutter_local_notifications: ^18.0.1
 
 dev_dependencies:
   flutter_test:
@@ -87,6 +92,11 @@ flutter:
   # the l10n.yaml + .arb files have moved. Pre-generated .dart files are
   # checked in there too, so the desktop app does NOT need to invoke
   # flutter gen-l10n at pub get time.
+  # Note: the brand logo `packages/termex_shared/assets/logo/logo.png`
+  # is auto-bundled because termex_shared (a path-dep) declares it in
+  # its own pubspec `flutter.assets`. App code references it as
+  # `AssetImage('packages/termex_shared/assets/logo/logo.png')` directly
+  # — no duplicate declaration needed here.
   fonts:
     - family: JetBrainsMono
       fonts:

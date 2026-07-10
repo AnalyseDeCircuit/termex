@@ -4,6 +4,7 @@ import 'package:flutter_test/flutter_test.dart';
 import 'package:termex_shared/features/server_list/models/server_dto.dart';
 import 'package:termex_shared/features/server_list/server_list_page.dart';
 import 'package:termex_shared/features/server_list/state/server_provider.dart';
+import 'package:termex_shared/l10n/app_localizations.dart';
 
 PageRoute<T> _route<T>(RouteSettings s, WidgetBuilder b) =>
     PageRouteBuilder<T>(settings: s, pageBuilder: (ctx, _, __) => b(ctx));
@@ -38,6 +39,8 @@ void main() {
         child: WidgetsApp(
           color: const Color(0xFF1E1E2E),
           pageRouteBuilder: _route,
+          localizationsDelegates: AppLocalizations.localizationsDelegates,
+          supportedLocales: AppLocalizations.supportedLocales,
           home: const ServerListPage(),
         ),
       ),
@@ -57,6 +60,8 @@ void main() {
         child: WidgetsApp(
           color: const Color(0xFF1E1E2E),
           pageRouteBuilder: _route,
+          localizationsDelegates: AppLocalizations.localizationsDelegates,
+          supportedLocales: AppLocalizations.supportedLocales,
           home: const ServerListPage(),
         ),
       ),
@@ -80,6 +85,8 @@ void main() {
         child: WidgetsApp(
           color: const Color(0xFF1E1E2E),
           pageRouteBuilder: _route,
+          localizationsDelegates: AppLocalizations.localizationsDelegates,
+          supportedLocales: AppLocalizations.supportedLocales,
           home: const ServerListPage(),
         ),
       ),

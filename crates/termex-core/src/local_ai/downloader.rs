@@ -107,45 +107,19 @@ pub async fn download_with_progress(
             msg
         })?;
 
-    let total_size = head_response
-        .content_length()
-        .unwrap_or(0);
+    let mut total_size = head_response.content_length().unwrap_or(0);
+    log::info!("HEAD response Content-Length: {} bytes", total_size);
 
-    // If HEAD request didn't return content-length, try GET request
-    let total_size = if total_size == 0 {
-        log::warn!("HEAD request returned 0 bytes, trying GET request to determine file size");
-        let get_response = client
-            .get(url)
-            .header("User-Agent", "Mozilla/5.0 (compatible; Termex/0.1)")
-            .send()
-            .await
-            .map_err(|e| {
-                let msg = format!("Failed to get file size via GET from {}: {}", url, e);
-                log::error!("{}", msg);
-                msg
-            })?;
-
-        get_response
-            .content_length()
-            .ok_or_else(|| {
-                let msg = format!("Server did not provide content length for {}", url);
-                log::error!("{}", msg);
-                msg
-            })?
-    } else {
-        total_size
-    };
-
-    log::info!("File size: {} bytes", total_size);
-
-    // If file is complete, verify and move to destination
-    if start_byte >= total_size {
+    // v0.79.58: when the file is *complete* on disk, we can verify and
+    // move without a fresh download. Only valid when we actually know
+    // the total size — otherwise fall through to the streaming path.
+    if total_size > 0 && start_byte >= total_size {
         verify_and_move(&temp_path, destination, expected_sha256).await?;
         progress_callback(total_size, total_size);
         return Ok(());
     }
 
-    // Download with Range header support
+    // Download with Range header support.
     let range_header = if start_byte > 0 {
         format!("bytes={}-", start_byte)
     } else {
@@ -173,6 +147,28 @@ pub async fn download_with_progress(
         );
         log::error!("{}", msg);
         return Err(msg);
+    }
+
+    // v0.79.58: if HEAD didn't give us a size, prefer the GET response's
+    // Content-Length (servers behind a CDN often omit it on HEAD but
+    // include it on GET). If still missing — e.g. `Transfer-Encoding:
+    // chunked` — fall back to total_size = 0 and report indeterminate
+    // progress instead of failing the whole download. Without this fix
+    // iOS simulator users saw the download error out before any chunk
+    // because HF's CDN returns chunked transfers without Content-Length,
+    // and we used to bail with "Server did not provide content length".
+    if total_size == 0 {
+        total_size = response.content_length().unwrap_or(0);
+        if total_size > 0 {
+            log::info!(
+                "Using GET response Content-Length: {} bytes",
+                total_size
+            );
+        } else {
+            log::warn!(
+                "No Content-Length from HEAD or GET — streaming with indeterminate progress"
+            );
+        }
     }
 
     log::info!("Download started successfully, writing to: {}", temp_path.display());

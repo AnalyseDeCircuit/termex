@@ -252,16 +252,33 @@ class _ProviderInlineFormState extends ConsumerState<ProviderInlineForm> {
   }
 
   Widget _modelDropdown(List<String> models) {
-    final value = models.contains(_model)
+    // Dedup the model list (defensive — registry should already be
+    // unique, but a stale per-provider override could append a duplicate
+    // and the DropdownButton asserts "Either zero or 2 or more
+    // DropdownMenuItems were detected with the same value").
+    final uniqueModels = models.toSet().toList(growable: false);
+    final value = uniqueModels.contains(_model)
         ? _model
-        : (models.isNotEmpty ? models.first : null);
+        : (uniqueModels.isNotEmpty ? uniqueModels.first : null);
+    // If the saved cfg model isn't in the current registry list (e.g.
+    // legacy "claude-3-5-sonnet-20241022" against a refreshed roster),
+    // adopt the fallback right away so the next save persists a valid
+    // identifier; without this `_model` keeps the stale value and the
+    // assertion fires on the very next rebuild.
+    if (value != null && value != _model) {
+      WidgetsBinding.instance.addPostFrameCallback((_) {
+        if (mounted && _model != value) {
+          setState(() => _model = value);
+        }
+      });
+    }
     return DropdownButtonFormField<String>(
-      initialValue: value,
+      value: value,
       isDense: true,
       dropdownColor: TermexColors.backgroundSecondary,
       style: const TextStyle(fontSize: 12, color: TermexColors.textPrimary),
       decoration: _decoration(''),
-      items: models
+      items: uniqueModels
           .map((m) => DropdownMenuItem(value: m, child: Text(m)))
           .toList(),
       onChanged: (v) => setState(() => _model = v ?? _model),

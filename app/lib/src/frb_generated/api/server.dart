@@ -17,11 +17,12 @@ Future<List<ServerDto>> listServers() =>
 Future<ServerDto?> getServer({required String id}) =>
     TermexBridge.instance.api.crateApiServerGetServer(id: id);
 
-/// Create a new server entry, storing password in keychain if provided.
+/// Create a new server entry, storing password / passphrase in keychain if provided.
 Future<ServerDto> createServer({required ServerInput input}) =>
     TermexBridge.instance.api.crateApiServerCreateServer(input: input);
 
-/// Update an existing server, refreshing keychain entry for password.
+/// Update an existing server, refreshing keychain entry for password / passphrase
+/// and persisting sync / tmux fields.
 Future<ServerDto> updateServer(
         {required String id, required ServerInput input}) =>
     TermexBridge.instance.api.crateApiServerUpdateServer(id: id, input: input);
@@ -60,6 +61,9 @@ enum AuthType {
   agent,
   interactive,
   ;
+
+  static Future<AuthType> default_() =>
+      TermexBridge.instance.api.crateApiServerAuthTypeDefault();
 }
 
 /// Quick connect history entry.
@@ -99,6 +103,12 @@ class QuickConnectEntry {
 }
 
 /// Lightweight server DTO for Flutter.
+///
+/// v0.77.0 PC final parity: surfaced `proxy_id`, `has_bastion`, `shared`
+/// so the Flutter sidebar can paint per-server badges that mirror the
+/// legacy Tauri tree (proxy chip + bastion chip + 共享 chip). These fields
+/// are read-only summaries — actual chain editing still goes through
+/// the dedicated `chain.rs` API.
 class ServerDto {
   final String id;
   final String name;
@@ -114,6 +124,40 @@ class ServerDto {
   final String createdAt;
   final String updatedAt;
 
+  /// ID of a network proxy (SOCKS5/HTTP/Tor) attached to this server,
+  /// or None when the server connects directly.
+  final String? proxyId;
+
+  /// True when this server connects via one or more SSH bastion hops
+  /// recorded in the `connection_chain` table. Derived from a COUNT(*)
+  /// subquery so we don't ship the full chain on every list call.
+  final bool hasBastion;
+
+  /// True when this server was shared into a team workspace.
+  final bool shared;
+
+  /// Team identifier — populated only when `shared = true`.
+  final String? teamId;
+
+  /// tmux mode: 'disabled' | 'auto' | 'always'. Per-server, falls back to
+  /// 'disabled' when the column is NULL on legacy rows.
+  final String tmuxMode;
+
+  /// Action on tmux session disconnect: 'detach' | 'kill'. Defaults to 'detach'.
+  final String tmuxCloseAction;
+
+  /// Git Auto Sync enable flag.
+  final bool gitSyncEnabled;
+
+  /// Git remote path (e.g. `/home/user/project`).
+  final String? gitSyncRemotePath;
+
+  /// Git local path on this machine (e.g. `/Users/me/project`).
+  final String? gitSyncLocalPath;
+
+  /// Git sync mode: 'notify' | 'auto_pull'. Defaults to 'notify'.
+  final String gitSyncMode;
+
   const ServerDto({
     required this.id,
     required this.name,
@@ -128,6 +172,16 @@ class ServerDto {
     this.lastConnected,
     required this.createdAt,
     required this.updatedAt,
+    this.proxyId,
+    required this.hasBastion,
+    required this.shared,
+    this.teamId,
+    required this.tmuxMode,
+    required this.tmuxCloseAction,
+    required this.gitSyncEnabled,
+    this.gitSyncRemotePath,
+    this.gitSyncLocalPath,
+    required this.gitSyncMode,
   });
 
   @override
@@ -144,7 +198,17 @@ class ServerDto {
       tags.hashCode ^
       lastConnected.hashCode ^
       createdAt.hashCode ^
-      updatedAt.hashCode;
+      updatedAt.hashCode ^
+      proxyId.hashCode ^
+      hasBastion.hashCode ^
+      shared.hashCode ^
+      teamId.hashCode ^
+      tmuxMode.hashCode ^
+      tmuxCloseAction.hashCode ^
+      gitSyncEnabled.hashCode ^
+      gitSyncRemotePath.hashCode ^
+      gitSyncLocalPath.hashCode ^
+      gitSyncMode.hashCode;
 
   @override
   bool operator ==(Object other) =>
@@ -163,10 +227,24 @@ class ServerDto {
           tags == other.tags &&
           lastConnected == other.lastConnected &&
           createdAt == other.createdAt &&
-          updatedAt == other.updatedAt;
+          updatedAt == other.updatedAt &&
+          proxyId == other.proxyId &&
+          hasBastion == other.hasBastion &&
+          shared == other.shared &&
+          teamId == other.teamId &&
+          tmuxMode == other.tmuxMode &&
+          tmuxCloseAction == other.tmuxCloseAction &&
+          gitSyncEnabled == other.gitSyncEnabled &&
+          gitSyncRemotePath == other.gitSyncRemotePath &&
+          gitSyncLocalPath == other.gitSyncLocalPath &&
+          gitSyncMode == other.gitSyncMode;
 }
 
 /// Input for creating or editing a server.
+///
+/// Optional sync/tmux fields default at the SQL layer when `None`
+/// (column defaults: `tmux_mode='disabled'`, `tmux_close_action='detach'`,
+/// `git_sync_enabled=0`, `git_sync_mode='notify'`).
 class ServerInput {
   final String name;
   final String host;
@@ -174,9 +252,19 @@ class ServerInput {
   final String username;
   final AuthType authType;
   final String? password;
+
+  /// Private-key passphrase. Stored in the OS keychain under
+  /// `termex:ssh:passphrase:{id}`. Empty string clears the entry.
+  final String? passphrase;
   final String? keyPath;
   final String? groupId;
   final List<String> tags;
+  final String? tmuxMode;
+  final String? tmuxCloseAction;
+  final bool? gitSyncEnabled;
+  final String? gitSyncRemotePath;
+  final String? gitSyncLocalPath;
+  final String? gitSyncMode;
 
   const ServerInput({
     required this.name,
@@ -185,10 +273,20 @@ class ServerInput {
     required this.username,
     required this.authType,
     this.password,
+    this.passphrase,
     this.keyPath,
     this.groupId,
     required this.tags,
+    this.tmuxMode,
+    this.tmuxCloseAction,
+    this.gitSyncEnabled,
+    this.gitSyncRemotePath,
+    this.gitSyncLocalPath,
+    this.gitSyncMode,
   });
+
+  static Future<ServerInput> default_() =>
+      TermexBridge.instance.api.crateApiServerServerInputDefault();
 
   @override
   int get hashCode =>
@@ -198,9 +296,16 @@ class ServerInput {
       username.hashCode ^
       authType.hashCode ^
       password.hashCode ^
+      passphrase.hashCode ^
       keyPath.hashCode ^
       groupId.hashCode ^
-      tags.hashCode;
+      tags.hashCode ^
+      tmuxMode.hashCode ^
+      tmuxCloseAction.hashCode ^
+      gitSyncEnabled.hashCode ^
+      gitSyncRemotePath.hashCode ^
+      gitSyncLocalPath.hashCode ^
+      gitSyncMode.hashCode;
 
   @override
   bool operator ==(Object other) =>
@@ -213,7 +318,14 @@ class ServerInput {
           username == other.username &&
           authType == other.authType &&
           password == other.password &&
+          passphrase == other.passphrase &&
           keyPath == other.keyPath &&
           groupId == other.groupId &&
-          tags == other.tags;
+          tags == other.tags &&
+          tmuxMode == other.tmuxMode &&
+          tmuxCloseAction == other.tmuxCloseAction &&
+          gitSyncEnabled == other.gitSyncEnabled &&
+          gitSyncRemotePath == other.gitSyncRemotePath &&
+          gitSyncLocalPath == other.gitSyncLocalPath &&
+          gitSyncMode == other.gitSyncMode;
 }

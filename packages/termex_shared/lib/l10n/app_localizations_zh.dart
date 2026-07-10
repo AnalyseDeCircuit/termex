@@ -120,6 +120,370 @@ class AppLocalizationsZh extends AppLocalizations {
   String get sidebarServers => '服务器';
 
   @override
+  String get serverListEmpty => '暂无服务器';
+
+  @override
+  String get notificationsSectionTitle => '通知';
+
+  @override
+  String get notificationsTestButton => '发送测试通知';
+
+  @override
+  String get notificationsTestSent => '测试通知已发送';
+
+  @override
+  String get notificationsTestDenied => '系统通知权限未授权——请在系统设置中开启';
+
+  @override
+  String get notificationsTestTitle => 'Termex 测试通知';
+
+  @override
+  String get notificationsTestBody => '如果你能看到这条通知，AI 任务完成时也会到这里。';
+
+  @override
+  String get notificationsDemoTaskButton => '触发示例任务事件';
+
+  @override
+  String get notificationsDemoTaskTitle => '示例任务已完成';
+
+  @override
+  String get notificationsDemoTaskSummary => '从设置发出的合成事件——用于验证总线到通知器的链路。';
+
+  @override
+  String get notificationsDemoTaskSent => '示例任务事件已发布——通知应很快到达';
+
+  @override
+  String get taskDetailHeader => '任务详情';
+
+  @override
+  String get taskDetailUnknownTask => '未知任务';
+
+  @override
+  String get taskDetailNoSummary => '暂无摘要。';
+
+  @override
+  String get taskDetailOutputComingSoon =>
+      '输出和结果将在 daemon 事件流接入后展示（v0.79.24+）。';
+
+  @override
+  String get taskDetailStatusUnknown => '未知';
+
+  @override
+  String get taskDetailStatusPending => '等待中';
+
+  @override
+  String get taskDetailStatusAwaitingConfirmation => '等待确认';
+
+  @override
+  String get taskDetailStatusRunning => '运行中';
+
+  @override
+  String get taskDetailStatusSucceeded => '已完成';
+
+  @override
+  String get taskDetailStatusFailed => '失败';
+
+  @override
+  String get taskDetailStatusCancelled => '已取消';
+
+  @override
+  String get taskHistoryHeader => '任务历史';
+
+  @override
+  String get taskHistoryEmptyTitle => '暂无任务记录';
+
+  @override
+  String get taskHistoryEmptyHint =>
+      'daemon 或应用内事件源发布后会在这里出现。可在设置里点「触发示例任务事件」体验。';
+
+  @override
+  String get taskHistoryEntryAction => '查看任务历史';
+
+  @override
+  String get taskHistoryActionDelete => '删除';
+
+  @override
+  String get taskHistoryActionClearAll => '清空全部';
+
+  @override
+  String get taskHistoryDeleteConfirmTitle => '删除任务？';
+
+  @override
+  String taskHistoryDeleteConfirmBody(String title) {
+    return '将「$title」从历史中移除，操作不可撤销。';
+  }
+
+  @override
+  String get taskHistoryClearAllConfirmTitle => '清空所有任务？';
+
+  @override
+  String taskHistoryClearAllConfirmBody(int count) {
+    return '将清除全部 $count 条记录，操作不可撤销。';
+  }
+
+  @override
+  String taskSftpUploadSucceededTitle(String fileName) {
+    return '已上传 $fileName';
+  }
+
+  @override
+  String taskSftpDownloadSucceededTitle(String fileName) {
+    return '已下载 $fileName';
+  }
+
+  @override
+  String taskSftpUploadFailedTitle(String fileName) {
+    return '上传失败：$fileName';
+  }
+
+  @override
+  String taskSftpDownloadFailedTitle(String fileName) {
+    return '下载失败：$fileName';
+  }
+
+  @override
+  String taskSftpUploadCancelledTitle(String fileName) {
+    return '上传已取消：$fileName';
+  }
+
+  @override
+  String taskSftpDownloadCancelledTitle(String fileName) {
+    return '下载已取消：$fileName';
+  }
+
+  @override
+  String taskSftpUploadSucceededBody(String size) {
+    return '上传完成（$size）';
+  }
+
+  @override
+  String taskSftpDownloadSucceededBody(String size) {
+    return '下载完成（$size）';
+  }
+
+  @override
+  String taskSftpFailedBody(String action, String error) {
+    return '$action失败 — $error';
+  }
+
+  @override
+  String taskSftpCancelledBody(
+      String action, String transferred, String total) {
+    return '$action于 $transferred / $total 时取消';
+  }
+
+  @override
+  String get taskSftpActionUpload => '上传';
+
+  @override
+  String get taskSftpActionDownload => '下载';
+
+  @override
+  String get taskPollerSummarySucceeded => '任务成功完成';
+
+  @override
+  String get taskPollerSummaryFailed => '任务失败';
+
+  @override
+  String taskPollerSummaryFailedWithExit(int exitCode) {
+    return '任务失败（退出码 $exitCode）';
+  }
+
+  @override
+  String get taskPollerSummaryCancelled => '任务已取消';
+
+  @override
+  String get taskPollerSummaryRunning => '任务已启动';
+
+  @override
+  String get taskPollerSummaryPending => '任务排队中';
+
+  @override
+  String get taskPollerSummaryAwaitingConfirmation => '任务等待确认';
+
+  @override
+  String taskAiSucceededTitle(String model) {
+    return 'AI 回复（$model）';
+  }
+
+  @override
+  String taskAiSucceededTitleWithConversation(
+      String conversation, String model) {
+    return '$conversation — 来自 $model 的回复';
+  }
+
+  @override
+  String get taskAiFailedTitle => 'AI 生成失败';
+
+  @override
+  String taskAiFailedTitleWithConversation(String conversation) {
+    return '$conversation — 失败';
+  }
+
+  @override
+  String get taskAiCancelledTitle => 'AI 生成已取消';
+
+  @override
+  String taskAiCancelledTitleWithConversation(String conversation) {
+    return '$conversation — 已取消';
+  }
+
+  @override
+  String get taskAiSucceededBody => '回复已生成';
+
+  @override
+  String taskAiSucceededBodyWithLength(int chars) {
+    return '回复已生成（$chars 字符）';
+  }
+
+  @override
+  String taskAiSucceededBodyWithTokens(int chars, int tokensIn, int tokensOut) {
+    return '回复已生成（$chars 字符 · ↑$tokensIn ↓$tokensOut tokens）';
+  }
+
+  @override
+  String taskAiSucceededBodyWithCost(
+      int chars, int tokensIn, int tokensOut, String cost) {
+    return '回复已生成（$chars 字符 · ↑$tokensIn ↓$tokensOut tokens · $cost）';
+  }
+
+  @override
+  String get taskAiFailedBody => '生成失败';
+
+  @override
+  String taskAiFailedBodyWithError(String error) {
+    return '生成失败 — $error';
+  }
+
+  @override
+  String get taskAiCancelledBody => '生成已取消';
+
+  @override
+  String get notificationThresholdsTitle => '通知阈值';
+
+  @override
+  String get notificationThresholdsSftpToggleLabel => 'SFTP 成功时通知';
+
+  @override
+  String get notificationThresholdsSftpToggleHint =>
+      '关闭后所有 SFTP 成功事件不弹通知；失败仍会通知。';
+
+  @override
+  String get notificationThresholdsSizeLabel => '最小文件大小';
+
+  @override
+  String notificationThresholdsSizeValue(double mb) {
+    final intl.NumberFormat mbNumberFormat =
+        intl.NumberFormat.decimalPattern(localeName);
+    final String mbString = mbNumberFormat.format(mb);
+
+    return '$mbString MB';
+  }
+
+  @override
+  String get notificationThresholdsDurationLabel => '最小持续时间';
+
+  @override
+  String notificationThresholdsDurationValue(int seconds) {
+    return '$seconds 秒';
+  }
+
+  @override
+  String get notificationThresholdsHelp =>
+      'SFTP 成功事件只要满足大小或时长任一阈值就通知。失败 / AI 完成始终通知。';
+
+  @override
+  String get notificationThresholdsReset => '恢复默认';
+
+  @override
+  String get notificationThresholdsResetDone => '已恢复默认';
+
+  @override
+  String get notificationThresholdsUndoWindowLabel => '撤销窗口';
+
+  @override
+  String notificationThresholdsUndoWindowValue(int seconds) {
+    return '$seconds 秒';
+  }
+
+  @override
+  String get notificationThresholdsUndoWindowOff => '关闭（立即删除）';
+
+  @override
+  String get taskHistoryUndoDeleted => '已删除';
+
+  @override
+  String taskHistoryUndoCleared(int count) {
+    return '已清空 $count 条记录';
+  }
+
+  @override
+  String get taskHistoryUndoAction => '撤销';
+
+  @override
+  String get taskHistoryFilterAll => '全部';
+
+  @override
+  String get taskHistoryFilterSftp => 'SFTP';
+
+  @override
+  String get taskHistoryFilterAi => 'AI';
+
+  @override
+  String get taskHistoryFilterOther => '其他';
+
+  @override
+  String get taskHistoryFilterEmptyTitle => '该筛选下暂无任务';
+
+  @override
+  String get taskHistoryFilterEmptyHint => '切换到「全部」查看所有任务。';
+
+  @override
+  String get taskHistorySearchPlaceholder => '按标题或摘要搜索…';
+
+  @override
+  String get taskHistorySearchEmptyTitle => '未找到匹配的任务';
+
+  @override
+  String get taskHistorySearchEmptyHint => '清空搜索框或调整关键词。';
+
+  @override
+  String get taskHistoryActionClearFiltered => '清除筛选项';
+
+  @override
+  String taskHistoryActionClearFilteredWithCount(int count) {
+    return '清除筛选项（$count）';
+  }
+
+  @override
+  String get taskHistoryClearFilteredConfirmTitle => '清除筛选下的任务？';
+
+  @override
+  String taskHistoryClearFilteredConfirmBody(int count) {
+    return '将清除筛选下的 $count 条记录，未筛选条目保留。撤销窗口关闭后操作不可恢复。';
+  }
+
+  @override
+  String taskHistoryRelativeSecondsAgo(int seconds) {
+    return '$seconds 秒前';
+  }
+
+  @override
+  String taskHistoryRelativeMinutesAgo(int minutes) {
+    return '$minutes 分钟前';
+  }
+
+  @override
+  String taskHistoryRelativeHoursAgo(int hours) {
+    return '$hours 小时前';
+  }
+
+  @override
+  String taskHistoryRelativeDaysAgo(int days) {
+    return '$days 天前';
+  }
+
+  @override
   String get sidebarSearch => '搜索服务器...';
 
   @override
@@ -272,7 +636,23 @@ class AppLocalizationsZh extends AppLocalizations {
   String get settingsTitle => '设置';
 
   @override
+  String get aiOnboardingHeadline => '尚未配置 AI Provider';
+
+  @override
+  String get aiOnboardingBody =>
+      'AI 对话需要先在设置中添加 Claude / OpenAI / Gemini 的 API Key，或配置本地 Ollama 端点。';
+
+  @override
+  String get aiOnboardingCta => '前往设置 → AI';
+
+  @override
+  String get aiOnboardingFallbackHint => '前往「设置 → AI 助手」添加一个 Provider。';
+
+  @override
   String get settingsAppearance => '外观';
+
+  @override
+  String get settingsNotifications => '通知';
 
   @override
   String get settingsTerminal => '终端';
@@ -893,10 +1273,31 @@ class AppLocalizationsZh extends AppLocalizations {
   String get connectionGroup => '分组';
 
   @override
+  String get connectionGroupNone => '无分组';
+
+  @override
+  String get connectionTags => '标签';
+
+  @override
+  String get connectionTagsHint => '逗号分隔，例如：production, linux';
+
+  @override
+  String get connectionAuthTypePassword => '密码';
+
+  @override
+  String get connectionAuthTypeKey => '私钥';
+
+  @override
+  String get connectionAuthTypeInteractive => '交互式';
+
+  @override
+  String get connectionPassphrase => '私钥密码';
+
+  @override
   String get connectionAuthorizationInfo => '授权信息';
 
   @override
-  String get connectionSshTunnel => 'SSH 隐转';
+  String get connectionSshTunnel => 'SSH 隧道';
 
   @override
   String get connectionBastion => '跳板機 / 跳转主機';
@@ -929,7 +1330,32 @@ class AppLocalizationsZh extends AppLocalizations {
   String get connectionTest => '测试连接';
 
   @override
+  String get connectionTesting => '正在测试连接…';
+
+  @override
   String get connectionTestSuccess => '连接测试成功';
+
+  @override
+  String get connectionTestFailed => '连接测试失败';
+
+  @override
+  String get connectionKeySourcePath => '文件路径';
+
+  @override
+  String get connectionKeySourcePaste => '粘贴内容';
+
+  @override
+  String get connectionKeyContent => '私钥内容';
+
+  @override
+  String get connectionKeyContentPlaceholder =>
+      '-----BEGIN OPENSSH PRIVATE KEY-----\n…';
+
+  @override
+  String get connectionAddServer => '添加服务器';
+
+  @override
+  String get connectionEditServer => '编辑服务器';
 
   @override
   String get connectionProxy => '代理';
@@ -1795,10 +2221,7 @@ class AppLocalizationsZh extends AppLocalizations {
 
   @override
   String sshConfigResultSummary(
-    String imported,
-    String skipped,
-    String errors,
-  ) {
+      String imported, String skipped, String errors) {
     return '已导入 $imported 个，跳过 $skipped 个，$errors 个错误';
   }
 
@@ -3211,4 +3634,61 @@ class AppLocalizationsZh extends AppLocalizations {
 
   @override
   String get recordingCleanupRunning => '清理中…';
+
+  @override
+  String get keybindingsNewTab => '新建标签页';
+
+  @override
+  String get keybindingsClosePane => '关闭窗格';
+
+  @override
+  String get keybindingsCopy => '复制';
+
+  @override
+  String get keybindingsPaste => '粘贴';
+
+  @override
+  String get keybindingsSelectAll => '全选';
+
+  @override
+  String get keybindingsZoomIn => '放大字号';
+
+  @override
+  String get keybindingsZoomOut => '缩小字号';
+
+  @override
+  String get keybindingsResetZoom => '重置字号';
+
+  @override
+  String get keybindingsCommandPalette => '命令面板';
+
+  @override
+  String get keybindingsAiDiagnose => 'AI 诊断';
+
+  @override
+  String get keybindingsNl2cmd => '自然语言转命令';
+
+  @override
+  String get keybindingsSftpPanel => 'SFTP 面板';
+
+  @override
+  String get keybindingsSftpUpload => '上传文件';
+
+  @override
+  String get keybindingsSftpDownload => '下载文件';
+
+  @override
+  String get keybindingsToggleSftp => '切换 SFTP';
+
+  @override
+  String get keybindingsReloadWindow => '重新载入窗口';
+
+  @override
+  String get keybindingsToggleFullscreen => '切换全屏';
+
+  @override
+  String get sidebarProxies => '代理';
+
+  @override
+  String get keybindingsUntranslated => '(未翻译)';
 }

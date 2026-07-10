@@ -390,6 +390,14 @@ fn check_process_running(pid: u32) -> bool {
         .unwrap_or(false)
 }
 
+// iOS sandbox prohibits arbitrary process inspection and `kill`/`tasklist`
+// equivalents — local AI sidecar processes do not exist on mobile, so this
+// always reports "not running" so any stale PID file is treated as orphaned.
+#[cfg(not(any(target_os = "macos", target_os = "linux", target_os = "windows")))]
+fn check_process_running(_pid: u32) -> bool {
+    false
+}
+
 // ── PID file management ──
 
 const PID_FILE_NAME: &str = ".llama-server.pid";

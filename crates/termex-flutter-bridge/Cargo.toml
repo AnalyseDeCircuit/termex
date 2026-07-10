@@ -24,13 +24,20 @@ dashmap               = "5"
 once_cell             = "1"
 chrono                = { version = "0.4", features = ["serde"] }
 time                  = { version = "0.3", features = ["formatting", "parsing"] }
-rusqlite              = { version = "0.32", features = ["bundled-sqlcipher"] }
+# See crates/termex-core/Cargo.toml — vendored openssl required for Android.
+rusqlite              = { version = "0.32", features = ["bundled-sqlcipher-vendored-openssl"] }
 dirs                  = "6"
 open                  = "5"
 base64                = "0.22"
-portable-pty          = "0.8"
 ring                  = "0.17"
 regex                 = "1"
+
+# portable-pty depends on serial-unix -> ioctl-rs/termios, which do not
+# compile for iOS or Android sandboxes (no /dev/ptmx, no termios ioctls,
+# spawn() is restricted). The local_pty module is gated to desktop
+# targets; mobile targets get a stub that preserves the FRB API surface.
+[target.'cfg(not(any(target_os = "ios", target_os = "android")))'.dependencies]
+portable-pty = "0.8"
 
 # Closed-source companion crate lives in a SIBLING repo (`../../../termex-core-private`).
 # Only resolved when the `private` feature is activated; OSS clones don't need

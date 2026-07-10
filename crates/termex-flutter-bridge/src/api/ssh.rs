@@ -235,6 +235,133 @@ pub fn check_ssh_agent_available() -> Result<bool, String> {
     Ok(std::path::Path::new(&sock).exists())
 }
 
+/// Parameters for a transient SSH connection test. Mirrors the add-server
+/// form fields so the user can verify credentials before persisting the
+/// row to the database.
+#[derive(Debug, Clone, serde::Serialize, serde::Deserialize)]
+#[serde(rename_all = "camelCase")]
+pub struct SshConnectionTestParams {
+    pub host: String,
+    pub port: i32,
+    pub username: String,
+    pub auth_type: String,
+    pub password: Option<String>,
+    /// Path to an on-disk private key file. Used when `key_data` is empty.
+    pub key_path: Option<String>,
+    /// Raw private key contents. Takes precedence over `key_path` when set —
+    /// lets the dialog test a pasted key without writing it to disk first.
+    pub key_data: Option<String>,
+    pub key_passphrase: Option<String>,
+    /// v0.79.66: id of the server being edited, if any. When the test
+    /// is fired from the Edit-Server dialog and the password / passphrase
+    /// fields are left blank (because we never seed them from the OS
+    /// keychain into a UI text field — security rule), we fall back to
+    /// reading the stored credential from the keychain by this id. Saves
+    /// the user from having to re-type their password just to run the
+    /// test. None means "create flow" — no keychain fallback.
+    pub existing_server_id: Option<String>,
+}
+
+/// Runs a full TCP + SSH handshake + auth against a transient set of
+/// connection params and disconnects. Returns `Ok(())` on success, or the
+/// underlying error message. Nothing is written to DB or keychain — used by
+/// the add/edit server dialog to verify credentials before persisting.
+pub async fn test_ssh_connection(
+    params: SshConnectionTestParams,
+) -> Result<(), String> {
+    if params.host.trim().is_empty() {
+        return Err("host is empty".into());
+    }
+    if params.username.trim().is_empty() {
+        return Err("username is empty".into());
+    }
+    if params.port < 1 || params.port > 65535 {
+        return Err(format!("port out of range: {}", params.port));
+    }
+
+    let auth_ty = AuthType::from_str(&params.auth_type).ok_or_else(|| {
+        format!("auth type not supported for test: {}", params.auth_type)
+    })?;
+
+    let mut session = SshSession::connect(&params.host, params.port as u16)
+        .await
+        .map_err(|e| e.to_string())?;
+
+    let auth_result: Result<(), String> = match auth_ty {
+        AuthType::Password => {
+            // v0.79.66: prefer the typed password; if blank AND we're
+            // testing an existing server, fall back to the OS-keychain
+            // record. Fixes the "edit dialog → test → password rejected"
+            // path where the dialog never seeds the password text field
+            // from keychain (by design — secrets stay out of the UI).
+            let typed = params.password.as_deref().unwrap_or("");
+            let pwd = if !typed.is_empty() {
+                typed.to_string()
+            } else if let Some(server_id) = params.existing_server_id.as_deref() {
+                termex_core::keychain::get(
+                    &termex_core::keychain::ssh_password_key(server_id),
+                )
+                .map_err(|e| {
+                    format!("failed to read keychain password: {e}")
+                })?
+            } else {
+                String::new()
+            };
+            auth::auth_password(session.handle_mut(), &params.username, &pwd)
+                .await
+                .map_err(|e| e.to_string())
+        }
+        AuthType::Key => {
+            let pasted = params
+                .key_data
+                .as_deref()
+                .map(str::trim)
+                .filter(|s| !s.is_empty());
+            let key_data = match pasted {
+                Some(data) => data.to_string(),
+                None => {
+                    let path = params
+                        .key_path
+                        .as_deref()
+                        .map(str::trim)
+                        .filter(|p| !p.is_empty())
+                        .ok_or_else(|| {
+                            "private key content or path is required".to_string()
+                        })?;
+                    std::fs::read_to_string(path).map_err(|e| {
+                        format!("failed to read key file {path}: {e}")
+                    })?
+                }
+            };
+            // v0.79.66: same fallback for the key passphrase.
+            let typed_pp = params.key_passphrase.as_deref().unwrap_or("");
+            let passphrase: Option<String> = if !typed_pp.is_empty() {
+                Some(typed_pp.to_string())
+            } else if let Some(server_id) = params.existing_server_id.as_deref() {
+                termex_core::keychain::get(
+                    &termex_core::keychain::ssh_passphrase_key(server_id),
+                )
+                .ok()
+                .filter(|s| !s.is_empty())
+            } else {
+                None
+            };
+            auth::auth_key_data(
+                session.handle_mut(),
+                &params.username,
+                &key_data,
+                passphrase.as_deref(),
+            )
+            .await
+            .map_err(|e| e.to_string())
+        }
+    };
+
+    // Always disconnect, even on auth failure.
+    let _ = session.disconnect().await;
+    auth_result
+}
+
 /// Opens a new session to the same server as an existing session.
 ///
 /// v0.50.x: re-resolves the server from its last-connected record. True

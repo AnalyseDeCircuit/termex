@@ -9,6 +9,8 @@ import 'dart:async';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:termex_bridge/src/api.dart' as bridge;
 
+import '../../task/task_completion_sink.dart';
+
 enum TransferDirection { upload, download }
 enum TransferStatus { queued, inProgress, paused, completed, failed, cancelled }
 
@@ -127,6 +129,7 @@ class SftpTransferNotifier
 
   void markCompleted(String transferId) {
     _updateStatus(transferId, TransferStatus.completed);
+    _emitCompletion(transferId, success: true);
   }
 
   void markFailed(String transferId, String error) {
@@ -137,6 +140,7 @@ class SftpTransferNotifier
             status: TransferStatus.failed, errorMessage: error);
       }).toList(),
     );
+    _emitCompletion(transferId, success: false, errorMessage: error);
   }
 
   void cancel(String transferId) {
@@ -145,6 +149,95 @@ class SftpTransferNotifier
       bridge.sftpCancelTransfer(transferId: transferId).catchError((_) {});
     } catch (_) {}
     _pollers.remove(transferId)?.cancel();
+    _emitCompletion(transferId, success: false, cancelled: true);
+  }
+
+  /// v0.79.25: surface a transfer's terminal status through the cross-
+  /// package [TaskCompletionSink] so the mobile shell can mirror it into
+  /// the [TaskEventBus] (and from there → local notification + history
+  /// page). Desktop builds register no sink — emission is a no-op.
+  void _emitCompletion(
+    String transferId, {
+    required bool success,
+    bool cancelled = false,
+    String? errorMessage,
+  }) {
+    final item = state.items.firstWhere(
+      (t) => t.id == transferId,
+      orElse: () => throw StateError('transfer $transferId not found'),
+    );
+    final verb = item.direction == TransferDirection.upload
+        ? 'Uploaded'
+        : 'Downloaded';
+    final action = item.direction == TransferDirection.upload
+        ? 'Upload'
+        : 'Download';
+    final String title;
+    final String summary;
+    if (success) {
+      title = '$verb ${item.fileName}';
+      summary = '$action completed (${_formatBytes(item.totalBytes)})';
+    } else if (cancelled) {
+      title = '$action cancelled: ${item.fileName}';
+      summary = '$action cancelled at ${_formatBytes(item.transferredBytes)}'
+          ' of ${_formatBytes(item.totalBytes)}';
+    } else {
+      title = '$action failed: ${item.fileName}';
+      summary = errorMessage?.isNotEmpty == true
+          ? '$action failed — $errorMessage'
+          : '$action failed';
+    }
+    // v0.79.28: emit a structured kind tag + data so localized sinks can
+    // format properly. title/summary stay populated as English fallbacks
+    // for sinks that don't recognise the kind.
+    final String kind;
+    if (success) {
+      kind = item.direction == TransferDirection.upload
+          ? 'sftp.upload.succeeded'
+          : 'sftp.download.succeeded';
+    } else if (cancelled) {
+      kind = item.direction == TransferDirection.upload
+          ? 'sftp.upload.cancelled'
+          : 'sftp.download.cancelled';
+    } else {
+      kind = item.direction == TransferDirection.upload
+          ? 'sftp.upload.failed'
+          : 'sftp.download.failed';
+    }
+    // v0.79.29: include duration so the mobile sink callback can apply
+    // the "too small / too fast to notify" threshold (sub-1MB AND sub-3s
+    // success transfers are silenced — they still hit history).
+    final durationMs =
+        DateTime.now().difference(item.startedAt).inMilliseconds;
+    TaskCompletionSink.emit(TaskCompletionPayload(
+      taskId: 'sftp-$transferId',
+      title: title,
+      summary: summary,
+      success: success,
+      kind: kind,
+      data: {
+        'fileName': item.fileName,
+        'totalBytes': item.totalBytes,
+        'transferredBytes': item.transferredBytes,
+        'totalBytesHuman': _formatBytes(item.totalBytes),
+        'transferredBytesHuman': _formatBytes(item.transferredBytes),
+        'durationMs': durationMs,
+        if (errorMessage != null) 'errorMessage': errorMessage,
+      },
+    ));
+  }
+
+  /// 1024-based byte formatter — keeps SFTP-domain output consistent
+  /// with the existing transfer-progress overlay.
+  static String _formatBytes(int bytes) {
+    if (bytes < 1024) return '$bytes B';
+    if (bytes < 1024 * 1024) {
+      return '${(bytes / 1024).toStringAsFixed(1)} KB';
+    }
+    if (bytes < 1024 * 1024 * 1024) {
+      return '${(bytes / (1024 * 1024)).toStringAsFixed(1)} MB';
+    }
+    return '${(bytes / (1024 * 1024 * 1024)).toStringAsFixed(2)} GB';
   }
 
   /// Pauses an in-flight transfer (P1.6). Signals the Rust loop to stop

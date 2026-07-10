@@ -17,8 +17,11 @@ set -euo pipefail
 : "${SIGN_ID:?SIGN_ID not set}"
 : "${DMG_PATH:?DMG_PATH not set}"
 
-APP="build/macos/Build/Products/Release/Termex.app"
-ENTITLEMENTS="src-tauri/entitlements.plist"
+# v0.78.0 PC cutover: paths point to the Flutter macOS build outputs.
+# Tauri build outputs live under src-tauri/target/release/bundle/macos/
+# and are only produced when scripts/legacy/build-tauri.sh runs by hand.
+APP="app/build/macos/Build/Products/Release/Termex.app"
+ENTITLEMENTS="app/macos/Runner/Release.entitlements"
 
 if [[ -d "$APP" ]]; then
   echo "→ signing inner binaries in $APP"

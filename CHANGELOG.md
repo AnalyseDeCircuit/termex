@@ -7,6 +7,77 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ---
 
+## [Unreleased — v0.78.0] — PC Cutover (Tauri build stopped)
+
+### Deprecated / Removed (build infrastructure only — no source deletion)
+
+- 🪦 **Tauri/Vue desktop CI build stopped.** Phase 3 of the v0.70 retirement plan brought forward from v0.75 to v0.78 because Flutter functional parity was reached early in v0.77.0.
+  - `Cargo.toml` workspace no longer includes `src-tauri/`; `cargo build/test --workspace` skips it.
+  - `.github/workflows/ci.yml` removes the 3 Tauri jobs; new pipeline = flutter-analyze + flutter-test + cargo workspace test + iOS/Android bootstrap + FRB drift check.
+  - `.github/workflows/release.yml` rewritten around `flutter_distributor` driven by `app/distribute_options.yaml`. Artefacts: dmg / msix / deb / rpm / AppImage.
+  - `package.json` scripts `dev/build/preview/lint/test/tauri` all stub to `exit 1` with deprecation message.
+  - `scripts/bump-version.mjs` no longer syncs `src-tauri/tauri.conf.json` or `src-tauri/Cargo.toml`.
+  - `scripts/sign-macos.sh` `APP` and `ENTITLEMENTS` paths point to `app/macos/Runner/...`.
+  - `scripts/generate-icons.mjs` gains `existsSync` guard for v0.80 hit.
+- **Not removed**: `src-tauri/` and `src/` directory contents stay in the repo. Physical deletion in v0.80.0.
+
+### Added
+
+- `scripts/legacy/build-tauri.sh` — manual rebuild recipe (debug/release/notarize modes) for forensic / rollback. Detects missing src-tauri and explains git checkout path.
+- `docs/iterations/v0.78.0-pc-cutover.md` — full Phase 3 plan.
+- `docs/iterations/v0.77.0-stage-3-checklist.md` — 14-section A/B walkthrough with 6-platform signature.
+- `docs/MIGRATION.md` v0.78 chapter — user-impact-per-channel matrix + developer impact.
+
+### Changed
+
+- `README.md` v0.78 banner + commands table Flutter-first + setup split into "Production (Flutter)" / "Legacy (forensic only)".
+- `docs/iterations/v0.70.0-pc-tauri-retirement.md` — Phase 3 marked v0.78 (early-completion); v0.77 parity row added.
+- `packages/termex_shared/lib/system/tauri_retirement_banner.dart` — text refreshed.
+
+### Validation
+
+- `cargo check --workspace`: 3 crates clean.
+- `flutter analyze`: 0 / 0.
+- `flutter test`: 672 / 672.
+- `pnpm tauri`: exit 1 with deprecation banner confirmed.
+
+---
+
+## [Unreleased — v0.77.0] — PC Final Parity & A/B Verification
+
+### Added — visible parity restoration (15 V-tagged items)
+
+- V-1 Snippet RenderFlex overflow fix; V-2 Recording + Cloud sidebar entries restored; V-3 default theme follows OS; V-6 Local PTY hides sub-tab bar; V-7 terminal pinned-dark palette; V-8 tab bar transparent border + glued `[+]` card; V-9 AI conversation list float overlay; V-10 settings polish (28 px search, sidebar 140 px, dedup header, audit overflow fix); V-11 Add Proxy password + chip protocol; V-12 AI footer dedup + dropdown overflow; V-13 provider dropdown crash + settings search tab names; V-14 Rust same-PID lock for hot restart; V-15 11 AI providers (Claude/OpenAI/Gemini/Ollama/Local AI/DeepSeek/Grok/Mistral/GLM/MiniMax/Doubao) + inline-accordion AI tab; V-17 Local AI download progress wired (DashMap + FRB poll + 250 ms Dart Timer).
+
+### Added — P0 implementations
+
+- Monitor Panel (info bar + 2×2 metric grid + process list + start/stop, OSS data 0 + banner pointing to commercial integration).
+- AuditDashboard (5 KPI cards + filter bar + paginated table + row dialog).
+- Update Dialog (4 states: checking / upToDate / available / error + scrollable release notes).
+- Team UI replacing Pro stub: toolbar + sync conflicts + member list + invite dialog + passphrase verify.
+
+### Added — P1 polish
+
+- Tray icon via `tray_manager` with macOS/Windows/Linux support.
+- Privacy tab visual alignment (`showConfirmDialog` for clears + `showTermexDialog` for GDPR + Toast).
+- Server badges P / B / T capsules + Share-to-team context menu (`team_share_server` / `team_unshare_server` FRB).
+
+### Infrastructure
+
+- `scripts/parity-launch.sh` + `TERMEX_AUDIT_MODE` `--dart-define` enables Flutter app to use `~/.termex-flutter-audit/` so it runs side-by-side with legacy Tauri for A/B verification.
+
+### Decisions
+
+- P0-5 i18n (~997 hardcoded ZH strings) deferred to v0.78+ — OSS ZH users unaffected; EN-switch becomes increment.
+
+### Validation
+
+- `flutter analyze` 0 / 0 (fixed pre-existing `_StubServerNotifier.createServer` mismatch).
+- `flutter test` 672 / 672.
+- `cargo test --workspace` 132 tests / 20 crates.
+
+---
+
 ## [Unreleased — v0.69.0] — Restructure Stabilization + Tauri Retirement Announcement
 
 ### Deprecated

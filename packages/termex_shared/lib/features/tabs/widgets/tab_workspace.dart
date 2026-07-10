@@ -12,13 +12,7 @@ import 'package:flutter/widgets.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 
 import '../../../design/colors.dart';
-// Monitor is a Pro-edition feature shipped from termex_shared_pro (a sibling
-// closed-source package under termex-core-private/). The open-source desktop
-// edition does not ship MonitorPanel by design — the _SubTab.monitor case
-// renders a permanent informational placeholder. The Pro/Mobile edition
-// composes termex_shared + termex_shared_pro and wires the real MonitorPanel
-// at the app shell level. See docs/iterations/v0.69.0-pc-restructure-stabilization.md §7.
-// import '../../monitor/monitor_panel.dart';  // moved to termex_shared_pro
+import '../../monitor/monitor_panel.dart';
 import '../../sftp/sftp_panel.dart';
 import '../../sftp/state/sftp_transfer_provider.dart'
     show sftpTransferProvider, TransferDirection, TransferItem;
@@ -135,40 +129,48 @@ class _TabWorkspaceState extends ConsumerState<TabWorkspace> {
   // ── Tabs mode ──────────────────────────────────────────────────────────────
 
   Widget _buildTabsMode(int transferCount) {
+    // v0.77.0 parity: local PTY tabs don't need the SSH/SFTP/传输/Monitor
+    // sub-tab bar — there's no remote host to SFTP into, no transfers,
+    // and no metrics. Tauri/Vue baseline never showed it for local tabs,
+    // and showing it with SFTP/传输 greyed-out felt cluttered. Hiding
+    // the bar lets the terminal fill the full pane.
+    final showSubTabs = !widget.isLocal;
+    final topGap = showSubTabs ? 24.0 : 0.0;
     return Stack(
       children: [
-        // Terminal always rendered with 24px top space for the tab bar
+        // Terminal fills below the sub-tab bar (or full pane for local).
         Positioned.fill(
-          top: 24,
+          top: topGap,
           child: TerminalPane(sessionId: widget.sessionId),
         ),
-        // Overlay panel when non-SSH tab is active
-        if (_subTab != _SubTab.ssh)
+        // Overlay panel when non-SSH tab is active.
+        if (showSubTabs && _subTab != _SubTab.ssh)
           Positioned.fill(
-            top: 24,
+            top: topGap,
             child: ColoredBox(
               color: TermexColors.backgroundSecondary,
               child: _panelContent(_subTab),
             ),
           ),
-        // Floating tab bar at top
-        Positioned(
-          top: 0,
-          left: 0,
-          right: 0,
-          height: 24,
-          child: _SubTabBar(
-            sessionId: widget.sessionId,
-            active: _subTab,
-            layout: _layout,
-            transferCount: transferCount,
-            isLocal: widget.isLocal,
-            onTap: (t) => setState(() => _subTab = t),
-            onDragStart: _onPanelTabDragStart,
-            onDragEnd: _onPanelTabDragEnd,
-            onCloseSplit: null,
+        // Floating sub-tab bar at top — SSH tabs only.
+        if (showSubTabs)
+          Positioned(
+            top: 0,
+            left: 0,
+            right: 0,
+            height: 24,
+            child: _SubTabBar(
+              sessionId: widget.sessionId,
+              active: _subTab,
+              layout: _layout,
+              transferCount: transferCount,
+              isLocal: widget.isLocal,
+              onTap: (t) => setState(() => _subTab = t),
+              onDragStart: _onPanelTabDragStart,
+              onDragEnd: _onPanelTabDragEnd,
+              onCloseSplit: null,
+            ),
           ),
-        ),
       ],
     );
   }
@@ -285,19 +287,11 @@ class _TabWorkspaceState extends ConsumerState<TabWorkspace> {
       case _SubTab.sftp:
         return SftpPanel(sessionId: widget.sessionId);
       case _SubTab.monitor:
-        // Pro-edition placeholder: MonitorPanel ships in termex_shared_pro
-        // (closed-source, mobile / paid desktop editions only). The
-        // open-source desktop build keeps this informational stub by design.
-        return const Center(
-          child: Padding(
-            padding: EdgeInsets.all(24),
-            child: Text(
-              'Monitor 是 Pro 版功能，开源桌面版不包含此面板。\n'
-              '如需服务器监控仪表盘，请使用 Termex 移动版或 Pro 桌面版。',
-              textAlign: TextAlign.center,
-            ),
-          ),
-        );
+        // v0.77.0 PC final parity: real MonitorPanel restored to OSS
+        // termex_shared. Heavy remote stats collection still lives behind
+        // the `private` Cargo feature — the panel surfaces a "stub data"
+        // banner when bridge returns zeros, matching legacy Tauri OSS.
+        return MonitorPanel(sessionId: widget.sessionId);
       case _SubTab.transfers:
         return _TransfersPanel(sessionId: widget.sessionId);
     }

@@ -55,9 +55,24 @@ Download the latest release for your platform from [GitHub Releases](https://git
 ```bash
 git clone https://github.com/user/termex.git
 cd termex
-pnpm install
-pnpm tauri build
+./scripts/frb-codegen.sh          # generate Dart bindings from Rust API
+cd app
+flutter pub get
+flutter build macos --release     # or: flutter build windows / linux
 ```
+
+> ⓘ The legacy `pnpm tauri build` recipe is disabled as of v0.78.0. For an emergency Tauri rebuild see [`scripts/legacy/build-tauri.sh`](scripts/legacy/build-tauri.sh).
+
+#### Optional: install git hooks
+
+```bash
+./scripts/install-git-hooks.sh    # opt-in pre-commit FRB drift check
+```
+
+The pre-commit hook only fires when staged files touch the Rust ↔ Dart
+bridge surface (`crates/termex-flutter-bridge/src/api/**` or the bridge
+`Cargo.toml`). Other commits are untouched. Bypass any hook with
+`git commit --no-verify`.
 
 ## Features
 
@@ -73,11 +88,24 @@ pnpm tauri build
 - **Config Backup** -- Encrypted export/import (`.termex` format), cross-device migration
 - **i18n** -- English and Chinese out of the box
 
+## Use Cases
+
+- **Reuse old phones as a personal SSH/SFTP file vault** — run Termux + sshd on a spare Android phone and Termex's built-in SFTP browser instantly turns its 128G/256G internal storage into a LAN-accessible file vault. Zero extra hardware, zero cloud fees. See [docs/use-cases/old-phone-personal-cloud.md](docs/use-cases/old-phone-personal-cloud.md).
+
 ## Tech Stack
 
-> ⚠️ **Tauri/Vue desktop stack is retiring** (v0.69+ deprecation announcement, 4-phase plan over 24 months → physical removal at v0.80). New installs should use the **Flutter desktop** packages. Existing Tauri installs continue to work; data & credentials are fully shared so switching to Flutter requires no manual migration. See the [Tauri retirement plan](docs/iterations/v0.70.0-pc-tauri-retirement.md) for the timeline and [MIGRATION.md §v0.69](docs/MIGRATION.md#v069-起从-tauri-桌面切换到-flutter-桌面) for the user-facing switch guide.
+> 🪦 **v0.78.0 cutover — Tauri/Vue build stopped**. As of v0.78.0:
+> - CI no longer builds the Tauri/Vue desktop. Release artefacts ship Flutter binaries only (.dmg / .msix / .deb / .rpm / .AppImage).
+> - `src-tauri/` and `src/` directories REMAIN in the repo as a forensic / rollback snapshot — they are excluded from the Cargo workspace and the npm scripts (`pnpm tauri dev` / `pnpm dev`) print a deprecation notice.
+> - To produce a Tauri binary by hand for emergency rebuild, see [`scripts/legacy/build-tauri.sh`](scripts/legacy/build-tauri.sh).
+> - **v0.80.0** will physically delete the legacy directories.
 >
-> **Repository state**: Functional parity between the legacy Tauri/Vue desktop app and the Flutter rewrite reached at v0.68.0. v0.69.0 is restructure-stabilization + deprecation announcement. The Flutter packages live under `app/` + `packages/termex_shared/` + `termex-mobile/`; the legacy stack lives in `src-tauri/` + `src/`. See [`docs/iterations/v0.51.0-pc-remediation.md`](docs/iterations/v0.51.0-pc-remediation.md) for migration history and [`docs/iterations/v0.69.0-pc-restructure-stabilization.md`](docs/iterations/v0.69.0-pc-restructure-stabilization.md) for the current stabilization status.
+> Existing Tauri-installed users continue to work; data + credentials are fully shared (SQLCipher DB + OS keychain) so switching to a Flutter binary requires no manual migration. See [v0.77.0 final parity](docs/iterations/v0.77.0-pc-final-parity.md) and [v0.78.0 cutover plan](docs/iterations/v0.78.0-pc-cutover.md).
+>
+> **Repository layout** (as of v0.78.0):
+> - Flutter desktop + mobile: `app/` + `packages/termex_shared/`
+> - Rust core (shared): `crates/termex-core/` + `crates/termex-flutter-bridge/` + `crates/termexd/`
+> - Legacy (no longer built): `src-tauri/` + `src/`
 
 ### Legacy stack — retiring (v0.34.x — Tauri/Vue)
 
@@ -211,16 +239,7 @@ termex/
 - [Flutter SDK](https://docs.flutter.dev/get-started/install) (3.24+)
 - `cargo install flutter_rust_bridge_codegen --version '^2.0'`
 
-### Setup — Production stack
-
-```bash
-git clone https://github.com/user/termex.git
-cd termex
-pnpm install
-pnpm tauri dev
-```
-
-### Setup — Migration stack (Flutter, WIP)
+### Setup — Production stack (Flutter, v0.78.0+)
 
 ```bash
 git clone https://github.com/user/termex.git
@@ -229,52 +248,64 @@ cd termex
 cd app
 flutter pub get
 flutter run -d macos              # or -d windows / -d linux
+
+# Mobile dev
+flutter run -d "iPhone 17 Pro"
+flutter run -d "iPad Pro 13-inch (M5)"
+```
+
+### Setup — Legacy Tauri/Vue stack (forensic only, retiring v0.80)
+
+```bash
+git clone https://github.com/user/termex.git
+cd termex
+# `pnpm tauri *` scripts now print a deprecation notice + exit. To
+# actually rebuild the legacy Tauri binary for rollback, use:
+scripts/legacy/build-tauri.sh release
 ```
 
 ### Commands
 
-| Command | Stack | Description |
-| --- | --- | --- |
-| `pnpm tauri dev` | Tauri | Start dev server with hot reload |
-| `pnpm tauri build` | Tauri | Build production app |
-| `pnpm dev` | Tauri | Start frontend dev server only (Vite) |
-| `pnpm run build` | Tauri | Type-check + build frontend |
-| `cd src-tauri && cargo test` | Tauri | Run Rust tests |
-| `cd src-tauri && cargo clippy` | Tauri | Lint Rust code |
-| `cargo test --workspace` | Both | Run all Rust tests across workspace |
-| `./scripts/frb-codegen.sh` | Flutter | Regenerate Flutter <-> Rust bindings |
-| `./scripts/frb-codegen.sh --check` | Flutter | CI: verify bindings up-to-date |
-| `cd app && flutter test` | Flutter | Run Flutter unit/widget tests |
-| `cd app && flutter analyze` | Flutter | Static analysis |
-| `cd app && flutter build macos --release` | Flutter | Build Flutter production binary |
-| `pnpm version:bump patch` | Both | Bump version (patch/minor/major/x.y.z) |
+> v0.78.0 PC cutover: the `pnpm tauri *` commands are disabled. Use the Flutter equivalents below. For a forensic Tauri rebuild see [`scripts/legacy/build-tauri.sh`](scripts/legacy/build-tauri.sh).
+
+| Command | Description |
+| --- | --- |
+| `./scripts/frb-codegen.sh` | Regenerate Flutter <-> Rust bindings |
+| `./scripts/frb-codegen.sh --check` | CI: verify bindings up-to-date |
+| `cargo test --workspace` | Run Rust tests across termex-core / termex-flutter-bridge / termexd |
+| `cd app && flutter pub get` | Resolve Flutter dependencies |
+| `cd app && flutter test` | Run Flutter unit/widget tests |
+| `cd app && flutter analyze` | Static analysis |
+| `cd app && flutter run -d macos` | Dev run on macOS (or `-d windows` / `-d linux`) |
+| `cd app && flutter build macos --release` | Build Flutter production binary |
+| `pnpm version:bump patch` | Bump version (patch/minor/major/x.y.z) |
+| `scripts/legacy/build-tauri.sh release` | (Legacy) Manual Tauri build for rollback |
 
 ### Debug & Launch
 
 ```bash
-# Full-stack development (frontend + Rust backend with hot reload)
-pnpm tauri dev
+# Full-stack development (Flutter UI + Rust core, hot reload)
+cd app && flutter run -d macos
 
-# Frontend only (no Rust backend, useful for UI work)
-pnpm dev
+# Run all Rust tests (termex-core / termex-flutter-bridge / termexd)
+cargo test --workspace
 
-# Run Rust backend tests
-cd src-tauri && cargo test
+# Run Flutter unit + widget tests
+cd app && flutter test
 
-# Run with verbose Rust logging
-RUST_LOG=debug pnpm tauri dev
+# Verbose Rust logging via env var
+RUST_LOG=debug cd app && flutter run -d macos
 
-# Build production binary
-pnpm tauri build
-
-# Build in debug mode (faster compile, larger binary)
-pnpm tauri build --debug
+# Production build
+cd app && flutter build macos --release   # or windows / linux
 ```
 
 ### Version Release
 
 ```bash
-# Semantic version bump (syncs package.json, Cargo.toml, tauri.conf.json)
+# Semantic version bump — syncs package.json + termex-core/Cargo.toml +
+# termex-flutter-bridge/Cargo.toml + app/pubspec.yaml. (v0.78.0: src-tauri
+# version stamps are no longer synced — see scripts/bump-version.mjs.)
 pnpm version:bump patch         # 0.1.0 → 0.1.1
 pnpm version:bump minor         # 0.1.0 → 0.2.0
 pnpm version:bump major         # 0.1.0 → 1.0.0

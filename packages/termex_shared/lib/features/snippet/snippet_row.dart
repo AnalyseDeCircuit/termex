@@ -27,21 +27,46 @@ class SnippetRow extends ConsumerWidget {
             child: Column(
               crossAxisAlignment: CrossAxisAlignment.start,
               children: [
+                // Line 1: title (ellipsis) + usage count (固定右侧)
                 Row(
                   children: [
-                    Text(
-                      snippet.title,
-                      style: const TextStyle(fontSize: 13, fontWeight: FontWeight.w500, color: TermexColors.textPrimary),
+                    Flexible(
+                      child: Text(
+                        snippet.title,
+                        maxLines: 1,
+                        overflow: TextOverflow.ellipsis,
+                        style: const TextStyle(
+                          fontSize: 13,
+                          fontWeight: FontWeight.w500,
+                          color: TermexColors.textPrimary,
+                        ),
+                      ),
                     ),
-                    const SizedBox(width: 8),
-                    ...snippet.tags.map((t) => _TagChip(tag: t)),
                     if (snippet.usageCount > 0) ...[
-                      const Spacer(),
-                      Text('使用 ${snippet.usageCount} 次',
-                          style: const TextStyle(fontSize: 10, color: TermexColors.textSecondary)),
+                      const SizedBox(width: 6),
+                      Text(
+                        '${snippet.usageCount} 次',
+                        style: const TextStyle(
+                          fontSize: 10,
+                          color: TermexColors.textSecondary,
+                        ),
+                      ),
                     ],
                   ],
                 ),
+                // Line 2: tags wrap — narrow sidebars get multi-row tags
+                // instead of overflowing horizontally.
+                if (snippet.tags.isNotEmpty) ...[
+                  const SizedBox(height: 4),
+                  Wrap(
+                    spacing: 4,
+                    runSpacing: 4,
+                    children: snippet.tags
+                        .map((t) => _TagChip(tag: t))
+                        .toList(growable: false),
+                  ),
+                ],
+                // Line 3: command preview
                 const SizedBox(height: 4),
                 Text(
                   snippet.content,

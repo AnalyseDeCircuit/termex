@@ -1,5 +1,11 @@
 name: Release
 
+# v0.78.0 PC cutover: Tauri release pipeline removed. Desktop binaries
+# now come from `flutter_distributor` driven by app/distribute_options.yaml.
+# The legacy Tauri build steps live in scripts/legacy/build-tauri.sh for
+# emergency forensic / rollback use — they are intentionally NOT wired
+# into this workflow.
+
 on:
   workflow_dispatch:
   push:
@@ -33,6 +39,10 @@ jobs:
           ## macOS Users
 
           The `.dmg` is signed with an Apple Developer ID and notarized by Apple — drag Termex to Applications and double-click to launch. No Gatekeeper workaround required.
+
+          ## v0.78.0+ Note
+
+          Desktop binaries are now built from the Flutter stack only. The legacy Tauri/Vue stack is no longer published; existing users keep their data (shared SQLCipher DB).
           BODY
 
           RELEASE_ID=$(gh api repos/${{ github.repository }}/releases \
@@ -44,6 +54,7 @@ jobs:
             --jq '.id')
           echo "release_id=$RELEASE_ID" >> "$GITHUB_OUTPUT"
 
+  # ── Flutter desktop builds ────────────────────────────────
   build:
     name: Build (${{ matrix.label }})
     needs: create-release
@@ -55,52 +66,49 @@ jobs:
         include:
           - label: mac-aarch64
             os: macos-latest
-            rust-target: aarch64-apple-darwin
-            args: --target aarch64-apple-darwin
-            bundles: dmg
+            distributor-job: macos-dmg-arm64
+            artifact-suffix: mac_aarch64
 
           - label: mac-x86_64
             os: macos-latest
-            rust-target: x86_64-apple-darwin
-            args: --target x86_64-apple-darwin
-            bundles: dmg
+            distributor-job: macos-dmg-x64
+            artifact-suffix: mac_x64
 
           - label: win-x64
             os: windows-latest
-            rust-target: x86_64-pc-windows-msvc
-            args: ""
-            bundles: msi,nsis
+            distributor-job: windows-msix
+            artifact-suffix: win_x64
 
           - label: linux-x86_64
             os: ubuntu-22.04
-            rust-target: x86_64-unknown-linux-gnu
-            args: ""
-            bundles: deb,rpm,appimage
+            distributor-job: linux-appimage
+            artifact-suffix: linux_x64
 
           - label: linux-aarch64
             os: ubuntu-24.04-arm
-            rust-target: aarch64-unknown-linux-gnu
-            args: ""
-            bundles: deb,rpm
+            distributor-job: linux-deb
+            artifact-suffix: linux_aarch64
 
     runs-on: ${{ matrix.os }}
 
     steps:
       - uses: actions/checkout@v4
 
-      # ── Linux dependencies ──────────────────────────────────
+      # ── Linux dependencies (GTK / sqlcipher) ──────────────
       - name: Install Linux dependencies
         if: runner.os == 'Linux'
         run: |
           sudo apt-get update
           sudo apt-get install -y \
             libgtk-3-dev \
-            libwebkit2gtk-4.1-dev \
-            libappindicator3-dev \
-            librsvg2-dev \
-            patchelf
+            libsqlcipher-dev \
+            pkg-config \
+            ninja-build \
+            libsecret-1-dev \
+            libayatana-appindicator3-dev \
+            rpm
 
-      # ── Windows OpenSSL (required by SQLCipher) ──────────────
+      # ── Windows OpenSSL (required by SQLCipher / rusqlite) ──
       - name: Install OpenSSL (Windows)
         if: runner.os == 'Windows'
         shell: pwsh
@@ -109,85 +117,62 @@ jobs:
           echo "OPENSSL_DIR=$env:VCPKG_INSTALLATION_ROOT\installed\x64-windows-static-md" | Out-File -FilePath $env:GITHUB_ENV -Encoding utf8 -Append
           echo "OPENSSL_STATIC=1" | Out-File -FilePath $env:GITHUB_ENV -Encoding utf8 -Append
 
-      # ── Windows WiX Toolset ─────────────────────────────────
-      - name: Install WiX Toolset (Windows)
-        if: runner.os == 'Windows'
-        shell: pwsh
-        run: |
-          $wixDir = "$env:USERPROFILE\.wix"
-          $wixBin = "$wixDir\wix311\tools"
-          New-Item -ItemType Directory -Force -Path $wixDir | Out-Null
-          $maxRetries = 3
-          for ($i = 1; $i -le $maxRetries; $i++) {
-            try {
-              Invoke-WebRequest -Uri "https://github.com/wixtoolset/wix3/releases/download/wix3141rtm/wix314-binaries.zip" `
-                -OutFile "$wixDir\wix.zip" -TimeoutSec 120
-              break
-            } catch {
-              if ($i -eq $maxRetries) { throw }
-              Start-Sleep -Seconds 10
-            }
-          }
-          Expand-Archive "$wixDir\wix.zip" -DestinationPath "$wixDir\wix311\tools" -Force
-          echo "$wixBin" | Out-File -FilePath $env:GITHUB_PATH -Encoding utf8 -Append
-
-      # ── Toolchain ───────────────────────────────────────────
-      - uses: pnpm/action-setup@v4
+      # ── Flutter toolchain ────────────────────────────────
+      - uses: subosito/flutter-action@v2
         with:
-          version: 10
-
-      - uses: actions/setup-node@v4
-        with:
-          node-version: 22
-          cache: pnpm
+          flutter-version: '3.24.x'
+          channel: stable
+          cache: true
 
       - uses: dtolnay/rust-toolchain@stable
-        with:
-          targets: ${{ matrix.rust-target }}
 
       - uses: Swatinem/rust-cache@v2
         with:
-          workspaces: src-tauri
+          workspaces: . -> target
 
-      - run: pnpm install --frozen-lockfile
+      - name: Install flutter_distributor
+        run: dart pub global activate flutter_distributor
 
-      # ── Build & Upload ─────────────────────────────────────
-      # Legacy-stable channel (Tauri + Vue). Sentinel feature is required on
-      # release builds so anti-AI traps are active in published binaries.
-      - name: Build & upload release
-        uses: tauri-apps/tauri-action@v0
+      - name: Flutter pub get
+        working-directory: app
+        run: flutter pub get
+
+      # ── Build via flutter_distributor (uses distribute_options.yaml) ──
+      - name: Build release artefact
+        working-directory: app
         env:
-          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
           APPLE_CERTIFICATE: ${{ secrets.APPLE_CERTIFICATE }}
           APPLE_CERTIFICATE_PASSWORD: ${{ secrets.APPLE_CERTIFICATE_PASSWORD }}
           APPLE_SIGNING_IDENTITY: ${{ secrets.APPLE_SIGNING_IDENTITY }}
           APPLE_ID: ${{ secrets.APPLE_ID }}
           APPLE_PASSWORD: ${{ secrets.APPLE_PASSWORD }}
           APPLE_TEAM_ID: ${{ secrets.APPLE_TEAM_ID }}
-        with:
-          releaseId: ${{ needs.create-release.outputs.release_id }}
-          args: ${{ matrix.args }} --features sentinel
+        run: |
+          flutter_distributor release --name stable --jobs ${{ matrix.distributor-job }}
 
-      # ── Windows Portable ZIP ─────────────────────────────────
-      # NOTE: target/ lives at the cargo workspace root after the
-      # core/bridge extraction (commit 38a4ec1), not under src-tauri/.
-      # Cargo's bin name is "termex" (lowercase) per src-tauri/Cargo.toml.
-      - name: Package portable ZIP (Windows)
-        if: matrix.label == 'win-x64'
+      # ── Upload artefacts to the release ──────────────────
+      - name: Upload artefacts (Unix)
+        if: runner.os != 'Windows'
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+        run: |
+          cd app/release
+          for f in $(find . -type f -name "*.dmg" -o -name "*.msix" -o -name "*.deb" -o -name "*.rpm" -o -name "*.AppImage"); do
+            gh release upload "${{ github.ref_name }}" "$f" --clobber
+          done
+
+      - name: Upload artefacts (Windows)
+        if: runner.os == 'Windows'
         env:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
         shell: pwsh
         run: |
-          $exe = "target\release\termex.exe"
-          if (Test-Path $exe) {
-            Compress-Archive -Path $exe -DestinationPath "Termex_portable_win_x64.zip"
-            gh release upload "${{ github.ref_name }}" "Termex_portable_win_x64.zip" --clobber
-          } else {
-            Write-Error "termex.exe not found at $exe"
-            exit 1
+          cd app/release
+          Get-ChildItem -Recurse -Include *.msix,*.exe | ForEach-Object {
+            gh release upload "${{ github.ref_name }}" "$($_.FullName)" --clobber
           }
 
-  # ── Rename assets with OS labels ────────────────────────────
+  # ── Rename release assets to canonical Termex_<ver>_<plat>_<arch>.<ext> ──
   rename-assets:
     name: Rename Assets
     needs: build
@@ -205,7 +190,6 @@ jobs:
           VERSION="${TAG#v}"
           ASSETS=$(gh api repos/${{ github.repository }}/releases/tags/$TAG --jq '.assets[] | "\(.id) \(.name)"')
 
-          # Detect arch from original filename
           detect_arch() {
             local name="$1"
             if [[ "$name" == *"aarch64"* ]] || [[ "$name" == *"arm64"* ]]; then
@@ -223,48 +207,12 @@ jobs:
             ARCH=$(detect_arch "$OLD_NAME")
 
             case "$OLD_NAME" in
-              *.dmg)
-                NEW_NAME="Termex_${VERSION}_mac_${ARCH}.dmg"
-                ;;
-              *.dmg.sig)
-                NEW_NAME="Termex_${VERSION}_mac_${ARCH}.dmg.sig"
-                ;;
-              *setup.exe)
-                NEW_NAME="Termex_${VERSION}_win_${ARCH}_setup.exe"
-                ;;
-              *setup.exe.sig)
-                NEW_NAME="Termex_${VERSION}_win_${ARCH}_setup.exe.sig"
-                ;;
-              *.msi)
-                NEW_NAME="Termex_${VERSION}_win_${ARCH}.msi"
-                ;;
-              *.msi.sig)
-                NEW_NAME="Termex_${VERSION}_win_${ARCH}.msi.sig"
-                ;;
-              *.deb)
-                NEW_NAME="Termex_${VERSION}_linux_${ARCH}.deb"
-                ;;
-              *.deb.sig)
-                NEW_NAME="Termex_${VERSION}_linux_${ARCH}.deb.sig"
-                ;;
-              *.rpm)
-                NEW_NAME="Termex_${VERSION}_linux_${ARCH}.rpm"
-                ;;
-              *.rpm.sig)
-                NEW_NAME="Termex_${VERSION}_linux_${ARCH}.rpm.sig"
-                ;;
-              *.AppImage)
-                NEW_NAME="Termex_${VERSION}_linux_${ARCH}.AppImage"
-                ;;
-              *.AppImage.sig)
-                NEW_NAME="Termex_${VERSION}_linux_${ARCH}.AppImage.sig"
-                ;;
-              *portable_win_x64.zip)
-                NEW_NAME="Termex_${VERSION}_win_x64_portable.zip"
-                ;;
-              *)
-                continue
-                ;;
+              *.dmg)      NEW_NAME="Termex_${VERSION}_mac_${ARCH}.dmg" ;;
+              *.msix)     NEW_NAME="Termex_${VERSION}_win_${ARCH}.msix" ;;
+              *.deb)      NEW_NAME="Termex_${VERSION}_linux_${ARCH}.deb" ;;
+              *.rpm)      NEW_NAME="Termex_${VERSION}_linux_${ARCH}.rpm" ;;
+              *.AppImage) NEW_NAME="Termex_${VERSION}_linux_${ARCH}.AppImage" ;;
+              *) continue ;;
             esac
 
             if [ -n "$NEW_NAME" ] && [ "$NEW_NAME" != "$OLD_NAME" ]; then

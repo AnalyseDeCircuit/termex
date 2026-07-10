@@ -106,6 +106,7 @@ fn test_record_and_list_command_history() {
             key_path: None,
             group_id: None,
             tags: vec![],
+            ..Default::default()
         },
     )
     .unwrap()
@@ -153,6 +154,7 @@ fn test_clear_command_history() {
             key_path: None,
             group_id: None,
             tags: vec![],
+            ..Default::default()
         },
     )
     .unwrap()
@@ -188,6 +190,7 @@ fn test_list_command_history_respects_limit() {
             key_path: None,
             group_id: None,
             tags: vec![],
+            ..Default::default()
         },
     )
     .unwrap()

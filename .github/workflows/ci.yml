@@ -1,5 +1,14 @@
 name: CI
 
+# v0.78.0 PC cutover: Tauri/Vue build + test jobs removed. CI now runs:
+#   - flutter-analyze   (replaces the old `pnpm run build` type-check)
+#   - flutter-test      (unchanged)
+#   - rust-test         (cargo test --workspace; src-tauri no longer included)
+#   - ios-bootstrap-check
+#   - android-bootstrap-check
+# To manually build a Tauri binary for forensic / rollback purposes, see
+# scripts/legacy/build-tauri.sh — it is intentionally not wired into CI.
+
 on:
   push:
     branches: [main]
@@ -11,119 +20,56 @@ concurrency:
   cancel-in-progress: true
 
 jobs:
-  check:
-    name: Type Check
+  flutter-analyze:
+    name: Flutter Analyze
     runs-on: ubuntu-22.04
     steps:
       - uses: actions/checkout@v4
 
-      - uses: pnpm/action-setup@v4
+      - uses: subosito/flutter-action@v2
         with:
-          version: 10
+          flutter-version: '3.24.x'
+          channel: stable
+          cache: true
 
-      - uses: actions/setup-node@v4
-        with:
-          node-version: 22
-          cache: pnpm
+      - name: Flutter pub get (app)
+        working-directory: app
+        run: flutter pub get
 
-      - run: pnpm install --frozen-lockfile
-      - run: pnpm run build
+      - name: Flutter analyze (app)
+        working-directory: app
+        run: flutter analyze
 
-  build:
-    name: Build (Linux)
-    needs: check
+      - name: Flutter pub get (shared)
+        working-directory: packages/termex_shared
+        run: flutter pub get
+
+      - name: Flutter analyze (shared)
+        working-directory: packages/termex_shared
+        run: flutter analyze
+
+  rust-test:
+    name: Rust Workspace Tests
     runs-on: ubuntu-22.04
     steps:
       - uses: actions/checkout@v4
 
-      - name: Install Linux dependencies
+      - name: Install Linux dependencies for rusqlite / sqlcipher
         run: |
           sudo apt-get update
-          sudo apt-get install -y \
-            libgtk-3-dev \
-            libwebkit2gtk-4.1-dev \
-            libappindicator3-dev \
-            librsvg2-dev \
-            patchelf
-
-      - uses: pnpm/action-setup@v4
-        with:
-          version: 10
-
-      - uses: actions/setup-node@v4
-        with:
-          node-version: 22
-          cache: pnpm
+          sudo apt-get install -y libsqlcipher-dev pkg-config
 
       - uses: dtolnay/rust-toolchain@stable
 
       - uses: Swatinem/rust-cache@v2
+        # v0.78.0: workspace cache now covers termex-core +
+        # termex-flutter-bridge + termexd. src-tauri is excluded from
+        # the workspace and built only via scripts/legacy/build-tauri.sh.
         with:
-          workspaces: src-tauri
+          workspaces: . -> target
 
-      - run: pnpm install --frozen-lockfile
-
-      - name: Build Tauri app
-        run: pnpm tauri build
-
-  build-windows:
-    name: Build (Windows)
-    needs: check
-    runs-on: windows-latest
-    steps:
-      - uses: actions/checkout@v4
-
-      - name: Install OpenSSL (Windows)
-        shell: pwsh
-        run: |
-          vcpkg install openssl:x64-windows-static-md
-          echo "OPENSSL_DIR=$env:VCPKG_INSTALLATION_ROOT\installed\x64-windows-static-md" | Out-File -FilePath $env:GITHUB_ENV -Encoding utf8 -Append
-          echo "OPENSSL_STATIC=1" | Out-File -FilePath $env:GITHUB_ENV -Encoding utf8 -Append
-
-      - uses: pnpm/action-setup@v4
-        with:
-          version: 10
-
-      - uses: actions/setup-node@v4
-        with:
-          node-version: 22
-          cache: pnpm
-
-      - uses: dtolnay/rust-toolchain@stable
-
-      - uses: Swatinem/rust-cache@v2
-        with:
-          workspaces: src-tauri
-
-      - run: pnpm install --frozen-lockfile
-
-      - name: Build Tauri app (Windows)
-        run: pnpm tauri build
-
-  test:
-    name: Rust Tests
-    runs-on: ubuntu-22.04
-    steps:
-      - uses: actions/checkout@v4
-
-      - name: Install Linux dependencies
-        run: |
-          sudo apt-get update
-          sudo apt-get install -y \
-            libgtk-3-dev \
-            libwebkit2gtk-4.1-dev \
-            libappindicator3-dev \
-            librsvg2-dev
-
-      - uses: dtolnay/rust-toolchain@stable
-
-      - uses: Swatinem/rust-cache@v2
-        with:
-          workspaces: src-tauri
-
-      - name: Run tests
-        working-directory: src-tauri
-        run: cargo test --release
+      - name: cargo test --workspace
+        run: cargo test --workspace --release
 
   flutter-test:
     name: Flutter Tests
@@ -151,3 +97,142 @@ jobs:
 
       - name: Check ARB completeness
         run: bash scripts/check-arb-completeness.sh
+
+  ios-bootstrap-check:
+    # Verifies the iOS platform stays buildable. Added in v0.77.0 after
+    # the first-time bootstrap exposed portable-pty/serial-unix/termios
+    # link failures on iOS targets. Keep this job green to catch any
+    # future iOS-incompatible Rust dependency before it lands on main.
+    name: iOS Bootstrap Check
+    runs-on: macos-15
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: subosito/flutter-action@v2
+        with:
+          flutter-version: '3.24.x'
+          channel: stable
+          cache: true
+
+      - uses: dtolnay/rust-toolchain@stable
+        with:
+          targets: aarch64-apple-ios-sim,aarch64-apple-ios
+
+      - uses: Swatinem/rust-cache@v2
+        with:
+          workspaces: crates/termex-flutter-bridge
+
+      - name: cargo check (iOS simulator)
+        run: cargo check -p termex_flutter_bridge --target aarch64-apple-ios-sim
+
+      - name: cargo check (iOS device)
+        run: cargo check -p termex_flutter_bridge --target aarch64-apple-ios
+
+      - name: Flutter pub get
+        working-directory: app
+        run: flutter pub get
+
+      # v0.79.37 + v0.79.43: FRB drift detection now runs on the
+      # standalone `frb-codegen-check` Linux job (~10x cheaper than
+      # macos-15 minutes). Keep this job iOS-build-focused.
+      - name: Flutter build iOS simulator
+        working-directory: app
+        run: flutter build ios --simulator --no-codesign --debug
+
+  frb-codegen-check:
+    # v0.79.43: verifies the committed FRB bindings match what fresh
+    # codegen would emit. Replaces the same logic that previously ran on
+    # macos-15 inside ios-bootstrap-check — Linux runners are ~10x
+    # cheaper per minute, and the check is platform-independent (the
+    # FRB codegen reads pure Rust source, writes pure Dart + Rust
+    # output). Without this guard, an enum / signature change on the
+    # Rust side can land on main with stale Dart bindings and only
+    # surface at iOS / Android build time on a contributor's machine —
+    # exactly the v0.79.35 incident that triggered this safeguard.
+    name: FRB Codegen Drift Check
+    runs-on: ubuntu-22.04
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: subosito/flutter-action@v2
+        with:
+          flutter-version: '3.24.x'
+          channel: stable
+          cache: true
+
+      - uses: dtolnay/rust-toolchain@stable
+
+      - uses: Swatinem/rust-cache@v2
+        with:
+          workspaces: crates/termex-flutter-bridge
+
+      - name: Flutter pub get
+        working-directory: app
+        run: flutter pub get
+
+      - name: Cache flutter_rust_bridge_codegen binary
+        id: frb-codegen-cache
+        uses: actions/cache@v4
+        with:
+          path: ~/.cargo/bin/flutter_rust_bridge_codegen
+          key: frb-codegen-${{ runner.os }}-v2.12.0
+
+      - name: Install flutter_rust_bridge_codegen
+        if: steps.frb-codegen-cache.outputs.cache-hit != 'true'
+        run: cargo install flutter_rust_bridge_codegen --version '^2.12' --locked
+
+      - name: Verify FRB bindings are up-to-date
+        run: ./scripts/frb-codegen.sh --check
+
+  android-bootstrap-check:
+    # Verifies the Android platform stays buildable. Added in v0.79.0
+    # after the first-time bootstrap exposed openssl-sys / termios /
+    # path-resolver issues on Android targets. Keep this job green to
+    # catch any future Android-incompatible Rust dependency or missing
+    # path_provider seeding before it lands on main.
+    name: Android Bootstrap Check
+    runs-on: ubuntu-22.04
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: actions/setup-java@v4
+        with:
+          distribution: temurin
+          java-version: '17'
+
+      - uses: subosito/flutter-action@v2
+        with:
+          flutter-version: '3.24.x'
+          channel: stable
+          cache: true
+
+      - uses: dtolnay/rust-toolchain@stable
+        with:
+          targets: aarch64-linux-android,armv7-linux-androideabi,x86_64-linux-android,i686-linux-android
+
+      - uses: Swatinem/rust-cache@v2
+        with:
+          workspaces: crates/termex-flutter-bridge
+
+      - name: Install cargo-ndk
+        run: cargo install cargo-ndk --locked
+
+      - name: Setup Android SDK
+        uses: android-actions/setup-android@v3
+        with:
+          packages: "platform-tools platforms;android-34 build-tools;34.0.0 ndk;26.1.10909125"
+
+      - name: cargo check (Android aarch64)
+        run: |
+          export ANDROID_NDK_HOME="$ANDROID_HOME/ndk/26.1.10909125"
+          cargo ndk --target aarch64-linux-android --platform 21 check -p termex_flutter_bridge
+
+      - name: Flutter pub get
+        working-directory: app
+        run: flutter pub get
+
+      - name: Flutter build Android APK (debug)
+        working-directory: app
+        run: |
+          export ANDROID_NDK_HOME="$ANDROID_HOME/ndk/26.1.10909125"
+          flutter build apk --debug

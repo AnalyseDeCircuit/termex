@@ -6,7 +6,7 @@
 import '../frb_generated.dart';
 import 'package:flutter_rust_bridge/flutter_rust_bridge_for_generated.dart';
 
-// These functions are ignored because they are not marked as `pub`: `build_request`, `build_terminal_context`, `default_model_for`, `provider_from_str`, `provider_to_str`, `redact_sensitive`, `role_from_str`, `role_to_str`, `to_kind`
+// These functions are ignored because they are not marked as `pub`: `build_request`, `build_terminal_context`, `default_base_url_for`, `default_model_for`, `provider_from_str`, `provider_to_str`, `redact_sensitive`, `role_from_str`, `role_to_str`, `to_kind`
 // These types are ignored because they are neither used by any `pub` functions nor (for structs and enums) marked `#[frb(unignore)]`: `TokenUsage`
 // These function are ignored because they are on traits that is not defined in current crate (put an empty `#[frb]` on it to unignore): `assert_fields_are_eq`, `assert_fields_are_eq`, `clone`, `clone`, `clone`, `clone`, `clone`, `clone`, `clone`, `eq`, `eq`, `fmt`, `fmt`, `fmt`, `fmt`, `fmt`, `fmt`, `fmt`
 
@@ -255,11 +255,34 @@ class AiMessageDto {
 }
 
 /// Supported AI providers.
+///
+/// v0.77.0 PC final parity restored the full vendor roster from the legacy
+/// Tauri build. Anthropic and Google use their bespoke wire formats; the
+/// rest (DeepSeek / Grok / Mistral / Zhipu GLM / MiniMax / Doubao / Bailian
+/// / Custom) all speak OpenAI-compatible chat-completions, so they share
+/// the [`OpenAi`] [`ProviderKind`] code path with a per-vendor
+/// [`default_base_url_for`] override.
+///
+/// v0.79.63 additions:
+///   - `Bailian` — 阿里云百炼 / Alibaba Cloud DashScope (Qwen models).
+///     Default base URL is the official DashScope OpenAI-compat endpoint.
+///   - `Custom` — user-supplied OpenAI-compatible endpoint. The user
+///     provides their own `base_url` + `api_key` + `model` strings; no
+///     default base URL.
 enum AiProvider {
   claude,
   openAi,
+  gemini,
   ollama,
   localLlama,
+  deepSeek,
+  grok,
+  mistral,
+  glm,
+  minimax,
+  doubao,
+  bailian,
+  custom,
   ;
 }
 

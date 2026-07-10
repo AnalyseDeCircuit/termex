@@ -4,7 +4,34 @@ import 'package:uuid/uuid.dart';
 
 // ─── Models ───────────────────────────────────────────────────────────────────
 
-enum AiProvider { claude, openAi, ollama, localLlama }
+/// Supported AI providers (Dart-side mirror of the FRB `AiProvider`).
+///
+/// v0.77.0 restored the full vendor roster from the Tauri build: Anthropic
+/// + Google + OpenAI native plus six OpenAI-compatible vendors (DeepSeek /
+/// Grok / Mistral / Zhipu GLM / MiniMax / Doubao). The Rust bridge
+/// collapses the compatibles onto the OpenAI wire format using a per-
+/// vendor default base URL.
+enum AiProvider {
+  claude,
+  openAi,
+  gemini,
+  ollama,
+  localLlama,
+  deepSeek,
+  grok,
+  mistral,
+  glm,
+  minimax,
+  doubao,
+  // v0.79.63 additions:
+  //   - bailian: 阿里云百炼 / Alibaba Cloud DashScope (Qwen). OpenAI-
+  //     compatible mode at https://dashscope.aliyuncs.com/compatible-mode/v1.
+  //   - custom: user-supplied OpenAI-compatible endpoint (BYO baseUrl
+  //     + apiKey + model). Useful for self-hosted gateways, vLLM,
+  //     OpenRouter, LM Studio, etc.
+  bailian,
+  custom,
+}
 
 enum MessageRole { user, assistant, system }
 

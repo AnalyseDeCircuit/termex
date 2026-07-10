@@ -106,6 +106,18 @@ Future<void> teamChangePassphrase(
     TermexBridge.instance.api.crateApiTeamTeamChangePassphrase(
         oldPassphrase: oldPassphrase, newPassphrase: newPassphrase);
 
+/// Marks `server_id` as shared with the active team. Sets `shared = 1`,
+/// `team_id`, `shared_by`, and `shared_at` on the matching `servers`
+/// row. Returns Err when no active team / user identity is configured.
+Future<void> teamShareServer({required String serverId}) =>
+    TermexBridge.instance.api.crateApiTeamTeamShareServer(serverId: serverId);
+
+/// Reverts a previous [`team_share_server`] call: clears the shared
+/// flag and the team_id / shared_by / shared_at columns. Safe to call
+/// on a server that isn't currently shared (no-op when 0 rows match).
+Future<void> teamUnshareServer({required String serverId}) =>
+    TermexBridge.instance.api.crateApiTeamTeamUnshareServer(serverId: serverId);
+
 /// A sync conflict between a local and a remote version of a server field.
 class TeamConflict {
   final String id;

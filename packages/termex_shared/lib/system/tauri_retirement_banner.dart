@@ -59,8 +59,9 @@ class TauriRetirementBanner extends ConsumerWidget {
           const SizedBox(width: 8),
           const Expanded(
             child: Text(
-              '欢迎使用 Flutter 桌面版！如果你来自 Tauri 老栈，老栈正在分 4 阶段退役 '
-              '(→ v0.80 物理删除)。数据库与凭据完全共享，无需手动迁移。',
+              '欢迎使用 Flutter 桌面版！Tauri/Vue 老栈即将停止构建 '
+              '(v0.78.0)，源码物理删除排期 v0.80.0。数据库 + 凭据完全共享，'
+              '无需手动迁移。',
               style: TextStyle(
                   fontSize: 11, color: TermexColors.textPrimary),
             ),
@@ -111,16 +112,18 @@ Future<void> showTauriRetirementDialog(BuildContext context) {
           crossAxisAlignment: CrossAxisAlignment.start,
           children: const [
             Text(
-              'Termex 在 v0.69 起进入 Tauri/Vue 桌面老栈退役期，'
-              '4 阶段 24 个月内 (→ v0.80) 物理删除老栈代码。',
+              'Termex 在 v0.69 起进入 Tauri/Vue 桌面老栈退役期。'
+              'Flutter 桌面端已在 v0.77.0 完成功能对齐，'
+              'v0.78.0 起停止 Tauri 构建。',
               style: TextStyle(
                   fontSize: 12, color: TermexColors.textPrimary),
             ),
             SizedBox(height: 12),
             Text(
-              '• v0.69 — Deprecation 通知（本次）\n'
-              '• v0.70 — 默认安装切换到 Flutter\n'
-              '• v0.75 — CI 不再构建 Tauri 产物\n'
+              '• v0.69 — Deprecation 通知 ✅\n'
+              '• v0.70 — 默认安装切换到 Flutter ✅\n'
+              '• v0.77 — Flutter 功能对齐验收 ✅\n'
+              '• v0.78 — CI 停止构建 Tauri 产物（计划中）\n'
               '• v0.80 — 物理删除 src-tauri/ + src/',
               style: TextStyle(
                   fontSize: 11, color: TermexColors.textSecondary),

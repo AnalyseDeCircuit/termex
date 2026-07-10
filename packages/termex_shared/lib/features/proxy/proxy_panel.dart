@@ -30,7 +30,13 @@ class _ProxyPanelState extends ConsumerState<ProxyPanel> {
       color: TermexColors.backgroundPrimary,
       child: Column(
         children: [
-          _Header(),
+          // v0.79.59: the inline "Proxy + Add Proxy" header was removed —
+          // the host shell (mobile `_TerminalTabHeader`, desktop sidebar
+          // section header) already paints a title bar with a top-right
+          // "+" button. Keeping a second header inside the panel
+          // duplicated the title and pushed the proxy list down ~50px.
+          // Callers that need to open the add dialog imperatively can
+          // call [AddProxyDialog.show].
           if (state.error != null) _ErrorBanner(message: state.error!),
           Expanded(
             child: state.isLoading
@@ -46,38 +52,16 @@ class _ProxyPanelState extends ConsumerState<ProxyPanel> {
   }
 }
 
-// ─── Header ──────────────────────────────────────────────────────────────────
+/// Opens the "Add Proxy" dialog. Public so host shells can wire their
+/// own top-bar "+" button to it (mobile `_TerminalTabHeader`, desktop
+/// sidebar) instead of bundling the trigger inside [ProxyPanel].
+class AddProxyDialog {
+  AddProxyDialog._();
 
-class _Header extends StatelessWidget {
-  @override
-  Widget build(BuildContext context) {
-    return Container(
-      padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 10),
-      decoration: const BoxDecoration(
-        color: TermexColors.backgroundSecondary,
-        border: Border(bottom: BorderSide(color: TermexColors.border)),
-      ),
-      child: Row(
-        children: [
-          const Icon(Icons.security, size: 16, color: TermexColors.primary),
-          const SizedBox(width: 8),
-          const Text('Proxy',
-              style: TextStyle(
-                  fontSize: 13,
-                  fontWeight: FontWeight.w600,
-                  color: TermexColors.textPrimary)),
-          const Spacer(),
-          TextButton.icon(
-            onPressed: () => showDialog<void>(
-              context: context,
-              builder: (_) => const _AddProxyDialog(),
-            ),
-            icon: const Icon(Icons.add, size: 14),
-            label: const Text('Add Proxy', style: TextStyle(fontSize: 12)),
-            style: TextButton.styleFrom(foregroundColor: TermexColors.primary),
-          ),
-        ],
-      ),
+  static Future<void> show(BuildContext context) {
+    return showDialog<void>(
+      context: context,
+      builder: (_) => const _AddProxyDialog(),
     );
   }
 }
@@ -275,14 +259,17 @@ class _AddProxyDialogState extends ConsumerState<_AddProxyDialog> {
   final _host = TextEditingController();
   final _port = TextEditingController();
   final _user = TextEditingController();
+  final _pass = TextEditingController();
   ProxyType _type = ProxyType.socks5;
   String? _err;
+  bool _showPassword = false;
 
   @override
   void dispose() {
     _host.dispose();
     _port.dispose();
     _user.dispose();
+    _pass.dispose();
     super.dispose();
   }
 
@@ -301,6 +288,7 @@ class _AddProxyDialogState extends ConsumerState<_AddProxyDialog> {
           host: _host.text.trim(),
           port: port,
           username: _user.text.trim().isEmpty ? null : _user.text.trim(),
+          password: _pass.text.isEmpty ? null : _pass.text,
         );
     Navigator.pop(context);
   }
@@ -321,17 +309,19 @@ class _AddProxyDialogState extends ConsumerState<_AddProxyDialog> {
                 style:
                     TextStyle(fontSize: 11, color: TermexColors.textSecondary)),
             const SizedBox(height: 6),
-            DropdownButton<ProxyType>(
-              value: _type,
-              dropdownColor: TermexColors.backgroundTertiary,
-              style: const TextStyle(
-                  color: TermexColors.textPrimary, fontSize: 13),
-              underline: Container(height: 1, color: TermexColors.border),
-              isExpanded: true,
-              items: ProxyType.values
-                  .map((t) => DropdownMenuItem(value: t, child: Text(t.label)))
-                  .toList(),
-              onChanged: (v) => setState(() => _type = v!),
+            // Material DropdownButton overflows the dialog on macOS — only
+            // 3 protocols, render them inline as toggle chips instead.
+            Row(
+              children: ProxyType.values
+                  .map((t) => Padding(
+                        padding: const EdgeInsets.only(right: 6),
+                        child: _ProtocolChip(
+                          label: t.label,
+                          active: _type == t,
+                          onTap: () => setState(() => _type = t),
+                        ),
+                      ))
+                  .toList(growable: false),
             ),
             const SizedBox(height: 12),
             _FieldRow(
@@ -364,6 +354,35 @@ class _AddProxyDialogState extends ConsumerState<_AddProxyDialog> {
                 style: const TextStyle(
                     color: TermexColors.textPrimary, fontSize: 13),
                 decoration: _inputDeco(''),
+              ),
+            ),
+            const SizedBox(height: 10),
+            // Password is optional — SOCKS5/HTTP CONNECT support
+            // unauthenticated proxies. When provided the value lands in
+            // the OS keychain via `proxyStorePassword`, never in the DB.
+            _FieldRow(
+              label: 'Password (optional)',
+              child: TextField(
+                controller: _pass,
+                obscureText: !_showPassword,
+                style: const TextStyle(
+                    color: TermexColors.textPrimary, fontSize: 13),
+                decoration: _inputDeco('').copyWith(
+                  suffixIcon: GestureDetector(
+                    onTap: () =>
+                        setState(() => _showPassword = !_showPassword),
+                    child: Padding(
+                      padding: const EdgeInsets.only(right: 8),
+                      child: Icon(
+                        _showPassword
+                            ? Icons.visibility_off_outlined
+                            : Icons.visibility_outlined,
+                        size: 16,
+                        color: TermexColors.textMuted,
+                      ),
+                    ),
+                  ),
+                ),
               ),
             ),
             if (_err != null) ...[
@@ -418,6 +437,46 @@ class _FieldRow extends StatelessWidget {
           const SizedBox(height: 4),
           child,
         ],
+      );
+}
+
+// ─── Protocol picker chip (Add Proxy dialog) ──────────────────────────────────
+
+class _ProtocolChip extends StatelessWidget {
+  final String label;
+  final bool active;
+  final VoidCallback onTap;
+
+  const _ProtocolChip({
+    required this.label,
+    required this.active,
+    required this.onTap,
+  });
+
+  @override
+  Widget build(BuildContext context) => GestureDetector(
+        onTap: onTap,
+        child: Container(
+          padding:
+              const EdgeInsets.symmetric(horizontal: 10, vertical: 5),
+          decoration: BoxDecoration(
+            color: active
+                ? TermexColors.primary.withValues(alpha: 0.12)
+                : TermexColors.backgroundTertiary,
+            borderRadius: BorderRadius.circular(4),
+            border: Border.all(
+              color: active ? TermexColors.primary : TermexColors.border,
+            ),
+          ),
+          child: Text(
+            label,
+            style: TextStyle(
+              fontSize: 12,
+              color: active ? TermexColors.primary : TermexColors.textPrimary,
+              fontWeight: active ? FontWeight.w600 : FontWeight.normal,
+            ),
+          ),
+        ),
       );
 }
 

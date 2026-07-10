@@ -12,13 +12,36 @@ use termex_core::ai::provider_client::{self, ProviderKind, ProviderRequest};
 // ─── DTOs ────────────────────────────────────────────────────────────────────
 
 /// Supported AI providers.
+///
+/// v0.77.0 PC final parity restored the full vendor roster from the legacy
+/// Tauri build. Anthropic and Google use their bespoke wire formats; the
+/// rest (DeepSeek / Grok / Mistral / Zhipu GLM / MiniMax / Doubao / Bailian
+/// / Custom) all speak OpenAI-compatible chat-completions, so they share
+/// the [`OpenAi`] [`ProviderKind`] code path with a per-vendor
+/// [`default_base_url_for`] override.
+///
+/// v0.79.63 additions:
+///   - `Bailian` — 阿里云百炼 / Alibaba Cloud DashScope (Qwen models).
+///     Default base URL is the official DashScope OpenAI-compat endpoint.
+///   - `Custom` — user-supplied OpenAI-compatible endpoint. The user
+///     provides their own `base_url` + `api_key` + `model` strings; no
+///     default base URL.
 #[derive(Debug, Clone, PartialEq, Eq, serde::Serialize, serde::Deserialize)]
 #[serde(rename_all = "snake_case")]
 pub enum AiProvider {
     Claude,
     OpenAi,
+    Gemini,
     Ollama,
     LocalLlama,
+    DeepSeek,
+    Grok,
+    Mistral,
+    Glm,
+    Minimax,
+    Doubao,
+    Bailian,
+    Custom,
 }
 
 /// Role of a message in a conversation.
@@ -104,8 +127,19 @@ fn to_kind(p: &AiProvider) -> ProviderKind {
     match p {
         AiProvider::Claude => ProviderKind::Claude,
         AiProvider::OpenAi => ProviderKind::OpenAi,
+        AiProvider::Gemini => ProviderKind::Gemini,
         AiProvider::Ollama => ProviderKind::Ollama,
         AiProvider::LocalLlama => ProviderKind::LocalLlama,
+        // OpenAI-compatible vendors collapse onto the OpenAi wire format;
+        // the per-vendor base URL distinguishes them at runtime.
+        AiProvider::DeepSeek
+        | AiProvider::Grok
+        | AiProvider::Mistral
+        | AiProvider::Glm
+        | AiProvider::Minimax
+        | AiProvider::Doubao
+        | AiProvider::Bailian
+        | AiProvider::Custom => ProviderKind::OpenAi,
     }
 }
 
@@ -113,8 +147,17 @@ fn provider_to_str(p: &AiProvider) -> &'static str {
     match p {
         AiProvider::Claude => "claude",
         AiProvider::OpenAi => "openai",
+        AiProvider::Gemini => "gemini",
         AiProvider::Ollama => "ollama",
         AiProvider::LocalLlama => "local_llama",
+        AiProvider::DeepSeek => "deepseek",
+        AiProvider::Grok => "grok",
+        AiProvider::Mistral => "mistral",
+        AiProvider::Glm => "glm",
+        AiProvider::Minimax => "minimax",
+        AiProvider::Doubao => "doubao",
+        AiProvider::Bailian => "bailian",
+        AiProvider::Custom => "custom",
     }
 }
 
@@ -122,9 +165,52 @@ fn provider_from_str(s: &str) -> AiProvider {
     match s {
         "claude" => AiProvider::Claude,
         "openai" => AiProvider::OpenAi,
+        "gemini" => AiProvider::Gemini,
         "ollama" => AiProvider::Ollama,
         "local_llama" => AiProvider::LocalLlama,
+        "deepseek" => AiProvider::DeepSeek,
+        "grok" => AiProvider::Grok,
+        "mistral" => AiProvider::Mistral,
+        "glm" => AiProvider::Glm,
+        "minimax" => AiProvider::Minimax,
+        "doubao" => AiProvider::Doubao,
+        "bailian" => AiProvider::Bailian,
+        "custom" => AiProvider::Custom,
         _ => AiProvider::Claude,
+    }
+}
+
+/// Default API base URL per provider — used to seed an empty `base_url`
+/// in [`AiProviderConfig`] for OpenAI-compatible vendors so they reach
+/// the right host without requiring users to type one in. Returns
+/// `None` for providers whose endpoint is hardcoded inside
+/// `provider_client` itself (Claude / OpenAI / Gemini / Ollama /
+/// LocalLlama all set their own URL there).
+fn default_base_url_for(p: &AiProvider) -> Option<&'static str> {
+    match p {
+        // Native — provider_client::ProviderKind::default_base_url handles these.
+        AiProvider::Claude
+        | AiProvider::OpenAi
+        | AiProvider::Gemini
+        | AiProvider::Ollama
+        | AiProvider::LocalLlama => None,
+        // OpenAI-compatible vendors: each ships at a distinct host but
+        // speaks the OpenAI v1 chat-completions schema.
+        AiProvider::DeepSeek => Some("https://api.deepseek.com/v1"),
+        AiProvider::Grok => Some("https://api.x.ai/v1"),
+        AiProvider::Mistral => Some("https://api.mistral.ai/v1"),
+        AiProvider::Glm => Some("https://open.bigmodel.cn/api/paas/v4"),
+        AiProvider::Minimax => Some("https://api.minimax.chat/v1"),
+        AiProvider::Doubao => Some("https://ark.cn-beijing.volces.com/api/v3"),
+        // v0.79.63: 阿里云百炼 (Alibaba Cloud DashScope) OpenAI-compatible
+        // mode lives at this endpoint. Native mode is at /api/v1 with a
+        // bespoke schema — we use compatible-mode/v1 to keep the wire
+        // format aligned with our other OpenAI-compat vendors.
+        AiProvider::Bailian => Some("https://dashscope.aliyuncs.com/compatible-mode/v1"),
+        // v0.79.63: Custom provider has no default — the user must
+        // supply a `base_url` in [`AiProviderConfig`] (and the inline
+        // form gates Save on it).
+        AiProvider::Custom => None,
     }
 }
 
@@ -601,7 +687,8 @@ pub fn ai_load_provider_config(provider: AiProvider) -> Option<AiProviderConfig>
 #[frb]
 pub async fn ai_verify_api_key(provider: AiProvider, api_key: String) -> Result<bool, String> {
     let model = default_model_for(&provider).to_string();
-    provider_client::verify(to_kind(&provider), api_key, None, model).await
+    let base_url = default_base_url_for(&provider).map(|s| s.to_string());
+    provider_client::verify(to_kind(&provider), api_key, base_url, model).await
 }
 
 /// Test whether a saved provider configuration is reachable.
@@ -610,15 +697,30 @@ pub async fn ai_test_provider_config(provider: AiProvider) -> Result<bool, Strin
     let config = ai_load_provider_config(provider.clone())
         .ok_or_else(|| format!("{} provider not configured", provider_to_str(&provider)))?;
     let api_key = config.api_key.unwrap_or_default();
-    provider_client::verify(to_kind(&provider), api_key, config.base_url, config.model).await
+    // Honor saved base_url, falling back to the OpenAI-compatible default
+    // host so DeepSeek/Grok/Mistral etc. still verify correctly when the
+    // user only set an API key.
+    let base_url = config
+        .base_url
+        .or_else(|| default_base_url_for(&provider).map(|s| s.to_string()));
+    provider_client::verify(to_kind(&provider), api_key, base_url, config.model).await
 }
 
 fn default_model_for(p: &AiProvider) -> &'static str {
     match p {
         AiProvider::Claude => "claude-3-5-haiku-latest",
         AiProvider::OpenAi => "gpt-4o-mini",
+        AiProvider::Gemini => "gemini-1.5-flash",
         AiProvider::Ollama => "llama3.2",
         AiProvider::LocalLlama => "local",
+        AiProvider::DeepSeek => "deepseek-chat",
+        AiProvider::Grok => "grok-beta",
+        AiProvider::Mistral => "mistral-large-latest",
+        AiProvider::Glm => "glm-4",
+        AiProvider::Minimax => "abab6.5-chat",
+        AiProvider::Doubao => "doubao-pro-32k",
+        AiProvider::Bailian => "qwen-plus",
+        AiProvider::Custom => "",
     }
 }
 
@@ -683,10 +785,18 @@ fn build_request(
     system_prompt: String,
     user_message: String,
 ) -> ProviderRequest {
+    // For OpenAI-compatible vendors with no explicit override saved in
+    // the config, fall back to their hardcoded default host. This lets
+    // brand-new "DeepSeek" / "Grok" / etc. profiles work without the
+    // user needing to know the base URL — they only paste an API key.
+    let base_url = config
+        .base_url
+        .clone()
+        .or_else(|| default_base_url_for(&config.provider).map(|s| s.to_string()));
     ProviderRequest {
         kind: to_kind(&config.provider),
         api_key: config.api_key.clone().unwrap_or_default(),
-        base_url: config.base_url.clone(),
+        base_url,
         model: config.model.clone(),
         system_prompt,
         user_message,

@@ -4,12 +4,12 @@
   "description": "Open-source AI-native SSH client — Always-on cloud AI workspace powered by SSH",
   "type": "module",
   "scripts": {
-    "dev": "vite",
-    "build": "vue-tsc --noEmit && vite build",
-    "preview": "vite preview",
-    "lint": "eslint src/",
-    "test": "vitest run",
-    "tauri": "tauri",
+    "dev": "node -e \"console.error('⚠️  Tauri dev disabled as of v0.78.0. Use flutter run -d macos / windows / linux from app/. See docs/iterations/v0.78.0-pc-cutover.md'); process.exit(1)\"",
+    "build": "node -e \"console.error('⚠️  Tauri build disabled as of v0.78.0. Use flutter build from app/ or scripts/legacy/build-tauri.sh for a forensic Tauri build.'); process.exit(1)\"",
+    "preview": "node -e \"console.error('⚠️  Tauri preview disabled as of v0.78.0.'); process.exit(1)\"",
+    "lint": "node -e \"console.error('⚠️  Vue lint disabled as of v0.78.0 (frontend retiring).'); process.exit(1)\"",
+    "test": "node -e \"console.error('⚠️  Vue tests disabled as of v0.78.0. Run flutter test from app/ instead.'); process.exit(1)\"",
+    "tauri": "node -e \"console.error('⚠️  Tauri CLI disabled as of v0.78.0. See scripts/legacy/build-tauri.sh for emergency rebuild.'); process.exit(1)\"",
     "version:bump": "node scripts/bump-version.mjs"
   },
   "dependencies": {

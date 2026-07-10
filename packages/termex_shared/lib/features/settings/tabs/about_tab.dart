@@ -55,33 +55,38 @@ class _Header extends StatelessWidget {
       children: [
         const Icon(Icons.terminal, size: 48, color: TermexColors.primary),
         const SizedBox(width: 16),
-        Column(
-          crossAxisAlignment: CrossAxisAlignment.start,
-          children: [
-            const Text(
-              'Termex',
-              style: TextStyle(
-                fontSize: 22,
-                fontWeight: FontWeight.w700,
-                color: TermexColors.textPrimary,
+        // Expanded lets the title / version / tagline reflow within the
+        // available width on narrow viewports instead of forcing a
+        // horizontal overflow when paired with the fixed-size icon.
+        Expanded(
+          child: Column(
+            crossAxisAlignment: CrossAxisAlignment.start,
+            children: [
+              const Text(
+                'Termex',
+                style: TextStyle(
+                  fontSize: 22,
+                  fontWeight: FontWeight.w700,
+                  color: TermexColors.textPrimary,
+                ),
               ),
-            ),
-            const SizedBox(height: 2),
-            const Text(
-              'v$kAppVersion · $kAppChannel',
-              style: TextStyle(
-                fontSize: 12,
-                color: TermexColors.textSecondary,
-                fontFamily: 'monospace',
+              const SizedBox(height: 2),
+              const Text(
+                'v$kAppVersion · $kAppChannel',
+                style: TextStyle(
+                  fontSize: 12,
+                  color: TermexColors.textSecondary,
+                  fontFamily: 'monospace',
+                ),
               ),
-            ),
-            const SizedBox(height: 4),
-            Text(
-              l10n.aboutTagline,
-              style: const TextStyle(
-                  fontSize: 11, color: TermexColors.textSecondary),
-            ),
-          ],
+              const SizedBox(height: 4),
+              Text(
+                l10n.aboutTagline,
+                style: const TextStyle(
+                    fontSize: 11, color: TermexColors.textSecondary),
+              ),
+            ],
+          ),
         ),
       ],
     );
@@ -134,13 +139,21 @@ class _UpdateSection extends ConsumerWidget {
                 ),
                 Row(
                   children: [
-                    Text(l10n.aboutCheckFrequencyLabel,
-                        style: const TextStyle(
-                            fontSize: 12,
-                            color: TermexColors.textSecondary)),
+                    // Flexible lets the label ellipsise on narrow
+                    // viewports instead of forcing a horizontal
+                    // overflow when paired with the fixed-width
+                    // DropdownButton trailing it.
+                    Flexible(
+                      child: Text(l10n.aboutCheckFrequencyLabel,
+                          overflow: TextOverflow.ellipsis,
+                          style: const TextStyle(
+                              fontSize: 12,
+                              color: TermexColors.textSecondary)),
+                    ),
                     const SizedBox(width: 8),
                     DropdownButton<int>(
                       value: prefs.checkIntervalHours,
+                      isDense: true,
                       items: [
                         DropdownMenuItem(
                             value: 1, child: Text(l10n.aboutFrequencyHourly)),

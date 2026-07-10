@@ -10,7 +10,7 @@ import 'package:flutter_rust_bridge/flutter_rust_bridge_for_generated.dart';
 
 // These functions are ignored because they are not marked as `pub`: `connect_direct`, `load_connect_row`, `mark_last_connected`
 // These types are ignored because they are neither used by any `pub` functions nor (for structs and enums) marked `#[frb(unignore)]`: `ConnectRow`
-// These function are ignored because they are on traits that is not defined in current crate (put an empty `#[frb]` on it to unignore): `clone`, `clone`, `fmt`, `fmt`
+// These function are ignored because they are on traits that is not defined in current crate (put an empty `#[frb]` on it to unignore): `clone`, `clone`, `clone`, `fmt`, `fmt`, `fmt`
 
 /// Opens an SSH session and starts streaming terminal events to a
 /// per-session queue that Dart polls via `poll_ssh_events`.
@@ -46,6 +46,13 @@ Future<void> closeSshSession({required String sessionId}) =>
 /// Checks whether an SSH agent is available by inspecting `SSH_AUTH_SOCK`.
 Future<bool> checkSshAgentAvailable() =>
     TermexBridge.instance.api.crateApiSshCheckSshAgentAvailable();
+
+/// Runs a full TCP + SSH handshake + auth against a transient set of
+/// connection params and disconnects. Returns `Ok(())` on success, or the
+/// underlying error message. Nothing is written to DB or keychain — used by
+/// the add/edit server dialog to verify credentials before persisting.
+Future<void> testSshConnection({required SshConnectionTestParams params}) =>
+    TermexBridge.instance.api.crateApiSshTestSshConnection(params: params);
 
 /// Opens a new session to the same server as an existing session.
 ///
@@ -208,4 +215,71 @@ class ProxyPoolStat {
           refCount == other.refCount &&
           connectedSince == other.connectedSince &&
           bytesTransferred == other.bytesTransferred;
+}
+
+/// Parameters for a transient SSH connection test. Mirrors the add-server
+/// form fields so the user can verify credentials before persisting the
+/// row to the database.
+class SshConnectionTestParams {
+  final String host;
+  final int port;
+  final String username;
+  final String authType;
+  final String? password;
+
+  /// Path to an on-disk private key file. Used when `key_data` is empty.
+  final String? keyPath;
+
+  /// Raw private key contents. Takes precedence over `key_path` when set —
+  /// lets the dialog test a pasted key without writing it to disk first.
+  final String? keyData;
+  final String? keyPassphrase;
+
+  /// v0.79.66: id of the server being edited, if any. When the test
+  /// is fired from the Edit-Server dialog and the password / passphrase
+  /// fields are left blank (because we never seed them from the OS
+  /// keychain into a UI text field — security rule), we fall back to
+  /// reading the stored credential from the keychain by this id. Saves
+  /// the user from having to re-type their password just to run the
+  /// test. None means "create flow" — no keychain fallback.
+  final String? existingServerId;
+
+  const SshConnectionTestParams({
+    required this.host,
+    required this.port,
+    required this.username,
+    required this.authType,
+    this.password,
+    this.keyPath,
+    this.keyData,
+    this.keyPassphrase,
+    this.existingServerId,
+  });
+
+  @override
+  int get hashCode =>
+      host.hashCode ^
+      port.hashCode ^
+      username.hashCode ^
+      authType.hashCode ^
+      password.hashCode ^
+      keyPath.hashCode ^
+      keyData.hashCode ^
+      keyPassphrase.hashCode ^
+      existingServerId.hashCode;
+
+  @override
+  bool operator ==(Object other) =>
+      identical(this, other) ||
+      other is SshConnectionTestParams &&
+          runtimeType == other.runtimeType &&
+          host == other.host &&
+          port == other.port &&
+          username == other.username &&
+          authType == other.authType &&
+          password == other.password &&
+          keyPath == other.keyPath &&
+          keyData == other.keyData &&
+          keyPassphrase == other.keyPassphrase &&
+          existingServerId == other.existingServerId;
 }

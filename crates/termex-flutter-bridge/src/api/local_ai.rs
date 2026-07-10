@@ -201,10 +201,13 @@ pub fn local_ai_list_models() -> Vec<LocalModelDto> {
 ///
 /// Runs HTTP range-aware download from the curated catalog URL into
 /// `<data_dir>/models/<id>.gguf`. On failure the primary URL is retried once
-/// against the configured mirror URL. Progress is not yet streamed through
-/// FRB (that lands with the `StreamSink`-based emitter in a follow-up); the
-/// Dart layer should call this and drive its own progress UI from an adjacent
-/// polling timer or treat the call as atomic.
+/// against the configured mirror URL.
+///
+/// **Progress reporting (v0.77.0)**: the downloader's per-chunk callback
+/// writes `(downloaded, total)` bytes into [`local_ai_state::DOWNLOAD_PROGRESS`].
+/// Dart polls [`local_ai_download_progress`] every ~250 ms to drive the
+/// progress bar; the entry is removed when the download completes or is
+/// cancelled, so an absent entry signals "no active download for this id".
 ///
 /// Use [local_ai_cancel_download] to abort an in-flight download.
 #[frb]
@@ -221,15 +224,26 @@ pub async fn local_ai_download_model(model_id: String) -> Result<(), String> {
     // Register cancellation token, replacing any previous one for this id.
     let (tx, rx) = tokio::sync::oneshot::channel::<()>();
     local_ai_state::ACTIVE_DOWNLOADS.insert(model_id.clone(), tx);
+    // Seed the progress entry so polling returns "0 of 0" immediately on
+    // download start (rather than `None`, which the Dart layer reads as
+    // "not running").
+    local_ai_state::DOWNLOAD_PROGRESS.insert(model_id.clone(), (0, 0));
 
     let primary = entry.url.to_string();
     let mirror = entry.mirror_url.map(|s| s.to_string());
     let sha = entry.sha256.to_string();
     let dest = destination.clone();
 
-    let result =
-        termex_core::local_ai::downloader::download_with_progress(&primary, &dest, &sha, rx, |_, _| {})
-            .await;
+    let progress_id = model_id.clone();
+    let progress_cb = move |downloaded: u64, total: u64| {
+        local_ai_state::DOWNLOAD_PROGRESS
+            .insert(progress_id.clone(), (downloaded, total));
+    };
+
+    let result = termex_core::local_ai::downloader::download_with_progress(
+        &primary, &dest, &sha, rx, progress_cb,
+    )
+    .await;
 
     // If primary failed for non-cancellation reason, try mirror once.
     let final_result = match (result, mirror) {
@@ -238,12 +252,13 @@ pub async fn local_ai_download_model(model_id: String) -> Result<(), String> {
         (Err(primary_err), Some(mirror_url)) => {
             let (tx2, rx2) = tokio::sync::oneshot::channel::<()>();
             local_ai_state::ACTIVE_DOWNLOADS.insert(model_id.clone(), tx2);
+            let mirror_id = model_id.clone();
+            let mirror_cb = move |downloaded: u64, total: u64| {
+                local_ai_state::DOWNLOAD_PROGRESS
+                    .insert(mirror_id.clone(), (downloaded, total));
+            };
             match termex_core::local_ai::downloader::download_with_progress(
-                &mirror_url,
-                &dest,
-                &sha,
-                rx2,
-                |_, _| {},
+                &mirror_url, &dest, &sha, rx2, mirror_cb,
             )
             .await
             {
@@ -257,23 +272,70 @@ pub async fn local_ai_download_model(model_id: String) -> Result<(), String> {
     };
 
     local_ai_state::ACTIVE_DOWNLOADS.remove(&model_id);
+    // Keep the final progress row briefly so the UI can paint "100%"
+    // on the same poll cycle, then clear it on next call.
+    local_ai_state::DOWNLOAD_PROGRESS.remove(&model_id);
     final_result
+}
+
+/// DTO returned by [`local_ai_download_progress`]: bytes downloaded so
+/// far + total content length (zero when the server didn't send
+/// `Content-Length`, meaning the UI should show indeterminate spinner).
+#[frb]
+#[derive(Debug, Clone)]
+pub struct LocalAiDownloadProgress {
+    pub downloaded: u64,
+    pub total: u64,
+}
+
+/// Polls the current download progress for `model_id`. Returns `None`
+/// when no download is active for that model. The Dart UI calls this
+/// on a 250 ms timer while the download future is pending.
+#[frb]
+pub fn local_ai_download_progress(
+    model_id: String,
+) -> Option<LocalAiDownloadProgress> {
+    local_ai_state::DOWNLOAD_PROGRESS
+        .get(&model_id)
+        .map(|e| LocalAiDownloadProgress {
+            downloaded: e.value().0,
+            total: e.value().1,
+        })
 }
 
 /// Delete a downloaded model from disk.
 ///
-/// Looks up the canonical model filename in `app_data_dir/models/` and
-/// unlinks it. Missing files are treated as successful (idempotent delete).
+/// v0.79.58: resolve the on-disk filename through the catalog (was
+/// `format!("{id}.gguf")` — only correct by coincidence for the current
+/// catalog). Also unlinks the matching `.tmp` partial when present so a
+/// cancelled-then-deleted model doesn't leave half-downloaded bytes
+/// occupying user disk space.
+///
+/// Missing files are treated as successful (idempotent delete).
 #[frb]
 pub async fn local_ai_delete_model(model_id: String) -> Result<(), String> {
     let models_dir = termex_core::paths::data_dir().join("models");
-    let filename = format!("{model_id}.gguf");
+
+    // Prefer the catalog filename — defensive against future catalog
+    // entries whose filename doesn't equal `{id}.gguf`.
+    let filename = local_ai_state::catalog_lookup(&model_id)
+        .map(|e| e.filename.to_string())
+        .unwrap_or_else(|| format!("{model_id}.gguf"));
+
     let path = models_dir.join(&filename);
     if path.exists() {
         tokio::fs::remove_file(&path)
             .await
             .map_err(|e| format!("failed to delete {}: {e}", path.display()))?;
     }
+
+    // Also remove the partial-download companion if present. Best-effort:
+    // a failure here shouldn't fail the user-facing delete.
+    let tmp_path = path.with_extension("tmp");
+    if tmp_path.exists() {
+        let _ = tokio::fs::remove_file(&tmp_path).await;
+    }
+
     Ok(())
 }
 

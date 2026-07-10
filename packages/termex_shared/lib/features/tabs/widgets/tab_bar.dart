@@ -4,7 +4,6 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 import '../../../design/colors.dart';
 import '../../../design/spacing.dart';
 import '../../../icons/termex_icons.dart';
-import '../../../widgets/button.dart';
 import '../../server_list/models/server_dto.dart';
 import '../../server_list/state/connection_provider.dart';
 import '../../../terminal/broadcast_registry.dart';
@@ -12,16 +11,10 @@ import '../state/tab_controller.dart';
 import 'tab_item.dart';
 import 'new_tab_menu.dart';
 
-// Natural per-tab width = TabItem container (120) + right padding (2)
-// inside ListView.builder. Keep in sync with [TabItem]'s container width.
-const double _kTabSlotWidth = 122.0;
-
-// Total horizontal padding on the ListView (TermexSpacing.xs on each side,
-// so 4 + 4 = 8). The list naturally fits `n * slotWidth + listPadding`.
-const double _kTabListPadding = 8.0;
-
-// Reserved minimum width for the [+] button slot (icon + padding).
-const double _kPlusButtonSlot = 40.0;
+// Reserved minimum width for the [+] tab-card slot (icon + paddings).
+// We compute the tab strip width as (available - this) so [+] always
+// stays visible regardless of how many tabs.
+const double _kPlusButtonSlot = 36.0;
 
 /// Horizontal tab bar at the top of the terminal area.
 ///
@@ -89,100 +82,128 @@ class _TermexTabBarState extends ConsumerState<TermexTabBar> {
 
     return Container(
       height: 36,
+      // No bottom border: the active TabItem paints its own 2px primary
+      // underline (see tab_item.dart). A full-width strip across the bar
+      // would conflict with that "selected-tab-only" indicator design.
       decoration: const BoxDecoration(
         color: TermexColors.backgroundPrimary,
-        border: Border(
-          bottom: BorderSide(color: TermexColors.border, width: 1),
-        ),
       ),
-      child: LayoutBuilder(builder: (context, constraints) {
-        // Cap tab strip at (available width − [+] button slot) so the [+]
-        // always sits right after the last tab card. When tab strip natural
-        // width exceeds the cap, the strip scrolls horizontally.
-        final available = constraints.maxWidth.isFinite
-            ? constraints.maxWidth
-            : double.infinity;
-        final naturalTabsWidth =
-            tabs.length * _kTabSlotWidth + _kTabListPadding;
-        final maxTabsWidth = available.isFinite
-            ? (available - _kPlusButtonSlot).clamp(0.0, double.infinity)
-            : naturalTabsWidth;
-        final tabsWidth = naturalTabsWidth < maxTabsWidth
-            ? naturalTabsWidth
-            : maxTabsWidth;
-
-        return Row(
-          children: [
-            if (tabs.isNotEmpty)
-              SizedBox(
-                width: tabsWidth,
-                child: ListView.builder(
-                  controller: _scrollCtrl,
-                  scrollDirection: Axis.horizontal,
-                  padding: const EdgeInsets.symmetric(
-                    horizontal: TermexSpacing.xs,
-                    vertical: 2,
-                  ),
-                  itemCount: tabs.length,
-                  itemBuilder: (ctx, i) {
-                    final tab = tabs[i];
-                    final sid = ref.watch(
-                        connectionProvider(tab.id).select((s) => s.sessionId));
-                    final broadcast = ref.watch(broadcastRegistryProvider);
-                    final isBroadcasting = sid != null &&
-                        broadcast.hasFanout &&
-                        broadcast.isMember(sid);
-                    return Padding(
-                      padding: const EdgeInsets.only(right: 2),
-                      child: TabItem(
-                        key: ValueKey(tab.id),
-                        title: tab.title,
-                        status: tab.status,
-                        isActive: tab.id == activeId,
-                        isBroadcasting: isBroadcasting,
-                        onTap: () => activeNotifier.state = tab.id,
-                        onClose: () {
-                          notifier.closeTab(tab.id);
-                          // If closing active tab, select neighbour
-                          if (tab.id == activeId) {
-                            final remaining = tabs
-                                .where((t) => t.id != tab.id)
-                                .toList();
-                            activeNotifier.state = remaining.isEmpty
-                                ? null
-                                : remaining.last.id;
-                          }
-                        },
-                        onClone: () {
-                          notifier.cloneTab(tab.id);
-                        },
-                      ),
-                    );
-                  },
-                ),
-              ),
-            // [+] Opens the new-tab menu (local terminal + recent servers).
-            // Sits immediately after the last tab card.
-            Padding(
-              padding: const EdgeInsets.symmetric(
-                horizontal: TermexSpacing.xs,
-                vertical: 4,
-              ),
-              child: CompositedTransformTarget(
-                link: _plusLayerLink,
-                child: TermexIconButton(
-                  icon: const TermexIconWidget(TermexIcons.add, size: 16),
-                  size: ButtonSize.small,
-                  variant: ButtonVariant.ghost,
-                  borderRadius: BorderRadius.zero,
-                  tooltip: '新建标签',
-                  onPressed: _openNewTabMenu,
-                ),
+      child: Row(
+        crossAxisAlignment: CrossAxisAlignment.stretch,
+        children: [
+          // Tab list — flex to fill, scroll horizontally when overflowing.
+          // Using a `Flexible(SingleChildScrollView + Row)` rather than a
+          // fixed-width SizedBox + ListView.builder so each tab card lays
+          // out at its NATURAL width (TabItem clamps itself between 80 and
+          // 200) and the [+] card sits immediately after the last tab,
+          // independent of card content length.
+          Flexible(
+            child: SingleChildScrollView(
+              controller: _scrollCtrl,
+              scrollDirection: Axis.horizontal,
+              padding: const EdgeInsets.only(left: TermexSpacing.xs),
+              child: Row(
+                crossAxisAlignment: CrossAxisAlignment.stretch,
+                mainAxisSize: MainAxisSize.min,
+                children: [
+                  for (final tab in tabs) _buildTabCard(ref, tab, activeId, notifier, activeNotifier),
+                ],
               ),
             ),
-          ],
-        );
-      }),
+          ),
+          // [+] new-tab "card" — styled to match the TabItem card metrics
+          // (36px height, 4px gutters, hover background) so it visually
+          // belongs to the tab strip rather than reading as a floating
+          // icon button.
+          CompositedTransformTarget(
+            link: _plusLayerLink,
+            child: _PlusTabCard(onTap: _openNewTabMenu),
+          ),
+        ],
+      ),
+    );
+  }
+
+  Widget _buildTabCard(
+    WidgetRef ref,
+    dynamic tab,
+    String? activeId,
+    dynamic notifier,
+    dynamic activeNotifier,
+  ) {
+    final sid = ref.watch(
+        connectionProvider(tab.id).select((s) => s.sessionId));
+    final broadcast = ref.watch(broadcastRegistryProvider);
+    final isBroadcasting =
+        sid != null && broadcast.hasFanout && broadcast.isMember(sid);
+    return Padding(
+      padding: const EdgeInsets.only(right: 2),
+      child: TabItem(
+        key: ValueKey(tab.id),
+        title: tab.title,
+        status: tab.status,
+        isActive: tab.id == activeId,
+        isBroadcasting: isBroadcasting,
+        onTap: () => activeNotifier.state = tab.id,
+        onClose: () {
+          notifier.closeTab(tab.id);
+          if (tab.id == activeId) {
+            final tabsNow = ref.read(tabListProvider);
+            final remaining =
+                tabsNow.where((t) => t.id != tab.id).toList();
+            activeNotifier.state =
+                remaining.isEmpty ? null : remaining.last.id;
+          }
+        },
+        onClone: () {
+          notifier.cloneTab(tab.id);
+        },
+      ),
+    );
+  }
+}
+
+// ─── [+] tab-card ─────────────────────────────────────────────────────────────
+
+/// Inert-by-default tab-shaped card hosting the [+] glyph, matching the
+/// adjacent [TabItem] visual metrics (height 36, hover/idle background,
+/// no active underline). Tapping opens the new-tab menu via [onTap].
+class _PlusTabCard extends StatefulWidget {
+  final VoidCallback onTap;
+  const _PlusTabCard({required this.onTap});
+
+  @override
+  State<_PlusTabCard> createState() => _PlusTabCardState();
+}
+
+class _PlusTabCardState extends State<_PlusTabCard> {
+  bool _hovered = false;
+
+  @override
+  Widget build(BuildContext context) {
+    return MouseRegion(
+      cursor: SystemMouseCursors.click,
+      onEnter: (_) => setState(() => _hovered = true),
+      onExit: (_) => setState(() => _hovered = false),
+      child: GestureDetector(
+        onTap: widget.onTap,
+        child: AnimatedContainer(
+          duration: const Duration(milliseconds: 100),
+          height: 36,
+          width: _kPlusButtonSlot,
+          alignment: Alignment.center,
+          decoration: BoxDecoration(
+            color: _hovered
+                ? TermexColors.backgroundSecondary
+                : const Color(0x00000000),
+          ),
+          child: const TermexIconWidget(
+            TermexIcons.add,
+            size: 16,
+            color: TermexColors.textSecondary,
+          ),
+        ),
+      ),
     );
   }
 }

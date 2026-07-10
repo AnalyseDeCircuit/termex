@@ -5,7 +5,9 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:termex_shared/design/colors.dart';
 import 'package:termex_shared/design/spacing.dart';
 import 'package:termex_shared/design/typography.dart';
+import 'package:termex_shared/features/cloud/cloud_panel.dart';
 import 'package:termex_shared/features/proxy/proxy_panel.dart';
+import 'package:termex_shared/features/recording/recording_list_panel.dart';
 import 'package:termex_shared/features/server_list/widgets/server_form_dialog.dart';
 import 'package:termex_shared/features/server_list/widgets/server_tree.dart';
 import 'package:termex_shared/features/server_list/widgets/import_ssh_config_dialog.dart';
@@ -19,10 +21,12 @@ import 'package:termex_shared/widgets/dialog.dart';
 import 'package:termex_shared/widgets/text_field.dart';
 import 'sidebar_termex_menu.dart';
 
-/// Sidebar pane categories. OSS PC build ships the basic SSH client surface
-/// (servers / proxies / snippets); cloud + recording panels live in the
-/// commercial build via `termex_shared_pro`.
-enum SidebarCategory { servers, proxies, snippets }
+/// Sidebar pane categories. v0.77.0 PC final parity restored `recordings`
+/// and `cloud` to match the legacy Tauri/Vue baseline — both ship in OSS
+/// (recording is fully functional; cloud surfaces ECS favourites plus
+/// empty-state hints for k8s/SSM, which match the legacy OSS behaviour
+/// where heavy integrations are gated behind the `private` Cargo feature).
+enum SidebarCategory { servers, proxies, snippets, recordings, cloud }
 
 final sidebarCategoryProvider =
     StateProvider<SidebarCategory>((_) => SidebarCategory.servers);
@@ -66,6 +70,16 @@ class DesktopSidebar extends ConsumerWidget {
             onSelect: (c) =>
                 ref.read(sidebarCategoryProvider.notifier).state = c,
           ),
+          // v0.79.59 alignment with mobile: ProxyPanel + SnippetLibrary
+          // removed their inline "+ Add" affordances expecting the host
+          // shell to paint a title + add button. Mobile's
+          // `_TerminalTabHeader` did this; the desktop sidebar didn't.
+          // This `_CategorySectionHeader` closes the gap so servers /
+          // proxies / snippets all have a discoverable "+" trigger.
+          _CategorySectionHeader(
+            category: cat,
+            onAdd: () => _runCategoryAdd(context, ref, cat),
+          ),
           Expanded(
             child: switch (cat) {
               SidebarCategory.servers => ServerTree(
@@ -74,6 +88,8 @@ class DesktopSidebar extends ConsumerWidget {
                 ),
               SidebarCategory.proxies => const ProxyPanel(),
               SidebarCategory.snippets => const SnippetLibrary(),
+              SidebarCategory.recordings => const RecordingListPanel(),
+              SidebarCategory.cloud => const CloudPanel(),
             },
           ),
         ],
@@ -236,7 +252,146 @@ class _SidebarHeaderState extends ConsumerState<_SidebarHeader> {
             active: widget.active == SidebarCategory.snippets,
             onTap: () => widget.onSelect(SidebarCategory.snippets),
           ),
+          _ViewTabButton(
+            tooltip: 'Recordings',
+            painter: const _RecordingsIconPainter(),
+            active: widget.active == SidebarCategory.recordings,
+            onTap: () => widget.onSelect(SidebarCategory.recordings),
+          ),
+          _ViewTabButton(
+            tooltip: 'Cloud',
+            painter: const _CloudIconPainter(),
+            active: widget.active == SidebarCategory.cloud,
+            onTap: () => widget.onSelect(SidebarCategory.cloud),
+          ),
         ],
+      ),
+    );
+  }
+}
+
+/// Dispatch the section-header "+" button to the right "add" flow for
+/// each category. Mirrors mobile's `_TerminalTabHeader` onAdd switch.
+/// Recordings + Cloud have no add action (read-only / Pro-stub).
+void _runCategoryAdd(
+  BuildContext context,
+  WidgetRef ref,
+  SidebarCategory category,
+) {
+  switch (category) {
+    case SidebarCategory.servers:
+      ServerFormDialog.show(context);
+      break;
+    case SidebarCategory.proxies:
+      AddProxyDialog.show(context);
+      break;
+    case SidebarCategory.snippets:
+      SnippetLibrary.startNew(ref);
+      break;
+    case SidebarCategory.recordings:
+    case SidebarCategory.cloud:
+      // No add action — sections render their own (or are stubbed).
+      break;
+  }
+}
+
+/// Section header (~28 px) sitting between the category-tab row and the
+/// active panel. Shows the category's ZH label on the left and a "+"
+/// Add button on the right when the category supports adding new
+/// entities. v0.79.59 aligned mobile + desktop both painting host-side
+/// add affordances; this widget closes the desktop gap.
+class _CategorySectionHeader extends StatelessWidget {
+  final SidebarCategory category;
+  final VoidCallback onAdd;
+
+  const _CategorySectionHeader({
+    required this.category,
+    required this.onAdd,
+  });
+
+  String get _label => switch (category) {
+        SidebarCategory.servers => '服务器',
+        SidebarCategory.proxies => '代理',
+        SidebarCategory.snippets => 'Snippet',
+        SidebarCategory.recordings => '会话录制',
+        SidebarCategory.cloud => '云端',
+      };
+
+  bool get _hasAdd =>
+      category == SidebarCategory.servers ||
+      category == SidebarCategory.proxies ||
+      category == SidebarCategory.snippets;
+
+  @override
+  Widget build(BuildContext context) {
+    return Container(
+      height: 28,
+      padding: const EdgeInsets.symmetric(horizontal: 12),
+      decoration: const BoxDecoration(
+        border: Border(bottom: BorderSide(color: TermexColors.border)),
+      ),
+      child: Row(
+        children: [
+          Text(
+            _label,
+            style: TermexTypography.caption.copyWith(
+              fontSize: 11,
+              fontWeight: FontWeight.w600,
+              color: TermexColors.textSecondary,
+              letterSpacing: 0.5,
+            ),
+          ),
+          const Spacer(),
+          if (_hasAdd) _SectionAddButton(onTap: onAdd),
+        ],
+      ),
+    );
+  }
+}
+
+/// Small "+" affordance reused by [_CategorySectionHeader]. Sized to
+/// sit naturally inside a 28-px header without dominating it.
+class _SectionAddButton extends StatefulWidget {
+  final VoidCallback onTap;
+  const _SectionAddButton({required this.onTap});
+
+  @override
+  State<_SectionAddButton> createState() => _SectionAddButtonState();
+}
+
+class _SectionAddButtonState extends State<_SectionAddButton> {
+  bool _hovered = false;
+
+  @override
+  Widget build(BuildContext context) {
+    return Tooltip(
+      message: '新建',
+      child: MouseRegion(
+        cursor: SystemMouseCursors.click,
+        onEnter: (_) => setState(() => _hovered = true),
+        onExit: (_) => setState(() => _hovered = false),
+        child: GestureDetector(
+          onTap: widget.onTap,
+          child: AnimatedContainer(
+            duration: const Duration(milliseconds: 80),
+            width: 20,
+            height: 20,
+            alignment: Alignment.center,
+            decoration: BoxDecoration(
+              color: _hovered
+                  ? TermexColors.primary.withValues(alpha: 0.15)
+                  : const Color(0x00000000),
+              borderRadius: BorderRadius.circular(3),
+            ),
+            child: TermexIconWidget(
+              TermexIcons.add,
+              size: 12,
+              color: _hovered
+                  ? TermexColors.primary
+                  : TermexColors.textSecondary,
+            ),
+          ),
+        ),
       ),
     );
   }
@@ -489,6 +644,61 @@ class _SnippetsIconPainter extends CustomPainter {
   bool shouldRepaint(covariant CustomPainter old) => false;
 }
 
-// Recording / cloud sidebar icon painters were removed with the OSS PC
-// build's drop of cloud + recording tabs (Phase 4). They live in the
-// commercial UI shipped via `termex_shared_pro`.
+// ─── Recording (filled inner dot + outer ring, matches Tauri SVG) ─────────
+
+class _RecordingsIconPainter extends CustomPainter {
+  const _RecordingsIconPainter();
+
+  @override
+  void paint(Canvas canvas, Size size) {
+    final s = size.width / 24.0;
+    final stroke = Paint()
+      ..color = const Color(0xFF000000)
+      ..style = PaintingStyle.stroke
+      ..strokeWidth = 2 * s
+      ..strokeCap = StrokeCap.round
+      ..strokeJoin = StrokeJoin.round;
+    final fill = Paint()..color = const Color(0xFF000000);
+
+    canvas.drawCircle(Offset(12 * s, 12 * s), 10 * s, stroke);
+    canvas.drawCircle(Offset(12 * s, 12 * s), 4 * s, fill);
+  }
+
+  @override
+  bool shouldRepaint(covariant CustomPainter old) => false;
+}
+
+// ─── Cloud (outline cloud, matches Tauri SVG) ─────────────────────────────
+
+class _CloudIconPainter extends CustomPainter {
+  const _CloudIconPainter();
+
+  @override
+  void paint(Canvas canvas, Size size) {
+    final s = size.width / 24.0;
+    final stroke = Paint()
+      ..color = const Color(0xFF000000)
+      ..style = PaintingStyle.stroke
+      ..strokeWidth = 2 * s
+      ..strokeCap = StrokeCap.round
+      ..strokeJoin = StrokeJoin.round;
+
+    // Approx Lucide "cloud" path:
+    //  M17.5 19a4.5 4.5 0 0 0 1.5-8.75
+    //  A6 6 0 0 0 7 8a4 4 0 0 0-2 7.5
+    //  Z
+    final path = Path()
+      ..moveTo(17.5 * s, 19 * s)
+      ..cubicTo(20 * s, 19 * s, 22 * s, 16 * s, 22 * s, 13 * s)
+      ..cubicTo(22 * s, 11 * s, 20.5 * s, 9.5 * s, 19 * s, 10.25 * s)
+      ..cubicTo(18.5 * s, 6 * s, 13 * s, 4.5 * s, 9.5 * s, 6.5 * s)
+      ..cubicTo(7.5 * s, 7.5 * s, 6.5 * s, 9 * s, 7 * s, 11 * s)
+      ..cubicTo(4.5 * s, 11 * s, 3 * s, 13.5 * s, 3.5 * s, 15.5 * s)
+      ..cubicTo(4 * s, 17.5 * s, 5.5 * s, 19 * s, 8 * s, 19 * s)
+      ..close();
+    canvas.drawPath(path, stroke);
+  }
+
+  @override
+  bool shouldRepaint(covariant CustomPainter old) => false;
+}

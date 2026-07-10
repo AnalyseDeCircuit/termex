@@ -566,3 +566,77 @@ pub fn team_change_passphrase(
     termex_core::keychain::store(TEAM_PASSPHRASE_KEY, &new_passphrase)
         .map_err(|e| format!("failed to update team passphrase: {e}"))
 }
+
+// ─── Share / unshare individual servers with the team ────────────────────────
+//
+// v0.77.0 PC final parity: the legacy Tauri tree exposed a right-click
+// "分享至团队" / "取消分享" action that flipped `servers.shared` together
+// with `team_id`, `shared_by`, `shared_at`. These endpoints replicate
+// the same DB writes so the new Flutter sidebar can offer the same UX.
+//
+// The current team identifier is read from the existing team_members
+// row marked as `me = 1`. When no team is configured (single-user
+// mode) the share call surfaces a friendly error rather than silently
+// no-op'ing.
+
+/// Marks `server_id` as shared with the active team. Sets `shared = 1`,
+/// `team_id`, `shared_by`, and `shared_at` on the matching `servers`
+/// row. Returns Err when no active team / user identity is configured.
+#[frb]
+pub fn team_share_server(server_id: String) -> Result<(), String> {
+    crate::db_state::with_db(|db| {
+        db.with_conn(|conn| {
+            let (team_id, shared_by): (String, String) = conn
+                .query_row(
+                    "SELECT COALESCE(team_id, '') , COALESCE(name, '')
+                     FROM team_members WHERE me = 1 LIMIT 1",
+                    [],
+                    |r| Ok((r.get(0)?, r.get(1)?)),
+                )
+                .map_err(|_| {
+                    rusqlite::Error::ToSqlConversionFailure(
+                        "no active team membership configured".into(),
+                    )
+                })?;
+            if team_id.is_empty() {
+                return Err(rusqlite::Error::ToSqlConversionFailure(
+                    "active team has no team_id".into(),
+                ));
+            }
+            let now = chrono::Utc::now().to_rfc3339();
+            let updated = conn.execute(
+                "UPDATE servers
+                 SET shared = 1, team_id = ?2, shared_by = ?3,
+                     shared_at = ?4, updated_at = ?4
+                 WHERE id = ?1",
+                rusqlite::params![server_id, team_id, shared_by, now],
+            )?;
+            if updated == 0 {
+                return Err(rusqlite::Error::QueryReturnedNoRows);
+            }
+            Ok(())
+        })
+        .map_err(|e| e.to_string())
+    })
+}
+
+/// Reverts a previous [`team_share_server`] call: clears the shared
+/// flag and the team_id / shared_by / shared_at columns. Safe to call
+/// on a server that isn't currently shared (no-op when 0 rows match).
+#[frb]
+pub fn team_unshare_server(server_id: String) -> Result<(), String> {
+    crate::db_state::with_db(|db| {
+        db.with_conn(|conn| {
+            let now = chrono::Utc::now().to_rfc3339();
+            conn.execute(
+                "UPDATE servers
+                 SET shared = 0, team_id = NULL, shared_by = NULL,
+                     shared_at = NULL, updated_at = ?2
+                 WHERE id = ?1",
+                rusqlite::params![server_id, now],
+            )?;
+            Ok::<(), rusqlite::Error>(())
+        })
+        .map_err(|e| e.to_string())
+    })
+}

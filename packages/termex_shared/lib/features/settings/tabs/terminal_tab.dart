@@ -24,10 +24,17 @@ class TerminalTab extends ConsumerWidget {
           label: '滚动缓冲行数',
           hint: '向上回滚历史的最大行数',
           child: DropdownButton<int>(
-            value: settings.scrollbackLines,
+            // 5000 is the legacy default from the v0.x Tauri build — keep
+            // it as a selectable option so users whose DB still has that
+            // value don't see the DropdownButton assertion firing.
+            // Defensive `_coerce` snaps any other unknown value to the
+            // nearest supported option to keep the dropdown stable as
+            // the option set evolves.
+            value: _coerceScrollback(settings.scrollbackLines),
             dropdownColor: TermexColors.backgroundSecondary,
             items: const [
               DropdownMenuItem(value: 1000, child: Text('1,000 行')),
+              DropdownMenuItem(value: 5000, child: Text('5,000 行')),
               DropdownMenuItem(value: 10000, child: Text('10,000 行')),
               DropdownMenuItem(value: 100000, child: Text('100,000 行')),
             ],
@@ -77,6 +84,26 @@ class TerminalTab extends ConsumerWidget {
       ],
     );
   }
+}
+
+/// Snaps an arbitrary stored value to the nearest supported scrollback
+/// option. Without this, DropdownButton asserts when `value` doesn't
+/// match exactly one DropdownMenuItem — easy to hit on legacy DBs.
+int _coerceScrollback(int stored) {
+  const options = [1000, 5000, 10000, 100000];
+  if (options.contains(stored)) return stored;
+  // Closest by absolute distance — gives a reasonable mapping for any
+  // future migration without losing the user's intent.
+  int best = options.first;
+  int bestDist = (stored - best).abs();
+  for (final o in options.skip(1)) {
+    final d = (stored - o).abs();
+    if (d < bestDist) {
+      best = o;
+      bestDist = d;
+    }
+  }
+  return best;
 }
 
 class _TmuxModeRow extends ConsumerWidget {

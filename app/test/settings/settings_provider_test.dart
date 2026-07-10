@@ -10,7 +10,10 @@ void main() {
       expect(s.fontSize, greaterThan(0));
       expect(s.scrollbackLines, greaterThan(0));
       expect(s.cursorBlink, isA<bool>());
-      expect(s.themeMode, equals(ThemeMode.dark));
+      // v0.77.0+: default is `ThemeMode.system` so the app honours the
+      // OS-level light/dark preference out of the box. Users can still
+      // override to dark/light explicitly via Settings.
+      expect(s.themeMode, equals(ThemeMode.system));
     });
 
     test('copyWith changes only specified field', () {

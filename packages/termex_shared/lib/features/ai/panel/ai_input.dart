@@ -136,24 +136,14 @@ class _AiInputState extends ConsumerState<AiInput> {
                 _SendButton(enabled: _hasText, onTap: _send),
             ],
           ),
-          const SizedBox(height: 4),
-          // Footer: model label
-          Text(
-            '${_providerLabel(config.provider)} · ${config.model} · 上下文 ${config.contextLines} 行',
-            style:
-                const TextStyle(fontSize: 10, color: TermexColors.textSecondary),
-          ),
+          // v0.77.0 PC final parity: removed the redundant
+          // "${provider} · ${model} · 上下文 N 行" footer — the same
+          // metadata is already shown in the top-right Provider Switcher
+          // chip in the AiPanel toolbar.
         ],
       ),
     );
   }
-
-  String _providerLabel(AiProvider p) => switch (p) {
-        AiProvider.claude => 'Claude',
-        AiProvider.openAi => 'OpenAI',
-        AiProvider.ollama => 'Ollama',
-        AiProvider.localLlama => 'Local AI',
-      };
 }
 
 class _SendButton extends StatelessWidget {

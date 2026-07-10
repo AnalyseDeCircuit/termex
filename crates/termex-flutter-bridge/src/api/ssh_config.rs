@@ -135,9 +135,16 @@ pub fn import_ssh_config(
             username: entry.user.clone(),
             auth_type,
             password: None,
+            passphrase: None,
             key_path: entry.identity_file.clone(),
             group_id: None,
             tags: vec![],
+            tmux_mode: None,
+            tmux_close_action: None,
+            git_sync_enabled: None,
+            git_sync_remote_path: None,
+            git_sync_local_path: None,
+            git_sync_mode: None,
         };
 
         match create_server(input) {

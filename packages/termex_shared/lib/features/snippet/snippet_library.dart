@@ -10,6 +10,13 @@ class SnippetLibrary extends ConsumerStatefulWidget {
   final void Function(String command)? onExecute;
   const SnippetLibrary({super.key, this.onExecute});
 
+  /// v0.79.59: open the snippet editor in "new" mode. Public so a host
+  /// shell's nav-bar "+" button can trigger snippet creation without
+  /// having to keep an inline button inside the library toolbar.
+  static void startNew(WidgetRef ref) {
+    ref.read(snippetProvider.notifier).setEditing('__new__');
+  }
+
   @override
   ConsumerState<SnippetLibrary> createState() => _SnippetLibraryState();
 }
@@ -44,58 +51,55 @@ class _SnippetLibraryState extends ConsumerState<SnippetLibrary> {
 
     return Column(
       children: [
-        // Toolbar
+        // v0.79.59: toolbar slimmed down. The inline "+ 新建" elevated
+        // button next to the search field was redundant (host shells
+        // now paint a top-right "+" in their nav bar — see mobile
+        // `_TerminalTabHeader`'s `onAdd: () => SnippetLibrary.startNew`),
+        // and forced the search field into a 32pt min-height column.
+        // Removing it lets the search field collapse to its natural
+        // ~32pt and reclaims the right-side real estate.
         Container(
-          padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 8),
+          padding: const EdgeInsets.fromLTRB(12, 6, 12, 6),
           decoration: const BoxDecoration(
             border: Border(bottom: BorderSide(color: TermexColors.border)),
           ),
-          child: Row(
-            children: [
-              // Search
-              Expanded(
-                child: TextField(
-                  controller: _searchCtrl,
-                  onChanged: ref.read(snippetProvider.notifier).setSearch,
-                  decoration: InputDecoration(
-                    hintText: '搜索 snippet…',
-                    hintStyle: const TextStyle(fontSize: 12, color: TermexColors.textSecondary),
-                    prefixIcon: const Icon(Icons.search, size: 16, color: TermexColors.textSecondary),
-                    border: OutlineInputBorder(
-                      borderRadius: BorderRadius.circular(6),
-                      borderSide: const BorderSide(color: TermexColors.border),
-                    ),
-                    enabledBorder: OutlineInputBorder(
-                      borderRadius: BorderRadius.circular(6),
-                      borderSide: const BorderSide(color: TermexColors.border),
-                    ),
-                    contentPadding: const EdgeInsets.symmetric(vertical: 6),
-                    isDense: true,
-                  ),
-                  style: const TextStyle(fontSize: 12, color: TermexColors.textPrimary),
+          child: SizedBox(
+            height: 32,
+            child: TextField(
+              controller: _searchCtrl,
+              onChanged: ref.read(snippetProvider.notifier).setSearch,
+              decoration: InputDecoration(
+                hintText: '搜索 snippet…',
+                hintStyle: const TextStyle(fontSize: 12, color: TermexColors.textSecondary),
+                prefixIcon: const Icon(Icons.search, size: 14, color: TermexColors.textSecondary),
+                prefixIconConstraints:
+                    const BoxConstraints(minWidth: 30, minHeight: 30),
+                border: OutlineInputBorder(
+                  borderRadius: BorderRadius.circular(6),
+                  borderSide: const BorderSide(color: TermexColors.border),
                 ),
-              ),
-              const SizedBox(width: 8),
-              ElevatedButton.icon(
-                onPressed: () => ref.read(snippetProvider.notifier).setEditing('__new__'),
-                icon: const Icon(Icons.add, size: 14),
-                label: const Text('新建', style: TextStyle(fontSize: 12)),
-                style: ElevatedButton.styleFrom(
-                  backgroundColor: TermexColors.primary,
-                  foregroundColor: Colors.white,
-                  minimumSize: const Size(72, 32),
+                enabledBorder: OutlineInputBorder(
+                  borderRadius: BorderRadius.circular(6),
+                  borderSide: const BorderSide(color: TermexColors.border),
                 ),
+                contentPadding: EdgeInsets.zero,
+                isDense: true,
               ),
-            ],
+              style: const TextStyle(fontSize: 12, color: TermexColors.textPrimary),
+            ),
           ),
         ),
-        // Tag filter
+        // v0.79.59: tightened tag-filter row. The previous 36pt SizedBox
+        // with vertical:6 padding rendered a visually-tall band with a
+        // disproportionate gap before the first row (~140pt total). The
+        // chip itself is ~22pt — 28pt SizedBox + symmetric padding 3 is
+        // enough to host it without floating in dead space.
         if (state.allTags.isNotEmpty)
           SizedBox(
-            height: 36,
+            height: 28,
             child: ListView(
               scrollDirection: Axis.horizontal,
-              padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 6),
+              padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 3),
               children: [
                 _TagFilter(tag: null, selected: state.selectedTag == null, label: '全部'),
                 ...state.allTags.map((t) => _TagFilter(
@@ -107,6 +111,21 @@ class _SnippetLibraryState extends ConsumerState<SnippetLibrary> {
             ),
           ),
         // List
+        //
+        // v0.79.60: `MediaQuery.removePadding(removeTop: true)` wrapping
+        // the ListView fixes the empty band that sat above the first
+        // snippet on iPhone 17 Pro. Even though `MobileShell` already
+        // consumed `MediaQuery.padding.top` via a SizedBox spacer, the
+        // unmodified MediaQuery still propagated to children — and a
+        // nested vertical ListView with `primary: true` (default) reads
+        // that top inset and re-applies it as scroll-content padding.
+        // Result: ~59pt double-padding showing as dead space between
+        // the tag-chip row and the first snippet row.
+        //
+        // Two-belt-one-suspender fix: (a) strip inherited top padding
+        // via `MediaQuery.removePadding`, and (b) force `primary: false
+        // + padding: EdgeInsets.zero` on the ListView so we never
+        // depend on inherited insets again.
         Expanded(
           child: state.isLoading
               ? const Center(child: CircularProgressIndicator(color: TermexColors.primary))
@@ -122,11 +141,17 @@ class _SnippetLibraryState extends ConsumerState<SnippetLibrary> {
                         ],
                       ),
                     )
-                  : ListView.builder(
-                      itemCount: state.filtered.length,
-                      itemBuilder: (_, i) => SnippetRow(
-                        snippet: state.filtered[i],
-                        onExecute: widget.onExecute,
+                  : MediaQuery.removePadding(
+                      context: context,
+                      removeTop: true,
+                      child: ListView.builder(
+                        primary: false,
+                        padding: EdgeInsets.zero,
+                        itemCount: state.filtered.length,
+                        itemBuilder: (_, i) => SnippetRow(
+                          snippet: state.filtered[i],
+                          onExecute: widget.onExecute,
+                        ),
                       ),
                     ),
         ),

@@ -121,6 +121,376 @@ class AppLocalizationsEn extends AppLocalizations {
   String get sidebarServers => 'Servers';
 
   @override
+  String get serverListEmpty => 'No servers yet';
+
+  @override
+  String get notificationsSectionTitle => 'Notifications';
+
+  @override
+  String get notificationsTestButton => 'Send test notification';
+
+  @override
+  String get notificationsTestSent => 'Test notification sent';
+
+  @override
+  String get notificationsTestDenied =>
+      'Notification permission denied — enable in system settings';
+
+  @override
+  String get notificationsTestTitle => 'Termex test';
+
+  @override
+  String get notificationsTestBody =>
+      'If you can see this, AI task notifications will reach you here.';
+
+  @override
+  String get notificationsDemoTaskButton => 'Fire demo task event';
+
+  @override
+  String get notificationsDemoTaskTitle => 'Demo task completed';
+
+  @override
+  String get notificationsDemoTaskSummary =>
+      'Synthetic event from Settings — verifies the bus → notifier path.';
+
+  @override
+  String get notificationsDemoTaskSent =>
+      'Demo task event published — notification should fire shortly';
+
+  @override
+  String get taskDetailHeader => 'Task detail';
+
+  @override
+  String get taskDetailUnknownTask => 'Unknown task';
+
+  @override
+  String get taskDetailNoSummary => 'No summary available yet.';
+
+  @override
+  String get taskDetailOutputComingSoon =>
+      'Output and artifacts will appear here once the daemon event stream is wired (v0.79.24+).';
+
+  @override
+  String get taskDetailStatusUnknown => 'Unknown';
+
+  @override
+  String get taskDetailStatusPending => 'Pending';
+
+  @override
+  String get taskDetailStatusAwaitingConfirmation => 'Awaiting confirmation';
+
+  @override
+  String get taskDetailStatusRunning => 'Running';
+
+  @override
+  String get taskDetailStatusSucceeded => 'Succeeded';
+
+  @override
+  String get taskDetailStatusFailed => 'Failed';
+
+  @override
+  String get taskDetailStatusCancelled => 'Cancelled';
+
+  @override
+  String get taskHistoryHeader => 'Task history';
+
+  @override
+  String get taskHistoryEmptyTitle => 'No tasks tracked yet';
+
+  @override
+  String get taskHistoryEmptyHint =>
+      'Tasks appear here as soon as the daemon or in-app sources publish events. Try the \"Fire demo task event\" button in Settings.';
+
+  @override
+  String get taskHistoryEntryAction => 'View task history';
+
+  @override
+  String get taskHistoryActionDelete => 'Delete';
+
+  @override
+  String get taskHistoryActionClearAll => 'Clear all';
+
+  @override
+  String get taskHistoryDeleteConfirmTitle => 'Delete task?';
+
+  @override
+  String taskHistoryDeleteConfirmBody(String title) {
+    return 'Remove \"$title\" from history. This cannot be undone.';
+  }
+
+  @override
+  String get taskHistoryClearAllConfirmTitle => 'Clear all tasks?';
+
+  @override
+  String taskHistoryClearAllConfirmBody(int count) {
+    return 'All $count entries will be removed. This cannot be undone.';
+  }
+
+  @override
+  String taskSftpUploadSucceededTitle(String fileName) {
+    return 'Uploaded $fileName';
+  }
+
+  @override
+  String taskSftpDownloadSucceededTitle(String fileName) {
+    return 'Downloaded $fileName';
+  }
+
+  @override
+  String taskSftpUploadFailedTitle(String fileName) {
+    return 'Upload failed: $fileName';
+  }
+
+  @override
+  String taskSftpDownloadFailedTitle(String fileName) {
+    return 'Download failed: $fileName';
+  }
+
+  @override
+  String taskSftpUploadCancelledTitle(String fileName) {
+    return 'Upload cancelled: $fileName';
+  }
+
+  @override
+  String taskSftpDownloadCancelledTitle(String fileName) {
+    return 'Download cancelled: $fileName';
+  }
+
+  @override
+  String taskSftpUploadSucceededBody(String size) {
+    return 'Upload completed ($size)';
+  }
+
+  @override
+  String taskSftpDownloadSucceededBody(String size) {
+    return 'Download completed ($size)';
+  }
+
+  @override
+  String taskSftpFailedBody(String action, String error) {
+    return '$action failed — $error';
+  }
+
+  @override
+  String taskSftpCancelledBody(
+      String action, String transferred, String total) {
+    return '$action cancelled at $transferred of $total';
+  }
+
+  @override
+  String get taskSftpActionUpload => 'Upload';
+
+  @override
+  String get taskSftpActionDownload => 'Download';
+
+  @override
+  String get taskPollerSummarySucceeded => 'Task completed successfully';
+
+  @override
+  String get taskPollerSummaryFailed => 'Task failed';
+
+  @override
+  String taskPollerSummaryFailedWithExit(int exitCode) {
+    return 'Task failed (exit $exitCode)';
+  }
+
+  @override
+  String get taskPollerSummaryCancelled => 'Task cancelled';
+
+  @override
+  String get taskPollerSummaryRunning => 'Task started';
+
+  @override
+  String get taskPollerSummaryPending => 'Task queued';
+
+  @override
+  String get taskPollerSummaryAwaitingConfirmation =>
+      'Task awaiting confirmation';
+
+  @override
+  String taskAiSucceededTitle(String model) {
+    return 'AI reply from $model';
+  }
+
+  @override
+  String taskAiSucceededTitleWithConversation(
+      String conversation, String model) {
+    return '$conversation — reply from $model';
+  }
+
+  @override
+  String get taskAiFailedTitle => 'AI generation failed';
+
+  @override
+  String taskAiFailedTitleWithConversation(String conversation) {
+    return '$conversation — failed';
+  }
+
+  @override
+  String get taskAiCancelledTitle => 'AI generation cancelled';
+
+  @override
+  String taskAiCancelledTitleWithConversation(String conversation) {
+    return '$conversation — cancelled';
+  }
+
+  @override
+  String get taskAiSucceededBody => 'Response generated';
+
+  @override
+  String taskAiSucceededBodyWithLength(int chars) {
+    return 'Response generated ($chars chars)';
+  }
+
+  @override
+  String taskAiSucceededBodyWithTokens(int chars, int tokensIn, int tokensOut) {
+    return 'Response generated ($chars chars · ↑$tokensIn ↓$tokensOut tokens)';
+  }
+
+  @override
+  String taskAiSucceededBodyWithCost(
+      int chars, int tokensIn, int tokensOut, String cost) {
+    return 'Response generated ($chars chars · ↑$tokensIn ↓$tokensOut tokens · $cost)';
+  }
+
+  @override
+  String get taskAiFailedBody => 'Generation failed';
+
+  @override
+  String taskAiFailedBodyWithError(String error) {
+    return 'Generation failed — $error';
+  }
+
+  @override
+  String get taskAiCancelledBody => 'Generation cancelled';
+
+  @override
+  String get notificationThresholdsTitle => 'Notification thresholds';
+
+  @override
+  String get notificationThresholdsSftpToggleLabel => 'Notify on SFTP success';
+
+  @override
+  String get notificationThresholdsSftpToggleHint =>
+      'Disable to silence all SFTP success notifications; failures still notify.';
+
+  @override
+  String get notificationThresholdsSizeLabel => 'Minimum file size';
+
+  @override
+  String notificationThresholdsSizeValue(double mb) {
+    final intl.NumberFormat mbNumberFormat =
+        intl.NumberFormat.decimalPattern(localeName);
+    final String mbString = mbNumberFormat.format(mb);
+
+    return '$mbString MB';
+  }
+
+  @override
+  String get notificationThresholdsDurationLabel => 'Minimum duration';
+
+  @override
+  String notificationThresholdsDurationValue(int seconds) {
+    return '$seconds s';
+  }
+
+  @override
+  String get notificationThresholdsHelp =>
+      'An SFTP success notifies when EITHER size or duration meets its threshold. Failures and AI completions always notify.';
+
+  @override
+  String get notificationThresholdsReset => 'Reset to defaults';
+
+  @override
+  String get notificationThresholdsResetDone => 'Reset to defaults';
+
+  @override
+  String get notificationThresholdsUndoWindowLabel => 'Undo window';
+
+  @override
+  String notificationThresholdsUndoWindowValue(int seconds) {
+    return '$seconds s';
+  }
+
+  @override
+  String get notificationThresholdsUndoWindowOff => 'Off (instant delete)';
+
+  @override
+  String get taskHistoryUndoDeleted => 'Deleted';
+
+  @override
+  String taskHistoryUndoCleared(int count) {
+    return 'Cleared $count entries';
+  }
+
+  @override
+  String get taskHistoryUndoAction => 'Undo';
+
+  @override
+  String get taskHistoryFilterAll => 'All';
+
+  @override
+  String get taskHistoryFilterSftp => 'SFTP';
+
+  @override
+  String get taskHistoryFilterAi => 'AI';
+
+  @override
+  String get taskHistoryFilterOther => 'Other';
+
+  @override
+  String get taskHistoryFilterEmptyTitle => 'No tasks match this filter';
+
+  @override
+  String get taskHistoryFilterEmptyHint => 'Switch to All to see every task.';
+
+  @override
+  String get taskHistorySearchPlaceholder => 'Search by title or summary…';
+
+  @override
+  String get taskHistorySearchEmptyTitle => 'No tasks match your search';
+
+  @override
+  String get taskHistorySearchEmptyHint =>
+      'Clear the search box or adjust your query.';
+
+  @override
+  String get taskHistoryActionClearFiltered => 'Clear filtered';
+
+  @override
+  String taskHistoryActionClearFilteredWithCount(int count) {
+    return 'Clear filtered ($count)';
+  }
+
+  @override
+  String get taskHistoryClearFilteredConfirmTitle => 'Clear filtered tasks?';
+
+  @override
+  String taskHistoryClearFilteredConfirmBody(int count) {
+    return 'The $count filtered entries will be removed. Unfiltered tasks stay. This cannot be undone after the window closes.';
+  }
+
+  @override
+  String taskHistoryRelativeSecondsAgo(int seconds) {
+    return '${seconds}s ago';
+  }
+
+  @override
+  String taskHistoryRelativeMinutesAgo(int minutes) {
+    return '${minutes}m ago';
+  }
+
+  @override
+  String taskHistoryRelativeHoursAgo(int hours) {
+    return '${hours}h ago';
+  }
+
+  @override
+  String taskHistoryRelativeDaysAgo(int days) {
+    return '${days}d ago';
+  }
+
+  @override
   String get sidebarSearch => 'Search servers...';
 
   @override
@@ -275,7 +645,24 @@ class AppLocalizationsEn extends AppLocalizations {
   String get settingsTitle => 'Settings';
 
   @override
+  String get aiOnboardingHeadline => 'No AI provider configured';
+
+  @override
+  String get aiOnboardingBody =>
+      'Add a Claude / OpenAI / Gemini API key or a local Ollama endpoint in Settings before starting a conversation.';
+
+  @override
+  String get aiOnboardingCta => 'Open Settings → AI';
+
+  @override
+  String get aiOnboardingFallbackHint =>
+      'Open Settings → AI to add a provider.';
+
+  @override
   String get settingsAppearance => 'Appearance';
+
+  @override
+  String get settingsNotifications => 'Notifications';
 
   @override
   String get settingsTerminal => 'Terminal';
@@ -900,6 +1287,27 @@ class AppLocalizationsEn extends AppLocalizations {
   String get connectionGroup => 'Group';
 
   @override
+  String get connectionGroupNone => 'None';
+
+  @override
+  String get connectionTags => 'Tags';
+
+  @override
+  String get connectionTagsHint => 'comma separated, e.g. production, linux';
+
+  @override
+  String get connectionAuthTypePassword => 'Password';
+
+  @override
+  String get connectionAuthTypeKey => 'Private Key';
+
+  @override
+  String get connectionAuthTypeInteractive => 'Interactive';
+
+  @override
+  String get connectionPassphrase => 'Passphrase';
+
+  @override
   String get connectionAuthorizationInfo => 'Authorization';
 
   @override
@@ -938,7 +1346,32 @@ class AppLocalizationsEn extends AppLocalizations {
   String get connectionTest => 'Test Connection';
 
   @override
+  String get connectionTesting => 'Testing connection…';
+
+  @override
   String get connectionTestSuccess => 'Connection test successful';
+
+  @override
+  String get connectionTestFailed => 'Connection test failed';
+
+  @override
+  String get connectionKeySourcePath => 'File path';
+
+  @override
+  String get connectionKeySourcePaste => 'Paste content';
+
+  @override
+  String get connectionKeyContent => 'Private key content';
+
+  @override
+  String get connectionKeyContentPlaceholder =>
+      '-----BEGIN OPENSSH PRIVATE KEY-----\n…';
+
+  @override
+  String get connectionAddServer => 'Add Server';
+
+  @override
+  String get connectionEditServer => 'Edit Server';
 
   @override
   String get connectionProxy => 'Proxy';
@@ -1834,10 +2267,7 @@ class AppLocalizationsEn extends AppLocalizations {
 
   @override
   String sshConfigResultSummary(
-    String imported,
-    String skipped,
-    String errors,
-  ) {
+      String imported, String skipped, String errors) {
     return '$imported imported, $skipped skipped, $errors error(s)';
   }
 
@@ -3270,4 +3700,61 @@ class AppLocalizationsEn extends AppLocalizations {
 
   @override
   String get recordingCleanupRunning => 'Cleaning up…';
+
+  @override
+  String get keybindingsNewTab => 'New Tab';
+
+  @override
+  String get keybindingsClosePane => 'Close Pane';
+
+  @override
+  String get keybindingsCopy => 'Copy';
+
+  @override
+  String get keybindingsPaste => 'Paste';
+
+  @override
+  String get keybindingsSelectAll => 'Select All';
+
+  @override
+  String get keybindingsZoomIn => 'Zoom In';
+
+  @override
+  String get keybindingsZoomOut => 'Zoom Out';
+
+  @override
+  String get keybindingsResetZoom => 'Reset Zoom';
+
+  @override
+  String get keybindingsCommandPalette => 'Command Palette';
+
+  @override
+  String get keybindingsAiDiagnose => 'AI Diagnose';
+
+  @override
+  String get keybindingsNl2cmd => 'Natural Language to Command';
+
+  @override
+  String get keybindingsSftpPanel => 'SFTP Panel';
+
+  @override
+  String get keybindingsSftpUpload => 'SFTP Upload';
+
+  @override
+  String get keybindingsSftpDownload => 'SFTP Download';
+
+  @override
+  String get keybindingsToggleSftp => 'Toggle SFTP';
+
+  @override
+  String get keybindingsReloadWindow => 'Reload Window';
+
+  @override
+  String get keybindingsToggleFullscreen => 'Toggle Fullscreen';
+
+  @override
+  String get sidebarProxies => 'Proxies';
+
+  @override
+  String get keybindingsUntranslated => '(untranslated)';
 }

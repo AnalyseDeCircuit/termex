@@ -2,6 +2,9 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:termex_bridge/src/api.dart' as bridge;
 import 'package:termex_bridge/src/models.dart' as bridge_models;
 
+import '../../../design/theme.dart' as design;
+import '../../../design/theme_provider.dart';
+
 // ─── Models ───────────────────────────────────────────────────────────────────
 
 enum ThemeMode { system, light, dark }
@@ -41,7 +44,11 @@ class AppSettings {
   final String recordingFormat;
 
   const AppSettings({
-    this.themeMode = ThemeMode.dark,
+    // v0.77.0: default to OS-following. The legacy Tauri build defaulted
+    // to "dark" because the Vue terminal renderer didn't support live
+    // theme flips; Flutter does, so respecting the system theme out of
+    // the box matches macOS / Windows / GNOME convention.
+    this.themeMode = ThemeMode.system,
     this.colorScheme = 'github-dark',
     this.fontFamily = 'JetBrainsMono',
     this.fontSize = 13.0,
@@ -194,18 +201,31 @@ class SettingsNotifier extends Notifier<SettingsState> {
     state = state.copyWith(isLoading: true);
     try {
       final remote = await bridge.settingsLoad();
-      state = state.copyWith(
-        settings: _fromBridge(remote),
-        isLoading: false,
-      );
+      final loaded = _fromBridge(remote);
+      state = state.copyWith(settings: loaded, isLoading: false);
+      _pushThemeToLive(loaded.themeMode);
     } catch (_) {
       // native not ready — keep defaults
       state = state.copyWith(isLoading: false);
+      _pushThemeToLive(state.settings.themeMode);
     }
   }
 
   void update(AppSettings settings) {
     state = state.copyWith(settings: settings, isDirty: true);
+    _pushThemeToLive(settings.themeMode);
+  }
+
+  /// Mirrors the user's settings-page selection into the live theme
+  /// provider so the change applies instantly — without this, settings
+  /// would only take effect after a save+restart.
+  void _pushThemeToLive(ThemeMode m) {
+    final mapped = switch (m) {
+      ThemeMode.light => design.TermexThemeMode.light,
+      ThemeMode.dark => design.TermexThemeMode.dark,
+      ThemeMode.system => design.TermexThemeMode.system,
+    };
+    ref.read(themeModeProvider.notifier).setMode(mapped);
   }
 
   Future<void> save() async {

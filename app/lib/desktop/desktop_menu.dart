@@ -9,6 +9,7 @@ import 'package:termex_shared/features/server_list/widgets/server_form_dialog.da
 import 'package:termex_shared/features/settings/settings_page.dart';
 import 'package:termex_shared/features/settings/widgets/privacy_policy_dialog.dart';
 import 'package:termex_shared/features/snippet/snippet_palette.dart';
+import 'package:termex_shared/features/update/update_dialog.dart';
 import 'package:termex_shared/features/tabs/state/tab_controller.dart';
 import 'package:termex_shared/terminal/broadcast_registry.dart';
 import 'package:termex_shared/widgets/dialog.dart';
@@ -216,6 +217,10 @@ class TermexDesktopMenu extends ConsumerWidget {
         PlatformMenu(
           label: 'Help',
           menus: [
+            PlatformMenuItem(
+              label: 'Check for Updates…',
+              onSelected: () => showUpdateDialog(context),
+            ),
             PlatformMenuItem(
               label: 'Privacy Policy…',
               onSelected: () => PrivacyPolicyDialog.show(context),

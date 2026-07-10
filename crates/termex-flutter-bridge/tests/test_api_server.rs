@@ -36,7 +36,8 @@ fn test_create_and_get_server() {
         key_path: None,
         group_id: None,
         tags: vec![],
-    };
+            ..Default::default()
+        };
     let created = create_server(input).unwrap();
     assert_eq!(created.name, "Test Server");
     assert_eq!(created.host, "example.com");
@@ -59,7 +60,8 @@ fn test_update_server() {
         key_path: None,
         group_id: None,
         tags: vec!["prod".into()],
-    };
+            ..Default::default()
+        };
     let created = create_server(input).unwrap();
 
     let update = ServerInput {
@@ -72,7 +74,8 @@ fn test_update_server() {
         key_path: Some("/path/to/key".into()),
         group_id: None,
         tags: vec!["prod".into(), "updated".into()],
-    };
+            ..Default::default()
+        };
     let updated = update_server(created.id.clone(), update).unwrap();
     assert_eq!(updated.name, "Updated");
     assert_eq!(updated.port, 2222);
@@ -91,7 +94,8 @@ fn test_delete_server() {
         key_path: None,
         group_id: None,
         tags: vec![],
-    };
+            ..Default::default()
+        };
     let created = create_server(input).unwrap();
     delete_server(created.id.clone()).unwrap();
     let fetched = get_server(created.id).unwrap();
@@ -111,7 +115,8 @@ fn test_update_last_connected() {
         key_path: None,
         group_id: None,
         tags: vec![],
-    };
+            ..Default::default()
+        };
     let created = create_server(input).unwrap();
     assert!(created.last_connected.is_none());
 

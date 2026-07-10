@@ -125,6 +125,7 @@ class ProxyNotifier extends Notifier<ProxyState> {
     required String host,
     required int port,
     String? username,
+    String? password,
   }) async {
     state = state.copyWith(clearError: true);
     final optimistic = ProxyConfig(
@@ -147,6 +148,14 @@ class ProxyNotifier extends Notifier<ProxyState> {
         port: port,
         username: username,
       );
+      // Password is stored separately in the OS keychain via the canonical
+      // `proxy_password` ref so the SQLite row never holds a secret.
+      if (password != null && password.isNotEmpty) {
+        await bridge.proxyStorePassword(
+          proxyId: created.id,
+          password: password,
+        );
+      }
       final reconciled = state.proxies
           .map((p) => p.id == optimistic.id ? _fromBridge(created) : p)
           .toList();

@@ -16,6 +16,16 @@ pub static LLAMA_SERVER: Lazy<RwLock<LlamaServerState>> =
 pub static ACTIVE_DOWNLOADS: Lazy<DashMap<String, oneshot::Sender<()>>> =
     Lazy::new(DashMap::new);
 
+/// Per-model download progress: `(downloaded_bytes, total_bytes)`. The
+/// downloader's progress callback writes into this map; the Dart UI
+/// polls via [`local_ai_download_progress`] to drive a progress bar.
+///
+/// Entries are inserted at download start, updated on every byte
+/// boundary, and removed on completion or cancellation so a stale
+/// row never confuses a subsequent download of the same model.
+pub static DOWNLOAD_PROGRESS: Lazy<DashMap<String, (u64, u64)>> =
+    Lazy::new(DashMap::new);
+
 /// Set to true when the user disables auto-start while it is still pending.
 /// The auto-start task polls this flag before spawning llama-server.
 pub static AUTO_START_CANCELLED: AtomicBool = AtomicBool::new(false);

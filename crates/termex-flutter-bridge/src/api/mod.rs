@@ -2,6 +2,7 @@ pub mod ai;
 pub mod app;
 pub mod audit_catalogue;
 pub mod backup;
+pub mod chain;
 pub mod cloud;
 pub mod cost;
 pub mod crypto;
@@ -15,6 +16,16 @@ pub mod group;
 pub mod keybindings;
 pub mod local_ai;
 pub mod local_fs;
+// local_pty: real implementation on desktop, stub on iOS / Android.
+// Both modules expose identical function signatures so FRB-generated
+// wrappers compile uniformly across platforms. The stub is named
+// `local_pty_ios_stub.rs` for historical reasons; it serves both
+// mobile platforms now.
+#[cfg(not(any(target_os = "ios", target_os = "android")))]
+#[path = "local_pty_desktop.rs"]
+pub mod local_pty;
+#[cfg(any(target_os = "ios", target_os = "android"))]
+#[path = "local_pty_ios_stub.rs"]
 pub mod local_pty;
 pub mod monitor;
 pub mod port_forward;

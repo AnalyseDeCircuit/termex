@@ -1,3 +1,4 @@
+import 'package:flutter/material.dart' show Tooltip;
 import 'package:flutter/widgets.dart';
 
 import '../../../design/colors.dart';
@@ -27,9 +28,27 @@ class ServerTreeNode extends StatefulWidget {
   /// For servers — shows a green status dot when true
   final bool isConnected;
 
+  /// True when the server has a network proxy attached (SOCKS5/HTTP/Tor).
+  /// Rendered as a small purple "P" badge after the name.
+  final bool hasProxy;
+
+  /// True when the connection chain includes at least one SSH bastion
+  /// hop. Rendered as a small blue "B" badge after the name.
+  final bool hasBastion;
+
+  /// True when the server was shared with a team workspace. Rendered
+  /// as a green "T" badge so the user spots team-shared rows at a
+  /// glance — mirrors the legacy Tauri tree affordance.
+  final bool isShared;
+
   final VoidCallback? onTap;
   final VoidCallback? onDoubleTap;
   final VoidCallback? onLongPress;
+
+  /// Fired on right-click (secondary tap) with the global position so
+  /// the parent can anchor a context menu overlay. Long-press on
+  /// trackpads / mobile maps to the same callback.
+  final void Function(Offset globalPosition)? onContextMenu;
 
   /// Indentation depth — 8 px per level, matching macOS Finder sidebar
   /// where nesting is signalled by a small inset rather than a full
@@ -46,9 +65,13 @@ class ServerTreeNode extends StatefulWidget {
     required this.isExpanded,
     required this.isSelected,
     this.isConnected = false,
+    this.hasProxy = false,
+    this.hasBastion = false,
+    this.isShared = false,
     this.onTap,
     this.onDoubleTap,
     this.onLongPress,
+    this.onContextMenu,
     this.depth = 0,
   });
 
@@ -81,6 +104,16 @@ class _ServerTreeNodeState extends State<ServerTreeNode> {
         onTap: widget.onTap,
         onDoubleTap: widget.onDoubleTap,
         onLongPress: widget.onLongPress,
+        // Right-click / secondary-tap: parent opens a context menu
+        // anchored to the global position. macOS sends this on both
+        // right-click and Ctrl+click; on touch we fall back to a long
+        // press surfaced through onLongPressStart.
+        onSecondaryTapUp: widget.onContextMenu == null
+            ? null
+            : (d) => widget.onContextMenu!(d.globalPosition),
+        onLongPressStart: widget.onContextMenu == null
+            ? null
+            : (d) => widget.onContextMenu!(d.globalPosition),
         child: AnimatedContainer(
           duration: const Duration(milliseconds: 100),
           curve: Curves.easeOut,
@@ -121,18 +154,47 @@ class _ServerTreeNodeState extends State<ServerTreeNode> {
                   mainAxisAlignment: MainAxisAlignment.center,
                   crossAxisAlignment: CrossAxisAlignment.start,
                   children: [
-                    Text(
-                      widget.name,
-                      style: TermexTypography.body.copyWith(
-                        color: widget.isSelected
-                            ? TermexColors.textPrimary
-                            : TermexColors.textPrimary,
-                        fontWeight: widget.isGroup
-                            ? FontWeight.w500
-                            : FontWeight.normal,
-                      ),
-                      maxLines: 1,
-                      overflow: TextOverflow.ellipsis,
+                    Row(
+                      children: [
+                        Flexible(
+                          child: Text(
+                            widget.name,
+                            style: TermexTypography.body.copyWith(
+                              color: TermexColors.textPrimary,
+                              fontWeight: widget.isGroup
+                                  ? FontWeight.w500
+                                  : FontWeight.normal,
+                            ),
+                            maxLines: 1,
+                            overflow: TextOverflow.ellipsis,
+                          ),
+                        ),
+                        // Server-only routing badges. Order: proxy → bastion → shared.
+                        if (widget.hasProxy) ...[
+                          const SizedBox(width: 4),
+                          const _CapsuleBadge(
+                            label: 'P',
+                            color: Color(0xFF8B5CF6), // purple
+                            tooltip: '已配置网络代理',
+                          ),
+                        ],
+                        if (widget.hasBastion) ...[
+                          const SizedBox(width: 3),
+                          const _CapsuleBadge(
+                            label: 'B',
+                            color: Color(0xFF2F81F7), // blue (primary)
+                            tooltip: '经跳板机连接',
+                          ),
+                        ],
+                        if (widget.isShared) ...[
+                          const SizedBox(width: 3),
+                          const _CapsuleBadge(
+                            label: 'T',
+                            color: Color(0xFF3FB950), // green
+                            tooltip: '已分享至团队',
+                          ),
+                        ],
+                      ],
                     ),
                     if (widget.subtitle != null)
                       Text(
@@ -180,6 +242,48 @@ class _ExpandIcon extends StatelessWidget {
         TermexIcons.chevronRight,
         size: 12,
         color: TermexColors.textSecondary,
+      ),
+    );
+  }
+}
+
+/// Compact rounded-square badge used next to a server name to signal
+/// routing / sharing properties (proxy / bastion / team-shared). The
+/// glyph is a single uppercase character so the badge stays at 14×14
+/// regardless of locale; the [`tooltip`] explains it on hover.
+class _CapsuleBadge extends StatelessWidget {
+  final String label;
+  final Color color;
+  final String tooltip;
+
+  const _CapsuleBadge({
+    required this.label,
+    required this.color,
+    required this.tooltip,
+  });
+
+  @override
+  Widget build(BuildContext context) {
+    return Tooltip(
+      message: tooltip,
+      child: Container(
+        width: 14,
+        height: 14,
+        alignment: Alignment.center,
+        decoration: BoxDecoration(
+          color: color.withOpacity(0.18),
+          borderRadius: BorderRadius.circular(3),
+          border: Border.all(color: color.withOpacity(0.55), width: 0.5),
+        ),
+        child: Text(
+          label,
+          style: TextStyle(
+            fontSize: 9,
+            height: 1.0,
+            fontWeight: FontWeight.w700,
+            color: color,
+          ),
+        ),
       ),
     );
   }

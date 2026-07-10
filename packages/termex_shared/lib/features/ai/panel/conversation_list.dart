@@ -6,8 +6,17 @@ import '../state/conversation_provider.dart';
 import '../state/provider_config_provider.dart';
 
 /// Sidebar list of all stored conversations with New / Delete actions.
+///
+/// When mounted inside the [AiPanel]'s floating left-edge popover, the
+/// host wires [onSelect] so picking a conversation (or creating a new
+/// one) auto-dismisses the popover — letting the user return focus to
+/// the chat area without an extra click.
 class ConversationList extends ConsumerWidget {
-  const ConversationList({super.key});
+  /// Optional callback fired after the user selects / creates a
+  /// conversation. The popover host uses this to close itself.
+  final VoidCallback? onSelect;
+
+  const ConversationList({super.key, this.onSelect});
 
   @override
   Widget build(BuildContext context, WidgetRef ref) {
@@ -18,10 +27,13 @@ class ConversationList extends ConsumerWidget {
       crossAxisAlignment: CrossAxisAlignment.stretch,
       children: [
         _Header(
-          onNew: () => ref.read(conversationProvider.notifier).createConversation(
-                provider: config.provider,
-                model: config.model,
-              ),
+          onNew: () {
+            ref.read(conversationProvider.notifier).createConversation(
+                  provider: config.provider,
+                  model: config.model,
+                );
+            onSelect?.call();
+          },
         ),
         Expanded(
           child: state.conversations.isEmpty
@@ -33,9 +45,12 @@ class ConversationList extends ConsumerWidget {
                     return _ConversationRow(
                       conversation: conv,
                       isActive: conv.id == state.activeConversationId,
-                      onSelect: () => ref
-                          .read(conversationProvider.notifier)
-                          .selectConversation(conv.id),
+                      onSelect: () {
+                        ref
+                            .read(conversationProvider.notifier)
+                            .selectConversation(conv.id);
+                        onSelect?.call();
+                      },
                       onDelete: () => ref
                           .read(conversationProvider.notifier)
                           .deleteConversation(conv.id),
@@ -199,8 +214,17 @@ class _ConversationRow extends StatelessWidget {
     final label = switch (conv.provider) {
       AiProvider.claude => 'Claude',
       AiProvider.openAi => 'OpenAI',
+      AiProvider.gemini => 'Gemini',
       AiProvider.ollama => 'Ollama',
       AiProvider.localLlama => 'Local AI',
+      AiProvider.deepSeek => 'DeepSeek',
+      AiProvider.grok => 'Grok',
+      AiProvider.mistral => 'Mistral',
+      AiProvider.glm => 'GLM',
+      AiProvider.minimax => 'MiniMax',
+      AiProvider.doubao => 'Doubao',
+      AiProvider.bailian => '百炼',
+      AiProvider.custom => 'Custom',
     };
     final d = conv.createdAt;
     return '$label · ${d.month}/${d.day} ${d.hour.toString().padLeft(2, '0')}:${d.minute.toString().padLeft(2, '0')}';

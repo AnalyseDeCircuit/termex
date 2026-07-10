@@ -6,6 +6,7 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 
 import '../../design/tokens.dart';
 import '../../l10n/app_localizations.dart';
+import '../notifications/notifications_tab.dart';
 import 'state/settings_provider.dart';
 import 'tabs/about_tab.dart';
 import 'tabs/ai_tab.dart';
@@ -20,6 +21,7 @@ import 'tabs/terminal_tab.dart';
 
 enum SettingsTab {
   appearance,
+  notifications,
   terminal,
   keybindings,
   ai,
@@ -30,6 +32,25 @@ enum SettingsTab {
   localAi,
   about,
 }
+
+/// Localized human label for a settings tab. Exposed as a top-level
+/// helper so both the sidebar renderer and the search index can resolve
+/// "外观 / 终端 / 隐私" etc. when the user types tab names into the
+/// search box (previously the filter only looked at SettingEntry's
+/// label+description, so tab-name queries silently miss).
+String tabLabelFor(SettingsTab t, AppLocalizations l) => switch (t) {
+      SettingsTab.appearance => l.settingsAppearance,
+      SettingsTab.notifications => l.settingsNotifications,
+      SettingsTab.terminal => l.settingsTerminal,
+      SettingsTab.keybindings => l.settingsKeybindings,
+      SettingsTab.ai => l.settingsAi,
+      SettingsTab.team => l.settingsTeam,
+      SettingsTab.privacy => l.settingsPrivacy,
+      SettingsTab.backup => l.settingsBackup,
+      SettingsTab.audit => l.settingsAudit,
+      SettingsTab.localAi => l.settingsLocalAi,
+      SettingsTab.about => l.settingsAbout,
+    };
 
 /// A setting-search entry used to jump directly to a specific tab when the
 /// user types in the search box.  Spec §4.1.5.
@@ -53,6 +74,7 @@ class SettingEntry {
 List<SettingEntry> buildSettingsIndex(AppLocalizations l) => [
       SettingEntry(id: 'theme', label: l.settingsIdxThemeLabel, description: l.settingsIdxThemeDesc, tab: SettingsTab.appearance),
       SettingEntry(id: 'font', label: l.settingsIdxFontLabel, description: l.settingsIdxFontDesc, tab: SettingsTab.appearance),
+      SettingEntry(id: 'notifications', label: l.notificationThresholdsTitle, description: l.notificationThresholdsHelp, tab: SettingsTab.notifications),
       SettingEntry(id: 'cursor', label: l.settingsIdxCursorLabel, description: l.settingsIdxCursorDesc, tab: SettingsTab.terminal),
       SettingEntry(id: 'scrollback', label: l.settingsIdxScrollbackLabel, description: l.settingsIdxScrollbackDesc, tab: SettingsTab.terminal),
       SettingEntry(id: 'tab_width', label: l.settingsIdxTabWidthLabel, description: l.settingsIdxTabWidthDesc, tab: SettingsTab.terminal),
@@ -68,20 +90,73 @@ List<SettingEntry> buildSettingsIndex(AppLocalizations l) => [
       SettingEntry(id: 'about', label: l.settingsIdxAboutLabel, description: l.settingsIdxAboutDesc, tab: SettingsTab.about),
     ];
 
+/// Caller-injected extra sidebar entry (v0.79.54). Lets the mobile shell
+/// surface mobile-only settings (e.g. push-notification thresholds) as a
+/// first-class sidebar item alongside the built-in tabs without having
+/// to move that code into termex_shared (where it would drag the
+/// mobile-only Riverpod providers + bridge dependencies in).
+///
+/// Insert position is anchored to a built-in [SettingsTab] via
+/// [insertAfter] — the extra item renders directly below that tab in
+/// the sidebar listing. Pass `null` to append at the end. [id] must be
+/// unique among the extras passed in.
+class SettingsExtraTab {
+  final String id;
+  final String Function(AppLocalizations l) labelBuilder;
+  final IconData icon;
+  final WidgetBuilder builder;
+  final SettingsTab? insertAfter;
+
+  const SettingsExtraTab({
+    required this.id,
+    required this.labelBuilder,
+    required this.icon,
+    required this.builder,
+    this.insertAfter,
+  });
+}
+
 class SettingsPage extends ConsumerStatefulWidget {
-  /// When true, the page is rendered inside a dialog/sheet rather than as
-  /// a standalone route — currently only affects future styling tweaks; the
-  /// flag is accepted so DesktopShell can pass it without an extra branch.
+  /// When true, the page is rendered inside a dialog/sheet (e.g. the
+  /// desktop settings modal which already paints its own title bar +
+  /// close button). In that case the internal [_TitleBar] is suppressed
+  /// to avoid the duplicate "设置" header users saw in v0.77.0 A/B
+  /// screenshots. Standalone-route usage keeps the embedded title bar.
   final bool embedded;
 
-  const SettingsPage({super.key, this.embedded = false});
+  /// Optional list of extra sidebar entries injected by the caller —
+  /// see [SettingsExtraTab]. Defaults to none.
+  final List<SettingsExtraTab> extraTabs;
+
+  /// Optional widget rendered above the thresholds in the built-in
+  /// Notifications tab. v0.79.55: the mobile shell uses this to surface
+  /// `MobileTaskNotifier`-backed test buttons (Send test notification /
+  /// Fire demo task event) that can't live in shared because they
+  /// depend on the mobile bus + plugin. Desktop leaves it null.
+  final Widget? notificationsHeader;
+
+  /// v0.79.56: deep-link entry — when set, the page opens with this tab
+  /// already active. Used by [AiPanel]'s onboarding CTA to land the
+  /// user directly on `SettingsTab.ai`. `null` = default to
+  /// [SettingsTab.appearance] like before.
+  final SettingsTab? initialTab;
+
+  const SettingsPage({
+    super.key,
+    this.embedded = false,
+    this.extraTabs = const [],
+    this.notificationsHeader,
+    this.initialTab,
+  });
 
   @override
   ConsumerState<SettingsPage> createState() => _SettingsPageState();
 }
 
 class _SettingsPageState extends ConsumerState<SettingsPage> {
-  SettingsTab _active = SettingsTab.appearance;
+  /// Active sidebar entry. Holds either a [SettingsTab] (built-in) or
+  /// the [SettingsExtraTab.id] string of a caller-injected extra.
+  late Object _active = widget.initialTab ?? SettingsTab.appearance;
   final _searchCtrl = TextEditingController();
   String _searchQuery = '';
 
@@ -91,16 +166,21 @@ class _SettingsPageState extends ConsumerState<SettingsPage> {
     super.dispose();
   }
 
-  /// Filters the settings index by label+description against the current
-  /// search query.  Exposed so widget tests can verify search behaviour.
+  /// Filters the settings index against the current search query.
+  ///
+  /// v0.77.0: extended to also match the entry's tab label, so users
+  /// typing sidebar names ("外观", "终端", "隐私") get pointed at any
+  /// settings inside that tab even when no individual SettingEntry's
+  /// label/description happens to contain the word.
   List<SettingEntry> filteredIndex(AppLocalizations l) {
     if (_searchQuery.isEmpty) return const [];
     final q = _searchQuery.toLowerCase();
-    return buildSettingsIndex(l)
-        .where((e) =>
-            e.label.toLowerCase().contains(q) ||
-            e.description.toLowerCase().contains(q))
-        .toList();
+    return buildSettingsIndex(l).where((e) {
+      if (e.label.toLowerCase().contains(q)) return true;
+      if (e.description.toLowerCase().contains(q)) return true;
+      if (tabLabelFor(e.tab, l).toLowerCase().contains(q)) return true;
+      return false;
+    }).toList();
   }
 
   @override
@@ -115,6 +195,7 @@ class _SettingsPageState extends ConsumerState<SettingsPage> {
         children: [
           _TitleBar(
             isDirty: isDirty,
+            hideLabel: widget.embedded,
             onSave: () => ref.read(settingsProvider.notifier).save(),
             onReset: () =>
                 ref.read(settingsProvider.notifier).resetToDefaults(),
@@ -126,19 +207,25 @@ class _SettingsPageState extends ConsumerState<SettingsPage> {
           Expanded(
             child: Row(
               children: [
+                // Narrow viewports (iPhone, narrow Android) get a compact
+                // 96px sidebar (vs desktop's 176px) so the detail pane
+                // dominates the screen. `_SidebarItem` reduces its own
+                // padding/icon size for the mobile width so 4-char Chinese
+                // labels ("审计日志", "AI 助手") still fit. The shared
+                // 600px breakpoint matches mobile_tokens.dart and the
+                // AiPanel single-pane decision in v0.78.1.
                 SizedBox(
-                  width: 176,
+                  // v0.77.0: tightened from 176→140 for desktop. Sidebar
+                  // labels max out at 4 Chinese chars ("审计日志" / "AI
+                  // 助手"), which fit in ~90px content + 14px icon + 24px
+                  // padding ≈ 130px. 140 gives breathing room without
+                  // wasting horizontal space the detail pane can use.
+                  width: MediaQuery.sizeOf(context).width < 600 ? 96 : 140,
                   child: Container(
                     color: TermexColors.backgroundSecondary,
                     child: ListView(
                       padding: const EdgeInsets.symmetric(vertical: 8),
-                      children: SettingsTab.values
-                          .map((t) => _SidebarItem(
-                                tab: t,
-                                isActive: t == _active,
-                                onTap: () => setState(() => _active = t),
-                              ))
-                          .toList(),
+                      children: _buildSidebarItems(l10n),
                     ),
                   ),
                 ),
@@ -159,24 +246,66 @@ class _SettingsPageState extends ConsumerState<SettingsPage> {
     );
   }
 
+  /// Builds the sidebar list, interleaving caller-injected
+  /// [SettingsExtraTab]s directly under their declared [insertAfter]
+  /// builtin tab. Extras with `insertAfter == null` append at the end.
+  List<Widget> _buildSidebarItems(AppLocalizations l10n) {
+    final items = <Widget>[];
+    for (final t in SettingsTab.values) {
+      items.add(_SidebarItem(
+        tab: t,
+        isActive: _active == t,
+        onTap: () => setState(() => _active = t),
+      ));
+      for (final extra in widget.extraTabs.where((e) => e.insertAfter == t)) {
+        items.add(_ExtraSidebarItem(
+          extra: extra,
+          label: extra.labelBuilder(l10n),
+          isActive: _active == extra.id,
+          onTap: () => setState(() => _active = extra.id),
+        ));
+      }
+    }
+    for (final extra in widget.extraTabs.where((e) => e.insertAfter == null)) {
+      items.add(_ExtraSidebarItem(
+        extra: extra,
+        label: extra.labelBuilder(l10n),
+        isActive: _active == extra.id,
+        onTap: () => setState(() => _active = extra.id),
+      ));
+    }
+    return items;
+  }
+
   Widget _buildContent() {
-    return switch (_active) {
-      SettingsTab.appearance => const AppearanceTab(),
-      SettingsTab.terminal => const TerminalTab(),
-      SettingsTab.keybindings => const KeybindingsTab(),
-      SettingsTab.ai => const AiTab(),
-      SettingsTab.team => const TeamTab(),
-      SettingsTab.privacy => const PrivacyTab(),
-      SettingsTab.backup => const BackupTab(),
-      SettingsTab.audit => const AuditTab(),
-      SettingsTab.localAi => const LocalAiTab(),
-      SettingsTab.about => const AboutTab(),
-    };
+    final active = _active;
+    if (active is SettingsTab) {
+      return switch (active) {
+        SettingsTab.appearance => const AppearanceTab(),
+        SettingsTab.notifications =>
+          NotificationsTab(header: widget.notificationsHeader),
+        SettingsTab.terminal => const TerminalTab(),
+        SettingsTab.keybindings => const KeybindingsTab(),
+        SettingsTab.ai => const AiTab(),
+        SettingsTab.team => const TeamTab(),
+        SettingsTab.privacy => const PrivacyTab(),
+        SettingsTab.backup => const BackupTab(),
+        SettingsTab.audit => const AuditTab(),
+        SettingsTab.localAi => const LocalAiTab(),
+        SettingsTab.about => const AboutTab(),
+      };
+    }
+    final extra = widget.extraTabs.firstWhere(
+      (e) => e.id == active,
+      orElse: () => widget.extraTabs.first,
+    );
+    return Builder(builder: extra.builder);
   }
 }
 
 class _TitleBar extends StatelessWidget {
   final bool isDirty;
+  final bool hideLabel;
   final VoidCallback onSave;
   final VoidCallback onReset;
 
@@ -184,11 +313,19 @@ class _TitleBar extends StatelessWidget {
     required this.isDirty,
     required this.onSave,
     required this.onReset,
+    this.hideLabel = false,
   });
 
   @override
   Widget build(BuildContext context) {
     final l10n = AppLocalizations.of(context);
+    // Embedded mode (e.g. desktop modal) hides the label because the host
+    // dialog already paints "设置" in its own header — without this, users
+    // saw a duplicate "设置" stacked vertically in the modal. Action
+    // buttons stay visible so dirty changes can still be saved.
+    if (hideLabel && !isDirty) {
+      return const SizedBox.shrink();
+    }
     return Container(
       height: 44,
       padding: const EdgeInsets.symmetric(horizontal: 16),
@@ -198,14 +335,15 @@ class _TitleBar extends StatelessWidget {
       ),
       child: Row(
         children: [
-          Text(
-            l10n.settingsTitle,
-            style: const TextStyle(
-              fontSize: 15,
-              fontWeight: FontWeight.w600,
-              color: TermexColors.textPrimary,
+          if (!hideLabel)
+            Text(
+              l10n.settingsTitle,
+              style: const TextStyle(
+                fontSize: 15,
+                fontWeight: FontWeight.w600,
+                color: TermexColors.textPrimary,
+              ),
             ),
-          ),
           const Spacer(),
           if (isDirty) ...[
             TextButton(
@@ -241,33 +379,42 @@ class _SearchBar extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     final l10n = AppLocalizations.of(context);
+    // v0.77.0: tightened from ~50px overall height to ~32px so the
+    // search bar feels like an inline filter, not a hero input.
     return Container(
-      padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 6),
+      padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 4),
       decoration: const BoxDecoration(
         color: TermexColors.backgroundSecondary,
         border: Border(bottom: BorderSide(color: TermexColors.border)),
       ),
-      child: TextField(
-        controller: controller,
-        onChanged: onChanged,
-        decoration: InputDecoration(
-          hintText: l10n.settingsSearchPlaceholder,
-          hintStyle:
-              const TextStyle(fontSize: 12, color: TermexColors.textSecondary),
-          prefixIcon:
-              const Icon(Icons.search, size: 16, color: TermexColors.textSecondary),
-          border: OutlineInputBorder(
-            borderRadius: BorderRadius.circular(6),
-            borderSide: const BorderSide(color: TermexColors.border),
+      child: SizedBox(
+        height: 28,
+        child: TextField(
+          controller: controller,
+          onChanged: onChanged,
+          decoration: InputDecoration(
+            hintText: l10n.settingsSearchPlaceholder,
+            hintStyle: const TextStyle(
+                fontSize: 12, color: TermexColors.textSecondary),
+            prefixIcon: const Icon(Icons.search,
+                size: 14, color: TermexColors.textSecondary),
+            prefixIconConstraints:
+                const BoxConstraints(minWidth: 26, minHeight: 26),
+            border: OutlineInputBorder(
+              borderRadius: BorderRadius.circular(4),
+              borderSide: const BorderSide(color: TermexColors.border),
+            ),
+            enabledBorder: OutlineInputBorder(
+              borderRadius: BorderRadius.circular(4),
+              borderSide: const BorderSide(color: TermexColors.border),
+            ),
+            contentPadding:
+                const EdgeInsets.symmetric(horizontal: 4, vertical: 0),
+            isDense: true,
           ),
-          enabledBorder: OutlineInputBorder(
-            borderRadius: BorderRadius.circular(6),
-            borderSide: const BorderSide(color: TermexColors.border),
-          ),
-          contentPadding: const EdgeInsets.symmetric(vertical: 6),
-          isDense: true,
+          style:
+              const TextStyle(fontSize: 12, color: TermexColors.textPrimary),
         ),
-        style: const TextStyle(fontSize: 12, color: TermexColors.textPrimary),
       ),
     );
   }
@@ -322,11 +469,18 @@ class _SidebarItem extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
+    // Narrow viewports get tighter padding + smaller icon spacing so
+    // 4-char Chinese labels ("审计日志", "AI 助手") fit in the 96px
+    // sidebar without truncation.
+    final isMobile = MediaQuery.sizeOf(context).width < 600;
+    final horizontalPad = isMobile ? 6.0 : 12.0;
+    final iconSize = isMobile ? 13.0 : 14.0;
+    final iconGap = isMobile ? 4.0 : 8.0;
     return GestureDetector(
       onTap: onTap,
       child: Container(
         height: 36,
-        padding: const EdgeInsets.symmetric(horizontal: 12),
+        padding: EdgeInsets.symmetric(horizontal: horizontalPad),
         decoration: BoxDecoration(
           color: isActive ? TermexColors.primary.withOpacity(0.1) : null,
           border: Border(
@@ -339,19 +493,23 @@ class _SidebarItem extends StatelessWidget {
         child: Row(
           children: [
             Icon(_tabIcon(tab),
-                size: 14,
+                size: iconSize,
                 color: isActive
                     ? TermexColors.primary
                     : TermexColors.textSecondary),
-            const SizedBox(width: 8),
-            Text(
-              _tabLabel(tab, AppLocalizations.of(context)),
-              style: TextStyle(
-                fontSize: 12,
-                color: isActive
-                    ? TermexColors.textPrimary
-                    : TermexColors.textSecondary,
-                fontWeight: isActive ? FontWeight.w500 : FontWeight.normal,
+            SizedBox(width: iconGap),
+            Expanded(
+              child: Text(
+                tabLabelFor(tab, AppLocalizations.of(context)),
+                overflow: TextOverflow.ellipsis,
+                style: TextStyle(
+                  fontSize: 12,
+                  color: isActive
+                      ? TermexColors.textPrimary
+                      : TermexColors.textSecondary,
+                  fontWeight:
+                      isActive ? FontWeight.w500 : FontWeight.normal,
+                ),
               ),
             ),
           ],
@@ -362,6 +520,7 @@ class _SidebarItem extends StatelessWidget {
 
   IconData _tabIcon(SettingsTab t) => switch (t) {
         SettingsTab.appearance => Icons.palette_outlined,
+        SettingsTab.notifications => Icons.notifications_outlined,
         SettingsTab.terminal => Icons.terminal,
         SettingsTab.keybindings => Icons.keyboard_outlined,
         SettingsTab.ai => Icons.smart_toy_outlined,
@@ -373,16 +532,70 @@ class _SidebarItem extends StatelessWidget {
         SettingsTab.about => Icons.info_outline,
       };
 
-  String _tabLabel(SettingsTab t, AppLocalizations l) => switch (t) {
-        SettingsTab.appearance => l.settingsAppearance,
-        SettingsTab.terminal => l.settingsTerminal,
-        SettingsTab.keybindings => l.settingsKeybindings,
-        SettingsTab.ai => l.settingsAi,
-        SettingsTab.team => l.settingsTeam,
-        SettingsTab.privacy => l.settingsPrivacy,
-        SettingsTab.backup => l.settingsBackup,
-        SettingsTab.audit => l.settingsAudit,
-        SettingsTab.localAi => l.settingsLocalAi,
-        SettingsTab.about => l.settingsAbout,
-      };
+}
+
+/// Sidebar entry for a caller-injected [SettingsExtraTab]. Matches
+/// [_SidebarItem]'s visuals (active border / icon + label / mobile-narrow
+/// padding) so injected extras read as siblings of the built-ins rather
+/// than as a separate styled list.
+class _ExtraSidebarItem extends StatelessWidget {
+  final SettingsExtraTab extra;
+  final String label;
+  final bool isActive;
+  final VoidCallback onTap;
+
+  const _ExtraSidebarItem({
+    required this.extra,
+    required this.label,
+    required this.isActive,
+    required this.onTap,
+  });
+
+  @override
+  Widget build(BuildContext context) {
+    final isMobile = MediaQuery.sizeOf(context).width < 600;
+    final horizontalPad = isMobile ? 6.0 : 12.0;
+    final iconSize = isMobile ? 13.0 : 14.0;
+    final iconGap = isMobile ? 4.0 : 8.0;
+    return GestureDetector(
+      onTap: onTap,
+      child: Container(
+        height: 36,
+        padding: EdgeInsets.symmetric(horizontal: horizontalPad),
+        decoration: BoxDecoration(
+          color: isActive ? TermexColors.primary.withOpacity(0.1) : null,
+          border: Border(
+            left: BorderSide(
+              color: isActive ? TermexColors.primary : Colors.transparent,
+              width: 2,
+            ),
+          ),
+        ),
+        child: Row(
+          children: [
+            Icon(extra.icon,
+                size: iconSize,
+                color: isActive
+                    ? TermexColors.primary
+                    : TermexColors.textSecondary),
+            SizedBox(width: iconGap),
+            Expanded(
+              child: Text(
+                label,
+                overflow: TextOverflow.ellipsis,
+                style: TextStyle(
+                  fontSize: 12,
+                  color: isActive
+                      ? TermexColors.textPrimary
+                      : TermexColors.textSecondary,
+                  fontWeight:
+                      isActive ? FontWeight.w500 : FontWeight.normal,
+                ),
+              ),
+            ),
+          ],
+        ),
+      ),
+    );
+  }
 }

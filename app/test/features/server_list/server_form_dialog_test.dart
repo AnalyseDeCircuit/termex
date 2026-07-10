@@ -6,6 +6,7 @@ import 'package:termex_shared/features/server_list/models/server_dto.dart';
 import 'package:termex_shared/features/server_list/state/group_provider.dart';
 import 'package:termex_shared/features/server_list/state/server_provider.dart';
 import 'package:termex_shared/features/server_list/widgets/server_form_dialog.dart';
+import 'package:termex_shared/l10n/app_localizations.dart';
 import 'package:termex_shared/widgets/form_validators.dart';
 
 PageRoute<T> _route<T>(RouteSettings s, WidgetBuilder b) =>
@@ -17,6 +18,8 @@ Widget _wrap(Widget child, {List<Override> overrides = const []}) =>
       child: WidgetsApp(
         color: const Color(0xFF1E1E2E),
         pageRouteBuilder: _route,
+        localizationsDelegates: AppLocalizations.localizationsDelegates,
+        supportedLocales: AppLocalizations.supportedLocales,
         home: child,
       ),
     );

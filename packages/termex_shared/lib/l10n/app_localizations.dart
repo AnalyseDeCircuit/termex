@@ -63,7 +63,7 @@ import 'app_localizations_zh.dart';
 /// property.
 abstract class AppLocalizations {
   AppLocalizations(String locale)
-    : localeName = intl.Intl.canonicalizedLocale(locale.toString());
+      : localeName = intl.Intl.canonicalizedLocale(locale.toString());
 
   final String localeName;
 
@@ -86,16 +86,16 @@ abstract class AppLocalizations {
   /// of delegates is preferred or required.
   static const List<LocalizationsDelegate<dynamic>> localizationsDelegates =
       <LocalizationsDelegate<dynamic>>[
-        delegate,
-        GlobalMaterialLocalizations.delegate,
-        GlobalCupertinoLocalizations.delegate,
-        GlobalWidgetsLocalizations.delegate,
-      ];
+    delegate,
+    GlobalMaterialLocalizations.delegate,
+    GlobalCupertinoLocalizations.delegate,
+    GlobalWidgetsLocalizations.delegate,
+  ];
 
   /// A list of this localizations delegate's supported locales.
   static const List<Locale> supportedLocales = <Locale>[
     Locale('en'),
-    Locale('zh'),
+    Locale('zh')
   ];
 
   /// No description provided for @commonConfirm.
@@ -307,6 +307,590 @@ abstract class AppLocalizations {
   /// In en, this message translates to:
   /// **'Servers'**
   String get sidebarServers;
+
+  /// No description provided for @serverListEmpty.
+  ///
+  /// In en, this message translates to:
+  /// **'No servers yet'**
+  String get serverListEmpty;
+
+  /// No description provided for @notificationsSectionTitle.
+  ///
+  /// In en, this message translates to:
+  /// **'Notifications'**
+  String get notificationsSectionTitle;
+
+  /// No description provided for @notificationsTestButton.
+  ///
+  /// In en, this message translates to:
+  /// **'Send test notification'**
+  String get notificationsTestButton;
+
+  /// No description provided for @notificationsTestSent.
+  ///
+  /// In en, this message translates to:
+  /// **'Test notification sent'**
+  String get notificationsTestSent;
+
+  /// No description provided for @notificationsTestDenied.
+  ///
+  /// In en, this message translates to:
+  /// **'Notification permission denied — enable in system settings'**
+  String get notificationsTestDenied;
+
+  /// No description provided for @notificationsTestTitle.
+  ///
+  /// In en, this message translates to:
+  /// **'Termex test'**
+  String get notificationsTestTitle;
+
+  /// No description provided for @notificationsTestBody.
+  ///
+  /// In en, this message translates to:
+  /// **'If you can see this, AI task notifications will reach you here.'**
+  String get notificationsTestBody;
+
+  /// No description provided for @notificationsDemoTaskButton.
+  ///
+  /// In en, this message translates to:
+  /// **'Fire demo task event'**
+  String get notificationsDemoTaskButton;
+
+  /// No description provided for @notificationsDemoTaskTitle.
+  ///
+  /// In en, this message translates to:
+  /// **'Demo task completed'**
+  String get notificationsDemoTaskTitle;
+
+  /// No description provided for @notificationsDemoTaskSummary.
+  ///
+  /// In en, this message translates to:
+  /// **'Synthetic event from Settings — verifies the bus → notifier path.'**
+  String get notificationsDemoTaskSummary;
+
+  /// No description provided for @notificationsDemoTaskSent.
+  ///
+  /// In en, this message translates to:
+  /// **'Demo task event published — notification should fire shortly'**
+  String get notificationsDemoTaskSent;
+
+  /// No description provided for @taskDetailHeader.
+  ///
+  /// In en, this message translates to:
+  /// **'Task detail'**
+  String get taskDetailHeader;
+
+  /// No description provided for @taskDetailUnknownTask.
+  ///
+  /// In en, this message translates to:
+  /// **'Unknown task'**
+  String get taskDetailUnknownTask;
+
+  /// No description provided for @taskDetailNoSummary.
+  ///
+  /// In en, this message translates to:
+  /// **'No summary available yet.'**
+  String get taskDetailNoSummary;
+
+  /// No description provided for @taskDetailOutputComingSoon.
+  ///
+  /// In en, this message translates to:
+  /// **'Output and artifacts will appear here once the daemon event stream is wired (v0.79.24+).'**
+  String get taskDetailOutputComingSoon;
+
+  /// No description provided for @taskDetailStatusUnknown.
+  ///
+  /// In en, this message translates to:
+  /// **'Unknown'**
+  String get taskDetailStatusUnknown;
+
+  /// No description provided for @taskDetailStatusPending.
+  ///
+  /// In en, this message translates to:
+  /// **'Pending'**
+  String get taskDetailStatusPending;
+
+  /// No description provided for @taskDetailStatusAwaitingConfirmation.
+  ///
+  /// In en, this message translates to:
+  /// **'Awaiting confirmation'**
+  String get taskDetailStatusAwaitingConfirmation;
+
+  /// No description provided for @taskDetailStatusRunning.
+  ///
+  /// In en, this message translates to:
+  /// **'Running'**
+  String get taskDetailStatusRunning;
+
+  /// No description provided for @taskDetailStatusSucceeded.
+  ///
+  /// In en, this message translates to:
+  /// **'Succeeded'**
+  String get taskDetailStatusSucceeded;
+
+  /// No description provided for @taskDetailStatusFailed.
+  ///
+  /// In en, this message translates to:
+  /// **'Failed'**
+  String get taskDetailStatusFailed;
+
+  /// No description provided for @taskDetailStatusCancelled.
+  ///
+  /// In en, this message translates to:
+  /// **'Cancelled'**
+  String get taskDetailStatusCancelled;
+
+  /// No description provided for @taskHistoryHeader.
+  ///
+  /// In en, this message translates to:
+  /// **'Task history'**
+  String get taskHistoryHeader;
+
+  /// No description provided for @taskHistoryEmptyTitle.
+  ///
+  /// In en, this message translates to:
+  /// **'No tasks tracked yet'**
+  String get taskHistoryEmptyTitle;
+
+  /// No description provided for @taskHistoryEmptyHint.
+  ///
+  /// In en, this message translates to:
+  /// **'Tasks appear here as soon as the daemon or in-app sources publish events. Try the \"Fire demo task event\" button in Settings.'**
+  String get taskHistoryEmptyHint;
+
+  /// No description provided for @taskHistoryEntryAction.
+  ///
+  /// In en, this message translates to:
+  /// **'View task history'**
+  String get taskHistoryEntryAction;
+
+  /// No description provided for @taskHistoryActionDelete.
+  ///
+  /// In en, this message translates to:
+  /// **'Delete'**
+  String get taskHistoryActionDelete;
+
+  /// No description provided for @taskHistoryActionClearAll.
+  ///
+  /// In en, this message translates to:
+  /// **'Clear all'**
+  String get taskHistoryActionClearAll;
+
+  /// No description provided for @taskHistoryDeleteConfirmTitle.
+  ///
+  /// In en, this message translates to:
+  /// **'Delete task?'**
+  String get taskHistoryDeleteConfirmTitle;
+
+  /// No description provided for @taskHistoryDeleteConfirmBody.
+  ///
+  /// In en, this message translates to:
+  /// **'Remove \"{title}\" from history. This cannot be undone.'**
+  String taskHistoryDeleteConfirmBody(String title);
+
+  /// No description provided for @taskHistoryClearAllConfirmTitle.
+  ///
+  /// In en, this message translates to:
+  /// **'Clear all tasks?'**
+  String get taskHistoryClearAllConfirmTitle;
+
+  /// No description provided for @taskHistoryClearAllConfirmBody.
+  ///
+  /// In en, this message translates to:
+  /// **'All {count} entries will be removed. This cannot be undone.'**
+  String taskHistoryClearAllConfirmBody(int count);
+
+  /// No description provided for @taskSftpUploadSucceededTitle.
+  ///
+  /// In en, this message translates to:
+  /// **'Uploaded {fileName}'**
+  String taskSftpUploadSucceededTitle(String fileName);
+
+  /// No description provided for @taskSftpDownloadSucceededTitle.
+  ///
+  /// In en, this message translates to:
+  /// **'Downloaded {fileName}'**
+  String taskSftpDownloadSucceededTitle(String fileName);
+
+  /// No description provided for @taskSftpUploadFailedTitle.
+  ///
+  /// In en, this message translates to:
+  /// **'Upload failed: {fileName}'**
+  String taskSftpUploadFailedTitle(String fileName);
+
+  /// No description provided for @taskSftpDownloadFailedTitle.
+  ///
+  /// In en, this message translates to:
+  /// **'Download failed: {fileName}'**
+  String taskSftpDownloadFailedTitle(String fileName);
+
+  /// No description provided for @taskSftpUploadCancelledTitle.
+  ///
+  /// In en, this message translates to:
+  /// **'Upload cancelled: {fileName}'**
+  String taskSftpUploadCancelledTitle(String fileName);
+
+  /// No description provided for @taskSftpDownloadCancelledTitle.
+  ///
+  /// In en, this message translates to:
+  /// **'Download cancelled: {fileName}'**
+  String taskSftpDownloadCancelledTitle(String fileName);
+
+  /// No description provided for @taskSftpUploadSucceededBody.
+  ///
+  /// In en, this message translates to:
+  /// **'Upload completed ({size})'**
+  String taskSftpUploadSucceededBody(String size);
+
+  /// No description provided for @taskSftpDownloadSucceededBody.
+  ///
+  /// In en, this message translates to:
+  /// **'Download completed ({size})'**
+  String taskSftpDownloadSucceededBody(String size);
+
+  /// No description provided for @taskSftpFailedBody.
+  ///
+  /// In en, this message translates to:
+  /// **'{action} failed — {error}'**
+  String taskSftpFailedBody(String action, String error);
+
+  /// No description provided for @taskSftpCancelledBody.
+  ///
+  /// In en, this message translates to:
+  /// **'{action} cancelled at {transferred} of {total}'**
+  String taskSftpCancelledBody(String action, String transferred, String total);
+
+  /// No description provided for @taskSftpActionUpload.
+  ///
+  /// In en, this message translates to:
+  /// **'Upload'**
+  String get taskSftpActionUpload;
+
+  /// No description provided for @taskSftpActionDownload.
+  ///
+  /// In en, this message translates to:
+  /// **'Download'**
+  String get taskSftpActionDownload;
+
+  /// No description provided for @taskPollerSummarySucceeded.
+  ///
+  /// In en, this message translates to:
+  /// **'Task completed successfully'**
+  String get taskPollerSummarySucceeded;
+
+  /// No description provided for @taskPollerSummaryFailed.
+  ///
+  /// In en, this message translates to:
+  /// **'Task failed'**
+  String get taskPollerSummaryFailed;
+
+  /// No description provided for @taskPollerSummaryFailedWithExit.
+  ///
+  /// In en, this message translates to:
+  /// **'Task failed (exit {exitCode})'**
+  String taskPollerSummaryFailedWithExit(int exitCode);
+
+  /// No description provided for @taskPollerSummaryCancelled.
+  ///
+  /// In en, this message translates to:
+  /// **'Task cancelled'**
+  String get taskPollerSummaryCancelled;
+
+  /// No description provided for @taskPollerSummaryRunning.
+  ///
+  /// In en, this message translates to:
+  /// **'Task started'**
+  String get taskPollerSummaryRunning;
+
+  /// No description provided for @taskPollerSummaryPending.
+  ///
+  /// In en, this message translates to:
+  /// **'Task queued'**
+  String get taskPollerSummaryPending;
+
+  /// No description provided for @taskPollerSummaryAwaitingConfirmation.
+  ///
+  /// In en, this message translates to:
+  /// **'Task awaiting confirmation'**
+  String get taskPollerSummaryAwaitingConfirmation;
+
+  /// No description provided for @taskAiSucceededTitle.
+  ///
+  /// In en, this message translates to:
+  /// **'AI reply from {model}'**
+  String taskAiSucceededTitle(String model);
+
+  /// No description provided for @taskAiSucceededTitleWithConversation.
+  ///
+  /// In en, this message translates to:
+  /// **'{conversation} — reply from {model}'**
+  String taskAiSucceededTitleWithConversation(
+      String conversation, String model);
+
+  /// No description provided for @taskAiFailedTitle.
+  ///
+  /// In en, this message translates to:
+  /// **'AI generation failed'**
+  String get taskAiFailedTitle;
+
+  /// No description provided for @taskAiFailedTitleWithConversation.
+  ///
+  /// In en, this message translates to:
+  /// **'{conversation} — failed'**
+  String taskAiFailedTitleWithConversation(String conversation);
+
+  /// No description provided for @taskAiCancelledTitle.
+  ///
+  /// In en, this message translates to:
+  /// **'AI generation cancelled'**
+  String get taskAiCancelledTitle;
+
+  /// No description provided for @taskAiCancelledTitleWithConversation.
+  ///
+  /// In en, this message translates to:
+  /// **'{conversation} — cancelled'**
+  String taskAiCancelledTitleWithConversation(String conversation);
+
+  /// No description provided for @taskAiSucceededBody.
+  ///
+  /// In en, this message translates to:
+  /// **'Response generated'**
+  String get taskAiSucceededBody;
+
+  /// No description provided for @taskAiSucceededBodyWithLength.
+  ///
+  /// In en, this message translates to:
+  /// **'Response generated ({chars} chars)'**
+  String taskAiSucceededBodyWithLength(int chars);
+
+  /// No description provided for @taskAiSucceededBodyWithTokens.
+  ///
+  /// In en, this message translates to:
+  /// **'Response generated ({chars} chars · ↑{tokensIn} ↓{tokensOut} tokens)'**
+  String taskAiSucceededBodyWithTokens(int chars, int tokensIn, int tokensOut);
+
+  /// No description provided for @taskAiSucceededBodyWithCost.
+  ///
+  /// In en, this message translates to:
+  /// **'Response generated ({chars} chars · ↑{tokensIn} ↓{tokensOut} tokens · {cost})'**
+  String taskAiSucceededBodyWithCost(
+      int chars, int tokensIn, int tokensOut, String cost);
+
+  /// No description provided for @taskAiFailedBody.
+  ///
+  /// In en, this message translates to:
+  /// **'Generation failed'**
+  String get taskAiFailedBody;
+
+  /// No description provided for @taskAiFailedBodyWithError.
+  ///
+  /// In en, this message translates to:
+  /// **'Generation failed — {error}'**
+  String taskAiFailedBodyWithError(String error);
+
+  /// No description provided for @taskAiCancelledBody.
+  ///
+  /// In en, this message translates to:
+  /// **'Generation cancelled'**
+  String get taskAiCancelledBody;
+
+  /// No description provided for @notificationThresholdsTitle.
+  ///
+  /// In en, this message translates to:
+  /// **'Notification thresholds'**
+  String get notificationThresholdsTitle;
+
+  /// No description provided for @notificationThresholdsSftpToggleLabel.
+  ///
+  /// In en, this message translates to:
+  /// **'Notify on SFTP success'**
+  String get notificationThresholdsSftpToggleLabel;
+
+  /// No description provided for @notificationThresholdsSftpToggleHint.
+  ///
+  /// In en, this message translates to:
+  /// **'Disable to silence all SFTP success notifications; failures still notify.'**
+  String get notificationThresholdsSftpToggleHint;
+
+  /// No description provided for @notificationThresholdsSizeLabel.
+  ///
+  /// In en, this message translates to:
+  /// **'Minimum file size'**
+  String get notificationThresholdsSizeLabel;
+
+  /// No description provided for @notificationThresholdsSizeValue.
+  ///
+  /// In en, this message translates to:
+  /// **'{mb} MB'**
+  String notificationThresholdsSizeValue(double mb);
+
+  /// No description provided for @notificationThresholdsDurationLabel.
+  ///
+  /// In en, this message translates to:
+  /// **'Minimum duration'**
+  String get notificationThresholdsDurationLabel;
+
+  /// No description provided for @notificationThresholdsDurationValue.
+  ///
+  /// In en, this message translates to:
+  /// **'{seconds} s'**
+  String notificationThresholdsDurationValue(int seconds);
+
+  /// No description provided for @notificationThresholdsHelp.
+  ///
+  /// In en, this message translates to:
+  /// **'An SFTP success notifies when EITHER size or duration meets its threshold. Failures and AI completions always notify.'**
+  String get notificationThresholdsHelp;
+
+  /// No description provided for @notificationThresholdsReset.
+  ///
+  /// In en, this message translates to:
+  /// **'Reset to defaults'**
+  String get notificationThresholdsReset;
+
+  /// No description provided for @notificationThresholdsResetDone.
+  ///
+  /// In en, this message translates to:
+  /// **'Reset to defaults'**
+  String get notificationThresholdsResetDone;
+
+  /// No description provided for @notificationThresholdsUndoWindowLabel.
+  ///
+  /// In en, this message translates to:
+  /// **'Undo window'**
+  String get notificationThresholdsUndoWindowLabel;
+
+  /// No description provided for @notificationThresholdsUndoWindowValue.
+  ///
+  /// In en, this message translates to:
+  /// **'{seconds} s'**
+  String notificationThresholdsUndoWindowValue(int seconds);
+
+  /// No description provided for @notificationThresholdsUndoWindowOff.
+  ///
+  /// In en, this message translates to:
+  /// **'Off (instant delete)'**
+  String get notificationThresholdsUndoWindowOff;
+
+  /// No description provided for @taskHistoryUndoDeleted.
+  ///
+  /// In en, this message translates to:
+  /// **'Deleted'**
+  String get taskHistoryUndoDeleted;
+
+  /// No description provided for @taskHistoryUndoCleared.
+  ///
+  /// In en, this message translates to:
+  /// **'Cleared {count} entries'**
+  String taskHistoryUndoCleared(int count);
+
+  /// No description provided for @taskHistoryUndoAction.
+  ///
+  /// In en, this message translates to:
+  /// **'Undo'**
+  String get taskHistoryUndoAction;
+
+  /// No description provided for @taskHistoryFilterAll.
+  ///
+  /// In en, this message translates to:
+  /// **'All'**
+  String get taskHistoryFilterAll;
+
+  /// No description provided for @taskHistoryFilterSftp.
+  ///
+  /// In en, this message translates to:
+  /// **'SFTP'**
+  String get taskHistoryFilterSftp;
+
+  /// No description provided for @taskHistoryFilterAi.
+  ///
+  /// In en, this message translates to:
+  /// **'AI'**
+  String get taskHistoryFilterAi;
+
+  /// No description provided for @taskHistoryFilterOther.
+  ///
+  /// In en, this message translates to:
+  /// **'Other'**
+  String get taskHistoryFilterOther;
+
+  /// No description provided for @taskHistoryFilterEmptyTitle.
+  ///
+  /// In en, this message translates to:
+  /// **'No tasks match this filter'**
+  String get taskHistoryFilterEmptyTitle;
+
+  /// No description provided for @taskHistoryFilterEmptyHint.
+  ///
+  /// In en, this message translates to:
+  /// **'Switch to All to see every task.'**
+  String get taskHistoryFilterEmptyHint;
+
+  /// No description provided for @taskHistorySearchPlaceholder.
+  ///
+  /// In en, this message translates to:
+  /// **'Search by title or summary…'**
+  String get taskHistorySearchPlaceholder;
+
+  /// No description provided for @taskHistorySearchEmptyTitle.
+  ///
+  /// In en, this message translates to:
+  /// **'No tasks match your search'**
+  String get taskHistorySearchEmptyTitle;
+
+  /// No description provided for @taskHistorySearchEmptyHint.
+  ///
+  /// In en, this message translates to:
+  /// **'Clear the search box or adjust your query.'**
+  String get taskHistorySearchEmptyHint;
+
+  /// No description provided for @taskHistoryActionClearFiltered.
+  ///
+  /// In en, this message translates to:
+  /// **'Clear filtered'**
+  String get taskHistoryActionClearFiltered;
+
+  /// No description provided for @taskHistoryActionClearFilteredWithCount.
+  ///
+  /// In en, this message translates to:
+  /// **'Clear filtered ({count})'**
+  String taskHistoryActionClearFilteredWithCount(int count);
+
+  /// No description provided for @taskHistoryClearFilteredConfirmTitle.
+  ///
+  /// In en, this message translates to:
+  /// **'Clear filtered tasks?'**
+  String get taskHistoryClearFilteredConfirmTitle;
+
+  /// No description provided for @taskHistoryClearFilteredConfirmBody.
+  ///
+  /// In en, this message translates to:
+  /// **'The {count} filtered entries will be removed. Unfiltered tasks stay. This cannot be undone after the window closes.'**
+  String taskHistoryClearFilteredConfirmBody(int count);
+
+  /// No description provided for @taskHistoryRelativeSecondsAgo.
+  ///
+  /// In en, this message translates to:
+  /// **'{seconds}s ago'**
+  String taskHistoryRelativeSecondsAgo(int seconds);
+
+  /// No description provided for @taskHistoryRelativeMinutesAgo.
+  ///
+  /// In en, this message translates to:
+  /// **'{minutes}m ago'**
+  String taskHistoryRelativeMinutesAgo(int minutes);
+
+  /// No description provided for @taskHistoryRelativeHoursAgo.
+  ///
+  /// In en, this message translates to:
+  /// **'{hours}h ago'**
+  String taskHistoryRelativeHoursAgo(int hours);
+
+  /// No description provided for @taskHistoryRelativeDaysAgo.
+  ///
+  /// In en, this message translates to:
+  /// **'{days}d ago'**
+  String taskHistoryRelativeDaysAgo(int days);
 
   /// No description provided for @sidebarSearch.
   ///
@@ -584,11 +1168,41 @@ abstract class AppLocalizations {
   /// **'Settings'**
   String get settingsTitle;
 
+  /// No description provided for @aiOnboardingHeadline.
+  ///
+  /// In en, this message translates to:
+  /// **'No AI provider configured'**
+  String get aiOnboardingHeadline;
+
+  /// No description provided for @aiOnboardingBody.
+  ///
+  /// In en, this message translates to:
+  /// **'Add a Claude / OpenAI / Gemini API key or a local Ollama endpoint in Settings before starting a conversation.'**
+  String get aiOnboardingBody;
+
+  /// No description provided for @aiOnboardingCta.
+  ///
+  /// In en, this message translates to:
+  /// **'Open Settings → AI'**
+  String get aiOnboardingCta;
+
+  /// No description provided for @aiOnboardingFallbackHint.
+  ///
+  /// In en, this message translates to:
+  /// **'Open Settings → AI to add a provider.'**
+  String get aiOnboardingFallbackHint;
+
   /// No description provided for @settingsAppearance.
   ///
   /// In en, this message translates to:
   /// **'Appearance'**
   String get settingsAppearance;
+
+  /// No description provided for @settingsNotifications.
+  ///
+  /// In en, this message translates to:
+  /// **'Notifications'**
+  String get settingsNotifications;
 
   /// No description provided for @settingsTerminal.
   ///
@@ -1796,6 +2410,48 @@ abstract class AppLocalizations {
   /// **'Group'**
   String get connectionGroup;
 
+  /// No description provided for @connectionGroupNone.
+  ///
+  /// In en, this message translates to:
+  /// **'None'**
+  String get connectionGroupNone;
+
+  /// No description provided for @connectionTags.
+  ///
+  /// In en, this message translates to:
+  /// **'Tags'**
+  String get connectionTags;
+
+  /// No description provided for @connectionTagsHint.
+  ///
+  /// In en, this message translates to:
+  /// **'comma separated, e.g. production, linux'**
+  String get connectionTagsHint;
+
+  /// No description provided for @connectionAuthTypePassword.
+  ///
+  /// In en, this message translates to:
+  /// **'Password'**
+  String get connectionAuthTypePassword;
+
+  /// No description provided for @connectionAuthTypeKey.
+  ///
+  /// In en, this message translates to:
+  /// **'Private Key'**
+  String get connectionAuthTypeKey;
+
+  /// No description provided for @connectionAuthTypeInteractive.
+  ///
+  /// In en, this message translates to:
+  /// **'Interactive'**
+  String get connectionAuthTypeInteractive;
+
+  /// No description provided for @connectionPassphrase.
+  ///
+  /// In en, this message translates to:
+  /// **'Passphrase'**
+  String get connectionPassphrase;
+
   /// No description provided for @connectionAuthorizationInfo.
   ///
   /// In en, this message translates to:
@@ -1868,11 +2524,59 @@ abstract class AppLocalizations {
   /// **'Test Connection'**
   String get connectionTest;
 
+  /// No description provided for @connectionTesting.
+  ///
+  /// In en, this message translates to:
+  /// **'Testing connection…'**
+  String get connectionTesting;
+
   /// No description provided for @connectionTestSuccess.
   ///
   /// In en, this message translates to:
   /// **'Connection test successful'**
   String get connectionTestSuccess;
+
+  /// No description provided for @connectionTestFailed.
+  ///
+  /// In en, this message translates to:
+  /// **'Connection test failed'**
+  String get connectionTestFailed;
+
+  /// No description provided for @connectionKeySourcePath.
+  ///
+  /// In en, this message translates to:
+  /// **'File path'**
+  String get connectionKeySourcePath;
+
+  /// No description provided for @connectionKeySourcePaste.
+  ///
+  /// In en, this message translates to:
+  /// **'Paste content'**
+  String get connectionKeySourcePaste;
+
+  /// No description provided for @connectionKeyContent.
+  ///
+  /// In en, this message translates to:
+  /// **'Private key content'**
+  String get connectionKeyContent;
+
+  /// No description provided for @connectionKeyContentPlaceholder.
+  ///
+  /// In en, this message translates to:
+  /// **'-----BEGIN OPENSSH PRIVATE KEY-----\n…'**
+  String get connectionKeyContentPlaceholder;
+
+  /// No description provided for @connectionAddServer.
+  ///
+  /// In en, this message translates to:
+  /// **'Add Server'**
+  String get connectionAddServer;
+
+  /// No description provided for @connectionEditServer.
+  ///
+  /// In en, this message translates to:
+  /// **'Edit Server'**
+  String get connectionEditServer;
 
   /// No description provided for @connectionProxy.
   ///
@@ -6169,6 +6873,120 @@ abstract class AppLocalizations {
   /// In en, this message translates to:
   /// **'Cleaning up…'**
   String get recordingCleanupRunning;
+
+  /// No description provided for @keybindingsNewTab.
+  ///
+  /// In en, this message translates to:
+  /// **'New Tab'**
+  String get keybindingsNewTab;
+
+  /// No description provided for @keybindingsClosePane.
+  ///
+  /// In en, this message translates to:
+  /// **'Close Pane'**
+  String get keybindingsClosePane;
+
+  /// No description provided for @keybindingsCopy.
+  ///
+  /// In en, this message translates to:
+  /// **'Copy'**
+  String get keybindingsCopy;
+
+  /// No description provided for @keybindingsPaste.
+  ///
+  /// In en, this message translates to:
+  /// **'Paste'**
+  String get keybindingsPaste;
+
+  /// No description provided for @keybindingsSelectAll.
+  ///
+  /// In en, this message translates to:
+  /// **'Select All'**
+  String get keybindingsSelectAll;
+
+  /// No description provided for @keybindingsZoomIn.
+  ///
+  /// In en, this message translates to:
+  /// **'Zoom In'**
+  String get keybindingsZoomIn;
+
+  /// No description provided for @keybindingsZoomOut.
+  ///
+  /// In en, this message translates to:
+  /// **'Zoom Out'**
+  String get keybindingsZoomOut;
+
+  /// No description provided for @keybindingsResetZoom.
+  ///
+  /// In en, this message translates to:
+  /// **'Reset Zoom'**
+  String get keybindingsResetZoom;
+
+  /// No description provided for @keybindingsCommandPalette.
+  ///
+  /// In en, this message translates to:
+  /// **'Command Palette'**
+  String get keybindingsCommandPalette;
+
+  /// No description provided for @keybindingsAiDiagnose.
+  ///
+  /// In en, this message translates to:
+  /// **'AI Diagnose'**
+  String get keybindingsAiDiagnose;
+
+  /// No description provided for @keybindingsNl2cmd.
+  ///
+  /// In en, this message translates to:
+  /// **'Natural Language to Command'**
+  String get keybindingsNl2cmd;
+
+  /// No description provided for @keybindingsSftpPanel.
+  ///
+  /// In en, this message translates to:
+  /// **'SFTP Panel'**
+  String get keybindingsSftpPanel;
+
+  /// No description provided for @keybindingsSftpUpload.
+  ///
+  /// In en, this message translates to:
+  /// **'SFTP Upload'**
+  String get keybindingsSftpUpload;
+
+  /// No description provided for @keybindingsSftpDownload.
+  ///
+  /// In en, this message translates to:
+  /// **'SFTP Download'**
+  String get keybindingsSftpDownload;
+
+  /// No description provided for @keybindingsToggleSftp.
+  ///
+  /// In en, this message translates to:
+  /// **'Toggle SFTP'**
+  String get keybindingsToggleSftp;
+
+  /// No description provided for @keybindingsReloadWindow.
+  ///
+  /// In en, this message translates to:
+  /// **'Reload Window'**
+  String get keybindingsReloadWindow;
+
+  /// No description provided for @keybindingsToggleFullscreen.
+  ///
+  /// In en, this message translates to:
+  /// **'Toggle Fullscreen'**
+  String get keybindingsToggleFullscreen;
+
+  /// Sidebar / mobile category label for the proxy management surface.
+  ///
+  /// In en, this message translates to:
+  /// **'Proxies'**
+  String get sidebarProxies;
+
+  /// Suffix shown next to keybinding actions that don't yet have a localized label, italicised + gray so the user can spot them.
+  ///
+  /// In en, this message translates to:
+  /// **'(untranslated)'**
+  String get keybindingsUntranslated;
 }
 
 class _AppLocalizationsDelegate
@@ -6198,9 +7016,8 @@ AppLocalizations lookupAppLocalizations(Locale locale) {
   }
 
   throw FlutterError(
-    'AppLocalizations.delegate failed to load unsupported locale "$locale". This is likely '
-    'an issue with the localizations generation tool. Please file an issue '
-    'on GitHub with a reproducible sample app and the gen-l10n configuration '
-    'that was used.',
-  );
+      'AppLocalizations.delegate failed to load unsupported locale "$locale". This is likely '
+      'an issue with the localizations generation tool. Please file an issue '
+      'on GitHub with a reproducible sample app and the gen-l10n configuration '
+      'that was used.');
 }

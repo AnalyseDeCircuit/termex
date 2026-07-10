@@ -18,13 +18,15 @@ import { fileURLToPath } from "url";
 const __dirname = dirname(fileURLToPath(import.meta.url));
 const root = resolve(__dirname, "..");
 
+// v0.78.0 PC cutover: dropped active sync of src-tauri/tauri.conf.json
+// and src-tauri/Cargo.toml. The legacy Tauri crate's version stamp is
+// frozen at v0.77.x and only manually bumped via
+// scripts/legacy/build-tauri.sh when a forensic build is required.
 const JSON_FILES = [
   resolve(root, "package.json"),
-  resolve(root, "src-tauri/tauri.conf.json"),
 ];
 
 const CARGO_FILES = [
-  resolve(root, "src-tauri/Cargo.toml"),
   resolve(root, "crates/termex-core/Cargo.toml"),
   resolve(root, "crates/termex-tauri/Cargo.toml"),
   resolve(root, "crates/termex-flutter-bridge/Cargo.toml"),

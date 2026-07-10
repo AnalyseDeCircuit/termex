@@ -7,7 +7,15 @@
  */
 
 import sharp from "sharp";
+// ⚠️ v0.78.0 PC cutover: this script targets the LEGACY Tauri icon set
+// (src-tauri/icons/*.png + icon.ico). Flutter generates its launcher
+// icons via `flutter_launcher_icons` from
+// packages/termex_shared/assets/logo/logo.png — driven by app/pubspec.yaml.
+// Run this script only when rebuilding the legacy Tauri tree for a
+// forensic build (scripts/legacy/build-tauri.sh).
+
 import { readFileSync, mkdirSync } from "fs";
+import { existsSync } from "fs";
 import { resolve, dirname } from "path";
 import { fileURLToPath } from "url";
 
@@ -15,6 +23,13 @@ const __dirname = dirname(fileURLToPath(import.meta.url));
 const root = resolve(__dirname, "..");
 const iconsDir = resolve(root, "src-tauri/icons");
 const svgPath = resolve(iconsDir, "icon.svg");
+
+if (!existsSync(svgPath)) {
+  console.error(`❌ Source SVG not found at ${svgPath}.`);
+  console.error(`   src-tauri/ may have been removed (v0.80.0 physical deletion).`);
+  console.error(`   For Flutter launcher icons, run \`flutter pub run flutter_launcher_icons\` from app/.`);
+  process.exit(1);
+}
 const svgBuffer = readFileSync(svgPath);
 
 async function generate(size, outputPath) {

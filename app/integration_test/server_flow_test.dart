@@ -51,7 +51,7 @@ class _StubServerNotifier extends ServerListNotifier {
   }
 
   @override
-  Future<void> createServer(ServerInput input) async {
+  Future<String> createServer(ServerInput input) async {
     final s = ServerDto(
       id: DateTime.now().millisecondsSinceEpoch.toString(),
       name: input.name,
@@ -66,6 +66,7 @@ class _StubServerNotifier extends ServerListNotifier {
     );
     _servers.add(s);
     state = AsyncValue.data(List.unmodifiable(_servers));
+    return s.id;
   }
 
   @override

@@ -49,14 +49,21 @@ class FileRow extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
+    // Narrow viewports (iPhone-class mobile) get a 44pt row and slightly
+    // larger glyphs — the desktop's dense 28px row is too small for
+    // accurate finger taps. The breakpoint matches mobile_tokens.dart.
+    final isMobile = MediaQuery.sizeOf(context).width < 600;
+    final rowHeight = isMobile ? 44.0 : 28.0;
+    final iconSize = isMobile ? 22.0 : 15.0;
+    final padding = EdgeInsets.symmetric(horizontal: isMobile ? 12 : 8);
     return GestureDetector(
       behavior: HitTestBehavior.opaque,
       onTap: onTap,
       onDoubleTap: onDoubleTap,
       onSecondaryTap: onSecondaryTap,
       child: Container(
-        height: 28,
-        padding: const EdgeInsets.symmetric(horizontal: 8),
+        height: rowHeight,
+        padding: padding,
         color: isSelected
             ? TermexColors.primary.withOpacity(0.2)
             : Colors.transparent,
@@ -65,7 +72,7 @@ class FileRow extends StatelessWidget {
             // File type icon
             Icon(
               data.isDirectory ? Icons.folder : _fileIcon(data.name),
-              size: 15,
+              size: iconSize,
               color: data.isDirectory
                   ? TermexColors.warning
                   : TermexColors.textSecondary,
@@ -77,7 +84,7 @@ class FileRow extends StatelessWidget {
               child: Text(
                 data.name,
                 style: TermexTypography.monospace.copyWith(
-                  fontSize: 13,
+                  fontSize: isMobile ? 15 : 13,
                   color: isSelected
                       ? TermexColors.textPrimary
                       : TermexColors.textSecondary,
@@ -87,32 +94,34 @@ class FileRow extends StatelessWidget {
             ),
             // Size
             SizedBox(
-              width: 72,
+              width: isMobile ? 60 : 72,
               child: Text(
                 data.isDirectory ? '' : _formatSize(data.sizeBytes),
-                style: const TextStyle(
-                  fontSize: 11,
+                style: TextStyle(
+                  fontSize: isMobile ? 12 : 11,
                   color: TermexColors.textMuted,
                 ),
                 textAlign: TextAlign.right,
               ),
             ),
             const SizedBox(width: 8),
-            // Modified date
-            SizedBox(
-              width: 100,
-              child: Text(
-                _formatDate(data.modifiedAt),
-                style: const TextStyle(
-                  fontSize: 11,
-                  color: TermexColors.textMuted,
+            // Modified date — hidden on mobile to keep the name column readable.
+            if (!isMobile) ...[
+              SizedBox(
+                width: 100,
+                child: Text(
+                  _formatDate(data.modifiedAt),
+                  style: const TextStyle(
+                    fontSize: 11,
+                    color: TermexColors.textMuted,
+                  ),
+                  textAlign: TextAlign.right,
                 ),
-                textAlign: TextAlign.right,
               ),
-            ),
-            const SizedBox(width: 8),
-            // Permissions
-            SizedBox(
+              const SizedBox(width: 8),
+            ],
+            // Permissions — hidden on mobile (long-press opens info sheet).
+            if (!isMobile) SizedBox(
               width: 80,
               child: Text(
                 data.permissions ?? '',

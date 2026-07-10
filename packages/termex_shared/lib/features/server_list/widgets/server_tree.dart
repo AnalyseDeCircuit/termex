@@ -1,15 +1,19 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
+import 'package:termex_bridge/src/api.dart' as bridge;
 import 'package:timeago/timeago.dart' as timeago;
 
 import '../../../design/colors.dart';
 import '../../../design/typography.dart';
 import '../../../design/spacing.dart';
+import '../../../icons/termex_icons.dart';
+import '../../../widgets/toast.dart';
 import '../models/server_dto.dart';
 import '../models/group_dto.dart';
 import '../state/server_provider.dart';
 import '../state/group_provider.dart';
 import 'server_tree_node.dart';
+import 'server_tree_context_menu.dart';
 import 'server_search_bar.dart';
 
 /// The main sidebar server tree.
@@ -40,6 +44,70 @@ class _ServerTreeState extends ConsumerState<ServerTree> {
   final Set<String> _expandedGroups = {};
   bool _autoExpandedOnce = false;
   String _query = '';
+  OverlayEntry? _ctxMenuEntry;
+
+  @override
+  void dispose() {
+    _closeCtxMenu();
+    super.dispose();
+  }
+
+  void _closeCtxMenu() {
+    _ctxMenuEntry?.remove();
+    _ctxMenuEntry = null;
+  }
+
+  void _openContextMenu(ServerDto server, Offset globalPos) {
+    _closeCtxMenu();
+    final items = <ServerTreeMenuItem>[
+      ServerTreeMenuItem(
+        icon: TermexIcons.connect,
+        label: '连接',
+        onSelect: () => widget.onServerConnect?.call(server.id),
+      ),
+      if (widget.onServerOpenSftp != null)
+        ServerTreeMenuItem(
+          icon: TermexIcons.sftp,
+          label: '打开 SFTP',
+          onSelect: () => widget.onServerOpenSftp!(server.id),
+        ),
+      ServerTreeMenuItem(
+        divided: true,
+        // Lucide-style: a "plug" glyph as the active state, "unplug"
+        // as the inverse. TermexIcons exposes them as connect/disconnect.
+        icon: server.shared ? TermexIcons.disconnect : TermexIcons.connect,
+        label: server.shared ? '取消团队共享' : '分享到团队',
+        onSelect: () => _toggleShare(server),
+      ),
+    ];
+    final size = MediaQuery.sizeOf(context);
+    _ctxMenuEntry = OverlayEntry(
+      builder: (_) => ServerTreeContextMenu(
+        position: globalPos,
+        screenSize: size,
+        items: items,
+        onDismiss: _closeCtxMenu,
+      ),
+    );
+    Overlay.of(context).insert(_ctxMenuEntry!);
+  }
+
+  Future<void> _toggleShare(ServerDto server) async {
+    try {
+      if (server.shared) {
+        await bridge.teamUnshareServer(serverId: server.id);
+        ToastController.success('已取消团队共享');
+      } else {
+        await bridge.teamShareServer(serverId: server.id);
+        ToastController.success('已分享至团队');
+      }
+      // Refresh server list to update badges.
+      // ignore: unused_result
+      ref.refresh(serverListProvider);
+    } catch (e) {
+      ToastController.error('${server.shared ? "取消共享" : "分享"}失败：$e');
+    }
+  }
 
   // ---- helpers ----
 
@@ -190,9 +258,13 @@ class _ServerTreeState extends ConsumerState<ServerTree> {
                         isExpanded: false,
                         isSelected: _selectedId == s.id,
                         isConnected: false,
+                        hasProxy: s.proxyId != null,
+                        hasBastion: s.hasBastion,
+                        isShared: s.shared,
                         depth: row.depth,
                         onTap: () => _select(s.id),
                         onDoubleTap: () => widget.onServerConnect?.call(s.id),
+                        onContextMenu: (pos) => _openContextMenu(s, pos),
                       );
                     }
                   },

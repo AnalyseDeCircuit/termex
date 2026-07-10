@@ -18,7 +18,22 @@ class LocalModel {
   final bool isDownloaded;
   final String? localPath;
   /// Download progress 0.0–1.0, null when not downloading.
+  ///
+  /// v0.79.58: when the server doesn't expose `Content-Length` (e.g.
+  /// HuggingFace CDN replies with `Transfer-Encoding: chunked`), the
+  /// Rust downloader reports `(downloaded, 0)`. In that case the
+  /// fraction is unknown — [downloadProgress] stays at `0.0` and the
+  /// UI consults [downloadedBytes] / [totalBytesKnown] instead to
+  /// render an indeterminate spinner with a live byte counter. Without
+  /// this users on iOS simulator saw a stuck "0 B / 4.5 GB (0.0%)"
+  /// because polling kept skipping updates when `total == 0`.
   final double? downloadProgress;
+  /// v0.79.58: bytes downloaded so far, even when total is unknown.
+  /// Drives the byte-counter label under the progress bar.
+  final int? downloadedBytes;
+  /// v0.79.58: `false` when the server isn't advertising a total
+  /// (chunked transfer / no Content-Length). UI renders indeterminate.
+  final bool totalBytesKnown;
 
   const LocalModel({
     required this.id,
@@ -30,12 +45,16 @@ class LocalModel {
     this.isDownloaded = false,
     this.localPath,
     this.downloadProgress,
+    this.downloadedBytes,
+    this.totalBytesKnown = true,
   });
 
   LocalModel copyWith({
     bool? isDownloaded,
     String? localPath,
     double? downloadProgress,
+    int? downloadedBytes,
+    bool? totalBytesKnown,
     bool clearProgress = false,
   }) =>
       LocalModel(
@@ -48,6 +67,9 @@ class LocalModel {
         isDownloaded: isDownloaded ?? this.isDownloaded,
         localPath: localPath ?? this.localPath,
         downloadProgress: clearProgress ? null : (downloadProgress ?? this.downloadProgress),
+        downloadedBytes: clearProgress ? null : (downloadedBytes ?? this.downloadedBytes),
+        totalBytesKnown:
+            clearProgress ? true : (totalBytesKnown ?? this.totalBytesKnown),
       );
 }
 
@@ -122,7 +144,11 @@ class LocalAiNotifier extends Notifier<LocalAiState> {
   @override
   LocalAiState build() {
     ref.onDispose(_stopPolling);
-    Future.microtask(_loadModels);
+    // v0.79.65: `.catchError` is mandatory on the fire-and-forget
+    // `_loadModels` future — without it, an FRB `session channel closed`
+    // raised while iterating the catalog (notably when the user
+    // navigates away mid-load on iOS) becomes an unhandled exception.
+    Future.microtask(_loadModels).catchError((_) {});
     return const LocalAiState(models: _defaultCatalog);
   }
 
@@ -176,7 +202,58 @@ class LocalAiNotifier extends Notifier<LocalAiState> {
   }
 
   Future<void> downloadModel(String modelId) async {
-    _updateModel(modelId, (m) => m.copyWith(downloadProgress: 0.0));
+    // Seed with `downloadedBytes: 0` + `totalBytesKnown: false` so the
+    // UI immediately switches into "preparing / connecting" mode rather
+    // than rendering a stuck "0% of 4.5 GB". As soon as the first poll
+    // tick arrives with real bytes the row flips into determinate
+    // (with bar) or indeterminate (with byte counter) accordingly.
+    _updateModel(
+      modelId,
+      (m) => m.copyWith(
+        downloadProgress: 0.0,
+        downloadedBytes: 0,
+        totalBytesKnown: false,
+      ),
+    );
+    // v0.79.58: also track `downloaded` even when `total == 0` so the
+    // UI can render indeterminate progress with a live byte counter.
+    // Pre-v0.79.58 the polling skipped any tick where `total <= 0`,
+    // which left iOS simulator users staring at "0 B / 4.5 GB (0.0%)"
+    // whenever HF's CDN returned `Transfer-Encoding: chunked`.
+    final progressTimer =
+        Timer.periodic(const Duration(milliseconds: 250), (_) async {
+      try {
+        final p = await bridge.localAiDownloadProgress(modelId: modelId);
+        if (p == null) return;
+        final total = p.total.toInt();
+        final downloaded = p.downloaded.toInt();
+        if (total > 0) {
+          final ratio = (downloaded / total).clamp(0.0, 1.0);
+          _updateModel(
+            modelId,
+            (m) => m.copyWith(
+              downloadProgress: ratio,
+              downloadedBytes: downloaded,
+              totalBytesKnown: true,
+            ),
+          );
+        } else {
+          // Total unknown — keep UI in indeterminate mode but surface
+          // the live byte counter so the user sees the download is
+          // actually progressing.
+          _updateModel(
+            modelId,
+            (m) => m.copyWith(
+              downloadProgress: 0.0,
+              downloadedBytes: downloaded,
+              totalBytesKnown: false,
+            ),
+          );
+        }
+      } catch (_) {
+        // Polling is best-effort; ignore transient errors.
+      }
+    });
     try {
       await bridge.localAiDownloadModel(modelId: modelId);
       _updateModel(
@@ -185,8 +262,24 @@ class LocalAiNotifier extends Notifier<LocalAiState> {
       );
     } catch (e) {
       _updateModel(modelId, (m) => m.copyWith(clearProgress: true));
-      state = state.copyWith(errorMessage: e.toString());
+      state = state.copyWith(errorMessage: _friendlyDownloadError(e));
+    } finally {
+      progressTimer.cancel();
     }
+  }
+
+  /// v0.79.65: map FRB internal errors to user-friendly text. The most
+  /// common one we surface is `session channel closed: <uuid>`, which
+  /// fires when the Rust download task is cancelled / panics / the
+  /// network drops mid-stream. The raw UUID-laden message is useless
+  /// to the user.
+  static String _friendlyDownloadError(Object e) {
+    final raw = e.toString();
+    if (raw.contains('session channel closed') ||
+        raw.contains('Download cancelled')) {
+      return 'Download interrupted. Tap Download again to retry; partial bytes are kept on disk and resumed.';
+    }
+    return raw;
   }
 
   Future<void> deleteModel(String modelId) async {
@@ -197,9 +290,18 @@ class LocalAiNotifier extends Notifier<LocalAiState> {
   }
 
   void cancelDownload(String modelId) {
-    try {
-      bridge.localAiCancelDownload(modelId: modelId);
-    } catch (_) {}
+    // v0.79.65: the bridge call returns a `Future<void>` even though the
+    // Rust function is synchronous (FRB v2 wraps every callable in
+    // `Future`). A bare `try/catch` only catches sync throws — any
+    // async error (most notably `session channel closed: <uuid>` when
+    // the download future is mid-cancel) became an unhandled exception
+    // that surfaced as a red error overlay in widget tests / debug
+    // mode. Use `.then((_) {}, onError: (_) {})` to swallow both
+    // success and failure asynchronously without awaiting (we can't
+    // await in this `void` method without bubbling the await up).
+    bridge
+        .localAiCancelDownload(modelId: modelId)
+        .then((_) {}, onError: (_) {});
     _updateModel(modelId, (m) => m.copyWith(clearProgress: true));
   }
 
@@ -210,7 +312,14 @@ class LocalAiNotifier extends Notifier<LocalAiState> {
 
   void _startPolling() {
     _healthTimer?.cancel();
-    _healthTimer = Timer.periodic(const Duration(seconds: 5), (_) => _pollHealth());
+    // v0.79.65: wrap `_pollHealth` Future with `.catchError` so any
+    // residual error after its internal try/catch (e.g. state mutation
+    // race) doesn't surface as an unhandled exception. Timer.periodic
+    // accepts `void Function(Timer)`; the async return value is
+    // discarded, so we attach the swallow here at the call site.
+    _healthTimer = Timer.periodic(const Duration(seconds: 5), (_) {
+      _pollHealth().catchError((_) {});
+    });
   }
 
   void _stopPolling() {

@@ -122,6 +122,11 @@ class _TermexDialogPageRoute<T> extends PageRoute<T> {
   @override
   bool get maintainState => true;
 
+  // Keep the underlying route painted so the barrierColor renders as a
+  // semi-transparent scrim over the live UI instead of a fully black screen.
+  @override
+  bool get opaque => false;
+
   @override
   Duration get transitionDuration => const Duration(milliseconds: 220);
 

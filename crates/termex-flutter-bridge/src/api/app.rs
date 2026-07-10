@@ -1,9 +1,25 @@
 use anyhow::{anyhow, Result};
+use std::path::PathBuf;
 use termex_core::keychain;
 use termex_core::paths;
 use termex_core::storage::db::Database;
 
 use crate::db_state;
+
+/// Tells the Rust core where to place its writable data + app directories.
+///
+/// Required on mobile platforms (iOS / Android) where the `dirs` crate
+/// cannot infer a sandbox-writable location. Dart should call this once,
+/// before [`init_app`], passing the result of
+/// `path_provider.getApplicationSupportDirectory()`. Desktop builds can
+/// skip the call — they'll fall back to `dirs::data_dir()` as before.
+pub fn set_app_data_dir(path: String) {
+    paths::override_app_data_dir(PathBuf::from(path));
+    // Move any pre-override DB into the new location so existing users
+    // don't see an empty server list after upgrading. See
+    // `migrate_legacy_data_dir_if_needed` for safety guarantees.
+    paths::migrate_legacy_data_dir_if_needed();
+}
 
 #[derive(Debug, Clone)]
 pub struct AppInitState {
@@ -32,10 +48,17 @@ pub fn init_app() -> Result<AppInitState> {
     if lock_path.exists() {
         let pid_str = std::fs::read_to_string(&lock_path).unwrap_or_default();
         let pid: u32 = pid_str.trim().parse().unwrap_or(0);
-        if pid > 0 && process_alive(pid) {
+        // pid == our own PID means this is a re-init (e.g. Flutter hot
+        // restart, which tears down the Dart isolate but leaves the Rust
+        // process — and its existing lock file — alive). Treat that as
+        // legitimate; without this branch, `flutter run -d macos`'s `R`
+        // shortcut surfaces "AnotherInstanceRunning: pid=…" on every
+        // restart and forces the user to kill + relaunch the binary.
+        if pid > 0 && pid != std::process::id() && process_alive(pid) {
             return Err(anyhow!("AnotherInstanceRunning: pid={}", pid));
         }
-        // Stale lock from a crashed instance — clear it.
+        // Stale lock from a crashed instance, or our own pre-restart
+        // lock — clear it so the rewrite below overwrites cleanly.
         let _ = std::fs::remove_file(&lock_path);
     }
 
@@ -55,25 +78,24 @@ pub fn init_app() -> Result<AppInitState> {
 
     let is_first_run = !db_path.exists();
 
-    // First run: defer DB creation until the user either sets a master
-    // password or explicitly skips that step. Nothing to unlock yet.
-    if is_first_run {
-        return Ok(AppInitState { is_first_run: true });
-    }
-
-    // Existing DB: open it plaintext. The Tauri build stores `master_salt`
-    // in the settings table only when the user explicitly sets a master
-    // password. If no master password row is present, auto-unlock now so
-    // the UI doesn't show a useless unlock dialog.
+    // Open the DB in plaintext mode unconditionally. `Database::open(None)`
+    // creates the file (and runs migrations) on first run, so subsequent
+    // calls from the UI work the same whether the user is brand-new or
+    // returning. The user can opt into a master password later from
+    // settings, which re-keys the file via SQLCipher.
     let db = Database::open(None)
         .map_err(|e| anyhow!("Failed to open database: {}", e))?;
     if !master_password_set(&db) {
+        // No master password configured → the DB is unlocked. Stash it in
+        // db_state so the rest of the API surface (server list, settings,
+        // SFTP roots, ...) can read/write without a verify_master_password
+        // round-trip.
         db_state::set_db(db);
     }
     // If a master password IS set, drop `db` here — verify_master_password()
     // will reopen it after the user authenticates.
 
-    Ok(AppInitState { is_first_run: false })
+    Ok(AppInitState { is_first_run })
 }
 
 /// Returns true when an existing master password must be entered before the

@@ -3,17 +3,35 @@ import 'package:flutter/services.dart';
 
 import '../../../design/tokens.dart';
 
-/// A widget that captures a keyboard shortcut from the user.
+/// Captures a keyboard shortcut from the user.
 ///
-/// Tapping enters "capture mode"; the next key combination pressed is recorded.
+/// State is owned by the parent (KeybindingsTab) so that only one row
+/// can be in capture mode at any time — tapping a different row's
+/// capture box switches the active row, automatically returning the
+/// previous one to display mode. Tapping the same row again exits
+/// capture without recording a new combination.
+///
+/// API:
+///   * [currentValue] — the shortcut to render when not capturing
+///   * [isCapturing] — parent-managed capture flag
+///   * [onTap] — fires on every tap; parent toggles `isCapturing`
+///   * [onCaptured] — fires when a non-modifier key is pressed while
+///     capturing; parent should record the combo and unset `isCapturing`
+///   * [onCaptureCancel] — fires on Escape; parent unsets `isCapturing`
 class KeybindingCapture extends StatefulWidget {
   final String currentValue;
+  final bool isCapturing;
+  final VoidCallback onTap;
   final void Function(String keyCombination) onCaptured;
+  final VoidCallback onCaptureCancel;
 
   const KeybindingCapture({
     super.key,
     required this.currentValue,
+    required this.isCapturing,
+    required this.onTap,
     required this.onCaptured,
+    required this.onCaptureCancel,
   });
 
   @override
@@ -21,18 +39,28 @@ class KeybindingCapture extends StatefulWidget {
 }
 
 class _KeybindingCaptureState extends State<KeybindingCapture> {
-  bool _capturing = false;
   final _focus = FocusNode();
+
+  @override
+  void didUpdateWidget(KeybindingCapture old) {
+    super.didUpdateWidget(old);
+    // When the parent flips us into capture mode, claim focus so the
+    // KeyboardListener can receive events. When the parent flips us
+    // back out, drop focus so other widgets (search box, etc.) can
+    // keep working as expected.
+    if (widget.isCapturing && !old.isCapturing) {
+      WidgetsBinding.instance.addPostFrameCallback((_) {
+        if (mounted && widget.isCapturing) _focus.requestFocus();
+      });
+    } else if (!widget.isCapturing && old.isCapturing) {
+      _focus.unfocus();
+    }
+  }
 
   @override
   void dispose() {
     _focus.dispose();
     super.dispose();
-  }
-
-  void _startCapture() {
-    setState(() => _capturing = true);
-    _focus.requestFocus();
   }
 
   String _buildLabel(KeyEvent event) {
@@ -55,42 +83,48 @@ class _KeybindingCaptureState extends State<KeybindingCapture> {
   @override
   Widget build(BuildContext context) {
     return GestureDetector(
-      onTap: _capturing ? null : _startCapture,
+      onTap: widget.onTap,
       child: KeyboardListener(
         focusNode: _focus,
         onKeyEvent: (event) {
-          if (!_capturing) return;
+          if (!widget.isCapturing) return;
           if (event is KeyDownEvent) {
+            if (event.logicalKey == LogicalKeyboardKey.escape) {
+              widget.onCaptureCancel();
+              return;
+            }
             final label = _buildLabel(event);
+            // Wait for at least one non-modifier key — modifier-only
+            // combinations don't constitute a shortcut.
             if (label.isNotEmpty && label.length > 1) {
-              setState(() => _capturing = false);
               widget.onCaptured(label);
             }
-          }
-          if (event is KeyDownEvent &&
-              event.logicalKey == LogicalKeyboardKey.escape) {
-            setState(() => _capturing = false);
           }
         },
         child: AnimatedContainer(
           duration: const Duration(milliseconds: 150),
-          padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 5),
+          padding:
+              const EdgeInsets.symmetric(horizontal: 8, vertical: 4),
           decoration: BoxDecoration(
-            color: _capturing
+            color: widget.isCapturing
                 ? TermexColors.primary.withOpacity(0.1)
                 : TermexColors.backgroundTertiary,
             borderRadius: BorderRadius.circular(5),
             border: Border.all(
-              color: _capturing ? TermexColors.primary : TermexColors.border,
-              width: _capturing ? 1.5 : 1,
+              color: widget.isCapturing
+                  ? TermexColors.primary
+                  : TermexColors.border,
+              width: widget.isCapturing ? 1.5 : 1,
             ),
           ),
           child: Text(
-            _capturing ? '按下快捷键…' : widget.currentValue,
+            widget.isCapturing ? '按下快捷键…' : widget.currentValue,
+            overflow: TextOverflow.ellipsis,
+            maxLines: 1,
             style: TextStyle(
               fontFamily: 'monospace',
               fontSize: 12,
-              color: _capturing
+              color: widget.isCapturing
                   ? TermexColors.primary
                   : TermexColors.textPrimary,
             ),
