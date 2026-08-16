@@ -2,22 +2,39 @@
 library;
 
 import 'package:flutter/material.dart';
+import 'package:flutter/services.dart';
 
 import '../../../design/colors.dart';
 import '../../../l10n/app_localizations.dart';
 
-/// Shows the chmod dialog and returns the new octal permission string (e.g.
-/// "755"), or `null` if the user cancels.
-Future<String?> showChmodDialog(
+/// Result of the chmod/chown dialog. `mode` is the octal permission string
+/// (e.g. "755"). `uid`/`gid` are the numeric owner/group; they are non-null
+/// only when the user changed them from their initial values, so the caller
+/// can skip a redundant chown call.
+class ChmodResult {
+  final String mode;
+  final int? uid;
+  final int? gid;
+  const ChmodResult({required this.mode, this.uid, this.gid});
+}
+
+/// Shows the chmod/chown dialog and returns a [ChmodResult], or `null` if
+/// the user cancels. GitHub issue #24: extended from permissions-only to
+/// also edit numeric owner (UID) / group (GID) via SFTP SETSTAT.
+Future<ChmodResult?> showChmodDialog(
   BuildContext context, {
   required String fileName,
   String initialPermissions = '644',
+  int? initialUid,
+  int? initialGid,
 }) {
-  return showDialog<String>(
+  return showDialog<ChmodResult>(
     context: context,
     builder: (_) => ChmodDialog(
       fileName: fileName,
       initialPermissions: initialPermissions,
+      initialUid: initialUid,
+      initialGid: initialGid,
     ),
   );
 }
@@ -25,11 +42,15 @@ Future<String?> showChmodDialog(
 class ChmodDialog extends StatefulWidget {
   final String fileName;
   final String initialPermissions;
+  final int? initialUid;
+  final int? initialGid;
 
   const ChmodDialog({
     super.key,
     required this.fileName,
     required this.initialPermissions,
+    this.initialUid,
+    this.initialGid,
   });
 
   @override
@@ -40,18 +61,40 @@ class _ChmodDialogState extends State<ChmodDialog> {
   // Each bit: owner-r, owner-w, owner-x, group-r, group-w, group-x, other-r, other-w, other-x
   late List<bool> _bits;
   late TextEditingController _octalCtrl;
+  late TextEditingController _uidCtrl;
+  late TextEditingController _gidCtrl;
 
   @override
   void initState() {
     super.initState();
     _bits = _octalToBits(widget.initialPermissions);
     _octalCtrl = TextEditingController(text: _bitsToOctal(_bits));
+    _uidCtrl = TextEditingController(
+        text: widget.initialUid?.toString() ?? '');
+    _gidCtrl = TextEditingController(
+        text: widget.initialGid?.toString() ?? '');
   }
 
   @override
   void dispose() {
     _octalCtrl.dispose();
+    _uidCtrl.dispose();
+    _gidCtrl.dispose();
     super.dispose();
+  }
+
+  /// Builds the result; uid/gid are included only when the user changed
+  /// them from the initial values, so an unchanged owner triggers no chown.
+  ChmodResult _buildResult() {
+    final uid = int.tryParse(_uidCtrl.text.trim());
+    final gid = int.tryParse(_gidCtrl.text.trim());
+    final uidChanged = uid != null && uid != widget.initialUid;
+    final gidChanged = gid != null && gid != widget.initialGid;
+    return ChmodResult(
+      mode: _octalCtrl.text,
+      uid: (uidChanged || gidChanged) ? (uid ?? widget.initialUid) : null,
+      gid: (uidChanged || gidChanged) ? (gid ?? widget.initialGid) : null,
+    );
   }
 
   void _toggleBit(int index) {
@@ -125,6 +168,32 @@ class _ChmodDialogState extends State<ChmodDialog> {
                 ),
               ],
             ),
+            const SizedBox(height: 16),
+            // Ownership (chown) — numeric UID / GID. GitHub issue #24.
+            Align(
+              alignment: Alignment.centerLeft,
+              child: Text(l10n.sftpChmodOwnershipSection,
+                  style: const TextStyle(
+                      fontSize: 11, color: TermexColors.textSecondary)),
+            ),
+            const SizedBox(height: 6),
+            Row(
+              children: [
+                Expanded(
+                  child: _NumberField(
+                    label: l10n.sftpChmodOwner,
+                    controller: _uidCtrl,
+                  ),
+                ),
+                const SizedBox(width: 12),
+                Expanded(
+                  child: _NumberField(
+                    label: l10n.sftpChmodGroup,
+                    controller: _gidCtrl,
+                  ),
+                ),
+              ],
+            ),
           ],
         ),
       ),
@@ -134,7 +203,7 @@ class _ChmodDialogState extends State<ChmodDialog> {
           child: Text(l10n.commonCancel),
         ),
         TextButton(
-          onPressed: () => Navigator.of(context).pop(_octalCtrl.text),
+          onPressed: () => Navigator.of(context).pop(_buildResult()),
           child: Text(l10n.commonConfirm),
         ),
       ],
@@ -158,6 +227,40 @@ class _ChmodDialogState extends State<ChmodDialog> {
       return '$v';
     }
     return '${digit(0)}${digit(3)}${digit(6)}';
+  }
+}
+
+/// Compact labelled numeric field for the owner (UID) / group (GID) inputs.
+class _NumberField extends StatelessWidget {
+  final String label;
+  final TextEditingController controller;
+
+  const _NumberField({required this.label, required this.controller});
+
+  @override
+  Widget build(BuildContext context) {
+    return Column(
+      crossAxisAlignment: CrossAxisAlignment.start,
+      children: [
+        Text(label,
+            style: const TextStyle(
+                color: TermexColors.textSecondary, fontSize: 11)),
+        const SizedBox(height: 4),
+        TextField(
+          controller: controller,
+          keyboardType: TextInputType.number,
+          inputFormatters: [FilteringTextInputFormatter.digitsOnly],
+          style: const TextStyle(
+              color: TermexColors.textPrimary, fontSize: 14),
+          decoration: const InputDecoration(
+            isDense: true,
+            contentPadding:
+                EdgeInsets.symmetric(horizontal: 8, vertical: 8),
+            border: OutlineInputBorder(),
+          ),
+        ),
+      ],
+    );
   }
 }
 

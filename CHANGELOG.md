@@ -33,6 +33,35 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
   only configured providers appear in the AI panel switcher.
 - PC sidebar per-category section header with "+" add button (parity with
   the mobile `_TerminalTabHeader` pattern) for servers / proxies / snippets.
+- **i18n debt cleared**: migrated ~283 hardcoded Chinese strings across 39
+  feature files to the ARB system (1148 → 1433 keys, zh/en symmetric). Only
+  `ai/provider/provider_registry.dart` deferred (const list, no BuildContext).
+  Also fixed the CI ARB-completeness check that pointed at a dead
+  `app/lib/l10n/` path.
+
+### Fixed (GitHub issues)
+
+- **#24 SFTP chmod / chown now functional.** The core `SftpHandle::chmod`
+  was a stub returning "russh-sftp API limitation" — but russh-sftp 2.1.1
+  exposes `set_metadata` (SSH_FXP_SETSTAT). Wired chmod to a real setstat
+  carrying the permission bits, added a new `chown` (numeric uid/gid), a new
+  `sftp_chown` FRB binding, and extended the chmod dialog with owner (UID) /
+  group (GID) fields. File permissions & ownership are now editable, not
+  display-only.
+- **#23 ProxyCommand helper on Windows now launches hidden.** The helper
+  spawn added `CREATE_NO_WINDOW | CREATE_NEW_PROCESS_GROUP` creation flags so
+  no console window pops up. (The companion defect — orphaned helper after
+  disconnect — was already handled by the `CommandStream` RAII `kill_on_drop`
+  + `Drop` teardown, killed per-session.)
+- **#2 Offline Windows install no longer needs WebView2.** Resolved
+  structurally by the Flutter migration: the desktop app renders with its own
+  engine and has zero WebView dependency, so air-gapped Windows machines can
+  install without downloading the Edge WebView2 runtime.
+- **#25 SFTP download extension-rewrite not reproducible in Flutter.** The
+  dual-pane SFTP downloads using the remote filename verbatim (`entry.name`)
+  with no OS "Save as" dialog or type filter, so no code path can rewrite
+  `.log` → `.html`. The original report was almost certainly a Windows
+  file-association display artifact.
 
 ## [0.78.0] — PC Cutover (Tauri build stopped)
 

@@ -147,6 +147,17 @@ pub async fn connect_command(
     let mut cmd = {
         let mut c = Command::new("cmd");
         c.args(["/C", &substituted]);
+        // GitHub issue #23 (defect 1): a GUI-subsystem app spawning a
+        // console-subsystem child (cmd.exe → cloudflared / connect-proxy /
+        // etc.) allocates a visible console window on Windows. CREATE_NO_WINDOW
+        // (0x08000000) suppresses it so the ProxyCommand helper runs hidden.
+        // Also set CREATE_NEW_PROCESS_GROUP (0x00000200) so a Ctrl-C in the
+        // parent's own console (dev runs) doesn't propagate to the helper —
+        // teardown is handled deterministically by kill_on_drop / Drop.
+        use std::os::windows::process::CommandExt;
+        const CREATE_NO_WINDOW: u32 = 0x0800_0000;
+        const CREATE_NEW_PROCESS_GROUP: u32 = 0x0000_0200;
+        c.creation_flags(CREATE_NO_WINDOW | CREATE_NEW_PROCESS_GROUP);
         c
     };
 

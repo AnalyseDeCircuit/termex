@@ -54,15 +54,27 @@ Future<void> sftpRename(
     TermexBridge.instance.api
         .crateApiSftpSftpRename(sessionId: sessionId, from: from, to: to);
 
-/// Changes the Unix permission bits of a remote file.
+/// Changes the Unix permission bits of a remote file (chmod).
 ///
-/// Currently unsupported — russh-sftp 2.1 does not expose `setstat`. Returns
-/// an explicit error so the Flutter UI can surface the limitation. See
-/// `docs/tech-debt.md` once russh-sftp ships the API.
+/// GitHub issue #24: now functional via russh-sftp 2.1.1's `set_metadata`
+/// (SSH_FXP_SETSTAT). `mode` is the octal permission value, e.g. 0o755.
 Future<void> sftpChmod(
         {required String sessionId, required String path, required int mode}) =>
     TermexBridge.instance.api
         .crateApiSftpSftpChmod(sessionId: sessionId, path: path, mode: mode);
+
+/// Changes the owner (uid) and group (gid) of a remote file (chown).
+///
+/// GitHub issue #24 (chown half): sends numeric uid/gid via SETSTAT. The
+/// remote SFTP account usually must be root; a server-side permission
+/// denial surfaces as an `Err` string the Flutter UI can display.
+Future<void> sftpChown(
+        {required String sessionId,
+        required String path,
+        required int uid,
+        required int gid}) =>
+    TermexBridge.instance.api.crateApiSftpSftpChown(
+        sessionId: sessionId, path: path, uid: uid, gid: gid);
 
 /// Canonicalises a remote path (resolves `~`, symlinks, `..`).
 Future<String> sftpCanonicalize(

@@ -8685,6 +8685,18 @@ abstract class AppLocalizations {
   /// In en, this message translates to:
   /// **'Run'**
   String get aiCodeBlockRun;
+
+  /// No description provided for @sftpChmodOwnershipSection.
+  ///
+  /// In en, this message translates to:
+  /// **'Ownership (numeric UID / GID)'**
+  String get sftpChmodOwnershipSection;
+
+  /// No description provided for @sftpChmodApplyFailed.
+  ///
+  /// In en, this message translates to:
+  /// **'Apply failed: {error}'**
+  String sftpChmodApplyFailed(String error);
 }
 
 class _AppLocalizationsDelegate

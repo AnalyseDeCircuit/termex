@@ -2575,5 +2575,14 @@
   "tabWorkspaceSftpLocalDisabled": "Local terminal does not support SFTP",
   "tabWorkspaceTransfersLocalDisabled": "Local terminal does not support file transfer",
   "tabWorkspaceNoTransfers": "No transfer tasks",
-  "aiCodeBlockRun": "Run"
+  "aiCodeBlockRun": "Run",
+  "sftpChmodOwnershipSection": "Ownership (numeric UID / GID)",
+  "sftpChmodApplyFailed": "Apply failed: {error}",
+  "@sftpChmodApplyFailed": {
+    "placeholders": {
+      "error": {
+        "type": "String"
+      }
+    }
+  }
 }

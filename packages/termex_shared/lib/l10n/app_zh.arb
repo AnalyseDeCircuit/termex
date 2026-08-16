@@ -2659,5 +2659,14 @@
   "tabWorkspaceSftpLocalDisabled": "本地终端不支持 SFTP",
   "tabWorkspaceTransfersLocalDisabled": "本地终端不支持文件传输",
   "tabWorkspaceNoTransfers": "暂无传输任务",
-  "aiCodeBlockRun": "运行"
+  "aiCodeBlockRun": "运行",
+  "sftpChmodOwnershipSection": "属主与用户组（数字 UID / GID）",
+  "sftpChmodApplyFailed": "应用失败：{error}",
+  "@sftpChmodApplyFailed": {
+    "placeholders": {
+      "error": {
+        "type": "String"
+      }
+    }
+  }
 }

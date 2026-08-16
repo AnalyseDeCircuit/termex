@@ -4717,4 +4717,12 @@ class AppLocalizationsEn extends AppLocalizations {
 
   @override
   String get aiCodeBlockRun => 'Run';
+
+  @override
+  String get sftpChmodOwnershipSection => 'Ownership (numeric UID / GID)';
+
+  @override
+  String sftpChmodApplyFailed(String error) {
+    return 'Apply failed: $error';
+  }
 }

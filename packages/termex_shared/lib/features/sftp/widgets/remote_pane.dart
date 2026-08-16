@@ -5,6 +5,8 @@ import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:termex_bridge/src/api.dart' as bridge;
 
+import '../../../l10n/app_localizations.dart';
+import '../../../widgets/toast.dart';
 import '../dialogs/chmod_dialog.dart';
 import '../dialogs/file_info_dialog.dart';
 import '../dialogs/new_file_dialog.dart';
@@ -211,18 +213,40 @@ class _RemotePaneState extends ConsumerState<RemotePane> {
         await _loadCurrentDir();
       case FileAction.chmod:
         if (!context.mounted) return;
-        final mode = await showChmodDialog(
+        // The DTO carries owner/group as the numeric uid/gid rendered as
+        // strings (bridge maps e.uid/e.gid via to_string), so they parse
+        // back to ints for pre-filling the chown fields.
+        final result = await showChmodDialog(
           context,
           fileName: entry.name,
           initialPermissions:
               entry.permissions?.replaceAll(RegExp(r'\D'), '') ?? '644',
+          initialUid: int.tryParse(entry.owner ?? ''),
+          initialGid: int.tryParse(entry.group ?? ''),
         );
-        if (mode != null) {
-          await bridge.sftpChmod(
-            sessionId: widget.sessionId,
-            path: remotePath,
-            mode: int.parse(mode, radix: 8),
-          );
+        if (result != null) {
+          try {
+            await bridge.sftpChmod(
+              sessionId: widget.sessionId,
+              path: remotePath,
+              mode: int.parse(result.mode, radix: 8),
+            );
+            // chown only when the user actually changed owner/group.
+            if (result.uid != null && result.gid != null) {
+              await bridge.sftpChown(
+                sessionId: widget.sessionId,
+                path: remotePath,
+                uid: result.uid!,
+                gid: result.gid!,
+              );
+            }
+            await _loadCurrentDir();
+          } catch (e) {
+            if (context.mounted) {
+              ToastController.error(
+                  AppLocalizations.of(context).sftpChmodApplyFailed('$e'));
+            }
+          }
         }
       case FileAction.newFile:
         if (!context.mounted) return;

@@ -148,11 +148,10 @@ pub async fn sftp_rename(
     handle.rename(&from, &to).await.map_err(|e| e.to_string())
 }
 
-/// Changes the Unix permission bits of a remote file.
+/// Changes the Unix permission bits of a remote file (chmod).
 ///
-/// Currently unsupported — russh-sftp 2.1 does not expose `setstat`. Returns
-/// an explicit error so the Flutter UI can surface the limitation. See
-/// `docs/tech-debt.md` once russh-sftp ships the API.
+/// GitHub issue #24: now functional via russh-sftp 2.1.1's `set_metadata`
+/// (SSH_FXP_SETSTAT). `mode` is the octal permission value, e.g. 0o755.
 pub async fn sftp_chmod(
     session_id: String,
     path: String,
@@ -160,6 +159,24 @@ pub async fn sftp_chmod(
 ) -> Result<(), String> {
     let handle = session_registry::ensure_sftp(&session_id).await?;
     handle.chmod(&path, mode).await.map_err(|e| e.to_string())
+}
+
+/// Changes the owner (uid) and group (gid) of a remote file (chown).
+///
+/// GitHub issue #24 (chown half): sends numeric uid/gid via SETSTAT. The
+/// remote SFTP account usually must be root; a server-side permission
+/// denial surfaces as an `Err` string the Flutter UI can display.
+pub async fn sftp_chown(
+    session_id: String,
+    path: String,
+    uid: u32,
+    gid: u32,
+) -> Result<(), String> {
+    let handle = session_registry::ensure_sftp(&session_id).await?;
+    handle
+        .chown(&path, uid, gid)
+        .await
+        .map_err(|e| e.to_string())
 }
 
 /// Canonicalises a remote path (resolves `~`, symlinks, `..`).

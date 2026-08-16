@@ -274,14 +274,38 @@ impl SftpHandle {
         Ok(abs)
     }
 
-    /// Changes file permissions (chmod).
-    /// TODO: Implement once russh-sftp provides setstat/chmod API
-    /// Currently not supported in russh-sftp 2.1
-    #[allow(dead_code)]
-    pub async fn chmod(&self, _path: &str, _mode: u32) -> Result<(), SftpError> {
-        Err(SftpError::Sftp(
-            "chmod not yet supported - russh-sftp API limitation".to_string(),
-        ))
+    /// Changes file permissions (chmod) via SFTP `SSH_FXP_SETSTAT`.
+    ///
+    /// GitHub issue #24: this used to be a stub returning an error because
+    /// an older russh-sftp lacked a setstat API. russh-sftp 2.1.1 exposes
+    /// `SftpSession::set_metadata`, so we now send a real setstat carrying
+    /// only the POSIX permission bits (`mode`, e.g. 0o755). Other
+    /// `FileAttributes` fields are left `None` so the server preserves
+    /// size / owner / timestamps.
+    pub async fn chmod(&self, path: &str, mode: u32) -> Result<(), SftpError> {
+        let attrs = russh_sftp::protocol::FileAttributes {
+            permissions: Some(mode),
+            ..Default::default()
+        };
+        self.sftp.set_metadata(path, attrs).await?;
+        Ok(())
+    }
+
+    /// Changes file ownership (chown) via SFTP `SSH_FXP_SETSTAT`.
+    ///
+    /// GitHub issue #24 (chown half): sets numeric `uid` / `gid`. Requires
+    /// the remote SFTP user to have permission to change ownership
+    /// (typically root); a permission-denied from the server surfaces as
+    /// an `SftpError`. Only uid/gid are sent so permissions / timestamps
+    /// are preserved.
+    pub async fn chown(&self, path: &str, uid: u32, gid: u32) -> Result<(), SftpError> {
+        let attrs = russh_sftp::protocol::FileAttributes {
+            uid: Some(uid),
+            gid: Some(gid),
+            ..Default::default()
+        };
+        self.sftp.set_metadata(path, attrs).await?;
+        Ok(())
     }
 
     /// Closes the SFTP session.

@@ -4620,4 +4620,12 @@ class AppLocalizationsZh extends AppLocalizations {
 
   @override
   String get aiCodeBlockRun => '运行';
+
+  @override
+  String get sftpChmodOwnershipSection => '属主与用户组（数字 UID / GID）';
+
+  @override
+  String sftpChmodApplyFailed(String error) {
+    return '应用失败：$error';
+  }
 }
