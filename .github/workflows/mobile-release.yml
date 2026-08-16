@@ -25,6 +25,10 @@ jobs:
   ios-build:
     name: iOS Build
     runs-on: macos-15
+    env:
+      # The `secrets` context cannot be referenced from a step-level `if:`,
+      # so presence is resolved here and tested as a plain env value.
+      HAS_APPSTORE_CREDENTIALS: ${{ secrets.APP_STORE_CONNECT_API_KEY != '' }}
     defaults:
       run:
         working-directory: app
@@ -76,7 +80,7 @@ jobs:
       - name: Archive & upload to TestFlight
         if: >-
           startsWith(github.ref, 'refs/tags/') &&
-          secrets.APP_STORE_CONNECT_API_KEY != ''
+          env.HAS_APPSTORE_CREDENTIALS == 'true'
         env:
           FASTLANE_APPLE_ID: ${{ secrets.FASTLANE_APPLE_ID }}
           FASTLANE_ITC_TEAM_ID: ${{ secrets.FASTLANE_ITC_TEAM_ID }}
@@ -92,6 +96,8 @@ jobs:
   android-build:
     name: Android Build
     runs-on: ubuntu-latest
+    env:
+      HAS_PLAY_CREDENTIALS: ${{ secrets.PLAY_STORE_JSON_KEY != '' }}
     defaults:
       run:
         working-directory: app
@@ -155,7 +161,7 @@ jobs:
       - name: Deploy to Play Store
         if: >-
           startsWith(github.ref, 'refs/tags/') &&
-          secrets.PLAY_STORE_JSON_KEY != ''
+          env.HAS_PLAY_CREDENTIALS == 'true'
         env:
           PLAY_STORE_JSON_KEY: ${{ secrets.PLAY_STORE_JSON_KEY }}
         run: bundle exec fastlane android deploy
