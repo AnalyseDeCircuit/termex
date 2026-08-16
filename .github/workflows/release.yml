@@ -45,12 +45,23 @@ jobs:
           Desktop binaries are now built from the Flutter stack only. The legacy Tauri/Vue stack is no longer published; existing users keep their data (shared SQLCipher DB).
           BODY
 
+          # A semver pre-release tag (v0.79.0-rc.1) must not be published as
+          # "latest" — that would push it in front of the current stable
+          # release for everyone hitting the downloads page.
+          TAG="${{ github.ref_name }}"
+          if [[ "$TAG" == *-* ]]; then
+            PRERELEASE=true
+          else
+            PRERELEASE=false
+          fi
+          echo "→ $TAG (prerelease=$PRERELEASE)"
+
           RELEASE_ID=$(gh api repos/${{ github.repository }}/releases \
-            -f tag_name="${{ github.ref_name }}" \
-            -f name="Termex ${{ github.ref_name }}" \
+            -f tag_name="$TAG" \
+            -f name="Termex $TAG" \
             -f body="$RELEASE_BODY" \
             -F draft=false \
-            -F prerelease=false \
+            -F prerelease=$PRERELEASE \
             --jq '.id')
           echo "release_id=$RELEASE_ID" >> "$GITHUB_OUTPUT"
 
