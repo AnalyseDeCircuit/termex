@@ -11,6 +11,14 @@ releases:
         package:
           platform: macos
           target: dmg
+          hooks:
+            # Signs the .app after `flutter build macos` and before the DMG is
+            # assembled. Signing afterwards leaves the copy inside the DMG
+            # unsigned — which still passes a local codesign check of the
+            # on-disk bundle, while Apple rejects every nested framework.
+            # Skipped when SIGN_ID is unset, so local packaging still works.
+            pre:
+              - test -z "${SIGN_ID:-}" || ../scripts/sign-macos-app.sh
 
       # Windows ships an Inno Setup installer plus a portable ZIP, matching
       # what the 0.53.x line shipped so existing users have an upgrade path.

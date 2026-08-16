@@ -17,63 +17,34 @@ set -euo pipefail
 : "${SIGN_ID:?SIGN_ID not set}"
 : "${DMG_PATH:?DMG_PATH not set}"
 
-# v0.78.0 PC cutover: paths point to the Flutter macOS build outputs.
-# Tauri build outputs live under src-tauri/target/release/bundle/macos/
-# and are only produced when scripts/legacy/build-tauri.sh runs by hand.
+# The app bundle is signed earlier, by scripts/sign-macos-app.sh running as a
+# flutter_distributor prepackage hook. It has to happen before the DMG is
+# assembled: signing the bundle afterwards leaves the copy inside the DMG
+# untouched, which still satisfies a local `codesign --verify` of the on-disk
+# bundle while Apple rejects every nested framework as unsigned.
 #
-# The bundle name is discovered rather than hardcoded: Flutter derives it from
-# the pubspec name, so the build emits `termex.app` in lower case. The literal
-# "Termex.app" this used to look for only resolved because macOS volumes are
-# case-insensitive by default — on a case-sensitive volume the inner binaries
-# would silently go unsigned, and notarization would then reject the DMG.
-BUILD_DIR="app/build/macos/Build/Products/Release"
-APP="$(find "$BUILD_DIR" -maxdepth 1 -name '*.app' -print -quit 2>/dev/null || true)"
-ENTITLEMENTS="app/macos/Runner/Release.entitlements"
+# Verify the payload actually carries a signature before spending a
+# notarization round-trip on it, so that ordering mistake cannot silently
+# return.
+echo "→ verifying the app inside the DMG is signed"
+MOUNT_POINT="$(mktemp -d)"
+hdiutil attach "$DMG_PATH" -nobrowse -readonly -mountpoint "$MOUNT_POINT" >/dev/null
+trap 'hdiutil detach "$MOUNT_POINT" -quiet 2>/dev/null || true' EXIT
 
-if [[ -n "$APP" && -d "$APP" ]]; then
-  echo "→ found app bundle: $APP"
-  # Nested code must be signed inner-most first: re-signing a container
-  # invalidates signatures applied to it afterwards. `--deep` is not a
-  # substitute — Apple deprecated it precisely because it does not apply the
-  # right entitlements or hardened-runtime flags to nested binaries, and
-  # notarization rejects the result.
-  echo "→ signing nested binaries in $APP"
-  find "$APP" -type f \( -name '*.dylib' -o -name '*.so' \) -print0 |
-    while IFS= read -r -d '' lib; do
-      codesign --force --sign "$SIGN_ID" --timestamp --options runtime "$lib"
-    done
-
-  # Any remaining Mach-O executable that is not a dylib — helper tools and
-  # bundled binaries such as the llama-server sidecar. Unsigned executables
-  # anywhere in the bundle are a notarization failure on their own.
-  find "$APP" -type f -perm -u+x -print0 |
-    while IFS= read -r -d '' bin; do
-      case "$bin" in *.dylib|*.so) continue;; esac
-      file -b "$bin" | grep -q "Mach-O" || continue
-      codesign --force --sign "$SIGN_ID" --timestamp --options runtime "$bin"
-    done
-
-  find "$APP" -name '*.framework' -type d -print0 |
-    while IFS= read -r -d '' fw; do
-      codesign --force --sign "$SIGN_ID" --timestamp --options runtime "$fw"
-    done
-
-  echo "→ signing app bundle"
-  codesign --force --sign "$SIGN_ID" --timestamp --options runtime \
-    --entitlements "$ENTITLEMENTS" "$APP"
-else
-  # Signing only the DMG leaves an unsigned app inside it: Gatekeeper still
-  # blocks the app after mounting, and notarization rejects the submission.
-  # Fail loudly rather than shipping a DMG that looks signed and is not.
-  echo "✗ no .app bundle found under $BUILD_DIR — refusing to sign a DMG" >&2
-  echo "  around an unsigned app. Run 'flutter build macos --release' first." >&2
+EMBEDDED_APP="$(find "$MOUNT_POINT" -maxdepth 1 -name '*.app' -print -quit)"
+if [[ -z "$EMBEDDED_APP" ]]; then
+  echo "✗ no .app inside $DMG_PATH" >&2
   exit 1
 fi
+if ! codesign --verify --deep --strict "$EMBEDDED_APP" 2>&1; then
+  echo "✗ the app inside the DMG is not properly signed — notarization would" >&2
+  echo "  fail. Check that the prepackage hook ran before packaging." >&2
+  exit 1
+fi
+echo "✓ payload signature verified"
 
-# Confirm the bundle really is signed and hardened before paying for a
-# notarization round-trip, which otherwise fails several minutes later.
-echo "→ verifying signature"
-codesign --verify --deep --strict --verbose=2 "$APP"
+hdiutil detach "$MOUNT_POINT" -quiet
+trap - EXIT
 
 echo "→ signing DMG: $DMG_PATH"
 codesign --force --sign "$SIGN_ID" --timestamp "$DMG_PATH"

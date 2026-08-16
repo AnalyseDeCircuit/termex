@@ -248,6 +248,10 @@ jobs:
       # ── Build via flutter_distributor (uses distribute_options.yaml) ──
       - name: Build release artefact
         working-directory: app
+        env:
+          # Consumed by the macos-dmg prepackage hook, which signs the bundle
+          # before the DMG is assembled around it.
+          SIGN_ID: ${{ secrets.APPLE_SIGNING_IDENTITY }}
         run: |
           flutter_distributor release --name stable --jobs ${{ matrix.distributor-job }}
 
