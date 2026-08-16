@@ -32,16 +32,34 @@ ENTITLEMENTS="app/macos/Runner/Release.entitlements"
 
 if [[ -n "$APP" && -d "$APP" ]]; then
   echo "→ found app bundle: $APP"
-  echo "→ signing inner binaries in $APP"
-  find "$APP" -name "*.dylib" -type f -print0 | while IFS= read -r -d '' lib; do
-    codesign --force --sign "$SIGN_ID" --timestamp --options runtime "$lib"
-  done
-  find "$APP" -name "*.framework" -type d -print0 | while IFS= read -r -d '' fw; do
-    codesign --force --sign "$SIGN_ID" --timestamp --options runtime "$fw"
-  done
+  # Nested code must be signed inner-most first: re-signing a container
+  # invalidates signatures applied to it afterwards. `--deep` is not a
+  # substitute — Apple deprecated it precisely because it does not apply the
+  # right entitlements or hardened-runtime flags to nested binaries, and
+  # notarization rejects the result.
+  echo "→ signing nested binaries in $APP"
+  find "$APP" -type f \( -name '*.dylib' -o -name '*.so' \) -print0 |
+    while IFS= read -r -d '' lib; do
+      codesign --force --sign "$SIGN_ID" --timestamp --options runtime "$lib"
+    done
+
+  # Any remaining Mach-O executable that is not a dylib — helper tools and
+  # bundled binaries such as the llama-server sidecar. Unsigned executables
+  # anywhere in the bundle are a notarization failure on their own.
+  find "$APP" -type f -perm -u+x -print0 |
+    while IFS= read -r -d '' bin; do
+      case "$bin" in *.dylib|*.so) continue;; esac
+      file -b "$bin" | grep -q "Mach-O" || continue
+      codesign --force --sign "$SIGN_ID" --timestamp --options runtime "$bin"
+    done
+
+  find "$APP" -name '*.framework' -type d -print0 |
+    while IFS= read -r -d '' fw; do
+      codesign --force --sign "$SIGN_ID" --timestamp --options runtime "$fw"
+    done
 
   echo "→ signing app bundle"
-  codesign --force --deep --sign "$SIGN_ID" --timestamp --options runtime \
+  codesign --force --sign "$SIGN_ID" --timestamp --options runtime \
     --entitlements "$ENTITLEMENTS" "$APP"
 else
   # Signing only the DMG leaves an unsigned app inside it: Gatekeeper still
@@ -61,11 +79,32 @@ echo "→ signing DMG: $DMG_PATH"
 codesign --force --sign "$SIGN_ID" --timestamp "$DMG_PATH"
 
 echo "→ submitting for notarization"
-xcrun notarytool submit "$DMG_PATH" \
-  --apple-id "$APPLE_ID" \
-  --team-id "$TEAM_ID" \
-  --password "$APP_PASSWORD" \
-  --wait
+# `notarytool submit --wait` exits 0 for a rejected submission: a non-zero
+# exit means the upload failed, not that the artefact was accepted. Without
+# this check the script walked straight past a rejection into stapling, and
+# the only clue was a stray "status: Invalid" in the log.
+SUBMIT_OUTPUT="$(
+  xcrun notarytool submit "$DMG_PATH" \
+    --apple-id "$APPLE_ID" \
+    --team-id "$TEAM_ID" \
+    --password "$APP_PASSWORD" \
+    --wait 2>&1
+)"
+echo "$SUBMIT_OUTPUT"
+
+SUBMISSION_ID="$(awk '/^ *id: /{print $2; exit}' <<<"$SUBMIT_OUTPUT")"
+STATUS="$(awk '/^ *status: /{print $2; exit}' <<<"$SUBMIT_OUTPUT")"
+
+if [[ "$STATUS" != "Accepted" ]]; then
+  echo "✗ notarization returned '$STATUS' — fetching Apple's reasons:" >&2
+  if [[ -n "$SUBMISSION_ID" ]]; then
+    xcrun notarytool log "$SUBMISSION_ID" \
+      --apple-id "$APPLE_ID" \
+      --team-id "$TEAM_ID" \
+      --password "$APP_PASSWORD" >&2 || true
+  fi
+  exit 1
+fi
 
 echo "→ stapling ticket"
 xcrun stapler staple "$DMG_PATH"

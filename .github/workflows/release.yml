@@ -90,13 +90,17 @@ jobs:
           # 0.53.x line shipped so existing Windows users can upgrade in
           # place. MSIX is not built: no Windows signing certificate exists
           # in repo secrets, and unsigned MSIX will not install.
+          # Pinned, not windows-latest: that image now ships Visual Studio 18,
+          # which Flutter 3.35 does not recognise. It falls back to requesting
+          # the "Visual Studio 16 2019" CMake generator, which is not installed,
+          # and the build dies at configure time.
           - label: win-x64-exe
-            os: windows-latest
+            os: windows-2022
             distributor-job: windows-exe
             artifact-suffix: win_x64
 
           - label: win-x64-zip
-            os: windows-latest
+            os: windows-2022
             distributor-job: windows-zip
             artifact-suffix: win_x64
 

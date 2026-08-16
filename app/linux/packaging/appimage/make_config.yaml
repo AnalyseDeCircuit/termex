@@ -1,6 +1,8 @@
 # AppImage — the distro-agnostic Linux artefact.
 display_name: Termex
-icon: app_icon.png
+# Resolved relative to the Flutter project root (the packager's CWD), unlike
+# the dmg maker which copies its packaging directory flat.
+icon: linux/packaging/appimage/app_icon.png
 generic_name: SSH Client
 startup_notify: true
 categories:

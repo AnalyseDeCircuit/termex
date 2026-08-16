@@ -11,7 +11,9 @@ maintainer:
 installed_size: 150000
 priority: optional
 section: net
-icon: app_icon.png
+# Resolved relative to the Flutter project root (the packager's CWD), unlike
+# the dmg maker which copies its packaging directory flat.
+icon: linux/packaging/deb/app_icon.png
 generic_name: SSH Client
 startup_notify: true
 categories:
