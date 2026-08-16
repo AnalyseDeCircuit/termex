@@ -14,7 +14,11 @@ on:
         options: [ios, android, both]
 
 env:
-  FLUTTER_VERSION: '3.24.0'
+  # 3.24 predates Color.withValues() / Color.toARGB32() and the wider
+  # Brightness re-exports the app now uses, so analysis failed with dozens of
+  # undefined-member errors that never appear locally. Matches the SDK the
+  # lockfile resolves against and the desktop release was built with.
+  FLUTTER_VERSION: '3.35.7'
 
 jobs:
   # ── iOS ──────────────────────────────────────────────────────────────────────
@@ -49,7 +53,12 @@ jobs:
         run: flutter pub get
 
       - name: Verify FRB bindings
-        run: ../scripts/frb-codegen.sh --check
+        # The `../` is relative to the job's default working-directory (app/),
+        # but this step overrides it to the repo root, so the path pointed
+        # outside the checkout: "../scripts/frb-codegen.sh: No such file or
+        # directory". The script must run from the root — it resolves
+        # crates/ and app/ from there.
+        run: ./scripts/frb-codegen.sh --check
         working-directory: .
 
       - name: Flutter analyze
@@ -61,8 +70,13 @@ jobs:
       - name: Build iOS (no codesign)
         run: flutter build ios --release --no-codesign
 
+      # Skipped until the App Store Connect credentials exist as repo secrets.
+      # Without this guard a tag build fails here even though the app compiled
+      # cleanly, which reports the whole iOS job as broken.
       - name: Archive & upload to TestFlight
-        if: startsWith(github.ref, 'refs/tags/')
+        if: >-
+          startsWith(github.ref, 'refs/tags/') &&
+          secrets.APP_STORE_CONNECT_API_KEY != ''
         env:
           FASTLANE_APPLE_ID: ${{ secrets.FASTLANE_APPLE_ID }}
           FASTLANE_ITC_TEAM_ID: ${{ secrets.FASTLANE_ITC_TEAM_ID }}
@@ -133,8 +147,15 @@ jobs:
           name: android-apk-${{ github.sha }}
           path: app/build/app/outputs/flutter-apk/*.apk
 
+      # Skipped until PLAY_STORE_JSON_KEY exists. Note that the release build
+      # currently signs with the debug config from the default Flutter
+      # template (android/app/build.gradle.kts), so the AAB it produces would
+      # be rejected by Play anyway — a real upload keystore has to be wired in
+      # before enabling this.
       - name: Deploy to Play Store
-        if: startsWith(github.ref, 'refs/tags/')
+        if: >-
+          startsWith(github.ref, 'refs/tags/') &&
+          secrets.PLAY_STORE_JSON_KEY != ''
         env:
           PLAY_STORE_JSON_KEY: ${{ secrets.PLAY_STORE_JSON_KEY }}
         run: bundle exec fastlane android deploy

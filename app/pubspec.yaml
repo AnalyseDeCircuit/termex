@@ -2,9 +2,18 @@ name: termex
 description: AI-native SSH client — Always-on cloud AI workspace powered by SSH
 version: 0.79.0+1
 
+# This is an application, never a pub.dev package. Without this, the analyzer
+# treats it as publishable and reports the termex_bridge / termex_shared path
+# dependencies as `invalid_dependency` warnings, which fail `flutter analyze`
+# in CI.
+publish_to: none
+
 environment:
+  # 3.22 predates Color.withValues() and Color.toARGB32(), both of which the
+  # app uses; declaring the real floor keeps a too-old SDK from failing deep
+  # in analysis with undefined-member errors instead of here.
   sdk: ">=3.3.0 <4.0.0"
-  flutter: ">=3.22.0"
+  flutter: ">=3.27.0"
 
 dependencies:
   flutter:

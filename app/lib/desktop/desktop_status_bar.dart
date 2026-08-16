@@ -1,4 +1,4 @@
-import 'package:flutter/material.dart' show CircularProgressIndicator, Icons, Tooltip;
+import 'package:flutter/material.dart' show Icons, Tooltip;
 import 'package:flutter/widgets.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 

@@ -1,25 +1,8 @@
 import 'package:flutter/widgets.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:flutter_test/flutter_test.dart';
-import 'package:termex_shared/features/server_list/models/server_dto.dart';
-
-PageRoute<T> _route<T>(RouteSettings s, WidgetBuilder b) =>
-    PageRouteBuilder<T>(settings: s, pageBuilder: (ctx, _, __) => b(ctx));
 
 // ─── Helpers ──────────────────────────────────────────────────────────────────
-
-const _kTestServer = ServerDto(
-  id: 'srv-1',
-  name: '生产服务器',
-  host: '10.0.0.1',
-  port: 22,
-  username: 'ubuntu',
-  authType: 'password',
-  sortOrder: 0,
-  tags: [],
-  createdAt: '2025-01-01T00:00:00Z',
-  updatedAt: '2025-01-01T00:00:00Z',
-);
 
 class _SwipeDeleteList extends ConsumerWidget {
   final VoidCallback? onDelete;
@@ -66,7 +49,6 @@ void main() {
       void commit(String id) {
         if (staged.remove(id)) committed.add(id);
       }
-      void cancel(String id) => staged.remove(id);
 
       stage('srv-1');
       expect(staged, contains('srv-1'));
