@@ -70,3 +70,6 @@ docs/iterations/
 
 # flutter_distributor packaging output
 app/release/
+
+# Local closed-source crate override (see crates/termex-core-private/)
+.cargo/config.toml

@@ -118,15 +118,12 @@ jobs:
             distributor-job: linux-rpm
             artifact-suffix: linux_x64
 
-          - label: linux-aarch64-appimage
-            os: ubuntu-24.04-arm
-            distributor-job: linux-appimage
-            artifact-suffix: linux_aarch64
-
-          - label: linux-aarch64-deb
-            os: ubuntu-24.04-arm
-            distributor-job: linux-deb
-            artifact-suffix: linux_aarch64
+          # No Linux arm64 lane: Flutter publishes no arm64 Linux SDK, so
+          # flutter-action cannot resolve one ("Unable to determine Flutter
+          # version for ... architecture: arm64") and the job dies before it
+          # builds. The 0.53.x line could ship arm64 because Rust
+          # cross-compiles; the Flutter desktop toolchain cannot. arm64 Linux
+          # users stay on v0.53.8 until an arm64 SDK path exists.
 
     runs-on: ${{ matrix.os }}
 

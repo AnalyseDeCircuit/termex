@@ -39,10 +39,13 @@ regex                 = "1"
 [target.'cfg(not(any(target_os = "ios", target_os = "android")))'.dependencies]
 portable-pty = "0.8"
 
-# Closed-source companion crate lives in a SIBLING repo (`../../../termex-core-private`).
-# Only resolved when the `private` feature is activated; OSS clones don't need
-# this directory to exist.
-termex-core-private   = { path = "../../../termex-core-private", optional = true }
+# Closed-source companion crate. This path points at the in-tree stub, not at
+# the real implementation: `optional` stops the crate being compiled, but Cargo
+# still reads the manifest of every path dependency during resolution, so a
+# path outside the repository broke every build that did not have the private
+# checkout — CI included. Commercial builds swap in the real crate through a
+# `paths` override in .cargo/config.toml. See crates/termex-core-private/.
+termex-core-private   = { path = "../termex-core-private", optional = true }
 
 [features]
 default  = []

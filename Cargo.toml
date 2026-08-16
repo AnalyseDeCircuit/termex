@@ -13,7 +13,7 @@ members = [
 # Cargo's manifest validation still scans the directory for any `[package]`
 # referenced via path = ; explicitly mark src-tauri as excluded so a stray
 # `cargo metadata` doesn't try to pick it up.
-exclude = ["src-tauri"]
+exclude = ["src-tauri", "crates/termex-core-private"]
 
 [workspace.dependencies]
 serde        = { version = "1", features = ["derive"] }

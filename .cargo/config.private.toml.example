@@ -1,0 +1,13 @@
+# Commercial-build override: replaces the in-tree termex-core-private stub
+# with the real closed-source crate in the sibling directory.
+#
+#   cp .cargo/config.private.toml.example .cargo/config.toml
+#   cargo build -p termex_flutter_bridge --release --features private
+#   rm .cargo/config.toml        # ← required, see below
+#
+# ⚠ Remove it again before running ./scripts/frb-codegen.sh. Cargo emits a
+#   "path override ... has altered the original list of dependencies" warning,
+#   which flutter_rust_bridge_codegen cannot parse: it then fails to resolve
+#   the package name and writes `stem: 'UNKNOWN'` into frb_generated.dart,
+#   which the pre-commit drift check rejects.
+paths = ["../termex-core-private"]

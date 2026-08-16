@@ -1,0 +1,10 @@
+[package]
+name        = "termex-core-private"
+version     = "0.1.0"
+edition     = "2021"
+license     = "UNLICENSED"
+description = "Stub for the closed-source Termex business-logic crate"
+publish     = false
+
+[lib]
+name = "termex_core_private"
