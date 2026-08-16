@@ -29,6 +29,15 @@ releases:
         package:
           platform: windows
           target: exe
+          hooks:
+            # Stage the wizard icon next to the generated .iss. Inno Setup
+            # resolves relative paths against the script's own directory,
+            # which flutter_distributor writes into release/<version>/, and
+            # walking back out of there with ../.. did not resolve on the
+            # Windows runner. Copying it in makes the reference a bare
+            # filename, independent of how deep the output directory is.
+            pre:
+              - mkdir -p "$OUTPUT_DIRECTORY" && cp windows/packaging/exe/app_icon.ico "$OUTPUT_DIRECTORY/"
       - name: windows-zip
         package:
           platform: windows

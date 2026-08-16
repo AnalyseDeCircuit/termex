@@ -15,9 +15,9 @@ publisher_url: https://github.com/zouwei/termex
 display_name: Termex
 install_dir_name: Termex
 executable_name: termex
-# Inno Setup resolves relative paths against the generated .iss, which is
-# written to release/<version>/ — not against this file or the project root.
-setup_icon_file: ../../windows/packaging/exe/app_icon.ico
+# Bare filename: a prepackage hook copies the icon into the same directory
+# as the generated .iss, which is what Inno Setup resolves against.
+setup_icon_file: app_icon.ico
 create_desktop_icon: true
 locales:
   - en
