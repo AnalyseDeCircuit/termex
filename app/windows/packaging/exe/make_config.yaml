@@ -15,9 +15,12 @@ publisher_url: https://github.com/zouwei/termex
 display_name: Termex
 install_dir_name: Termex
 executable_name: termex
-# Bare filename: a prepackage hook copies the icon into the same directory
-# as the generated .iss, which is what Inno Setup resolves against.
-setup_icon_file: app_icon.ico
+# No setup_icon_file. Inno resolves it against the generated .iss under
+# release/<version>/, and neither a relative path out of that directory nor
+# staging a copy into it via a prepackage hook made ISCC find the file. It
+# only affects the installer wizard's own icon — the installed application
+# still uses the icon compiled into termex.exe — so it is not worth blocking
+# the release over. Tracked separately.
 create_desktop_icon: true
 locales:
   - en
