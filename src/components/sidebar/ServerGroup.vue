@@ -5,19 +5,41 @@ import { ElMessageBox } from "element-plus";
 import { ArrowRight } from "@element-plus/icons-vue";
 import { useServerStore } from "@/stores/serverStore";
 import { useConfigExport } from "@/composables/useConfigExport";
-import type { Server, ServerGroup, ServerInput } from "@/types/server";
+import { countServers } from "@/utils/groupTree";
+// Aliased: the bare name is taken by this component, which renders itself
+// recursively for subgroups.
+import type {
+  GroupNode,
+  Server,
+  ServerGroup as ServerGroupModel,
+  ServerInput,
+} from "@/types/server";
 import ServerItem from "./ServerItem.vue";
 import ContextMenu from "./ContextMenu.vue";
 import type { MenuItem } from "./ContextMenu.vue";
+
+defineOptions({ name: "ServerGroup" });
 
 const { t } = useI18n();
 const serverStore = useServerStore();
 const { exportConfig, importConfig } = useConfigExport();
 
-const props = defineProps<{
-  group: ServerGroup;
-  servers: Server[];
-}>();
+const props = withDefaults(
+  defineProps<{
+    group: ServerGroupModel;
+    servers: Server[];
+    /** Nested subgroups, already resolved by buildGroupTree(). */
+    children?: GroupNode[];
+  }>(),
+  { children: () => [] },
+);
+
+/** Servers here plus every descendant — what the count badge reports. */
+const totalCount = computed(
+  () =>
+    props.servers.length +
+    props.children.reduce((n, child) => n + countServers(child), 0),
+);
 
 const emit = defineEmits<{
   (e: "connect", server: Server): void;
@@ -242,12 +264,22 @@ async function onCtxSelect(action: string) {
       />
       <template v-else>
         <span class="truncate font-medium">{{ group.name }}</span>
-        <span class="ml-auto text-[10px]" style="color: var(--tm-text-muted)">{{ servers.length }}</span>
+        <span class="ml-auto text-[10px]" style="color: var(--tm-text-muted)">{{ totalCount }}</span>
       </template>
     </button>
 
-    <!-- Servers in group -->
+    <!-- Subgroups (recursive) and servers in this group -->
     <div v-show="expanded" class="pl-3">
+      <ServerGroup
+        v-for="child in children"
+        :key="child.id"
+        :group="child"
+        :servers="child.servers"
+        :children="child.children"
+        @connect="emit('connect', $event)"
+        @edit-server="emit('edit-server', $event)"
+        @new-host="emit('new-host')"
+      />
       <ServerItem
         v-for="server in servers"
         :key="server.id"

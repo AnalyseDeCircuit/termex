@@ -12,3 +12,19 @@ pub async fn clipboard_read_text() -> Result<String, String> {
     .await
     .map_err(|e| e.to_string())?
 }
+
+/// Writes text to the system clipboard.
+///
+/// `navigator.clipboard.writeText` is unavailable to code that is not running
+/// in a user-gesture callback, which silently broke OSC 52 copies coming from
+/// remote programs such as Zellij, tmux and vim (issue #19). The native path
+/// has no such requirement.
+#[tauri::command]
+pub async fn clipboard_write_text(text: String) -> Result<(), String> {
+    tokio::task::spawn_blocking(move || {
+        let mut clipboard = arboard::Clipboard::new().map_err(|e| e.to_string())?;
+        clipboard.set_text(text).map_err(|e| e.to_string())
+    })
+    .await
+    .map_err(|e| e.to_string())?
+}

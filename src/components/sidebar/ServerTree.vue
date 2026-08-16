@@ -7,6 +7,7 @@ import { useServerStore } from "@/stores/serverStore";
 import { useSessionStore } from "@/stores/sessionStore";
 import { useTeamStore } from "@/stores/teamStore";
 import { useConfigExport } from "@/composables/useConfigExport";
+import { buildGroupTree } from "@/utils/groupTree";
 import type { Server, ServerInput } from "@/types/server";
 import ServerGroup from "./ServerGroup.vue";
 import ServerItem from "./ServerItem.vue";
@@ -42,16 +43,11 @@ function isTeamVisible(s: { shared?: boolean; teamId?: string | null }): boolean
 
 /** Groups with servers filtered to private-only (not shared, not received). */
 const privateGroupTree = computed(() =>
-  serverStore.groups
-    .filter((g) => !g.parentId)
-    .map((g) => ({
-      ...g,
-      children: serverStore.groups.filter((c) => c.parentId === g.id),
-      servers: serverStore.filteredServers.filter(
-        (s) => s.groupId === g.id && !isTeamVisible(s),
-      ),
-    }))
-    .filter((g) => g.servers.length > 0),
+  buildGroupTree(
+    serverStore.groups,
+    serverStore.filteredServers,
+    (s) => !isTeamVisible(s),
+  ),
 );
 
 /** Ungrouped private servers (not shared, not received). */
@@ -61,16 +57,7 @@ const privateUngrouped = computed(() =>
 
 /** Groups with servers that are shared-by-me or received from team. */
 const teamGroupTree = computed(() =>
-  serverStore.groups
-    .filter((g) => !g.parentId)
-    .map((g) => ({
-      ...g,
-      children: serverStore.groups.filter((c) => c.parentId === g.id),
-      servers: serverStore.filteredServers.filter(
-        (s) => s.groupId === g.id && isTeamVisible(s),
-      ),
-    }))
-    .filter((g) => g.servers.length > 0),
+  buildGroupTree(serverStore.groups, serverStore.filteredServers, isTeamVisible),
 );
 
 /** Ungrouped servers that are shared-by-me or received from team. */
@@ -343,6 +330,7 @@ async function onRootDrop(e: DragEvent) {
           :key="group.id"
           :group="group"
           :servers="group.servers"
+          :children="group.children"
           @connect="handleConnect"
           @edit-server="(s) => emit('edit-server', s.id)"
           @new-host="emit('new-host')"
@@ -384,6 +372,7 @@ async function onRootDrop(e: DragEvent) {
           :key="group.id + ':team'"
           :group="group"
           :servers="group.servers"
+          :children="group.children"
           @connect="handleConnect"
           @edit-server="(s) => emit('edit-server', s.id)"
           @new-host="emit('new-host')"

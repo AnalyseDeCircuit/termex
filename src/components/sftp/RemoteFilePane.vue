@@ -4,6 +4,7 @@ import { useI18n } from "vue-i18n";
 import { useSftpStore } from "@/stores/sftpStore";
 import type { FileEntry } from "@/types/sftp";
 import { tauriInvoke } from "@/utils/tauri";
+import { writeClipboard } from "@/utils/clipboard";
 import { ElMessage, ElMessageBox } from "element-plus";
 import {
   Folder,
@@ -280,7 +281,7 @@ async function handleContextMenuSelect(action: string) {
       case "copyPath":
         {
           const path = buildFullPath(selectedEntry.value.name);
-          await navigator.clipboard.writeText(path);
+          await writeClipboard(path);
           ElMessage.success(t("sftp.pathCopied"));
         }
         break;

@@ -9,6 +9,7 @@ import { getTerminalTheme } from "@/utils/colors";
 import { useSettingsStore } from "@/stores/settingsStore";
 import { useSessionStore } from "@/stores/sessionStore";
 import { buildFontFamilyCSS } from "@/utils/fontLoader";
+import { decodeBase64Utf8, writeClipboard } from "@/utils/clipboard";
 import { registerTerminal, unregisterTerminal } from "@/utils/terminalRegistry";
 import { useBroadcast } from "@/composables/useBroadcast";
 
@@ -145,7 +146,7 @@ export function useTerminal(sessionId: Ref<string>, options?: TerminalOptions) {
       if (ev.key === "c" && ((isMac && ev.metaKey && !ev.shiftKey) || (!isMac && ev.ctrlKey && ev.shiftKey))) {
         const sel = terminal!.getSelection();
         if (sel) {
-          navigator.clipboard.writeText(sel);
+          writeClipboard(sel);
           return false; // prevent terminal from processing
         }
         // No selection on Mac Cmd+C → let through as SIGINT
@@ -219,8 +220,8 @@ export function useTerminal(sessionId: Ref<string>, options?: TerminalOptions) {
       const payload = data.slice(semi + 1);
       if (!payload || payload === "?") return false; // '?' = clipboard query, ignore
       try {
-        const text = atob(payload);
-        if (text) navigator.clipboard.writeText(text).catch(() => {});
+        const text = decodeBase64Utf8(payload);
+        if (text) writeClipboard(text);
         return true;
       } catch {
         return false;

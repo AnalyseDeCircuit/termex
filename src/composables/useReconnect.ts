@@ -3,6 +3,8 @@ import { useI18n } from "vue-i18n";
 import type { Terminal } from "@xterm/xterm";
 import { tauriInvoke } from "@/utils/tauri";
 import { useSessionStore } from "@/stores/sessionStore";
+import { connectWithPassphrasePrompt } from "@/utils/sshConnect";
+import { isPassphraseTerminal } from "@/utils/sshErrors";
 
 const DELAYS = [2000, 4000, 8000, 16000, 30000];
 const MAX_ATTEMPTS = 5;
@@ -69,14 +71,22 @@ export function useReconnect() {
       }
 
       try {
-        const newSessionId = await tauriInvoke<string>("ssh_connect", { serverId });
+        const serverName =
+          sessionStore.sessions.get(oldSessionId)?.serverName ?? serverId;
+        const newSessionId = await connectWithPassphrasePrompt(
+          serverId,
+          serverName,
+        );
         active.value = false;
         attempt.value = 0;
         return newSessionId;
-      } catch {
+      } catch (err) {
         terminal.write(
           `\r\n\x1b[31m[${t("terminal.reconnectAttemptFailed", { attempt: i + 1 })}]\x1b[0m\r\n`,
         );
+        // Backoff cannot resolve a missing or rejected passphrase, and the user
+        // has already been prompted — retrying would only re-open the dialog.
+        if (isPassphraseTerminal(err)) break;
       }
     }
 

@@ -7,6 +7,59 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ---
 
+## [v0.53.8] — User-reported bug fixes
+
+Maintenance release on the 0.53.x line, addressing issues reported against the
+published build. No new features.
+
+### Fixed
+
+- **Nerd Font glyphs rendered as tofu in the terminal** ([#17](https://github.com/zouwei/termex/issues/17))
+  - `buildFontFamilyCSS` only added the `Symbols Nerd Font Mono` fallback when
+    the family name matched `/nerd\s*font/`. The Nerd Fonts project ships its
+    patched fonts as `MesloLGS NF`, `FiraCode NFM`, `JetBrainsMono NFP` and
+    similar, none of which match — so powerline and icon glyphs fell through to
+    the generic monospace font. The symbol fallbacks are now always appended;
+    CSS only consults them for codepoints the chosen family lacks.
+  - Custom font uploads accept `.ttf/.otf/.woff/.woff2`, but every upload was
+    wrapped in a Blob hardcoded to `font/woff2`, which WKWebView (macOS)
+    rejected. Font bytes are now passed to `FontFace` directly, which also stops
+    leaking one object URL per font.
+- **Subgroups never appeared in the sidebar** ([#21](https://github.com/zouwei/termex/issues/21))
+  - The tree computed a `children` array that no component consumed, and
+    `ServerGroup` rendered only its own servers — so a subgroup created via
+    "New subgroup" vanished. `ServerGroup` now renders itself recursively.
+  - A parent group holding no servers directly was filtered out, hiding its
+    whole subtree. A group is now kept when any descendant holds servers.
+  - Nesting is no longer capped at two levels, a group whose parent was deleted
+    is promoted to the root instead of becoming unreachable, and the count badge
+    reports the subtree total.
+- **Key auth required storing the passphrase on the server record** ([#21](https://github.com/zouwei/termex/issues/21))
+  - An encrypted private key with no saved passphrase simply failed to connect.
+    The backend now reports `ssh:key-passphrase-required` (and
+    `ssh:key-passphrase-incorrect`) distinctly from generic auth failures, and
+    the UI prompts for the passphrase and retries — on first connect, on manual
+    reconnect, and on auto-reconnect. The entered passphrase is used for that
+    attempt only and is never written to the database or keychain.
+  - Auto-reconnect backoff now stops on a passphrase challenge or a dismissed
+    prompt instead of re-opening the dialog on every attempt.
+- **OSC 52 clipboard copies from Zellij/tmux/vim silently failed** ([#19](https://github.com/zouwei/termex/issues/19))
+  - `navigator.clipboard.writeText` is rejected outside a user-gesture handler,
+    which is exactly how OSC 52 sequences arrive, and the rejection was
+    swallowed. Copies now go through a native `clipboard_write_text` command,
+    with the web API kept as a fallback.
+  - The base64 payload was decoded with `atob`, which is byte-oriented, so any
+    non-ASCII selection (CJK, accents, emoji) was copied mangled. It is now
+    decoded as UTF-8.
+  - Terminal copy, the selection toolbar, and SFTP "copy path" were migrated to
+    the same native path.
+
+### Internal
+
+- `test_recording_cleanup_expired` pinned its "recent" fixture to a literal
+  `2026-04-10`, which aged past the 90-day retention window and started failing
+  on 2026-07-09. The fixture is now anchored to the current time.
+
 ## [Unreleased — v0.52.0] — Gap Coverage
 
 ### Added

@@ -630,6 +630,7 @@ pub fn run() {
             commands::git_sync::git_sync_pull,
             // Clipboard
             commands::clipboard::clipboard_read_text,
+            commands::clipboard::clipboard_write_text,
             // Audit
             commands::audit::audit_log_list,
             commands::audit::audit_log_summary,

@@ -9,6 +9,13 @@ export interface ServerGroup {
   updatedAt: string;
 }
 
+/** A group resolved for sidebar rendering: its own direct servers plus the
+ *  fully-nested subgroup tree beneath it. Depth is unbounded. */
+export interface GroupNode extends ServerGroup {
+  children: GroupNode[];
+  servers: Server[];
+}
+
 /** A single hop in a server's connection chain. */
 export interface ChainHop {
   id: string;

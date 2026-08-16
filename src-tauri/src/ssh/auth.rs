@@ -232,6 +232,38 @@ pub async fn auth_password(
     Ok(())
 }
 
+/// Decodes a private key, distinguishing passphrase problems from every other
+/// key failure so the caller can prompt the user instead of hard-failing.
+///
+/// A passphrase-protected key no longer has to carry its passphrase in the
+/// server record (issue #21): the UI prompts on
+/// [`SshError::KeyPassphraseRequired`] and retries.
+fn decode_key(
+    key_data: &str,
+    passphrase: Option<&str>,
+) -> Result<russh_keys::PrivateKey, SshError> {
+    match russh_keys::decode_secret_key(key_data, passphrase) {
+        Ok(key) => Ok(key),
+        // russh-keys only reports this when no passphrase was supplied at all.
+        Err(russh_keys::Error::KeyIsEncrypted) => Err(SshError::KeyPassphraseRequired),
+        Err(err) => {
+            // A wrong passphrase surfaces as an opaque decryption failure from
+            // the ssh-key layer, so confirm the key really is encrypted before
+            // blaming the passphrase — otherwise a corrupt key would send the
+            // user into an unanswerable prompt loop.
+            let encrypted = matches!(
+                russh_keys::decode_secret_key(key_data, None),
+                Err(russh_keys::Error::KeyIsEncrypted)
+            );
+            if passphrase.is_some() && encrypted {
+                Err(SshError::KeyPassphraseIncorrect)
+            } else {
+                Err(SshError::KeyError(err))
+            }
+        }
+    }
+}
+
 /// Authenticates with the SSH server using a private key from content (bytes).
 /// `key_data` is the raw key file content (PEM format).
 ///
@@ -244,7 +276,7 @@ pub async fn auth_key_data(
     key_data: &str,
     passphrase: Option<&str>,
 ) -> Result<(), SshError> {
-    let key_pair = russh_keys::decode_secret_key(key_data, passphrase)?;
+    let key_pair = decode_key(key_data, passphrase)?;
     let key = Arc::new(key_pair);
 
     let is_rsa = key.algorithm().is_rsa();

@@ -1,6 +1,7 @@
 import { defineStore } from "pinia";
 import { ref, computed } from "vue";
 import { tauriInvoke } from "@/utils/tauri";
+import { connectWithPassphrasePrompt } from "@/utils/sshConnect";
 import type { Session, SessionStatus, Tab, CloudMeta } from "@/types/session";
 import type { PaneNode, BroadcastState } from "@/types/paneLayout";
 import * as paneTree from "@/utils/paneTree";
@@ -106,9 +107,7 @@ export const useSessionStore = defineStore("session", () => {
 
     // 2. Attempt SSH connection (authenticate only, no shell yet)
     try {
-      const realId = await tauriInvoke<string>("ssh_connect", {
-        serverId,
-      });
+      const realId = await connectWithPassphrasePrompt(serverId, serverName);
 
       // 3. Success — replace placeholder with real session
       sessions.value.delete(placeholderId);
@@ -430,9 +429,10 @@ export const useSessionStore = defineStore("session", () => {
 
     // SSH: connect new pane
     try {
-      const realId = await tauriInvoke<string>("ssh_connect", {
-        serverId: currentLeaf.serverId,
-      });
+      const realId = await connectWithPassphrasePrompt(
+        currentLeaf.serverId,
+        currentLeaf.title,
+      );
       newLeaf.sessionId = realId;
 
       const session: Session = {

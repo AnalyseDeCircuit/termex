@@ -1,4 +1,5 @@
 <script setup lang="ts">
+import { writeClipboard } from "@/utils/clipboard";
 import { ref, computed, inject, onMounted, onUnmounted, nextTick } from "vue";
 import { useI18n } from "vue-i18n";
 import { ElMessage } from "element-plus";
@@ -149,7 +150,7 @@ async function handleContextMenuSelect(action: string) {
       await paneOps.handleDelete(entry);
       break;
     case "copyPath":
-      navigator.clipboard.writeText(paneOps.buildFullPath(entry.name));
+      writeClipboard(paneOps.buildFullPath(entry.name));
       ElMessage.success(t("sftp.pathCopied"));
       break;
     case "newFile":

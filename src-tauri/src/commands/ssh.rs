@@ -15,11 +15,17 @@ use crate::storage::models::{AuthType, ChainHop};
 /// Connects to an SSH server and authenticates (without opening a shell).
 /// Returns the session_id for subsequent operations.
 /// Call `ssh_open_shell` after terminal UI is mounted to open the shell with correct dimensions.
+///
+/// `passphrase` carries a key passphrase the user entered interactively after a
+/// previous attempt reported `ssh:key-passphrase-required`. It applies to this
+/// attempt only and is never persisted — saving it is a separate, explicit user
+/// action (issue #21). Omitting it falls back to the stored credential.
 #[tauri::command]
 pub async fn ssh_connect(
     state: State<'_, AppState>,
     app: AppHandle,
     server_id: String,
+    passphrase: Option<String>,
 ) -> Result<String, String> {
     let session_id = uuid::Uuid::new_v4().to_string();
     let status_event = format!("ssh://status/{session_id}");
@@ -78,7 +84,13 @@ pub async fn ssh_connect(
     };
 
     // Resolve target credentials
-    let resolved_target = resolve_target_info(&state, &server)?;
+    let mut resolved_target = resolve_target_info(&state, &server)?;
+
+    // An interactively-entered passphrase overrides whatever the record holds,
+    // so a key with no stored passphrase is still usable.
+    if passphrase.is_some() {
+        resolved_target.passphrase = passphrase;
+    }
 
     // Connect through the chain
     let result = chain_connect::connect_chain(

@@ -329,7 +329,15 @@ fn test_recording_cleanup_expired() {
     };
     insert(&conn, &meta).unwrap();
 
-    // Insert a recent recording
+    // Insert a recent recording.
+    //
+    // Anchored to "now" rather than a literal date: a hardcoded 2026-04-10
+    // fixture silently aged out of the 90-day retention window and began
+    // failing this test on 2026-07-09, long after it was written.
+    let recent = (time::OffsetDateTime::now_utc() - time::Duration::days(1))
+        .format(&time::format_description::well_known::Rfc3339)
+        .unwrap();
+
     let meta2 = RecordingMeta {
         id: "new-rec".to_string(),
         session_id: "sid".to_string(),
@@ -343,9 +351,9 @@ fn test_recording_cleanup_expired() {
         event_count: 20,
         summary: None,
         auto_recorded: false,
-        started_at: "2026-04-10T00:00:00Z".to_string(),
-        ended_at: Some("2026-04-10T00:02:00Z".to_string()),
-        created_at: "2026-04-10T00:00:00Z".to_string(),
+        started_at: recent.clone(),
+        ended_at: Some(recent.clone()),
+        created_at: recent,
         shared: false,
         team_id: None,
         shared_by: None,

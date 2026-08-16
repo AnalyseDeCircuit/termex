@@ -3,6 +3,7 @@ import { ref, computed, onMounted, watch } from "vue";
 import { useI18n } from "vue-i18n";
 import { useSftpStore } from "@/stores/sftpStore";
 import { tauriInvoke } from "@/utils/tauri";
+import { writeClipboard } from "@/utils/clipboard";
 import { Folder, Document, ArrowUp, RefreshRight } from "@element-plus/icons-vue";
 import { ElMessage } from "element-plus";
 import ContextMenu from "@/components/sidebar/ContextMenu.vue";
@@ -151,7 +152,7 @@ async function handleContextMenuSelect(action: string) {
         {
           const sep = currentPath.value.endsWith("/") ? "" : "/";
           const path = `${currentPath.value}${sep}${selectedEntry.value?.name}`;
-          await navigator.clipboard.writeText(path);
+          await writeClipboard(path);
           ElMessage.success(t("sftp.pathCopied"));
         }
         break;

@@ -11,6 +11,8 @@ import { useReconnect } from "@/composables/useReconnect";
 import { useAiContext, extractRecentLines } from "@/composables/useAiContext";
 import { useErrorDetection } from "@/composables/useErrorDetection";
 import { tauriInvoke } from "@/utils/tauri";
+import { connectWithPassphrasePrompt } from "@/utils/sshConnect";
+import { writeClipboard } from "@/utils/clipboard";
 import { useTmux } from "@/composables/useTmux";
 import { useGitSync } from "@/composables/useGitSync";
 import { useSessionStore } from "@/stores/sessionStore";
@@ -131,7 +133,10 @@ async function manualReconnect() {
   } catch { /* already gone */ }
 
   try {
-    const newSid = await tauriInvoke<string>("ssh_connect", { serverId: session.serverId });
+    const newSid = await connectWithPassphrasePrompt(
+      session.serverId,
+      session.serverName,
+    );
     const { cols, rows } = getDimensions();
     await sessionStore.reconnectSession(sid, newSid, cols, rows);
     term.write(`\r\n\x1b[32m[${t("terminal.reconnected")}]\x1b[0m\r\n`);
@@ -169,7 +174,7 @@ function initSelectionToolbar() {
 }
 
 function onSelectionCopy() {
-  navigator.clipboard.writeText(selectionToolbar.value.text);
+  writeClipboard(selectionToolbar.value.text);
   selectionToolbar.value.visible = false;
 }
 
