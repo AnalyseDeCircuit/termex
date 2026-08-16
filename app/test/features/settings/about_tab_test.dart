@@ -2,6 +2,7 @@ import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:flutter_test/flutter_test.dart';
 
+import 'package:termex_shared/app_version.dart';
 import 'package:termex_shared/features/settings/tabs/about_tab.dart';
 import 'package:termex_shared/l10n/app_localizations.dart';
 import 'package:termex_shared/system/update_service.dart';
@@ -40,7 +41,10 @@ void main() {
     await tester.pump();
 
     expect(find.text('Termex'), findsOneWidget);
-    expect(find.textContaining('0.49.0'), findsWidgets);
+    // Assert against the shared constant instead of a hardcoded string so
+    // `pnpm version:bump` (which now syncs app_version.dart) can't break
+    // this test again — the v0.79.0 bump caught it asserting '0.49.0'.
+    expect(find.textContaining(kAppVersion), findsWidgets);
   });
 
   testWidgets('check button triggers fetch and shows new version',

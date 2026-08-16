@@ -8,6 +8,7 @@ import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 
 import '../../../design/tokens.dart';
+import '../../../l10n/app_localizations.dart';
 import '../state/local_ai_provider.dart';
 
 class LocalModelPicker extends ConsumerWidget {
@@ -23,6 +24,7 @@ class LocalModelPicker extends ConsumerWidget {
   @override
   Widget build(BuildContext context, WidgetRef ref) {
     final models = ref.watch(localAiProvider).models;
+    final l10n = AppLocalizations.of(context);
 
     return Container(
       decoration: BoxDecoration(
@@ -31,11 +33,11 @@ class LocalModelPicker extends ConsumerWidget {
       ),
       constraints: const BoxConstraints(maxHeight: 240),
       child: models.isEmpty
-          ? const Padding(
-              padding: EdgeInsets.all(16),
+          ? Padding(
+              padding: const EdgeInsets.all(16),
               child: Text(
-                '正在加载模型列表…',
-                style: TextStyle(
+                l10n.aiModelListLoading,
+                style: const TextStyle(
                     fontSize: 12, color: TermexColors.textSecondary),
               ),
             )
@@ -125,26 +127,27 @@ class _ModelRow extends ConsumerWidget {
   }
 
   Future<bool> _confirmDelete(BuildContext context, String name) async {
+    final l10n = AppLocalizations.of(context);
     return await showDialog<bool>(
           context: context,
           builder: (_) => AlertDialog(
             backgroundColor: TermexColors.backgroundSecondary,
-            title: const Text('删除模型',
-                style:
-                    TextStyle(color: TermexColors.textPrimary, fontSize: 14)),
-            content: Text('确定要删除 $name 吗？',
+            title: Text(l10n.aiDeleteModelTitle,
+                style: const TextStyle(
+                    color: TermexColors.textPrimary, fontSize: 14)),
+            content: Text(l10n.aiDeleteModelConfirm(name),
                 style: const TextStyle(
                     color: TermexColors.textSecondary, fontSize: 13)),
             actions: [
               TextButton(
                 onPressed: () => Navigator.pop(context, false),
-                child: const Text('取消',
-                    style: TextStyle(color: TermexColors.textSecondary)),
+                child: Text(l10n.commonCancel,
+                    style: const TextStyle(color: TermexColors.textSecondary)),
               ),
               TextButton(
                 onPressed: () => Navigator.pop(context, true),
-                child:
-                    const Text('删除', style: TextStyle(color: TermexColors.danger)),
+                child: Text(l10n.commonDelete,
+                    style: const TextStyle(color: TermexColors.danger)),
               ),
             ],
           ),
@@ -253,7 +256,7 @@ class _StatusAction extends StatelessWidget {
       );
     }
     return _TextBtn(
-      label: '下载',
+      label: AppLocalizations.of(context).localAiDownload,
       icon: Icons.download_rounded,
       onTap: onDownload,
     );

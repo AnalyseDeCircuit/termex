@@ -1,0 +1,27 @@
+# Debian / Ubuntu package.
+display_name: Termex
+package_name: termex
+maintainer:
+  name: zouwei
+  email: karpenwon644@gmail.com
+# Declared size in KB, written verbatim into the control file's
+# Installed-Size — the maker does not measure the tree, so this is metadata
+# only. ~150 MB matches the built bundle; apt uses it for disk-space
+# estimates, not for validation.
+installed_size: 150000
+priority: optional
+section: net
+icon: app_icon.png
+generic_name: SSH Client
+startup_notify: true
+categories:
+  - Development
+  - Network
+keywords:
+  - ssh
+  - sftp
+  - terminal
+dependencies:
+  - libgtk-3-0
+  - libsecret-1-0
+  - libayatana-appindicator3-1

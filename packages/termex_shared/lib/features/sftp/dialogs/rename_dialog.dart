@@ -4,6 +4,7 @@ library;
 import 'package:flutter/material.dart';
 
 import '../../../design/colors.dart';
+import '../../../l10n/app_localizations.dart';
 
 /// Shows a rename dialog and returns the new name, or `null` if cancelled.
 Future<String?> showRenameDialog(
@@ -52,13 +53,14 @@ class _RenameDialogState extends State<RenameDialog> {
   }
 
   void _submit() {
+    final l10n = AppLocalizations.of(context);
     final name = _ctrl.text.trim();
     if (name.isEmpty) {
-      setState(() => _error = '名称不能为空');
+      setState(() => _error = l10n.sftpRenameEmpty);
       return;
     }
     if (name.contains('/')) {
-      setState(() => _error = '名称不能包含 /');
+      setState(() => _error = l10n.sftpRenameSlash);
       return;
     }
     Navigator.of(context).pop(name);
@@ -66,10 +68,12 @@ class _RenameDialogState extends State<RenameDialog> {
 
   @override
   Widget build(BuildContext context) {
+    final l10n = AppLocalizations.of(context);
     return AlertDialog(
       backgroundColor: TermexColors.backgroundSecondary,
-      title: const Text('重命名',
-          style: TextStyle(color: TermexColors.textPrimary, fontSize: 15)),
+      title: Text(l10n.sftpRename,
+          style: const TextStyle(
+              color: TermexColors.textPrimary, fontSize: 15)),
       content: SizedBox(
         width: 300,
         child: TextField(
@@ -77,7 +81,7 @@ class _RenameDialogState extends State<RenameDialog> {
           autofocus: true,
           style: const TextStyle(color: TermexColors.textPrimary),
           decoration: InputDecoration(
-            hintText: '新名称',
+            hintText: l10n.sftpRenameNewName,
             hintStyle: const TextStyle(color: TermexColors.textMuted),
             errorText: _error,
             border: const OutlineInputBorder(),
@@ -91,11 +95,11 @@ class _RenameDialogState extends State<RenameDialog> {
       actions: [
         TextButton(
           onPressed: () => Navigator.of(context).pop(),
-          child: const Text('取消'),
+          child: Text(l10n.commonCancel),
         ),
         TextButton(
           onPressed: _submit,
-          child: const Text('重命名'),
+          child: Text(l10n.sftpRename),
         ),
       ],
     );

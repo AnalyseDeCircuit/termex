@@ -2,6 +2,7 @@ import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 
 import '../../../../design/tokens.dart';
+import '../../../l10n/app_localizations.dart';
 import '../state/local_ai_provider.dart';
 import 'download_progress.dart';
 
@@ -16,6 +17,7 @@ class ModelCard extends ConsumerWidget {
     final notifier = ref.read(localAiProvider.notifier);
     final aiState = ref.watch(localAiProvider);
     final isLoaded = aiState.loadedModelId == model.id;
+    final l10n = AppLocalizations.of(context);
 
     return Container(
       padding: const EdgeInsets.all(12),
@@ -62,9 +64,9 @@ class ModelCard extends ConsumerWidget {
                     color: TermexColors.primary.withOpacity(0.1),
                     borderRadius: BorderRadius.circular(4),
                   ),
-                  child: const Text(
-                    '运行中',
-                    style: TextStyle(
+                  child: Text(
+                    l10n.localAiRunning,
+                    style: const TextStyle(
                         fontSize: 10, color: TermexColors.primary),
                   ),
                 ),
@@ -91,13 +93,13 @@ class ModelCard extends ConsumerWidget {
                 if (model.isDownloaded) ...[
                   if (!isLoaded)
                     _Action(
-                      label: '启动',
+                      label: l10n.localAiStart,
                       icon: Icons.play_arrow_rounded,
                       onTap: () => notifier.startServer(model.id),
                     ),
                   const SizedBox(width: 8),
                   _Action(
-                    label: '删除',
+                    label: l10n.commonDelete,
                     icon: Icons.delete_outline,
                     danger: true,
                     onTap: () async {
@@ -107,7 +109,7 @@ class ModelCard extends ConsumerWidget {
                   ),
                 ] else
                   _Action(
-                    label: '下载 (${model.sizeLabel})',
+                    label: l10n.localAiDownloadWithSize(model.sizeLabel),
                     icon: Icons.download_rounded,
                     onTap: () => notifier.downloadModel(model.id),
                   ),
@@ -119,24 +121,25 @@ class ModelCard extends ConsumerWidget {
   }
 
   Future<bool> _confirmDelete(BuildContext context, String name) async {
+    final l10n = AppLocalizations.of(context);
     return await showDialog<bool>(
           context: context,
           builder: (_) => AlertDialog(
             backgroundColor: TermexColors.backgroundSecondary,
-            title: const Text('删除模型',
-                style: TextStyle(color: TermexColors.textPrimary, fontSize: 14)),
-            content: Text('确定要删除 $name 吗？',
+            title: Text(l10n.aiDeleteModelTitle,
+                style: const TextStyle(color: TermexColors.textPrimary, fontSize: 14)),
+            content: Text(l10n.aiDeleteModelConfirm(name),
                 style: const TextStyle(color: TermexColors.textSecondary, fontSize: 13)),
             actions: [
               TextButton(
                 onPressed: () => Navigator.pop(context, false),
-                child: const Text('取消',
-                    style: TextStyle(color: TermexColors.textSecondary)),
+                child: Text(l10n.commonCancel,
+                    style: const TextStyle(color: TermexColors.textSecondary)),
               ),
               TextButton(
                 onPressed: () => Navigator.pop(context, true),
-                child:
-                    const Text('删除', style: TextStyle(color: TermexColors.danger)),
+                child: Text(l10n.commonDelete,
+                    style: const TextStyle(color: TermexColors.danger)),
               ),
             ],
           ),

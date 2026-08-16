@@ -1,8 +1,16 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_test/flutter_test.dart';
 import 'package:termex_shared/features/ai/panel/markdown_renderer.dart';
+import 'package:termex_shared/l10n/app_localizations.dart';
 
-Widget _wrap(Widget w) => MaterialApp(home: Scaffold(body: w));
+// v0.79.0 i18n: fenced code blocks render CodeBlock, which now calls
+// AppLocalizations.of(context) for its run/copy labels — supply the
+// delegates so the lookup resolves in the test harness.
+Widget _wrap(Widget w) => MaterialApp(
+      localizationsDelegates: AppLocalizations.localizationsDelegates,
+      supportedLocales: AppLocalizations.supportedLocales,
+      home: Scaffold(body: w),
+    );
 
 void main() {
   group('MarkdownRenderer', () {

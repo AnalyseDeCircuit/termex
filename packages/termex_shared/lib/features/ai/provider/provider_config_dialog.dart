@@ -2,6 +2,7 @@ import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 
 import '../../../design/tokens.dart';
+import '../../../l10n/app_localizations.dart';
 import '../state/conversation_provider.dart';
 import '../state/provider_config_provider.dart';
 import 'provider_registry.dart';
@@ -80,11 +81,12 @@ class _ProviderConfigDialogState extends ConsumerState<_ProviderConfigDialog> {
   Widget build(BuildContext context) {
     final meta = metaFor(widget.provider);
     final configState = ref.watch(providerConfigProvider);
+    final l10n = AppLocalizations.of(context);
 
     return AlertDialog(
       backgroundColor: TermexColors.backgroundSecondary,
       title: Text(
-        '配置 ${meta.label}',
+        l10n.settingsAiConfigureTitle(meta.label),
         style: const TextStyle(fontSize: 15, color: TermexColors.textPrimary),
       ),
       content: SizedBox(
@@ -158,7 +160,7 @@ class _ProviderConfigDialogState extends ConsumerState<_ProviderConfigDialog> {
               ],
 
               // Model selector
-              const _Label('模型'),
+              _Label(l10n.aiConfigModel),
               DropdownButtonFormField<String>(
                 initialValue: _selectedModel,
                 dropdownColor: TermexColors.backgroundSecondary,
@@ -172,15 +174,15 @@ class _ProviderConfigDialogState extends ConsumerState<_ProviderConfigDialog> {
               const SizedBox(height: 12),
 
               // Context lines
-              const _Label('终端上下文行数'),
+              _Label(l10n.settingsAiTerminalContextLines),
               DropdownButtonFormField<int>(
                 initialValue: _contextLines,
                 dropdownColor: TermexColors.backgroundSecondary,
                 style: _inputStyle,
                 decoration: _inputDecoration(hint: ''),
                 items: const [50, 100, 200, 500]
-                    .map((n) =>
-                        DropdownMenuItem(value: n, child: Text('$n 行')))
+                    .map((n) => DropdownMenuItem(
+                        value: n, child: Text(l10n.settingsAiLinesUnit(n))))
                     .toList(),
                 onChanged: (v) => setState(() => _contextLines = v!),
               ),
@@ -191,8 +193,8 @@ class _ProviderConfigDialogState extends ConsumerState<_ProviderConfigDialog> {
       actions: [
         TextButton(
           onPressed: () => Navigator.of(context).pop(),
-          child: const Text('取消',
-              style: TextStyle(color: TermexColors.textSecondary)),
+          child: Text(l10n.commonCancel,
+              style: const TextStyle(color: TermexColors.textSecondary)),
         ),
         ElevatedButton(
           onPressed: _save,
@@ -200,7 +202,7 @@ class _ProviderConfigDialogState extends ConsumerState<_ProviderConfigDialog> {
             backgroundColor: TermexColors.primary,
             foregroundColor: Colors.white,
           ),
-          child: const Text('保存'),
+          child: Text(l10n.commonSave),
         ),
       ],
     );
@@ -255,6 +257,7 @@ class _VerifyButton extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
+    final l10n = AppLocalizations.of(context);
     return GestureDetector(
       onTap: isVerifying ? null : onTap,
       child: Container(
@@ -272,9 +275,9 @@ class _VerifyButton extends StatelessWidget {
                   color: TermexColors.primary,
                 ),
               )
-            : const Text(
-                '验证',
-                style: TextStyle(
+            : Text(
+                l10n.settingsAiVerify,
+                style: const TextStyle(
                     fontSize: 12, color: TermexColors.textSecondary),
               ),
       ),

@@ -6,6 +6,7 @@ import '../../../design/typography.dart';
 import '../../../design/radius.dart';
 import '../../../design/spacing.dart';
 import '../../../icons/termex_icons.dart';
+import '../../../l10n/app_localizations.dart';
 
 /// A single visual row in the server tree.
 /// Represents either a group (collapsible) or a server entry.
@@ -94,6 +95,7 @@ class _ServerTreeNodeState extends State<ServerTreeNode> {
 
   @override
   Widget build(BuildContext context) {
+    final l10n = AppLocalizations.of(context);
     final indent = widget.depth * 8.0;
 
     return MouseRegion(
@@ -172,26 +174,26 @@ class _ServerTreeNodeState extends State<ServerTreeNode> {
                         // Server-only routing badges. Order: proxy → bastion → shared.
                         if (widget.hasProxy) ...[
                           const SizedBox(width: 4),
-                          const _CapsuleBadge(
+                          _CapsuleBadge(
                             label: 'P',
-                            color: Color(0xFF8B5CF6), // purple
-                            tooltip: '已配置网络代理',
+                            color: const Color(0xFF8B5CF6), // purple
+                            tooltip: l10n.serverBadgeProxyTooltip,
                           ),
                         ],
                         if (widget.hasBastion) ...[
                           const SizedBox(width: 3),
-                          const _CapsuleBadge(
+                          _CapsuleBadge(
                             label: 'B',
-                            color: Color(0xFF2F81F7), // blue (primary)
-                            tooltip: '经跳板机连接',
+                            color: const Color(0xFF2F81F7), // blue (primary)
+                            tooltip: l10n.serverBadgeBastionTooltip,
                           ),
                         ],
                         if (widget.isShared) ...[
                           const SizedBox(width: 3),
-                          const _CapsuleBadge(
+                          _CapsuleBadge(
                             label: 'T',
-                            color: Color(0xFF3FB950), // green
-                            tooltip: '已分享至团队',
+                            color: const Color(0xFF3FB950), // green
+                            tooltip: l10n.serverSharedToTeam,
                           ),
                         ],
                       ],

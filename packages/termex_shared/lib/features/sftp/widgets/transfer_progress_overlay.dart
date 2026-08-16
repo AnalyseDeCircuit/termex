@@ -8,6 +8,7 @@ import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 
 import '../../../design/colors.dart';
+import '../../../l10n/app_localizations.dart';
 import '../state/sftp_transfer_provider.dart';
 
 /// Renders a floating panel of in-progress and recent transfers.
@@ -74,12 +75,13 @@ class _Header extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
+    final l10n = AppLocalizations.of(context);
     return Padding(
       padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 8),
       child: Row(
         children: [
-          const Text('传输',
-              style: TextStyle(
+          Text(l10n.sftpTransfers,
+              style: const TextStyle(
                   color: TermexColors.textPrimary,
                   fontWeight: FontWeight.w600,
                   fontSize: 13)),
@@ -87,8 +89,8 @@ class _Header extends StatelessWidget {
           if (hasCompleted)
             GestureDetector(
               onTap: onClear,
-              child: const Text('清除已完成',
-                  style: TextStyle(
+              child: Text(l10n.sftpClearCompleted,
+                  style: const TextStyle(
                       color: TermexColors.textMuted, fontSize: 11)),
             ),
         ],
@@ -105,6 +107,7 @@ class _TransferRow extends ConsumerWidget {
 
   @override
   Widget build(BuildContext context, WidgetRef ref) {
+    final l10n = AppLocalizations.of(context);
     final isActive = !item.isDone;
     final icon = item.direction == TransferDirection.upload
         ? Icons.upload_outlined
@@ -141,7 +144,7 @@ class _TransferRow extends ConsumerWidget {
                   )
                 else
                   Text(
-                    _statusLabel(item.status, item.errorMessage),
+                    _statusLabel(l10n, item.status, item.errorMessage),
                     style: TextStyle(
                         fontSize: 10,
                         color: _statusColor(item.status)),
@@ -154,7 +157,7 @@ class _TransferRow extends ConsumerWidget {
             if (item.status == TransferStatus.paused)
               _IconBtn(
                 icon: Icons.play_arrow,
-                tooltip: '继续',
+                tooltip: l10n.sftpTransferResume,
                 color: TermexColors.success,
                 onTap: () => ref
                     .read(sftpTransferProvider(sessionId).notifier)
@@ -163,7 +166,7 @@ class _TransferRow extends ConsumerWidget {
             else
               _IconBtn(
                 icon: Icons.pause,
-                tooltip: '暂停',
+                tooltip: l10n.sftpTransferPause,
                 color: TermexColors.warning,
                 onTap: () => ref
                     .read(sftpTransferProvider(sessionId).notifier)
@@ -172,7 +175,7 @@ class _TransferRow extends ConsumerWidget {
             const SizedBox(width: 4),
             _IconBtn(
               icon: Icons.close,
-              tooltip: '取消',
+              tooltip: l10n.sftpCancel,
               color: TermexColors.textMuted,
               onTap: () => ref
                   .read(sftpTransferProvider(sessionId).notifier)
@@ -184,12 +187,13 @@ class _TransferRow extends ConsumerWidget {
     );
   }
 
-  static String _statusLabel(TransferStatus s, String? error) {
+  static String _statusLabel(
+      AppLocalizations l10n, TransferStatus s, String? error) {
     return switch (s) {
-      TransferStatus.completed => '完成',
-      TransferStatus.failed => '失败：${error ?? ''}',
-      TransferStatus.cancelled => '已取消',
-      TransferStatus.paused => '已暂停',
+      TransferStatus.completed => l10n.sftpTransferDone,
+      TransferStatus.failed => l10n.sftpTransferFailed(error ?? ''),
+      TransferStatus.cancelled => l10n.sftpTransferCancelled,
+      TransferStatus.paused => l10n.sftpTransferPaused,
       _ => '',
     };
   }

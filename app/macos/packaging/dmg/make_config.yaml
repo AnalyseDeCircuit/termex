@@ -1,0 +1,25 @@
+# DMG layout for flutter_distributor's `dmg` target (appdmg under the hood).
+#
+# Required: without this file `flutter_distributor package --targets dmg`
+# aborts with PathNotFoundException after the app has already been built.
+# Paths are resolved inside the temporary packaging directory, into which the
+# maker copies both the built .app and the whole of this directory. Anything
+# referenced here must therefore live alongside this file and be named without
+# a leading path — a path reaching back into the source tree will not resolve.
+title: Termex
+icon: app_icon.png
+window:
+  size:
+    width: 540
+    height: 380
+contents:
+  - x: 140
+    y: 200
+    type: file
+    path: termex.app
+  # The Applications alias is what makes the DMG a drag-to-install window
+  # rather than a folder the user has to figure out.
+  - x: 400
+    y: 200
+    type: link
+    path: /Applications

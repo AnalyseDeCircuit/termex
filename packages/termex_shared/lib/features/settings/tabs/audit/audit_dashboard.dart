@@ -17,6 +17,7 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 import '../../../../design/colors.dart';
 import '../../../../design/spacing.dart';
 import '../../../../design/typography.dart';
+import '../../../../l10n/app_localizations.dart';
 import '../../state/settings_provider.dart';
 import 'audit_detail_dialog.dart';
 import 'audit_filter_bar.dart';
@@ -151,12 +152,15 @@ class _SummaryRow extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
+    final l10n = AppLocalizations.of(context);
     final items = <_Kpi>[
-      _Kpi('总记录', summary.total, TermexColors.primary),
-      _Kpi('连接', summary.connections, TermexColors.success),
-      _Kpi('凭据访问', summary.credentialAccess, TermexColors.warning),
-      _Kpi('配置变更', summary.configChanges, const Color(0xFF8B5CF6)),
-      _Kpi('成员操作', summary.memberOps, TermexColors.danger),
+      _Kpi(l10n.auditKpiTotal, summary.total, TermexColors.primary),
+      _Kpi(l10n.auditKpiConnections, summary.connections, TermexColors.success),
+      _Kpi(l10n.auditKpiCredentialAccess, summary.credentialAccess,
+          TermexColors.warning),
+      _Kpi(l10n.auditKpiConfigChanges, summary.configChanges,
+          const Color(0xFF8B5CF6)),
+      _Kpi(l10n.auditKpiMemberOps, summary.memberOps, TermexColors.danger),
     ];
     return LayoutBuilder(
       builder: (ctx, c) {
@@ -265,6 +269,7 @@ class _LogTable extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
+    final l10n = AppLocalizations.of(context);
     return Container(
       decoration: BoxDecoration(
         color: TermexColors.backgroundSecondary,
@@ -285,23 +290,23 @@ class _LogTable extends StatelessWidget {
               ),
             ),
             child: Row(
-              children: const [
+              children: [
                 SizedBox(
                   width: 150,
-                  child: Text('时间',
+                  child: Text(l10n.auditFieldTime,
                       style: TermexTypography.caption,
                       maxLines: 1,
                       overflow: TextOverflow.ellipsis),
                 ),
                 SizedBox(
                   width: 160,
-                  child: Text('事件',
+                  child: Text(l10n.auditColEvent,
                       style: TermexTypography.caption,
                       maxLines: 1,
                       overflow: TextOverflow.ellipsis),
                 ),
                 Expanded(
-                  child: Text('详情',
+                  child: Text(l10n.auditFieldDetail,
                       style: TermexTypography.caption,
                       maxLines: 1,
                       overflow: TextOverflow.ellipsis),
@@ -418,21 +423,24 @@ class _Pager extends StatelessWidget {
   });
 
   @override
-  Widget build(BuildContext context) => Row(
-        mainAxisAlignment: MainAxisAlignment.center,
-        children: [
-          _PageBtn(label: '上一页', onTap: onPrev),
-          const SizedBox(width: TermexSpacing.md),
-          Text(
-            '$page / $totalPages',
-            style: TermexTypography.caption.copyWith(
-              color: TermexColors.textSecondary,
-            ),
+  Widget build(BuildContext context) {
+    final l10n = AppLocalizations.of(context);
+    return Row(
+      mainAxisAlignment: MainAxisAlignment.center,
+      children: [
+        _PageBtn(label: l10n.auditPagerPrev, onTap: onPrev),
+        const SizedBox(width: TermexSpacing.md),
+        Text(
+          '$page / $totalPages',
+          style: TermexTypography.caption.copyWith(
+            color: TermexColors.textSecondary,
           ),
-          const SizedBox(width: TermexSpacing.md),
-          _PageBtn(label: '下一页', onTap: onNext),
-        ],
-      );
+        ),
+        const SizedBox(width: TermexSpacing.md),
+        _PageBtn(label: l10n.auditPagerNext, onTap: onNext),
+      ],
+    );
+  }
 }
 
 class _PageBtn extends StatelessWidget {
@@ -477,24 +485,27 @@ class _EmptyState extends StatelessWidget {
   const _EmptyState();
 
   @override
-  Widget build(BuildContext context) => Center(
-        child: Column(
-          mainAxisSize: MainAxisSize.min,
-          children: [
-            Text(
-              '暂无审计日志',
-              style: TermexTypography.body.copyWith(
-                color: TermexColors.textSecondary,
-              ),
+  Widget build(BuildContext context) {
+    final l10n = AppLocalizations.of(context);
+    return Center(
+      child: Column(
+        mainAxisSize: MainAxisSize.min,
+        children: [
+          Text(
+            l10n.auditEmptyTitle,
+            style: TermexTypography.body.copyWith(
+              color: TermexColors.textSecondary,
             ),
-            const SizedBox(height: TermexSpacing.sm),
-            Text(
-              '建立 SSH 连接、修改设置或团队操作会写入审计日志',
-              style: TermexTypography.caption.copyWith(
-                color: TermexColors.textMuted,
-              ),
+          ),
+          const SizedBox(height: TermexSpacing.sm),
+          Text(
+            l10n.auditEmptyHint,
+            style: TermexTypography.caption.copyWith(
+              color: TermexColors.textMuted,
             ),
-          ],
-        ),
-      );
+          ),
+        ],
+      ),
+    );
+  }
 }

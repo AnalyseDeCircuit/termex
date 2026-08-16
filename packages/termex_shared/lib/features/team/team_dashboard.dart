@@ -21,6 +21,7 @@ import 'package:flutter/services.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:termex_bridge/src/api.dart' as bridge;
 
+import '../../l10n/app_localizations.dart';
 import '../../design/colors.dart';
 import '../../design/spacing.dart';
 import '../../design/typography.dart';
@@ -60,19 +61,21 @@ class _TeamDashboardState extends ConsumerState<TeamDashboard> {
   void _reload() => setState(() => _future = _load());
 
   Future<void> _syncNow() async {
+    final l10n = AppLocalizations.of(context);
     try {
       final changed = await bridge.teamSyncNow();
       if (!mounted) return;
-      ToastController.success('同步完成（$changed 项变更）');
+      ToastController.success(l10n.teamSyncDoneCount(changed));
       _reload();
     } catch (e) {
       if (!mounted) return;
-      ToastController.error('同步失败：$e');
+      ToastController.error(l10n.teamSyncFailed(e.toString()));
     }
   }
 
   @override
   Widget build(BuildContext context) {
+    final l10n = AppLocalizations.of(context);
     return FutureBuilder<_TeamData>(
       future: _future,
       builder: (ctx, snap) {
@@ -114,11 +117,11 @@ class _TeamDashboardState extends ConsumerState<TeamDashboard> {
                       useLocal: useLocal,
                     );
                     if (!mounted) return;
-                    ToastController.success('已应用');
+                    ToastController.success(l10n.teamApplied);
                     _reload();
                   } catch (e) {
                     if (!mounted) return;
-                    ToastController.error('解决失败：$e');
+                    ToastController.error(l10n.teamResolveFailed(e.toString()));
                   }
                 },
               ),
@@ -130,22 +133,22 @@ class _TeamDashboardState extends ConsumerState<TeamDashboard> {
                 try {
                   await bridge.teamUpdateRole(memberId: m.id, role: r);
                   if (!mounted) return;
-                  ToastController.success('已更新角色');
+                  ToastController.success(l10n.teamRoleUpdated);
                   _reload();
                 } catch (e) {
                   if (!mounted) return;
-                  ToastController.error('更新失败：$e');
+                  ToastController.error(l10n.teamUpdateFailed(e.toString()));
                 }
               },
               onRemove: (m) async {
                 try {
                   await bridge.teamRemoveMember(memberId: m.id);
                   if (!mounted) return;
-                  ToastController.success('已移除');
+                  ToastController.success(l10n.teamRemoved);
                   _reload();
                 } catch (e) {
                   if (!mounted) return;
-                  ToastController.error('移除失败：$e');
+                  ToastController.error(l10n.teamRemoveFailed(e.toString()));
                 }
               },
             ),
@@ -181,34 +184,35 @@ class _Toolbar extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
+    final l10n = AppLocalizations.of(context);
     return Wrap(
       spacing: TermexSpacing.sm,
       runSpacing: TermexSpacing.sm,
       crossAxisAlignment: WrapCrossAlignment.center,
       children: [
         Text(
-          '团队工作区',
+          l10n.teamWorkspace,
           style: TermexTypography.body.copyWith(
             color: TermexColors.textPrimary,
             fontWeight: FontWeight.w600,
           ),
         ),
         const SizedBox(width: TermexSpacing.sm),
-        _Badge(label: '$memberCount 成员', color: TermexColors.primary),
+        _Badge(label: l10n.teamMemberBadge(memberCount), color: TermexColors.primary),
         if (conflictCount > 0)
-          _Badge(label: '$conflictCount 冲突', color: TermexColors.warning),
+          _Badge(label: l10n.teamConflictBadge(conflictCount), color: TermexColors.warning),
         TermexButton(
-          label: '邀请成员',
+          label: l10n.teamV2InviteMember,
           variant: ButtonVariant.primary,
           onPressed: onInvite,
         ),
         TermexButton(
-          label: '同步',
+          label: l10n.teamDashSyncShort,
           variant: ButtonVariant.ghost,
           onPressed: onSync,
         ),
         TermexButton(
-          label: '修改口令',
+          label: l10n.teamChangePassphrase,
           variant: ButtonVariant.ghost,
           onPressed: onPassphrase,
         ),
@@ -252,6 +256,7 @@ class _MembersSection extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
+    final l10n = AppLocalizations.of(context);
     return Container(
       decoration: BoxDecoration(
         color: TermexColors.backgroundSecondary,
@@ -267,7 +272,7 @@ class _MembersSection extends StatelessWidget {
               vertical: TermexSpacing.sm,
             ),
             child: Text(
-              '成员',
+              l10n.teamStatMembers,
               style: TermexTypography.caption.copyWith(
                 color: TermexColors.textSecondary,
                 fontWeight: FontWeight.w500,
@@ -276,10 +281,10 @@ class _MembersSection extends StatelessWidget {
           ),
           Container(height: 0.5, color: TermexColors.border),
           if (members.isEmpty)
-            const Padding(
-              padding: EdgeInsets.all(TermexSpacing.md),
+            Padding(
+              padding: const EdgeInsets.all(TermexSpacing.md),
               child: Text(
-                '暂无成员（生成邀请码后即可加入）',
+                l10n.teamNoMembers,
                 style: TermexTypography.caption,
                 textAlign: TextAlign.center,
               ),
@@ -316,6 +321,7 @@ class _MemberRowState extends State<_MemberRow> {
 
   @override
   Widget build(BuildContext context) {
+    final l10n = AppLocalizations.of(context);
     final m = widget.member;
     return MouseRegion(
       onEnter: (_) => setState(() => _hovered = true),
@@ -336,7 +342,7 @@ class _MemberRowState extends State<_MemberRow> {
                 crossAxisAlignment: CrossAxisAlignment.start,
                 children: [
                   Text(
-                    m.name.isEmpty ? '(未命名)' : m.name,
+                    m.name.isEmpty ? l10n.teamUnnamed : m.name,
                     maxLines: 1,
                     overflow: TextOverflow.ellipsis,
                     style: TermexTypography.bodySmall.copyWith(
@@ -445,6 +451,7 @@ class _ConflictsSection extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
+    final l10n = AppLocalizations.of(context);
     return Container(
       decoration: BoxDecoration(
         color: TermexColors.backgroundSecondary,
@@ -468,7 +475,7 @@ class _ConflictsSection extends StatelessWidget {
                 ),
                 const SizedBox(width: TermexSpacing.sm),
                 Text(
-                  '待解决的同步冲突',
+                  l10n.teamPendingConflicts,
                   style: TermexTypography.caption.copyWith(
                     color: TermexColors.warning,
                     fontWeight: FontWeight.w500,
@@ -485,7 +492,7 @@ class _ConflictsSection extends StatelessWidget {
                 crossAxisAlignment: CrossAxisAlignment.start,
                 children: [
                   Text(
-                    '服务器 ${c.serverId} · 字段 ${c.field}',
+                    l10n.teamConflictServerField(c.serverId, c.field),
                     style: TermexTypography.caption.copyWith(
                       color: TermexColors.textPrimary,
                       fontWeight: FontWeight.w500,
@@ -496,7 +503,7 @@ class _ConflictsSection extends StatelessWidget {
                     children: [
                       Expanded(
                         child: _ValueCell(
-                          label: '本地',
+                          label: l10n.teamConflictLocal,
                           value: c.localValue,
                           onUse: () => onResolve(c, true),
                         ),
@@ -504,7 +511,7 @@ class _ConflictsSection extends StatelessWidget {
                       const SizedBox(width: TermexSpacing.sm),
                       Expanded(
                         child: _ValueCell(
-                          label: '远端',
+                          label: l10n.teamConflictRemote,
                           value: c.remoteValue,
                           onUse: () => onResolve(c, false),
                         ),
@@ -533,7 +540,9 @@ class _ValueCell extends StatelessWidget {
   });
 
   @override
-  Widget build(BuildContext context) => Container(
+  Widget build(BuildContext context) {
+    final l10n = AppLocalizations.of(context);
+    return Container(
         padding: const EdgeInsets.all(TermexSpacing.sm),
         decoration: BoxDecoration(
           color: TermexColors.backgroundTertiary,
@@ -563,7 +572,7 @@ class _ValueCell extends StatelessWidget {
             GestureDetector(
               onTap: onUse,
               child: Text(
-                '使用此值',
+                l10n.teamUseThisValue,
                 style: TermexTypography.caption.copyWith(
                   color: TermexColors.primary,
                 ),
@@ -572,11 +581,13 @@ class _ValueCell extends StatelessWidget {
           ],
         ),
       );
+  }
 }
 
 // ─── Dialogs ──────────────────────────────────────────────────────────────
 
 Future<void> _showInviteDialog(BuildContext context) async {
+  final l10n = AppLocalizations.of(context);
   bridge.TeamRole role = bridge.TeamRole.member;
   bridge.TeamInvite? invite;
   String? errorMessage;
@@ -584,7 +595,7 @@ Future<void> _showInviteDialog(BuildContext context) async {
 
   await showTermexDialog<void>(
     context: context,
-    title: '邀请新成员',
+    title: l10n.teamInviteNewMember,
     size: DialogSize.medium,
     body: SizedBox(
       width: 420,
@@ -617,14 +628,14 @@ Future<void> _showInviteDialog(BuildContext context) async {
             crossAxisAlignment: CrossAxisAlignment.start,
             children: [
               Text(
-                '为新成员生成一次性邀请码（72 小时内有效）。',
+                l10n.teamInviteDesc,
                 style: TermexTypography.caption.copyWith(
                   color: TermexColors.textSecondary,
                 ),
               ),
               const SizedBox(height: TermexSpacing.md),
               Text(
-                '角色',
+                l10n.teamRole,
                 style: TermexTypography.caption.copyWith(
                   color: TermexColors.textSecondary,
                 ),
@@ -680,7 +691,7 @@ Future<void> _showInviteDialog(BuildContext context) async {
                 )
               else
                 Text(
-                  '点击下方按钮生成邀请码。',
+                  l10n.teamGenerateHint,
                   style: TermexTypography.caption.copyWith(
                     color: TermexColors.textMuted,
                   ),
@@ -689,14 +700,14 @@ Future<void> _showInviteDialog(BuildContext context) async {
               Row(
                 children: [
                   TermexButton(
-                    label: generating ? '生成中…' : '生成邀请码',
+                    label: generating ? l10n.teamGenerating : l10n.teamV2InviteGenerate,
                     variant: ButtonVariant.primary,
                     onPressed: generating ? null : regen,
                   ),
                   const Spacer(),
                   Builder(
                     builder: (c) => TermexButton(
-                      label: '关闭',
+                      label: l10n.commonClose,
                       variant: ButtonVariant.ghost,
                       onPressed: () =>
                           Navigator.of(c, rootNavigator: true).pop(),
@@ -718,6 +729,7 @@ class _InviteCodeBox extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
+    final l10n = AppLocalizations.of(context);
     return Container(
       padding: const EdgeInsets.all(TermexSpacing.md),
       decoration: BoxDecoration(
@@ -745,7 +757,7 @@ class _InviteCodeBox extends StatelessWidget {
                 onTap: () async {
                   await Clipboard.setData(
                       ClipboardData(text: invite.code));
-                  ToastController.success('已复制');
+                  ToastController.success(l10n.teamV2InviteCopied);
                 },
                 child: const TermexIconWidget(
                   TermexIcons.copy,
@@ -757,7 +769,7 @@ class _InviteCodeBox extends StatelessWidget {
           ),
           const SizedBox(height: 4),
           Text(
-            '过期：${invite.expiresAt}',
+            l10n.teamExpiresAt(invite.expiresAt),
             style: TermexTypography.caption.copyWith(
               color: TermexColors.textMuted,
             ),
@@ -769,11 +781,12 @@ class _InviteCodeBox extends StatelessWidget {
 }
 
 Future<void> _showPassphraseDialog(BuildContext context) async {
+  final l10n = AppLocalizations.of(context);
   final controller = TextEditingController();
   String? errorMessage;
   await showTermexDialog<void>(
     context: context,
-    title: '验证团队口令',
+    title: l10n.teamVerifyPassphraseTitle,
     size: DialogSize.small,
     body: SizedBox(
       width: 360,
@@ -783,7 +796,7 @@ Future<void> _showPassphraseDialog(BuildContext context) async {
           crossAxisAlignment: CrossAxisAlignment.start,
           children: [
             Text(
-              '输入团队加密口令验证当前会话。',
+              l10n.teamVerifyPassphraseDesc,
               style: TermexTypography.caption.copyWith(
                 color: TermexColors.textSecondary,
               ),
@@ -793,7 +806,7 @@ Future<void> _showPassphraseDialog(BuildContext context) async {
               controller: controller,
               autofocus: true,
               obscureText: true,
-              placeholder: '口令',
+              placeholder: l10n.teamPassphrasePlaceholder,
             ),
             if (errorMessage != null) ...[
               const SizedBox(height: TermexSpacing.xs),
@@ -809,7 +822,7 @@ Future<void> _showPassphraseDialog(BuildContext context) async {
               children: [
                 Builder(
                   builder: (c) => TermexButton(
-                    label: '取消',
+                    label: l10n.commonCancel,
                     variant: ButtonVariant.ghost,
                     onPressed: () =>
                         Navigator.of(c, rootNavigator: true).pop(),
@@ -817,7 +830,7 @@ Future<void> _showPassphraseDialog(BuildContext context) async {
                 ),
                 const Spacer(),
                 TermexButton(
-                  label: '验证',
+                  label: l10n.teamVerify,
                   variant: ButtonVariant.primary,
                   onPressed: () async {
                     try {
@@ -825,15 +838,15 @@ Future<void> _showPassphraseDialog(BuildContext context) async {
                         passphrase: controller.text,
                       );
                       if (!ok) {
-                        setSt(() => errorMessage = '口令不正确');
+                        setSt(() => errorMessage = l10n.teamPassphraseIncorrect);
                         return;
                       }
                       if (ctx.mounted) {
                         Navigator.of(ctx, rootNavigator: true).pop();
-                        ToastController.success('验证通过');
+                        ToastController.success(l10n.teamVerifyPassed);
                       }
                     } catch (e) {
-                      setSt(() => errorMessage = '验证失败：$e');
+                      setSt(() => errorMessage = l10n.teamVerifyFailed(e.toString()));
                     }
                   },
                 ),
@@ -855,12 +868,14 @@ class _ErrorView extends StatelessWidget {
   const _ErrorView({required this.error, required this.onRetry});
 
   @override
-  Widget build(BuildContext context) => Center(
+  Widget build(BuildContext context) {
+    final l10n = AppLocalizations.of(context);
+    return Center(
         child: Column(
           mainAxisSize: MainAxisSize.min,
           children: [
             Text(
-              '加载团队信息失败',
+              l10n.teamLoadFailed,
               style: TermexTypography.body.copyWith(
                 color: TermexColors.danger,
               ),
@@ -875,11 +890,12 @@ class _ErrorView extends StatelessWidget {
             ),
             const SizedBox(height: TermexSpacing.sm),
             TermexButton(
-              label: '重试',
+              label: l10n.commonRetry,
               variant: ButtonVariant.ghost,
               onPressed: onRetry,
             ),
           ],
         ),
       );
+  }
 }

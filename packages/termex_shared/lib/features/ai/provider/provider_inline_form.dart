@@ -7,6 +7,7 @@ import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 
 import '../../../design/tokens.dart';
+import '../../../l10n/app_localizations.dart';
 import '../local_ai/local_model_picker.dart';
 import '../local_ai/server_status.dart';
 import '../state/conversation_provider.dart';
@@ -64,10 +65,11 @@ class _ProviderInlineFormState extends ConsumerState<ProviderInlineForm> {
   }
 
   void _save() {
+    final l10n = AppLocalizations.of(context);
     if (_model.isEmpty) {
       setState(() {
         _statusOk = false;
-        _statusMessage = '请选择模型';
+        _statusMessage = l10n.settingsAiSelectModelError;
       });
       return;
     }
@@ -84,11 +86,12 @@ class _ProviderInlineFormState extends ConsumerState<ProviderInlineForm> {
   }
 
   Future<void> _verify() async {
+    final l10n = AppLocalizations.of(context);
     final key = _apiKeyCtrl.text.trim();
     if (key.isEmpty) {
       setState(() {
         _statusOk = false;
-        _statusMessage = '请填写 API Key';
+        _statusMessage = l10n.settingsAiApiKeyRequired;
       });
       return;
     }
@@ -99,7 +102,8 @@ class _ProviderInlineFormState extends ConsumerState<ProviderInlineForm> {
     final err = ref.read(providerConfigProvider).verifyError;
     setState(() {
       _statusOk = ok;
-      _statusMessage = ok ? '验证成功' : (err ?? '验证失败');
+      _statusMessage =
+          ok ? l10n.settingsAiVerifySuccess : (err ?? l10n.settingsAiVerifyFailed);
     });
   }
 
@@ -108,6 +112,7 @@ class _ProviderInlineFormState extends ConsumerState<ProviderInlineForm> {
     final meta = metaFor(widget.provider);
     final cfgState = ref.watch(providerConfigProvider);
     final isLocal = widget.provider == AiProvider.localLlama;
+    final l10n = AppLocalizations.of(context);
 
     return Container(
       decoration: const BoxDecoration(
@@ -147,7 +152,7 @@ class _ProviderInlineFormState extends ConsumerState<ProviderInlineForm> {
                 ),
                 const SizedBox(width: 8),
                 _SmallBtn(
-                  label: cfgState.isVerifying ? '…' : '验证',
+                  label: cfgState.isVerifying ? '…' : l10n.settingsAiVerify,
                   onTap: cfgState.isVerifying ? null : _verify,
                 ),
               ],
@@ -165,7 +170,7 @@ class _ProviderInlineFormState extends ConsumerState<ProviderInlineForm> {
           ],
 
           // Model selector — local provider gets the embedded picker.
-          const _Label('模型'),
+          _Label(l10n.aiConfigModel),
           if (isLocal)
             LocalModelPicker(
               selectedModelId: _model,
@@ -175,7 +180,7 @@ class _ProviderInlineFormState extends ConsumerState<ProviderInlineForm> {
             _modelDropdown(meta.models),
           const SizedBox(height: 10),
 
-          const _Label('终端上下文行数'),
+          _Label(l10n.settingsAiTerminalContextLines),
           DropdownButtonFormField<int>(
             initialValue: _contextLines,
             isDense: true,
@@ -184,8 +189,8 @@ class _ProviderInlineFormState extends ConsumerState<ProviderInlineForm> {
                 const TextStyle(fontSize: 12, color: TermexColors.textPrimary),
             decoration: _decoration(''),
             items: const [50, 100, 200, 500]
-                .map((n) =>
-                    DropdownMenuItem(value: n, child: Text('$n 行')))
+                .map((n) => DropdownMenuItem(
+                    value: n, child: Text(l10n.settingsAiLinesUnit(n))))
                 .toList(),
             onChanged: (v) => setState(() => _contextLines = v!),
           ),
@@ -194,8 +199,8 @@ class _ProviderInlineFormState extends ConsumerState<ProviderInlineForm> {
             const SizedBox(height: 16),
             const Divider(color: TermexColors.border, height: 1),
             const SizedBox(height: 12),
-            const Text('llama-server 引擎',
-                style: TextStyle(
+            Text(l10n.settingsAiLlamaEngine,
+                style: const TextStyle(
                   fontSize: 12,
                   fontWeight: FontWeight.w600,
                   color: TermexColors.textPrimary,
@@ -223,10 +228,10 @@ class _ProviderInlineFormState extends ConsumerState<ProviderInlineForm> {
           Row(
             mainAxisAlignment: MainAxisAlignment.end,
             children: [
-              _SmallBtn(label: '取消', onTap: widget.onClose),
+              _SmallBtn(label: l10n.commonCancel, onTap: widget.onClose),
               const SizedBox(width: 8),
               _SmallBtn(
-                label: '保存',
+                label: l10n.commonSave,
                 primary: true,
                 onTap: _save,
               ),
@@ -378,11 +383,12 @@ class _LocalEngineSettings extends ConsumerWidget {
   Widget build(BuildContext context, WidgetRef ref) {
     final settings = ref.watch(settingsProvider).settings;
     final notifier = ref.read(settingsProvider.notifier);
+    final l10n = AppLocalizations.of(context);
     return Column(
       crossAxisAlignment: CrossAxisAlignment.stretch,
       children: [
         _row(
-          '服务端口',
+          l10n.settingsAiServerPort,
           _NumberField(
             value: settings.localAiPort,
             onChanged: (v) =>
@@ -390,7 +396,7 @@ class _LocalEngineSettings extends ConsumerWidget {
           ),
         ),
         _row(
-          '推理线程数',
+          l10n.settingsAiInferenceThreads,
           _NumberField(
             value: settings.localAiThreads,
             onChanged: (v) =>
@@ -398,7 +404,7 @@ class _LocalEngineSettings extends ConsumerWidget {
           ),
         ),
         _row(
-          '上下文窗口 (token)',
+          l10n.settingsAiContextWindow,
           _NumberField(
             value: settings.localAiContextSize,
             onChanged: (v) =>
@@ -406,7 +412,7 @@ class _LocalEngineSettings extends ConsumerWidget {
           ),
         ),
         _row(
-          '启动时自动启动引擎',
+          l10n.settingsAiAutoStartEngine,
           Switch(
             value: settings.localAiAutoStart,
             onChanged: (v) =>

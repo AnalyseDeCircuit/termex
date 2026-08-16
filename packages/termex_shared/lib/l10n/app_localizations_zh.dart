@@ -3691,4 +3691,933 @@ class AppLocalizationsZh extends AppLocalizations {
 
   @override
   String get keybindingsUntranslated => '(未翻译)';
+
+  @override
+  String get settingsTerminalScrollback => '滚动缓冲行数';
+
+  @override
+  String get settingsTerminalScrollbackHint => '向上回滚历史的最大行数';
+
+  @override
+  String settingsTerminalLinesOption(String count) {
+    return '$count 行';
+  }
+
+  @override
+  String get settingsTerminalTabWidth => 'Tab 宽度';
+
+  @override
+  String settingsTerminalSpacesOption(String count) {
+    return '$count 空格';
+  }
+
+  @override
+  String get settingsTerminalCursorShape => '光标形状';
+
+  @override
+  String get settingsTerminalCursorBlock => '方块';
+
+  @override
+  String get settingsTerminalCursorUnderline => '下划线';
+
+  @override
+  String get settingsTerminalCursorBar => '竖线';
+
+  @override
+  String get settingsTerminalCursorBlink => '光标闪烁';
+
+  @override
+  String get settingsTerminalTmux => 'Tmux 多路复用';
+
+  @override
+  String get settingsTerminalTmuxHint => '检测远端 tmux 会话并在状态栏显示';
+
+  @override
+  String get settingsAiAllConfigured => '所有 Provider 都已配置';
+
+  @override
+  String get settingsAiContextLines => '默认上下文行数';
+
+  @override
+  String get settingsAiContextLinesHint => '发送给 AI 的终端历史行数上限';
+
+  @override
+  String get settingsAiAutoDiagnose => '自动错误诊断';
+
+  @override
+  String get settingsAiAutoDiagnoseHint => '命令失败时自动触发 AI 分析';
+
+  @override
+  String settingsAiRemoveProviderTitle(String name) {
+    return '移除 $name?';
+  }
+
+  @override
+  String settingsAiRemoveProviderHint(String name) {
+    return '将删除 $name 的本地配置（API key 仍保留在系统钥匙串中，重新配置时会自动加载）。';
+  }
+
+  @override
+  String get settingsAiRemove => '移除';
+
+  @override
+  String get settingsAiEmptyTitle => '尚未配置 AI Provider';
+
+  @override
+  String get settingsAiEmptyHint => '点击右上「Add Provider」选择一个开始';
+
+  @override
+  String get settingsAiBadgeActive => '当前';
+
+  @override
+  String get settingsAiBadgeConfigured => '已配置';
+
+  @override
+  String get settingsAiActivate => '激活';
+
+  @override
+  String get settingsAiCollapse => '收起';
+
+  @override
+  String get settingsAiConfigure => '配置';
+
+  @override
+  String get settingsAiAddProvider => 'Add Provider';
+
+  @override
+  String get settingsAiPricingTitle => 'AI 成本估算价格表';
+
+  @override
+  String settingsAiPricingUpdated(String iso, String age) {
+    return '更新于 $iso · $age';
+  }
+
+  @override
+  String get settingsAiPricingStale => ' · 建议刷新';
+
+  @override
+  String get settingsAiPricingDateUnknown => '日期未知';
+
+  @override
+  String get settingsAiPricingToday => '今天更新';
+
+  @override
+  String settingsAiPricingDaysAgo(String count) {
+    return '$count 天前';
+  }
+
+  @override
+  String get settingsKeybindingsResetTitle => '恢复默认快捷键?';
+
+  @override
+  String get settingsKeybindingsResetBody => '所有自定义的快捷键将被覆盖为出厂默认值。';
+
+  @override
+  String get settingsKeybindingsReset => '恢复';
+
+  @override
+  String get settingsKeybindingsColCommand => '命令';
+
+  @override
+  String get settingsKeybindingsColShortcut => '快捷键';
+
+  @override
+  String get settingsKeybindingsColContext => '上下文';
+
+  @override
+  String get settingsKeybindingsResetTooltip => '恢复默认';
+
+  @override
+  String get gitConflictTitle => '⚠ Git Sync 冲突';
+
+  @override
+  String get gitConflictFilesLabel => '以下文件存在冲突：';
+
+  @override
+  String get gitConflictStrategyLabel => '选择解决策略：';
+
+  @override
+  String get gitConflictResolveInTerminal => '终端中解决';
+
+  @override
+  String get gitConflictUseRemote => '使用远端';
+
+  @override
+  String get gitConflictKeepLocal => '保留本地';
+
+  @override
+  String sftpChmodTitleNamed(String name) {
+    return '修改权限：$name';
+  }
+
+  @override
+  String get sftpChmodOwner => '所有者';
+
+  @override
+  String get sftpChmodGroup => '组';
+
+  @override
+  String get sftpChmodOthers => '其他';
+
+  @override
+  String get sftpChmodOctalShort => '八进制';
+
+  @override
+  String get sftpChmodRead => '读';
+
+  @override
+  String get sftpChmodWrite => '写';
+
+  @override
+  String get sftpChmodExec => '执行';
+
+  @override
+  String get sftpRenameEmpty => '名称不能为空';
+
+  @override
+  String get sftpRenameSlash => '名称不能包含 /';
+
+  @override
+  String get sftpRenameNewName => '新名称';
+
+  @override
+  String get settingsHighlightsTitle => '关键词高亮';
+
+  @override
+  String get settingsHighlightsLoadPresets => '加载预设';
+
+  @override
+  String get settingsHighlightsAddRule => '+ 新增规则';
+
+  @override
+  String get settingsHighlightsEmpty => '尚未配置任何高亮规则';
+
+  @override
+  String get settingsHighlightsPatternHint => '关键字 / 正则';
+
+  @override
+  String get settingsHighlightsRegex => '正则';
+
+  @override
+  String get settingsHighlightsCaseSensitive => '区分大小写';
+
+  @override
+  String get settingsHighlightsBgColor => '背景色';
+
+  @override
+  String get settingsHighlightsFgColor => '前景色 (留空 = 跟随主题)';
+
+  @override
+  String get settingsHighlightsEnabled => '启用';
+
+  @override
+  String get settingsHighlightsColorInputHint => '输入十六进制颜色（如 #6366F1）';
+
+  @override
+  String get settingsHighlightsColorClear => '清除';
+
+  @override
+  String get settingsHighlightsColorConfirm => '确定';
+
+  @override
+  String get settingsPrivacyClearHistoryTitle => '清除历史数据';
+
+  @override
+  String get settingsPrivacyClearHistoryHint => '保留账号设置与凭据，仅清空相应历史。';
+
+  @override
+  String get settingsPrivacyClearConnections => '清除最近连接历史';
+
+  @override
+  String get settingsPrivacyClearConnectionsMsg =>
+      '将删除全部\"最近连接\"记录，已保存的服务器配置不受影响。';
+
+  @override
+  String get settingsPrivacyClearedConnections => '已清除连接历史';
+
+  @override
+  String get settingsPrivacyClearAi => '清除 AI 对话历史';
+
+  @override
+  String get settingsPrivacyClearAiMsg =>
+      '将永久删除所有 AI 对话与消息。Provider 配置 / API Key 保留。';
+
+  @override
+  String get settingsPrivacyClearedAi => '已清除 AI 对话历史';
+
+  @override
+  String get settingsPrivacyClearSnippet => '清除 Snippet 使用统计';
+
+  @override
+  String get settingsPrivacyClearSnippetMsg =>
+      '将重置所有 Snippet 的使用次数，Snippet 本身保留。';
+
+  @override
+  String get settingsPrivacyClearedSnippet => '已清除使用统计';
+
+  @override
+  String get settingsPrivacyGdprTitle => 'GDPR 数据擦除';
+
+  @override
+  String get settingsPrivacyGdprHint => '永久删除所有本地数据（服务器配置、凭据、对话、设置）。此操作不可恢复。';
+
+  @override
+  String get settingsPrivacyGdprButton => '擦除所有数据';
+
+  @override
+  String get settingsPrivacyConfirmClear => '清除';
+
+  @override
+  String get settingsPrivacyGdprDialogTitle => '确认擦除所有数据';
+
+  @override
+  String get settingsPrivacyGdprDialogBody =>
+      '此操作将永久删除所有数据，无法恢复。\n请输入主密码并键入 \"DELETE ALL\" 确认。';
+
+  @override
+  String get settingsPrivacyMasterPassword => '主密码';
+
+  @override
+  String get settingsPrivacyConfirmTextLabel => '确认文本';
+
+  @override
+  String get settingsPrivacyErase => '擦除';
+
+  @override
+  String get settingsPrivacyEraseError => '确认文字不正确或主密码错误';
+
+  @override
+  String get settingsPrivacyErased => '数据已擦除';
+
+  @override
+  String get settingsSecurityLoading => '加载中…';
+
+  @override
+  String get settingsSecurityLoadError => '无法读取安全状态';
+
+  @override
+  String get settingsSecurityProtectionTitle => '密钥保护模式';
+
+  @override
+  String settingsSecurityProtectionActive(String platform) {
+    return '已使用 $platform 安全存储凭据。Termex 仅在启动时读取一次主密钥条目。';
+  }
+
+  @override
+  String get settingsSecurityProtectionFallback =>
+      '系统密钥库不可用，已回退到本地加密（AES-256-GCM + Argon2id）。';
+
+  @override
+  String get settingsSecuritySavedCredentials => '已保存的凭据';
+
+  @override
+  String get settingsSecurityCredentialTypes =>
+      '包括 SSH 密码、SSH 私钥口令、AI Provider API Key';
+
+  @override
+  String get settingsSecurityHowItWorks => '工作原理';
+
+  @override
+  String get settingsSecurityHint1 => '凭据从未以明文写入数据库 — 仅保存系统密钥库的引用 ID';
+
+  @override
+  String get settingsSecurityHint2 => '主密钥条目在每次启动时只读取一次，避免反复弹出系统密码框';
+
+  @override
+  String get settingsSecurityHint3 => 'GDPR 数据擦除会同步清空密钥库中所有 Termex 条目';
+
+  @override
+  String get auditDetailTitle => '审计详情';
+
+  @override
+  String get auditFieldEventType => '事件类型';
+
+  @override
+  String get auditFieldTime => '时间';
+
+  @override
+  String get auditFieldDetail => '详情';
+
+  @override
+  String get auditCopyDetail => '复制详情';
+
+  @override
+  String get auditKpiTotal => '总记录';
+
+  @override
+  String get auditKpiConnections => '连接';
+
+  @override
+  String get auditKpiCredentialAccess => '凭据访问';
+
+  @override
+  String get auditKpiConfigChanges => '配置变更';
+
+  @override
+  String get auditKpiMemberOps => '成员操作';
+
+  @override
+  String get auditColEvent => '事件';
+
+  @override
+  String get auditPagerPrev => '上一页';
+
+  @override
+  String get auditPagerNext => '下一页';
+
+  @override
+  String get auditEmptyTitle => '暂无审计日志';
+
+  @override
+  String get auditEmptyHint => '建立 SSH 连接、修改设置或团队操作会写入审计日志';
+
+  @override
+  String get auditExport => '导出';
+
+  @override
+  String get auditExportCsv => '导出 CSV';
+
+  @override
+  String get auditExportJson => '导出 JSON';
+
+  @override
+  String auditExported(String path) {
+    return '已导出 $path';
+  }
+
+  @override
+  String auditExportFailed(String error) {
+    return '导出失败：$error';
+  }
+
+  @override
+  String get auditLabelDate => '日期：';
+
+  @override
+  String get auditLabelEvent => '事件：';
+
+  @override
+  String get auditRangeToday => '今天';
+
+  @override
+  String get auditRangeWeek => '本周';
+
+  @override
+  String get auditRangeMonth => '本月';
+
+  @override
+  String get auditRangeAll => '全部';
+
+  @override
+  String snippetUsageTimes(int count) {
+    return '$count 次';
+  }
+
+  @override
+  String get snippetCopy => '复制';
+
+  @override
+  String get snippetCopiedToClipboard => '已复制到剪贴板';
+
+  @override
+  String get snippetDeleteTitle => '删除 Snippet';
+
+  @override
+  String snippetDeleteConfirmNamed(String title) {
+    return '确定要删除「$title」吗？';
+  }
+
+  @override
+  String get snippetNewTitle => '新建 Snippet';
+
+  @override
+  String get snippetEditSnippet => '编辑 Snippet';
+
+  @override
+  String get snippetNamePlaceholder => 'Snippet 名称';
+
+  @override
+  String get snippetTagsCommaLabel => '标签（逗号分隔）';
+
+  @override
+  String get snippetTagsPlaceholderExample => 'ssh, 常用, docker';
+
+  @override
+  String get snippetContentLabel => '命令内容（使用 ｛｛变量名:默认值｝｝ 插入变量）';
+
+  @override
+  String snippetVariableTitleNamed(String title) {
+    return '填写变量 — $title';
+  }
+
+  @override
+  String get snippetPreview => '预览';
+
+  @override
+  String get snippetConfirmExecute => '确认执行';
+
+  @override
+  String snippetVariableDefault(String value) {
+    return '默认: $value';
+  }
+
+  @override
+  String get snippetVariableInputHint => '请输入值';
+
+  @override
+  String get snippetSearchPlaceholder => '搜索 snippet…';
+
+  @override
+  String get snippetNoMatch => '没有匹配的 Snippet';
+
+  @override
+  String get sftpPath => '路径';
+
+  @override
+  String get sftpOwner => '所有者';
+
+  @override
+  String get sftpGroup => '所属组';
+
+  @override
+  String sftpSizeBytes(int bytes) {
+    return '$bytes 字节';
+  }
+
+  @override
+  String get sftpFileNameHint => '文件名';
+
+  @override
+  String get sftpFolderNameHint => '文件夹名';
+
+  @override
+  String get sftpCreate => '创建';
+
+  @override
+  String sftpEditorTooLarge(String size) {
+    return '文件过大（$size），请用 scp 下载到本地编辑。';
+  }
+
+  @override
+  String get sftpEditorBinary => '检测到二进制内容，无法使用内联编辑器编辑。';
+
+  @override
+  String sftpEditorReadFailed(String error) {
+    return '读取失败：$error';
+  }
+
+  @override
+  String sftpEditorSaveFailed(String error) {
+    return '保存失败：$error';
+  }
+
+  @override
+  String get sftpEditorModified => '已修改';
+
+  @override
+  String get sftpTransferResume => '继续';
+
+  @override
+  String get sftpTransferPause => '暂停';
+
+  @override
+  String get sftpTransferDone => '完成';
+
+  @override
+  String sftpTransferFailed(String error) {
+    return '失败：$error';
+  }
+
+  @override
+  String get sftpTransferCancelled => '已取消';
+
+  @override
+  String get sftpTransferPaused => '已暂停';
+
+  @override
+  String get aiConversationsTitle => '对话';
+
+  @override
+  String get aiConversationEmpty => '点击 + 开始新对话';
+
+  @override
+  String get aiRenameConversation => '重命名对话';
+
+  @override
+  String get aiRenameHint => '输入新标题';
+
+  @override
+  String get aiModelListLoading => '正在加载模型列表…';
+
+  @override
+  String get aiDeleteModelTitle => '删除模型';
+
+  @override
+  String aiDeleteModelConfirm(String name) {
+    return '确定要删除 $name 吗？';
+  }
+
+  @override
+  String get localAiRunning => '运行中';
+
+  @override
+  String get localAiStart => '启动';
+
+  @override
+  String localAiDownloadWithSize(String size) {
+    return '下载 ($size)';
+  }
+
+  @override
+  String get aiNl2cmdTitle => '自然语言 → 命令';
+
+  @override
+  String get aiNl2cmdHint => '描述你想做什么，例如：查找大于 100MB 的文件';
+
+  @override
+  String get aiNl2cmdSent => '(已发送到 AI 对话)';
+
+  @override
+  String get aiNl2cmdGenerate => '生成';
+
+  @override
+  String settingsAiConfigureTitle(String name) {
+    return '配置 $name';
+  }
+
+  @override
+  String get settingsAiTerminalContextLines => '终端上下文行数';
+
+  @override
+  String settingsAiLinesUnit(int count) {
+    return '$count 行';
+  }
+
+  @override
+  String get settingsAiVerify => '验证';
+
+  @override
+  String get settingsAiSelectModelError => '请选择模型';
+
+  @override
+  String get settingsAiApiKeyRequired => '请填写 API Key';
+
+  @override
+  String get settingsAiVerifySuccess => '验证成功';
+
+  @override
+  String get settingsAiVerifyFailed => '验证失败';
+
+  @override
+  String get settingsAiLlamaEngine => 'llama-server 引擎';
+
+  @override
+  String get settingsAiServerPort => '服务端口';
+
+  @override
+  String get settingsAiInferenceThreads => '推理线程数';
+
+  @override
+  String get settingsAiContextWindow => '上下文窗口 (token)';
+
+  @override
+  String get settingsAiAutoStartEngine => '启动时自动启动引擎';
+
+  @override
+  String teamSyncDoneCount(int count) {
+    return '同步完成（$count 项变更）';
+  }
+
+  @override
+  String teamSyncFailed(String error) {
+    return '同步失败：$error';
+  }
+
+  @override
+  String get teamApplied => '已应用';
+
+  @override
+  String teamResolveFailed(String error) {
+    return '解决失败：$error';
+  }
+
+  @override
+  String get teamRoleUpdated => '已更新角色';
+
+  @override
+  String teamUpdateFailed(String error) {
+    return '更新失败：$error';
+  }
+
+  @override
+  String get teamRemoved => '已移除';
+
+  @override
+  String teamRemoveFailed(String error) {
+    return '移除失败：$error';
+  }
+
+  @override
+  String get teamWorkspace => '团队工作区';
+
+  @override
+  String teamMemberBadge(int count) {
+    return '$count 成员';
+  }
+
+  @override
+  String teamConflictBadge(int count) {
+    return '$count 冲突';
+  }
+
+  @override
+  String get teamChangePassphrase => '修改口令';
+
+  @override
+  String get teamNoMembers => '暂无成员（生成邀请码后即可加入）';
+
+  @override
+  String get teamUnnamed => '(未命名)';
+
+  @override
+  String get teamPendingConflicts => '待解决的同步冲突';
+
+  @override
+  String teamConflictServerField(String serverId, String field) {
+    return '服务器 $serverId · 字段 $field';
+  }
+
+  @override
+  String get teamConflictLocal => '本地';
+
+  @override
+  String get teamConflictRemote => '远端';
+
+  @override
+  String get teamUseThisValue => '使用此值';
+
+  @override
+  String get teamInviteNewMember => '邀请新成员';
+
+  @override
+  String get teamInviteDesc => '为新成员生成一次性邀请码（72 小时内有效）。';
+
+  @override
+  String get teamGenerateHint => '点击下方按钮生成邀请码。';
+
+  @override
+  String get teamGenerating => '生成中…';
+
+  @override
+  String teamExpiresAt(String time) {
+    return '过期：$time';
+  }
+
+  @override
+  String get teamVerifyPassphraseTitle => '验证团队口令';
+
+  @override
+  String get teamVerifyPassphraseDesc => '输入团队加密口令验证当前会话。';
+
+  @override
+  String get teamPassphrasePlaceholder => '口令';
+
+  @override
+  String get teamVerify => '验证';
+
+  @override
+  String get teamPassphraseIncorrect => '口令不正确';
+
+  @override
+  String get teamVerifyPassed => '验证通过';
+
+  @override
+  String teamVerifyFailed(String error) {
+    return '验证失败：$error';
+  }
+
+  @override
+  String get teamLoadFailed => '加载团队信息失败';
+
+  @override
+  String get proxyNone => '不使用代理';
+
+  @override
+  String get proxyLoading => '加载中…';
+
+  @override
+  String get proxySelect => '选择代理';
+
+  @override
+  String get proxyAddNew => '+ 新建代理';
+
+  @override
+  String get proxyNewTitle => '新建代理';
+
+  @override
+  String get proxyNamePlaceholder => '我的代理';
+
+  @override
+  String get proxyUsernameOptional => '用户名（可选）';
+
+  @override
+  String get proxyPasswordOptional => '密码（可选）';
+
+  @override
+  String get proxyWarpHint => '将通过本机 Cloudflare WARP 客户端路由连接。';
+
+  @override
+  String get proxyTorHint => '将通过本机 Tor 网络路由连接。注意：上架时需在隐私声明中说明。';
+
+  @override
+  String get proxySave => '保存代理';
+
+  @override
+  String get serverUnshareFromTeam => '取消团队共享';
+
+  @override
+  String get serverShareToTeam => '分享到团队';
+
+  @override
+  String get serverUnsharedFromTeamToast => '已取消团队共享';
+
+  @override
+  String get serverSharedToTeam => '已分享至团队';
+
+  @override
+  String get serverUnshareAction => '取消共享';
+
+  @override
+  String get serverShareAction => '分享';
+
+  @override
+  String serverActionFailed(String action, String error) {
+    return '$action失败：$error';
+  }
+
+  @override
+  String get serverBadgeProxyTooltip => '已配置网络代理';
+
+  @override
+  String get serverBadgeBastionTooltip => '经跳板机连接';
+
+  @override
+  String get sftpCancelEdit => '取消编辑';
+
+  @override
+  String get settingsAppearanceLight => '浅色';
+
+  @override
+  String get settingsAppearanceDark => '深色';
+
+  @override
+  String get settingsAppearanceColorScheme => '终端配色方案';
+
+  @override
+  String get settingsAppearanceFontSize => '字体大小';
+
+  @override
+  String get settingsAppearanceChinese => '中文';
+
+  @override
+  String get updateDialogTitle => '检查更新';
+
+  @override
+  String get updateInProgress => '正在检查更新…';
+
+  @override
+  String get updateUpToDateTitle => '已是最新版本';
+
+  @override
+  String updateUpToDateDetail(String version, String channel) {
+    return '当前版本 v$version 是 $channel 渠道的最新发布。';
+  }
+
+  @override
+  String get updateCheckFailedTitle => '检查失败';
+
+  @override
+  String updateNewVersionTitle(String version) {
+    return '新版本 v$version';
+  }
+
+  @override
+  String get updateNoReleaseNotes => '（无发布说明）';
+
+  @override
+  String get updateViewDownloadPage => '查看下载页';
+
+  @override
+  String get updateRecheck => '重新检查';
+
+  @override
+  String get monitorSampleInterval => '采样间隔';
+
+  @override
+  String get monitorSampleIntervalHint => '每个监控指标的刷新频率';
+
+  @override
+  String get monitorAutoStartLabel => '自动启动';
+
+  @override
+  String get monitorAutoStartHint => '标签连接成功后自动开启监控';
+
+  @override
+  String get monitorPanelDisplay => '面板显示';
+
+  @override
+  String get monitorPanelDisplayHint => '选择需要展示的监控指标';
+
+  @override
+  String get monitorMemory => '内存';
+
+  @override
+  String get monitorDisk => '磁盘';
+
+  @override
+  String get monitorNetwork => '网络';
+
+  @override
+  String get monitorProcesses => '进程';
+
+  @override
+  String get settingsLocalAiContextSize => '上下文窗口大小';
+
+  @override
+  String get settingsLocalAiContextSizeHint => '单位：token';
+
+  @override
+  String get settingsLocalAiModelManagement => '本地模型管理';
+
+  @override
+  String get recordingDeleted => '已删除';
+
+  @override
+  String recordingDeleteFailed(String error) {
+    return '删除失败：$error';
+  }
+
+  @override
+  String get recordingNoServer => '未关联服务器';
+
+  @override
+  String get recordingEmpty => '暂无录制';
+
+  @override
+  String get recordingEmptyHint => '在终端启用录制以收集会话回放';
+
+  @override
+  String get recordingOpen => '打开';
+
+  @override
+  String get tabWorkspaceSftpLocalDisabled => '本地终端不支持 SFTP';
+
+  @override
+  String get tabWorkspaceTransfersLocalDisabled => '本地终端不支持文件传输';
+
+  @override
+  String get tabWorkspaceNoTransfers => '暂无传输任务';
+
+  @override
+  String get aiCodeBlockRun => '运行';
 }

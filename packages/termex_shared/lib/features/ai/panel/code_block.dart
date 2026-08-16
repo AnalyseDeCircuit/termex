@@ -2,6 +2,7 @@ import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 
 import '../../../design/tokens.dart';
+import '../../../l10n/app_localizations.dart';
 
 /// Renders a fenced code block with a copy button.
 class CodeBlock extends StatefulWidget {
@@ -33,6 +34,7 @@ class _CodeBlockState extends State<CodeBlock> {
 
   @override
   Widget build(BuildContext context) {
+    final l10n = AppLocalizations.of(context);
     return Container(
       margin: const EdgeInsets.symmetric(vertical: 6),
       decoration: BoxDecoration(
@@ -67,13 +69,13 @@ class _CodeBlockState extends State<CodeBlock> {
                 if (widget.onRunCommand != null)
                   _HeaderButton(
                     icon: Icons.play_arrow_rounded,
-                    label: '运行',
+                    label: l10n.aiCodeBlockRun,
                     onTap: widget.onRunCommand!,
                   ),
                 const SizedBox(width: 4),
                 _HeaderButton(
                   icon: _copied ? Icons.check : Icons.copy_rounded,
-                  label: _copied ? '已复制' : '复制',
+                  label: _copied ? l10n.aiCopied : l10n.aiCopy,
                   onTap: _copy,
                 ),
               ],

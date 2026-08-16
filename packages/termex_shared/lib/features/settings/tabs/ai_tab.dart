@@ -14,6 +14,7 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 
 import '../../../design/tokens.dart';
 import '../../../icons/termex_icons.dart';
+import '../../../l10n/app_localizations.dart';
 import '../../ai/provider/provider_inline_form.dart';
 import '../../ai/provider/provider_registry.dart';
 import '../../ai/state/ai_pricing.dart';
@@ -74,7 +75,9 @@ class _AiTabState extends ConsumerState<AiTab> {
         .toList(growable: false);
     if (available.isEmpty) {
       ScaffoldMessenger.of(context).showSnackBar(
-        const SnackBar(content: Text('所有 Provider 都已配置')),
+        SnackBar(
+            content:
+                Text(AppLocalizations.of(context).settingsAiAllConfigured)),
       );
       return;
     }
@@ -96,6 +99,7 @@ class _AiTabState extends ConsumerState<AiTab> {
     final cfgState = ref.watch(providerConfigProvider);
     final settings = ref.watch(settingsProvider).settings;
     final notifier = ref.read(settingsProvider.notifier);
+    final l10n = AppLocalizations.of(context);
 
     final visibleProviders = kProviderRegistry
         .where((meta) => _shouldShow(meta.provider, cfgState))
@@ -106,16 +110,24 @@ class _AiTabState extends ConsumerState<AiTab> {
       padding: const EdgeInsets.all(20),
       children: [
         SettingRow(
-          label: '默认上下文行数',
-          hint: '发送给 AI 的终端历史行数上限',
+          label: l10n.settingsAiContextLines,
+          hint: l10n.settingsAiContextLinesHint,
           child: DropdownButton<int>(
             value: _coerceContextLines(settings.aiContextLines),
             dropdownColor: TermexColors.backgroundSecondary,
-            items: const [
-              DropdownMenuItem(value: 50, child: Text('50 行')),
-              DropdownMenuItem(value: 100, child: Text('100 行')),
-              DropdownMenuItem(value: 200, child: Text('200 行')),
-              DropdownMenuItem(value: 500, child: Text('500 行')),
+            items: [
+              DropdownMenuItem(
+                  value: 50,
+                  child: Text(l10n.settingsTerminalLinesOption('50'))),
+              DropdownMenuItem(
+                  value: 100,
+                  child: Text(l10n.settingsTerminalLinesOption('100'))),
+              DropdownMenuItem(
+                  value: 200,
+                  child: Text(l10n.settingsTerminalLinesOption('200'))),
+              DropdownMenuItem(
+                  value: 500,
+                  child: Text(l10n.settingsTerminalLinesOption('500'))),
             ],
             onChanged: (v) =>
                 notifier.update(settings.copyWith(aiContextLines: v!)),
@@ -124,8 +136,8 @@ class _AiTabState extends ConsumerState<AiTab> {
           ),
         ),
         SettingRow(
-          label: '自动错误诊断',
-          hint: '命令失败时自动触发 AI 分析',
+          label: l10n.settingsAiAutoDiagnose,
+          hint: l10n.settingsAiAutoDiagnoseHint,
           child: Switch(
             value: settings.aiAutoDiagnose,
             onChanged: (v) =>
@@ -189,28 +201,29 @@ class _AiTabState extends ConsumerState<AiTab> {
   }
 
   Future<void> _confirmRemove(ProviderMeta meta) async {
+    final l10n = AppLocalizations.of(context);
     final ok = await showDialog<bool>(
       context: context,
       builder: (ctx) => AlertDialog(
         backgroundColor: TermexColors.backgroundSecondary,
-        title: Text('移除 ${meta.label}?',
+        title: Text(l10n.settingsAiRemoveProviderTitle(meta.label),
             style: const TextStyle(
                 fontSize: 14, color: TermexColors.textPrimary)),
         content: Text(
-          '将删除 ${meta.label} 的本地配置（API key 仍保留在系统钥匙串中，重新配置时会自动加载）。',
+          l10n.settingsAiRemoveProviderHint(meta.label),
           style: const TextStyle(
               fontSize: 12, color: TermexColors.textSecondary),
         ),
         actions: [
           TextButton(
             onPressed: () => Navigator.pop(ctx, false),
-            child: const Text('取消'),
+            child: Text(l10n.commonCancel),
           ),
           TextButton(
             onPressed: () => Navigator.pop(ctx, true),
             style:
                 TextButton.styleFrom(foregroundColor: TermexColors.danger),
-            child: const Text('移除'),
+            child: Text(l10n.settingsAiRemove),
           ),
         ],
       ),
@@ -355,34 +368,37 @@ class _EmptyProvidersHint extends StatelessWidget {
   const _EmptyProvidersHint({required this.onAdd});
 
   @override
-  Widget build(BuildContext context) => Container(
-        padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 20),
-        decoration: BoxDecoration(
-          color: TermexColors.backgroundSecondary,
-          border: Border.all(color: TermexColors.border),
-          borderRadius: BorderRadius.circular(6),
-        ),
-        child: Column(
-          children: [
-            const Icon(Icons.smart_toy_outlined,
-                size: 32, color: TermexColors.textMuted),
-            const SizedBox(height: 8),
-            const Text(
-              '尚未配置 AI Provider',
-              style: TextStyle(
-                  fontSize: 13, color: TermexColors.textPrimary),
-            ),
-            const SizedBox(height: 4),
-            const Text(
-              '点击右上「Add Provider」选择一个开始',
-              style: TextStyle(
-                  fontSize: 11, color: TermexColors.textSecondary),
-            ),
-            const SizedBox(height: 12),
-            _AddProviderButton(onPressed: onAdd),
-          ],
-        ),
-      );
+  Widget build(BuildContext context) {
+    final l10n = AppLocalizations.of(context);
+    return Container(
+      padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 20),
+      decoration: BoxDecoration(
+        color: TermexColors.backgroundSecondary,
+        border: Border.all(color: TermexColors.border),
+        borderRadius: BorderRadius.circular(6),
+      ),
+      child: Column(
+        children: [
+          const Icon(Icons.smart_toy_outlined,
+              size: 32, color: TermexColors.textMuted),
+          const SizedBox(height: 8),
+          Text(
+            l10n.settingsAiEmptyTitle,
+            style: const TextStyle(
+                fontSize: 13, color: TermexColors.textPrimary),
+          ),
+          const SizedBox(height: 4),
+          Text(
+            l10n.settingsAiEmptyHint,
+            style: const TextStyle(
+                fontSize: 11, color: TermexColors.textSecondary),
+          ),
+          const SizedBox(height: 12),
+          _AddProviderButton(onPressed: onAdd),
+        ],
+      ),
+    );
+  }
 }
 
 // ─── Section header ───────────────────────────────────────────────────────
@@ -433,6 +449,7 @@ class _ProviderRowState extends State<_ProviderRow> {
 
   @override
   Widget build(BuildContext context) {
+    final l10n = AppLocalizations.of(context);
     final radius = widget.isEditing
         ? const BorderRadius.only(
             topLeft: Radius.circular(6),
@@ -480,9 +497,10 @@ class _ProviderRowState extends State<_ProviderRow> {
                         ),
                       ),
                       const SizedBox(width: 6),
-                      if (widget.isActive) const _Badge('当前', primary: true),
+                      if (widget.isActive)
+                        _Badge(l10n.settingsAiBadgeActive, primary: true),
                       if (widget.isConfigured && !widget.isActive)
-                        const _Badge('已配置'),
+                        _Badge(l10n.settingsAiBadgeConfigured),
                     ],
                   ),
                   const SizedBox(height: 2),
@@ -500,12 +518,14 @@ class _ProviderRowState extends State<_ProviderRow> {
             ),
             const SizedBox(width: 8),
             if (!widget.isActive && widget.isConfigured)
-              _MiniBtn(label: '激活', onTap: widget.onActivate),
+              _MiniBtn(label: l10n.settingsAiActivate, onTap: widget.onActivate),
             const SizedBox(width: 4),
             _MiniBtn(
               label: widget.isEditing
-                  ? '收起'
-                  : (widget.isConfigured ? '编辑' : '配置'),
+                  ? l10n.settingsAiCollapse
+                  : (widget.isConfigured
+                      ? l10n.commonEdit
+                      : l10n.settingsAiConfigure),
               primary: !widget.isConfigured && !widget.isEditing,
               onTap: widget.onEditToggle,
             ),
@@ -513,7 +533,7 @@ class _ProviderRowState extends State<_ProviderRow> {
               const SizedBox(width: 4),
               _IconBtn(
                 icon: TermexIcons.delete,
-                tooltip: '移除',
+                tooltip: l10n.settingsAiRemove,
                 onTap: widget.onRemove!,
               ),
             ],
@@ -635,13 +655,14 @@ class _PricingSnapshotFooter extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
+    final l10n = AppLocalizations.of(context);
     final stale = isPricingStale();
     final age = pricingAgeDays();
     final ageLabel = age < 0
-        ? '日期未知'
+        ? l10n.settingsAiPricingDateUnknown
         : age == 0
-            ? '今天更新'
-            : '$age 天前';
+            ? l10n.settingsAiPricingToday
+            : l10n.settingsAiPricingDaysAgo('$age');
     return Container(
       padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 10),
       decoration: BoxDecoration(
@@ -667,7 +688,7 @@ class _PricingSnapshotFooter extends StatelessWidget {
               crossAxisAlignment: CrossAxisAlignment.start,
               children: [
                 Text(
-                  'AI 成本估算价格表',
+                  l10n.settingsAiPricingTitle,
                   style: const TextStyle(
                     fontSize: 12,
                     fontWeight: FontWeight.w500,
@@ -676,8 +697,11 @@ class _PricingSnapshotFooter extends StatelessWidget {
                 ),
                 const SizedBox(height: 2),
                 Text(
-                  '更新于 $kPricingLastUpdatedIso · $ageLabel'
-                  '${stale ? ' · 建议刷新' : ''}',
+                  l10n.settingsAiPricingUpdated(
+                        kPricingLastUpdatedIso,
+                        ageLabel,
+                      ) +
+                      (stale ? l10n.settingsAiPricingStale : ''),
                   style: const TextStyle(
                     fontSize: 11,
                     color: TermexColors.textSecondary,

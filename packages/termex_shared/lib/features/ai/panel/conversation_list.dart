@@ -2,6 +2,7 @@ import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 
 import '../../../design/tokens.dart';
+import '../../../l10n/app_localizations.dart';
 import '../state/conversation_provider.dart';
 import '../state/provider_config_provider.dart';
 
@@ -68,21 +69,22 @@ class ConversationList extends ConsumerWidget {
     WidgetRef ref,
     Conversation conv,
   ) async {
+    final l10n = AppLocalizations.of(context);
     final controller =
         TextEditingController(text: conv.title ?? '');
     final newTitle = await showDialog<String>(
       context: context,
       builder: (ctx) => AlertDialog(
         backgroundColor: TermexColors.backgroundSecondary,
-        title: const Text('重命名对话',
-            style: TextStyle(color: TermexColors.textPrimary, fontSize: 14)),
+        title: Text(l10n.aiRenameConversation,
+            style: const TextStyle(color: TermexColors.textPrimary, fontSize: 14)),
         content: TextField(
           controller: controller,
           autofocus: true,
           maxLength: 80,
           style: const TextStyle(color: TermexColors.textPrimary, fontSize: 13),
-          decoration: const InputDecoration(
-            hintText: '输入新标题',
+          decoration: InputDecoration(
+            hintText: l10n.aiRenameHint,
             counterText: '',
           ),
           onSubmitted: (v) => Navigator.of(ctx).pop(v),
@@ -90,11 +92,11 @@ class ConversationList extends ConsumerWidget {
         actions: [
           TextButton(
             onPressed: () => Navigator.of(ctx).pop(),
-            child: const Text('取消'),
+            child: Text(l10n.commonCancel),
           ),
           TextButton(
             onPressed: () => Navigator.of(ctx).pop(controller.text),
-            child: const Text('保存'),
+            child: Text(l10n.commonSave),
           ),
         ],
       ),
@@ -113,6 +115,7 @@ class _Header extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
+    final l10n = AppLocalizations.of(context);
     return Container(
       height: 36,
       padding: const EdgeInsets.symmetric(horizontal: 10),
@@ -121,9 +124,9 @@ class _Header extends StatelessWidget {
       ),
       child: Row(
         children: [
-          const Text(
-            '对话',
-            style: TextStyle(
+          Text(
+            l10n.aiConversationsTitle,
+            style: const TextStyle(
               fontSize: 12,
               fontWeight: FontWeight.w600,
               color: TermexColors.textSecondary,
@@ -234,10 +237,11 @@ class _ConversationRow extends StatelessWidget {
 class _EmptyState extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
-    return const Center(
+    final l10n = AppLocalizations.of(context);
+    return Center(
       child: Text(
-        '点击 + 开始新对话',
-        style: TextStyle(fontSize: 12, color: TermexColors.textSecondary),
+        l10n.aiConversationEmpty,
+        style: const TextStyle(fontSize: 12, color: TermexColors.textSecondary),
       ),
     );
   }

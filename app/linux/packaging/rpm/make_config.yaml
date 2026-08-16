@@ -1,0 +1,27 @@
+# Fedora / RHEL package.
+display_name: Termex
+package_name: termex
+summary: AI-native SSH client
+description: |
+  Termex is an AI-native SSH client. Built on SSH as the foundation,
+  it creates an always-on cloud AI workspace, with SFTP, port
+  forwarding, jump-host chains and an integrated AI assistant.
+license: MIT
+url: https://github.com/zouwei/termex
+vendor: Termex
+packager: zouwei
+packager_email: karpenwon644@gmail.com
+group: Applications/Internet
+icon: app_icon.png
+generic_name: SSH Client
+startup_notify: true
+categories:
+  - Development
+  - Network
+keywords:
+  - ssh
+  - sftp
+  - terminal
+requires:
+  - gtk3
+  - libsecret

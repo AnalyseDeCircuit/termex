@@ -2,6 +2,7 @@ import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 
 import '../../design/tokens.dart';
+import '../../l10n/app_localizations.dart';
 import 'state/snippet_provider.dart';
 
 class SnippetEditor extends ConsumerStatefulWidget {
@@ -59,6 +60,7 @@ class _SnippetEditorState extends ConsumerState<SnippetEditor> {
 
   @override
   Widget build(BuildContext context) {
+    final l10n = AppLocalizations.of(context);
     return Container(
       color: TermexColors.backgroundPrimary,
       padding: const EdgeInsets.all(20),
@@ -69,13 +71,13 @@ class _SnippetEditorState extends ConsumerState<SnippetEditor> {
           Row(
             children: [
               Text(
-                widget.existing == null ? '新建 Snippet' : '编辑 Snippet',
+                widget.existing == null ? l10n.snippetNewTitle : l10n.snippetEditSnippet,
                 style: const TextStyle(fontSize: 14, fontWeight: FontWeight.w600, color: TermexColors.textPrimary),
               ),
               const Spacer(),
               TextButton(
                 onPressed: () => ref.read(snippetProvider.notifier).setEditing(null),
-                child: const Text('取消', style: TextStyle(fontSize: 12, color: TermexColors.textSecondary)),
+                child: Text(l10n.commonCancel, style: const TextStyle(fontSize: 12, color: TermexColors.textSecondary)),
               ),
               const SizedBox(width: 8),
               ElevatedButton(
@@ -86,31 +88,31 @@ class _SnippetEditorState extends ConsumerState<SnippetEditor> {
                   minimumSize: const Size(72, 32),
                   textStyle: const TextStyle(fontSize: 12),
                 ),
-                child: const Text('保存'),
+                child: Text(l10n.commonSave),
               ),
             ],
           ),
           const SizedBox(height: 16),
           // Title
-          const _Label('标题'),
+          _Label(l10n.snippetTitleLabel),
           const SizedBox(height: 4),
           TextField(
             controller: _titleCtrl,
-            decoration: _dec('Snippet 名称'),
+            decoration: _dec(l10n.snippetNamePlaceholder),
             style: const TextStyle(fontSize: 13, color: TermexColors.textPrimary),
           ),
           const SizedBox(height: 12),
           // Tags
-          const _Label('标签（逗号分隔）'),
+          _Label(l10n.snippetTagsCommaLabel),
           const SizedBox(height: 4),
           TextField(
             controller: _tagsCtrl,
-            decoration: _dec('ssh, 常用, docker'),
+            decoration: _dec(l10n.snippetTagsPlaceholderExample),
             style: const TextStyle(fontSize: 13, color: TermexColors.textPrimary),
           ),
           const SizedBox(height: 12),
           // Content
-          const _Label('命令内容（使用 {{变量名:默认值}} 插入变量）'),
+          _Label(l10n.snippetContentLabel),
           const SizedBox(height: 4),
           Expanded(
             child: TextField(

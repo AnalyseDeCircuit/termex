@@ -2,6 +2,7 @@ import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 
 import '../../design/tokens.dart';
+import '../../l10n/app_localizations.dart';
 import 'snippet_editor.dart';
 import 'snippet_row.dart';
 import 'state/snippet_provider.dart';
@@ -39,6 +40,7 @@ class _SnippetLibraryState extends ConsumerState<SnippetLibrary> {
 
   @override
   Widget build(BuildContext context) {
+    final l10n = AppLocalizations.of(context);
     final state = ref.watch(snippetProvider);
     final editingId = state.editingId;
 
@@ -69,7 +71,7 @@ class _SnippetLibraryState extends ConsumerState<SnippetLibrary> {
               controller: _searchCtrl,
               onChanged: ref.read(snippetProvider.notifier).setSearch,
               decoration: InputDecoration(
-                hintText: '搜索 snippet…',
+                hintText: l10n.snippetSearchPlaceholder,
                 hintStyle: const TextStyle(fontSize: 12, color: TermexColors.textSecondary),
                 prefixIcon: const Icon(Icons.search, size: 14, color: TermexColors.textSecondary),
                 prefixIconConstraints:
@@ -101,7 +103,7 @@ class _SnippetLibraryState extends ConsumerState<SnippetLibrary> {
               scrollDirection: Axis.horizontal,
               padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 3),
               children: [
-                _TagFilter(tag: null, selected: state.selectedTag == null, label: '全部'),
+                _TagFilter(tag: null, selected: state.selectedTag == null, label: l10n.snippetAllFolder),
                 ...state.allTags.map((t) => _TagFilter(
                       tag: t,
                       selected: state.selectedTag == t,
@@ -130,14 +132,14 @@ class _SnippetLibraryState extends ConsumerState<SnippetLibrary> {
           child: state.isLoading
               ? const Center(child: CircularProgressIndicator(color: TermexColors.primary))
               : state.filtered.isEmpty
-                  ? const Center(
+                  ? Center(
                       child: Column(
                         mainAxisSize: MainAxisSize.min,
                         children: [
-                          Icon(Icons.code_off, size: 36, color: TermexColors.textSecondary),
-                          SizedBox(height: 8),
-                          Text('没有匹配的 Snippet',
-                              style: TextStyle(fontSize: 12, color: TermexColors.textSecondary)),
+                          const Icon(Icons.code_off, size: 36, color: TermexColors.textSecondary),
+                          const SizedBox(height: 8),
+                          Text(l10n.snippetNoMatch,
+                              style: const TextStyle(fontSize: 12, color: TermexColors.textSecondary)),
                         ],
                       ),
                     )

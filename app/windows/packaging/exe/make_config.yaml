@@ -1,0 +1,22 @@
+# Inno Setup installer for flutter_distributor's `exe` target.
+#
+# Replaces the previous MSIX target: no Windows code-signing certificate
+# exists in the repo secrets, and an unsigned MSIX cannot be installed on
+# stock Windows without enabling sideloading. An unsigned Inno Setup
+# installer still runs (SmartScreen warns once), so users keep an upgrade
+# path from the 0.53.x .exe installer.
+#
+# app_id must stay stable across releases — Inno Setup uses it to recognise
+# an existing installation and upgrade in place instead of installing a
+# second copy alongside it.
+app_id: 246c3884-38b1-5a44-bb03-7e0df9a2518f
+publisher_name: Termex
+publisher_url: https://github.com/zouwei/termex
+display_name: Termex
+install_dir_name: Termex
+executable_name: termex
+setup_icon_file: app_icon.ico
+create_desktop_icon: true
+locales:
+  - en
+  - zh

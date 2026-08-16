@@ -7,6 +7,7 @@ import '../../../design/colors.dart';
 import '../../../design/typography.dart';
 import '../../../design/spacing.dart';
 import '../../../icons/termex_icons.dart';
+import '../../../l10n/app_localizations.dart';
 import '../../../widgets/toast.dart';
 import '../models/server_dto.dart';
 import '../models/group_dto.dart';
@@ -59,16 +60,17 @@ class _ServerTreeState extends ConsumerState<ServerTree> {
 
   void _openContextMenu(ServerDto server, Offset globalPos) {
     _closeCtxMenu();
+    final l10n = AppLocalizations.of(context);
     final items = <ServerTreeMenuItem>[
       ServerTreeMenuItem(
         icon: TermexIcons.connect,
-        label: '连接',
+        label: l10n.contextConnect,
         onSelect: () => widget.onServerConnect?.call(server.id),
       ),
       if (widget.onServerOpenSftp != null)
         ServerTreeMenuItem(
           icon: TermexIcons.sftp,
-          label: '打开 SFTP',
+          label: l10n.sftpOpenSftp,
           onSelect: () => widget.onServerOpenSftp!(server.id),
         ),
       ServerTreeMenuItem(
@@ -76,7 +78,7 @@ class _ServerTreeState extends ConsumerState<ServerTree> {
         // Lucide-style: a "plug" glyph as the active state, "unplug"
         // as the inverse. TermexIcons exposes them as connect/disconnect.
         icon: server.shared ? TermexIcons.disconnect : TermexIcons.connect,
-        label: server.shared ? '取消团队共享' : '分享到团队',
+        label: server.shared ? l10n.serverUnshareFromTeam : l10n.serverShareToTeam,
         onSelect: () => _toggleShare(server),
       ),
     ];
@@ -93,19 +95,22 @@ class _ServerTreeState extends ConsumerState<ServerTree> {
   }
 
   Future<void> _toggleShare(ServerDto server) async {
+    final l10n = AppLocalizations.of(context);
     try {
       if (server.shared) {
         await bridge.teamUnshareServer(serverId: server.id);
-        ToastController.success('已取消团队共享');
+        ToastController.success(l10n.serverUnsharedFromTeamToast);
       } else {
         await bridge.teamShareServer(serverId: server.id);
-        ToastController.success('已分享至团队');
+        ToastController.success(l10n.serverSharedToTeam);
       }
       // Refresh server list to update badges.
       // ignore: unused_result
       ref.refresh(serverListProvider);
     } catch (e) {
-      ToastController.error('${server.shared ? "取消共享" : "分享"}失败：$e');
+      final action =
+          server.shared ? l10n.serverUnshareAction : l10n.serverShareAction;
+      ToastController.error(l10n.serverActionFailed(action, '$e'));
     }
   }
 

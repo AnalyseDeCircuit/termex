@@ -6,6 +6,7 @@ import 'package:termex_shared/features/server_list/models/server_dto.dart';
 import 'package:termex_shared/features/server_list/state/group_provider.dart';
 import 'package:termex_shared/features/server_list/state/server_provider.dart';
 import 'package:termex_shared/features/server_list/widgets/server_tree.dart';
+import 'package:termex_shared/l10n/app_localizations.dart';
 
 PageRoute<T> _route<T>(RouteSettings s, WidgetBuilder b) =>
     PageRouteBuilder<T>(settings: s, pageBuilder: (ctx, _, __) => b(ctx));
@@ -46,6 +47,11 @@ Widget _wrap(Widget child, {List<Override> overrides = const []}) =>
       child: WidgetsApp(
         color: const Color(0xFF1E1E2E),
         pageRouteBuilder: _route,
+        // v0.79.0 i18n: ServerTree / ServerTreeNode now call
+        // AppLocalizations.of(context); without these delegates the
+        // lookup returns null and the null-check operator throws.
+        localizationsDelegates: AppLocalizations.localizationsDelegates,
+        supportedLocales: AppLocalizations.supportedLocales,
         home: child,
       ),
     );

@@ -30,14 +30,16 @@ import '../../app_version.dart';
 import '../../design/colors.dart';
 import '../../design/spacing.dart';
 import '../../design/typography.dart';
+import '../../l10n/app_localizations.dart';
 import '../../icons/termex_icons.dart';
 import '../../widgets/button.dart';
 import '../../widgets/dialog.dart';
 
 Future<void> showUpdateDialog(BuildContext context) {
+  final l10n = AppLocalizations.of(context);
   return showTermexDialog<void>(
     context: context,
-    title: '检查更新',
+    title: l10n.updateDialogTitle,
     size: DialogSize.medium,
     body: const SizedBox(
       width: 460,
@@ -146,26 +148,27 @@ class _UpdateDialogBodyState extends ConsumerState<_UpdateDialogBody> {
   }
 
   Widget _phaseBody() {
+    final l10n = AppLocalizations.of(context);
     switch (_phase) {
       case _Phase.checking:
         return _statusBox(
           icon: TermexIcons.refresh,
           color: TermexColors.primary,
-          title: '正在检查更新…',
+          title: l10n.updateInProgress,
           message: null,
         );
       case _Phase.upToDate:
         return _statusBox(
           icon: TermexIcons.connect,
           color: TermexColors.success,
-          title: '已是最新版本',
-          message: '当前版本 v$kAppVersion 是 $_channel 渠道的最新发布。',
+          title: l10n.updateUpToDateTitle,
+          message: l10n.updateUpToDateDetail(kAppVersion, _channel),
         );
       case _Phase.error:
         return _statusBox(
           icon: TermexIcons.help,
           color: TermexColors.danger,
-          title: '检查失败',
+          title: l10n.updateCheckFailedTitle,
           message: _errorMessage,
         );
       case _Phase.available:
@@ -174,6 +177,7 @@ class _UpdateDialogBodyState extends ConsumerState<_UpdateDialogBody> {
   }
 
   Widget _availableBody() {
+    final l10n = AppLocalizations.of(context);
     final m = _manifest!;
     return Container(
       padding: const EdgeInsets.all(TermexSpacing.md),
@@ -194,7 +198,7 @@ class _UpdateDialogBodyState extends ConsumerState<_UpdateDialogBody> {
               ),
               const SizedBox(width: TermexSpacing.sm),
               Text(
-                '新版本 v${m.version}',
+                l10n.updateNewVersionTitle(m.version),
                 style: TermexTypography.body.copyWith(
                   color: TermexColors.textPrimary,
                   fontWeight: FontWeight.w600,
@@ -214,7 +218,9 @@ class _UpdateDialogBodyState extends ConsumerState<_UpdateDialogBody> {
           Expanded(
             child: SingleChildScrollView(
               child: Text(
-                m.releaseNotes.isNotEmpty ? m.releaseNotes : '（无发布说明）',
+                m.releaseNotes.isNotEmpty
+                    ? m.releaseNotes
+                    : l10n.updateNoReleaseNotes,
                 style: TermexTypography.caption.copyWith(
                   color: TermexColors.textSecondary,
                 ),
@@ -271,17 +277,18 @@ class _UpdateDialogBodyState extends ConsumerState<_UpdateDialogBody> {
   }
 
   Widget _actions() {
+    final l10n = AppLocalizations.of(context);
     return Row(
       children: [
         if (_phase == _Phase.available && _isAvailable)
           TermexButton(
-            label: '查看下载页',
+            label: l10n.updateViewDownloadPage,
             variant: ButtonVariant.primary,
             onPressed: _openReleasePage,
           ),
         if (_phase == _Phase.error || _phase == _Phase.upToDate) ...[
           TermexButton(
-            label: '重新检查',
+            label: l10n.updateRecheck,
             variant: ButtonVariant.ghost,
             onPressed: _check,
           ),
@@ -289,7 +296,7 @@ class _UpdateDialogBodyState extends ConsumerState<_UpdateDialogBody> {
         const Spacer(),
         Builder(
           builder: (ctx) => TermexButton(
-            label: '关闭',
+            label: l10n.commonClose,
             variant: ButtonVariant.ghost,
             onPressed: () => Navigator.of(ctx, rootNavigator: true).pop(),
           ),
@@ -305,10 +312,11 @@ class _VersionRow extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
+    final l10n = AppLocalizations.of(context);
     return Row(
       children: [
         Text(
-          '当前版本',
+          l10n.updateCurrentVersion,
           style: TermexTypography.caption.copyWith(
             color: TermexColors.textSecondary,
           ),

@@ -1,5 +1,6 @@
 import 'dart:async' show unawaited;
-import 'dart:io' show Platform;
+import 'dart:convert' show utf8;
+import 'dart:io' show HttpClient, HttpException, Platform;
 
 import 'package:flutter/material.dart' show Material, MaterialType;
 import 'package:flutter/services.dart'
@@ -28,8 +29,14 @@ import 'mobile/task_notifier.dart';
 import 'package:termex_shared/features/server_list/state/app_state_provider.dart';
 import 'package:termex_shared/features/server_list/widgets/master_password_dialog.dart';
 import 'package:termex_shared/features/task/task_completion_sink.dart';
+import 'package:termex_shared/app_version.dart';
 import 'package:termex_shared/l10n/app_localizations.dart';
+import 'package:termex_shared/system/auto_updater_linux.dart';
+import 'package:termex_shared/system/auto_updater_macos.dart';
+import 'package:termex_shared/system/auto_updater_windows.dart';
 import 'package:termex_shared/system/splash_gate.dart';
+import 'package:termex_shared/system/state/update_provider.dart';
+import 'package:termex_shared/system/update_service.dart';
 import 'package:termex_shared/widgets/toast.dart';
 
 final appInitStateProvider =
@@ -126,10 +133,75 @@ void main() async {
       overrides: [
         appInitStateProvider.overrideWithValue(result.initState),
         dbUnlockedProvider.overrideWith((_) => result.isUnlocked),
+        // v0.79.0 (release-blocker B-1): wire the auto-update service.
+        // Without this override the provider throws UnimplementedError
+        // the moment the About tab's "检查更新" button reads it. The
+        // per-platform UpdateService subclasses only differ in their
+        // installer handoff (open DMG / run installer / open release
+        // page); the appcast fetch is a plain HTTPS GET shared by all.
+        updateServiceProvider.overrideWith((_) => _buildUpdateService()),
       ],
       child: const TermexApp(),
     ),
   ));
+}
+
+/// Selects the platform-appropriate [UpdateService] and injects the
+/// HTTP appcast fetcher. Mobile gets the base service with no installer
+/// handoff — store-distributed builds update through the store, so the
+/// About tab only ever shows "new version available" there.
+UpdateService _buildUpdateService() {
+  if (Platform.isMacOS) {
+    return MacAutoUpdater(
+      currentVersion: kAppVersion,
+      channel: kAppChannel,
+      baseUrl: kAppcastBaseUrl,
+      fetchAppcast: _httpAppcastFetcher,
+    );
+  }
+  if (Platform.isWindows) {
+    return WindowsAutoUpdater(
+      currentVersion: kAppVersion,
+      channel: kAppChannel,
+      baseUrl: kAppcastBaseUrl,
+      fetchAppcast: _httpAppcastFetcher,
+    );
+  }
+  if (Platform.isLinux) {
+    return LinuxAutoUpdater(
+      currentVersion: kAppVersion,
+      channel: kAppChannel,
+      baseUrl: kAppcastBaseUrl,
+      fetchAppcast: _httpAppcastFetcher,
+    );
+  }
+  return UpdateService(
+    currentVersion: kAppVersion,
+    channel: kAppChannel,
+    baseUrl: kAppcastBaseUrl,
+    fetchAppcast: _httpAppcastFetcher,
+  );
+}
+
+/// Plain HTTPS GET for the Sparkle-style appcast XML. Lives in the app
+/// entrypoint (not termex_shared) so the shared package stays free of a
+/// dart:io HttpClient dependency and unit tests can stub the fetcher.
+Future<String> _httpAppcastFetcher(String url) async {
+  final client = HttpClient()
+    ..connectionTimeout = const Duration(seconds: 15);
+  try {
+    final request = await client.getUrl(Uri.parse(url));
+    final response = await request.close();
+    if (response.statusCode != 200) {
+      throw HttpException(
+        'appcast fetch failed: HTTP ${response.statusCode}',
+        uri: Uri.parse(url),
+      );
+    }
+    return response.transform(utf8.decoder).join();
+  } finally {
+    client.close();
+  }
 }
 
 // v0.77.0 PC final parity: when launched with

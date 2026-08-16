@@ -3,6 +3,7 @@ import 'package:flutter/services.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 
 import '../../design/tokens.dart';
+import '../../l10n/app_localizations.dart';
 import 'snippet_variable_resolver.dart';
 import 'state/snippet_provider.dart';
 
@@ -14,6 +15,7 @@ class SnippetRow extends ConsumerWidget {
 
   @override
   Widget build(BuildContext context, WidgetRef ref) {
+    final l10n = AppLocalizations.of(context);
     return Container(
       padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 10),
       decoration: const BoxDecoration(
@@ -45,7 +47,7 @@ class SnippetRow extends ConsumerWidget {
                     if (snippet.usageCount > 0) ...[
                       const SizedBox(width: 6),
                       Text(
-                        '${snippet.usageCount} 次',
+                        l10n.snippetUsageTimes(snippet.usageCount),
                         style: const TextStyle(
                           fontSize: 10,
                           color: TermexColors.textSecondary,
@@ -89,11 +91,11 @@ class SnippetRow extends ConsumerWidget {
               // Copy
               _ActionBtn(
                 icon: Icons.copy_outlined,
-                tooltip: '复制',
+                tooltip: l10n.snippetCopy,
                 onTap: () {
                   Clipboard.setData(ClipboardData(text: snippet.content));
                   ScaffoldMessenger.of(context).showSnackBar(
-                    const SnackBar(content: Text('已复制到剪贴板')),
+                    SnackBar(content: Text(l10n.snippetCopiedToClipboard)),
                   );
                 },
               ),
@@ -101,7 +103,7 @@ class SnippetRow extends ConsumerWidget {
               // Run
               _ActionBtn(
                 icon: Icons.play_arrow_outlined,
-                tooltip: '执行',
+                tooltip: l10n.snippetExecute,
                 color: TermexColors.success,
                 onTap: () async {
                   final cmd = await resolveSnippetVariables(context, snippet);
@@ -115,14 +117,14 @@ class SnippetRow extends ConsumerWidget {
               // Edit
               _ActionBtn(
                 icon: Icons.edit_outlined,
-                tooltip: '编辑',
+                tooltip: l10n.commonEdit,
                 onTap: () => ref.read(snippetProvider.notifier).setEditing(snippet.id),
               ),
               const SizedBox(width: 4),
               // Delete
               _ActionBtn(
                 icon: Icons.delete_outline,
-                tooltip: '删除',
+                tooltip: l10n.commonDelete,
                 color: TermexColors.danger,
                 onTap: () => _confirmDelete(context, ref),
               ),
@@ -134,18 +136,19 @@ class SnippetRow extends ConsumerWidget {
   }
 
   Future<void> _confirmDelete(BuildContext context, WidgetRef ref) async {
+    final l10n = AppLocalizations.of(context);
     final ok = await showDialog<bool>(
       context: context,
       builder: (_) => AlertDialog(
         backgroundColor: TermexColors.backgroundSecondary,
-        title: const Text('删除 Snippet', style: TextStyle(fontSize: 14, color: TermexColors.danger)),
-        content: Text('确定要删除「${snippet.title}」吗？', style: const TextStyle(fontSize: 12, color: TermexColors.textSecondary)),
+        title: Text(l10n.snippetDeleteTitle, style: const TextStyle(fontSize: 14, color: TermexColors.danger)),
+        content: Text(l10n.snippetDeleteConfirmNamed(snippet.title), style: const TextStyle(fontSize: 12, color: TermexColors.textSecondary)),
         actions: [
-          TextButton(onPressed: () => Navigator.pop(context, false), child: const Text('取消')),
+          TextButton(onPressed: () => Navigator.pop(context, false), child: Text(l10n.commonCancel)),
           TextButton(
             onPressed: () => Navigator.pop(context, true),
             style: TextButton.styleFrom(foregroundColor: TermexColors.danger),
-            child: const Text('删除'),
+            child: Text(l10n.commonDelete),
           ),
         ],
       ),

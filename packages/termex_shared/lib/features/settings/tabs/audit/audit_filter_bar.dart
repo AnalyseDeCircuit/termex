@@ -14,6 +14,7 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:termex_bridge/src/api.dart' as bridge;
 
 import '../../../../design/colors.dart';
+import '../../../../l10n/app_localizations.dart';
 
 /// Preset date-range option.
 enum AuditDateRange { today, week, month, all }
@@ -92,31 +93,34 @@ class _AuditFilterBarState extends ConsumerState<AuditFilterBar> {
   }
 
   Future<void> _exportCsv() async {
+    final l10n = AppLocalizations.of(context);
     final ts = DateTime.now().toIso8601String().replaceAll(':', '-').replaceAll('.', '-');
     final path = 'termex-audit-$ts.csv';
     try {
       await bridge.auditExportCsv(path: path);
-      if (mounted) setState(() => _exportMessage = '已导出 $path');
+      if (mounted) setState(() => _exportMessage = l10n.auditExported(path));
     } catch (e) {
-      if (mounted) setState(() => _exportMessage = '导出失败：$e');
+      if (mounted) setState(() => _exportMessage = l10n.auditExportFailed('$e'));
     }
   }
 
   Future<void> _exportJson() async {
+    final l10n = AppLocalizations.of(context);
     final ts = DateTime.now().toIso8601String().replaceAll(':', '-').replaceAll('.', '-');
     final path = 'termex-audit-$ts.json';
     try {
       final encoded = const JsonEncoder.withIndent('  ')
           .convert(widget.allEntriesJson);
       await File(path).writeAsString(encoded);
-      if (mounted) setState(() => _exportMessage = '已导出 $path');
+      if (mounted) setState(() => _exportMessage = l10n.auditExported(path));
     } catch (e) {
-      if (mounted) setState(() => _exportMessage = '导出失败：$e');
+      if (mounted) setState(() => _exportMessage = l10n.auditExportFailed('$e'));
     }
   }
 
   @override
   Widget build(BuildContext context) {
+    final l10n = AppLocalizations.of(context);
     return Container(
       decoration: const BoxDecoration(
         border: Border(bottom: BorderSide(color: TermexColors.border)),
@@ -129,14 +133,14 @@ class _AuditFilterBarState extends ConsumerState<AuditFilterBar> {
             padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 6),
             child: Row(
               children: [
-                _label('日期：'),
-                _dateChip('今天', AuditDateRange.today),
+                _label(l10n.auditLabelDate),
+                _dateChip(l10n.auditRangeToday, AuditDateRange.today),
                 const SizedBox(width: 4),
-                _dateChip('本周', AuditDateRange.week),
+                _dateChip(l10n.auditRangeWeek, AuditDateRange.week),
                 const SizedBox(width: 4),
-                _dateChip('本月', AuditDateRange.month),
+                _dateChip(l10n.auditRangeMonth, AuditDateRange.month),
                 const SizedBox(width: 4),
-                _dateChip('全部', AuditDateRange.all),
+                _dateChip(l10n.auditRangeAll, AuditDateRange.all),
                 const Spacer(),
                 if (_exportMessage != null) ...[
                   Text(_exportMessage!,
@@ -145,7 +149,7 @@ class _AuditFilterBarState extends ConsumerState<AuditFilterBar> {
                   const SizedBox(width: 8),
                 ],
                 PopupMenuButton<String>(
-                  tooltip: '导出',
+                  tooltip: l10n.auditExport,
                   color: TermexColors.backgroundSecondary,
                   child: Container(
                     padding: const EdgeInsets.symmetric(
@@ -154,30 +158,30 @@ class _AuditFilterBarState extends ConsumerState<AuditFilterBar> {
                       border: Border.all(color: TermexColors.border),
                       borderRadius: BorderRadius.circular(4),
                     ),
-                    child: const Row(
+                    child: Row(
                       mainAxisSize: MainAxisSize.min,
                       children: [
-                        Icon(Icons.download_outlined,
+                        const Icon(Icons.download_outlined,
                             size: 13, color: TermexColors.textSecondary),
-                        SizedBox(width: 4),
-                        Text('导出',
-                            style: TextStyle(
+                        const SizedBox(width: 4),
+                        Text(l10n.auditExport,
+                            style: const TextStyle(
                                 fontSize: 11,
                                 color: TermexColors.textSecondary)),
                       ],
                     ),
                   ),
                   itemBuilder: (_) => [
-                    const PopupMenuItem(
+                    PopupMenuItem(
                       value: 'csv',
-                      child: Text('导出 CSV',
-                          style: TextStyle(
+                      child: Text(l10n.auditExportCsv,
+                          style: const TextStyle(
                               fontSize: 12, color: TermexColors.textPrimary)),
                     ),
-                    const PopupMenuItem(
+                    PopupMenuItem(
                       value: 'json',
-                      child: Text('导出 JSON',
-                          style: TextStyle(
+                      child: Text(l10n.auditExportJson,
+                          style: const TextStyle(
                               fontSize: 12, color: TermexColors.textPrimary)),
                     ),
                   ],
@@ -192,7 +196,7 @@ class _AuditFilterBarState extends ConsumerState<AuditFilterBar> {
               padding: const EdgeInsets.only(left: 12, right: 12, bottom: 6),
               child: Row(
                 children: [
-                  _label('事件：'),
+                  _label(l10n.auditLabelEvent),
                   Expanded(
                     child: Wrap(
                       spacing: 4,

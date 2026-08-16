@@ -3,23 +3,27 @@ library;
 
 import 'package:flutter/material.dart';
 
+import '../../l10n/app_localizations.dart';
+
 enum ConflictResolution { keepLocal, useRemote, terminalMergeTool }
 
 Future<ConflictResolution?> showConflictResolver(
   BuildContext context,
   List<String> conflicts,
 ) {
+  final l10n = AppLocalizations.of(context);
   return showDialog<ConflictResolution>(
     context: context,
     builder: (ctx) => AlertDialog(
-      title: const Text('⚠ Git Sync 冲突'),
+      title: Text(l10n.gitConflictTitle),
       content: SizedBox(
         width: 460,
         child: Column(
           mainAxisSize: MainAxisSize.min,
           crossAxisAlignment: CrossAxisAlignment.start,
           children: [
-            const Text('以下文件存在冲突：', style: TextStyle(fontSize: 13)),
+            Text(l10n.gitConflictFilesLabel,
+                style: const TextStyle(fontSize: 13)),
             const SizedBox(height: 8),
             Container(
               constraints: const BoxConstraints(maxHeight: 160),
@@ -32,9 +36,10 @@ Future<ConflictResolution?> showConflictResolver(
               ),
             ),
             const SizedBox(height: 12),
-            const Text(
-              '选择解决策略：',
-              style: TextStyle(fontSize: 12, fontWeight: FontWeight.w600),
+            Text(
+              l10n.gitConflictStrategyLabel,
+              style: const TextStyle(
+                  fontSize: 12, fontWeight: FontWeight.w600),
             ),
           ],
         ),
@@ -42,20 +47,20 @@ Future<ConflictResolution?> showConflictResolver(
       actions: [
         TextButton(
           onPressed: () => Navigator.pop(ctx),
-          child: const Text('取消'),
+          child: Text(l10n.commonCancel),
         ),
         OutlinedButton(
           onPressed: () =>
               Navigator.pop(ctx, ConflictResolution.terminalMergeTool),
-          child: const Text('终端中解决'),
+          child: Text(l10n.gitConflictResolveInTerminal),
         ),
         OutlinedButton(
           onPressed: () => Navigator.pop(ctx, ConflictResolution.useRemote),
-          child: const Text('使用远端'),
+          child: Text(l10n.gitConflictUseRemote),
         ),
         ElevatedButton(
           onPressed: () => Navigator.pop(ctx, ConflictResolution.keepLocal),
-          child: const Text('保留本地'),
+          child: Text(l10n.gitConflictKeepLocal),
         ),
       ],
     ),

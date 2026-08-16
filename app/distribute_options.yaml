@@ -2,18 +2,32 @@ output: ./release/
 releases:
   - name: stable
     jobs:
-      - name: macos-dmg-arm64
+      # macOS ships a single universal binary. `flutter build macos` already
+      # emits x86_64 + arm64 in one bundle, so the previous arm64/x64 job pair
+      # was byte-identical: both produced the same DMG under the same filename
+      # and clobbered each other on upload, leaving Intel users with an
+      # artefact that was never actually built for them.
+      - name: macos-dmg
         package:
           platform: macos
           target: dmg
-      - name: macos-dmg-x64
-        package:
-          platform: macos
-          target: dmg
-      - name: windows-msix
+
+      # Windows ships an Inno Setup installer plus a portable ZIP, matching
+      # what the 0.53.x line shipped so existing users have an upgrade path.
+      # MSIX was dropped: there is no Windows code-signing certificate in the
+      # repo secrets, and an unsigned MSIX cannot be installed on stock
+      # Windows without enabling sideloading.
+      - name: windows-exe
         package:
           platform: windows
-          target: msix
+          target: exe
+      - name: windows-zip
+        package:
+          platform: windows
+          target: zip
+
+      # Linux: full format coverage on x64, and the two formats that matter on
+      # arm64. Previously only one format was built per architecture.
       - name: linux-appimage
         package:
           platform: linux
@@ -29,14 +43,14 @@ releases:
 
   - name: beta
     jobs:
-      - name: macos-dmg-arm64
+      - name: macos-dmg
         package:
           platform: macos
           target: dmg
-      - name: windows-msix
+      - name: windows-exe
         package:
           platform: windows
-          target: msix
+          target: exe
       - name: linux-appimage
         package:
           platform: linux

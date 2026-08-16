@@ -6,6 +6,7 @@ import 'package:flutter/services.dart';
 
 import '../../../design/colors.dart';
 import '../../../design/typography.dart';
+import '../../../l10n/app_localizations.dart';
 import '../widgets/file_row.dart';
 
 /// Shows the file properties dialog. Returns when the user closes it.
@@ -33,6 +34,7 @@ class FileInfoDialog extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
+    final l10n = AppLocalizations.of(context);
     return AlertDialog(
       backgroundColor: TermexColors.backgroundSecondary,
       title: Row(
@@ -60,42 +62,48 @@ class FileInfoDialog extends StatelessWidget {
         child: Column(
           mainAxisSize: MainAxisSize.min,
           children: [
-            _InfoRow(label: '类型', value: file.isDirectory ? '目录' : '文件'),
-            _InfoRow(label: '路径', value: fullRemotePath, copyable: true),
+            _InfoRow(
+              label: l10n.sftpType,
+              value: file.isDirectory ? l10n.sftpDirectory : l10n.sftpFile,
+            ),
+            _InfoRow(label: l10n.sftpPath, value: fullRemotePath, copyable: true),
             if (file.sizeBytes != null)
-              _InfoRow(label: '大小', value: _formatSize(file.sizeBytes!)),
+              _InfoRow(
+                label: l10n.sftpSize,
+                value: _formatSize(l10n, file.sizeBytes!),
+              ),
             if (file.modifiedAt != null)
               _InfoRow(
-                label: '修改时间',
+                label: l10n.sftpModified,
                 value: file.modifiedAt!.toLocal().toString(),
               ),
             if (file.permissions != null)
-              _InfoRow(label: '权限', value: file.permissions!),
+              _InfoRow(label: l10n.sftpPermissions, value: file.permissions!),
             if (file.owner != null)
-              _InfoRow(label: '所有者', value: file.owner!),
+              _InfoRow(label: l10n.sftpOwner, value: file.owner!),
             if (file.group != null)
-              _InfoRow(label: '所属组', value: file.group!),
+              _InfoRow(label: l10n.sftpGroup, value: file.group!),
           ],
         ),
       ),
       actions: [
         TextButton(
           onPressed: () => Navigator.of(context).pop(),
-          child: const Text('关闭'),
+          child: Text(l10n.sftpClose),
         ),
       ],
     );
   }
 
-  static String _formatSize(int bytes) {
-    if (bytes < 1024) return '$bytes 字节';
+  static String _formatSize(AppLocalizations l10n, int bytes) {
+    if (bytes < 1024) return l10n.sftpSizeBytes(bytes);
     if (bytes < 1024 * 1024) {
-      return '${(bytes / 1024).toStringAsFixed(2)} KB ($bytes 字节)';
+      return '${(bytes / 1024).toStringAsFixed(2)} KB (${l10n.sftpSizeBytes(bytes)})';
     }
     if (bytes < 1024 * 1024 * 1024) {
-      return '${(bytes / (1024 * 1024)).toStringAsFixed(2)} MB ($bytes 字节)';
+      return '${(bytes / (1024 * 1024)).toStringAsFixed(2)} MB (${l10n.sftpSizeBytes(bytes)})';
     }
-    return '${(bytes / (1024 * 1024 * 1024)).toStringAsFixed(3)} GB ($bytes 字节)';
+    return '${(bytes / (1024 * 1024 * 1024)).toStringAsFixed(3)} GB (${l10n.sftpSizeBytes(bytes)})';
   }
 }
 

@@ -64,27 +64,55 @@ jobs:
       fail-fast: false
       matrix:
         include:
-          - label: mac-aarch64
+          # One macOS job: `flutter build macos` emits a universal
+          # (x86_64 + arm64) binary, so a single DMG serves both Intel and
+          # Apple Silicon. The previous arm64/x64 pair had identical
+          # distribute_options entries and both ran on macos-latest (Apple
+          # Silicon), so they produced the same file and clobbered each other
+          # on upload — no Intel-specific build ever existed.
+          - label: mac-universal
             os: macos-latest
-            distributor-job: macos-dmg-arm64
-            artifact-suffix: mac_aarch64
+            distributor-job: macos-dmg
+            artifact-suffix: mac_universal
 
-          - label: mac-x86_64
-            os: macos-latest
-            distributor-job: macos-dmg-x64
-            artifact-suffix: mac_x64
-
-          - label: win-x64
+          # Inno Setup installer + portable ZIP, matching the formats the
+          # 0.53.x line shipped so existing Windows users can upgrade in
+          # place. MSIX is not built: no Windows signing certificate exists
+          # in repo secrets, and unsigned MSIX will not install.
+          - label: win-x64-exe
             os: windows-latest
-            distributor-job: windows-msix
+            distributor-job: windows-exe
             artifact-suffix: win_x64
 
-          - label: linux-x86_64
+          - label: win-x64-zip
+            os: windows-latest
+            distributor-job: windows-zip
+            artifact-suffix: win_x64
+
+          - label: linux-x86_64-appimage
             os: ubuntu-22.04
             distributor-job: linux-appimage
             artifact-suffix: linux_x64
 
-          - label: linux-aarch64
+          - label: linux-x86_64-deb
+            os: ubuntu-22.04
+            distributor-job: linux-deb
+            artifact-suffix: linux_x64
+
+          # v0.79.0 B-3: rpm job was defined in distribute_options.yaml
+          # (stable release) but missing from this matrix, so Fedora /
+          # RHEL users never got an artefact.
+          - label: linux-x86_64-rpm
+            os: ubuntu-22.04
+            distributor-job: linux-rpm
+            artifact-suffix: linux_x64
+
+          - label: linux-aarch64-appimage
+            os: ubuntu-24.04-arm
+            distributor-job: linux-appimage
+            artifact-suffix: linux_aarch64
+
+          - label: linux-aarch64-deb
             os: ubuntu-24.04-arm
             distributor-job: linux-deb
             artifact-suffix: linux_aarch64
@@ -117,10 +145,44 @@ jobs:
           echo "OPENSSL_DIR=$env:VCPKG_INSTALLATION_ROOT\installed\x64-windows-static-md" | Out-File -FilePath $env:GITHUB_ENV -Encoding utf8 -Append
           echo "OPENSSL_STATIC=1" | Out-File -FilePath $env:GITHUB_ENV -Encoding utf8 -Append
 
+      # ── Packaging tools required by flutter_distributor ───
+      # Each maker shells out to an external packager; without these the
+      # build fails at the packaging step rather than the compile step.
+
+      # dmg target → appdmg (npm)
+      - name: Install appdmg (macOS)
+        if: runner.os == 'macOS'
+        run: npm install -g appdmg
+
+      # exe target → Inno Setup compiler
+      - name: Install Inno Setup (Windows)
+        if: matrix.distributor-job == 'windows-exe'
+        shell: pwsh
+        run: choco install innosetup --no-progress -y
+
+      # appimage target → appimagetool
+      - name: Install appimagetool (Linux)
+        if: endsWith(matrix.distributor-job, 'appimage')
+        run: |
+          ARCH=$(uname -m)
+          curl -fsSL -o /tmp/appimagetool \
+            "https://github.com/AppImage/AppImageKit/releases/download/continuous/appimagetool-${ARCH}.AppImage"
+          chmod +x /tmp/appimagetool
+          sudo mv /tmp/appimagetool /usr/local/bin/appimagetool
+          # GitHub runners have no FUSE, so the AppImage cannot self-mount.
+          # --appimage-extract-and-run makes appimagetool run without it.
+          echo "APPIMAGE_EXTRACT_AND_RUN=1" >> "$GITHUB_ENV"
+
       # ── Flutter toolchain ────────────────────────────────
       - uses: subosito/flutter-action@v2
         with:
-          flutter-version: '3.24.x'
+          # Matches the SDK the lockfile was resolved with and the desktop
+          # build was validated against. The previous 3.24.x pin had never
+          # produced an artefact, and resolving under it yields a different
+          # plugin set — 3.24 kept the Android-only `jni` FFI plugin in the
+          # Linux/Windows builds and omitted path_provider's macOS
+          # registration.
+          flutter-version: '3.35.x'
           channel: stable
           cache: true
 
@@ -137,29 +199,103 @@ jobs:
         working-directory: app
         run: flutter pub get
 
-      # ── Build via flutter_distributor (uses distribute_options.yaml) ──
-      - name: Build release artefact
-        working-directory: app
+      # ── Import the Developer ID certificate into a temp keychain ──
+      # codesign resolves the identity by name from a keychain; the raw
+      # secrets are not usable on their own. tauri-action used to do this
+      # implicitly, which is why the cutover silently lost signing.
+      - name: Import signing certificate (macOS)
+        if: runner.os == 'macOS'
         env:
           APPLE_CERTIFICATE: ${{ secrets.APPLE_CERTIFICATE }}
           APPLE_CERTIFICATE_PASSWORD: ${{ secrets.APPLE_CERTIFICATE_PASSWORD }}
-          APPLE_SIGNING_IDENTITY: ${{ secrets.APPLE_SIGNING_IDENTITY }}
-          APPLE_ID: ${{ secrets.APPLE_ID }}
-          APPLE_PASSWORD: ${{ secrets.APPLE_PASSWORD }}
-          APPLE_TEAM_ID: ${{ secrets.APPLE_TEAM_ID }}
+        run: |
+          KEYCHAIN="$RUNNER_TEMP/signing.keychain-db"
+          KEYCHAIN_PASSWORD="$(uuidgen)"
+
+          security create-keychain -p "$KEYCHAIN_PASSWORD" "$KEYCHAIN"
+          security set-keychain-settings -lut 21600 "$KEYCHAIN"
+          security unlock-keychain -p "$KEYCHAIN_PASSWORD" "$KEYCHAIN"
+
+          echo "$APPLE_CERTIFICATE" | base64 --decode > "$RUNNER_TEMP/cert.p12"
+          security import "$RUNNER_TEMP/cert.p12" \
+            -k "$KEYCHAIN" \
+            -P "$APPLE_CERTIFICATE_PASSWORD" \
+            -T /usr/bin/codesign -T /usr/bin/security
+          rm -f "$RUNNER_TEMP/cert.p12"
+
+          # Without this, codesign blocks on an interactive keychain prompt
+          # that no one can answer on a runner.
+          security set-key-partition-list -S apple-tool:,apple: \
+            -k "$KEYCHAIN_PASSWORD" "$KEYCHAIN" >/dev/null
+
+          security list-keychain -d user -s "$KEYCHAIN" login.keychain-db
+
+          echo "→ identities available to codesign:"
+          security find-identity -v -p codesigning "$KEYCHAIN"
+
+      # ── Build via flutter_distributor (uses distribute_options.yaml) ──
+      - name: Build release artefact
+        working-directory: app
         run: |
           flutter_distributor release --name stable --jobs ${{ matrix.distributor-job }}
 
-      # ── Upload artefacts to the release ──────────────────
+      # ── Sign + notarize the DMG ──────────────────────────
+      # flutter_distributor does no signing of its own: it ignores the Apple
+      # env vars entirely, so without this step the DMG ships unsigned and
+      # Gatekeeper blocks it on every user's machine.
+      - name: Sign and notarize (macOS)
+        if: runner.os == 'macOS'
+        env:
+          APPLE_ID: ${{ secrets.APPLE_ID }}
+          APP_PASSWORD: ${{ secrets.APPLE_PASSWORD }}
+          TEAM_ID: ${{ secrets.APPLE_TEAM_ID }}
+          SIGN_ID: ${{ secrets.APPLE_SIGNING_IDENTITY }}
+        run: |
+          DMG="$(find app/release -type f -name '*.dmg' -print -quit)"
+          if [[ -z "$DMG" ]]; then
+            echo "✗ no DMG produced by flutter_distributor" >&2
+            exit 1
+          fi
+          echo "→ notarizing $DMG"
+          DMG_PATH="$DMG" ./scripts/sign-macos.sh
+
+          # Prove the shipped artefact actually passes Gatekeeper, so a
+          # signing regression fails the release instead of reaching users.
+          echo "→ verifying Gatekeeper acceptance"
+          spctl --assess --type open --context context:primary-signature -vv "$DMG"
+
+      # ── Upload artefacts under canonical names ───────────
+      # Naming happens here, not in a later pass. flutter_distributor emits
+      # the same filename for every architecture, so uploading as-built made
+      # the x64 and aarch64 Linux artefacts overwrite each other via
+      # --clobber. The previous rename job could not repair that: it inferred
+      # architecture from the filename, which never contained one.
       - name: Upload artefacts (Unix)
         if: runner.os != 'Windows'
         env:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
         run: |
-          cd app/release
-          for f in $(find . -type f -name "*.dmg" -o -name "*.msix" -o -name "*.deb" -o -name "*.rpm" -o -name "*.AppImage"); do
-            gh release upload "${{ github.ref_name }}" "$f" --clobber
-          done
+          TAG="${{ github.ref_name }}"
+          VERSION="${TAG#v}"
+          SUFFIX="${{ matrix.artifact-suffix }}"
+
+          found=0
+          while IFS= read -r -d '' f; do
+            EXT="${f##*.}"
+            DEST="$(dirname "$f")/Termex_${VERSION}_${SUFFIX}.${EXT}"
+            [ "$f" = "$DEST" ] || mv "$f" "$DEST"
+            echo "→ uploading $(basename "$DEST")"
+            gh release upload "$TAG" "$DEST" --clobber
+            found=1
+          done < <(find app/release -type f \( -name '*.dmg' -o -name '*.deb' \
+                     -o -name '*.rpm' -o -name '*.AppImage' \) -print0)
+
+          # A packaging step that produces nothing used to pass silently and
+          # leave a release short of artefacts.
+          if [ "$found" -eq 0 ]; then
+            echo "✗ ${{ matrix.distributor-job }} produced no artefact" >&2
+            exit 1
+          fi
 
       - name: Upload artefacts (Windows)
         if: runner.os == 'Windows'
@@ -167,57 +303,28 @@ jobs:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
         shell: pwsh
         run: |
-          cd app/release
-          Get-ChildItem -Recurse -Include *.msix,*.exe | ForEach-Object {
-            gh release upload "${{ github.ref_name }}" "$($_.FullName)" --clobber
+          $ErrorActionPreference = "Stop"
+          $Tag = "${{ github.ref_name }}"
+          $Version = $Tag -replace '^v', ''
+          $Suffix = "${{ matrix.artifact-suffix }}"
+
+          $files = Get-ChildItem -Path app/release -Recurse -Include *.exe,*.zip
+          if (-not $files) {
+            Write-Error "${{ matrix.distributor-job }} produced no artefact"
           }
 
-  # ── Rename release assets to canonical Termex_<ver>_<plat>_<arch>.<ext> ──
-  rename-assets:
-    name: Rename Assets
-    needs: build
-    runs-on: ubuntu-latest
-    permissions:
-      contents: write
-    steps:
-      - uses: actions/checkout@v4
-
-      - name: Rename release assets
-        env:
-          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
-        run: |
-          TAG="${{ github.ref_name }}"
-          VERSION="${TAG#v}"
-          ASSETS=$(gh api repos/${{ github.repository }}/releases/tags/$TAG --jq '.assets[] | "\(.id) \(.name)"')
-
-          detect_arch() {
-            local name="$1"
-            if [[ "$name" == *"aarch64"* ]] || [[ "$name" == *"arm64"* ]]; then
-              echo "aarch64"
-            else
-              echo "x64"
-            fi
+          foreach ($f in $files) {
+            $ext = $f.Extension.TrimStart('.')
+            # The portable ZIP and the installer share a suffix, so the ZIP
+            # keeps a distinct name rather than clobbering the installer.
+            $name = if ($ext -eq 'zip') {
+              "Termex_${Version}_${Suffix}_portable.zip"
+            } else {
+              "Termex_${Version}_${Suffix}_setup.exe"
+            }
+            $dest = Join-Path $f.DirectoryName $name
+            if ($f.FullName -ne $dest) { Move-Item $f.FullName $dest -Force }
+            Write-Host "-> uploading $name"
+            gh release upload $Tag $dest --clobber
+            if ($LASTEXITCODE -ne 0) { Write-Error "upload failed for $name" }
           }
-
-          while IFS= read -r line; do
-            [ -z "$line" ] && continue
-            ASSET_ID=$(echo "$line" | awk '{print $1}')
-            OLD_NAME=$(echo "$line" | awk '{$1=""; print $0}' | xargs)
-            NEW_NAME=""
-            ARCH=$(detect_arch "$OLD_NAME")
-
-            case "$OLD_NAME" in
-              *.dmg)      NEW_NAME="Termex_${VERSION}_mac_${ARCH}.dmg" ;;
-              *.msix)     NEW_NAME="Termex_${VERSION}_win_${ARCH}.msix" ;;
-              *.deb)      NEW_NAME="Termex_${VERSION}_linux_${ARCH}.deb" ;;
-              *.rpm)      NEW_NAME="Termex_${VERSION}_linux_${ARCH}.rpm" ;;
-              *.AppImage) NEW_NAME="Termex_${VERSION}_linux_${ARCH}.AppImage" ;;
-              *) continue ;;
-            esac
-
-            if [ -n "$NEW_NAME" ] && [ "$NEW_NAME" != "$OLD_NAME" ]; then
-              echo "Renaming: $OLD_NAME → $NEW_NAME"
-              gh api --method PATCH repos/${{ github.repository }}/releases/assets/$ASSET_ID \
-                -f name="$NEW_NAME" || true
-            fi
-          done <<< "$ASSETS"

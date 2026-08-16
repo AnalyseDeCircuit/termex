@@ -7,7 +7,34 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ---
 
-## [Unreleased — v0.78.0] — PC Cutover (Tauri build stopped)
+## [0.79.0] — 2026-06-08 — Desktop release candidate (parity + cutover consolidated)
+
+> Consolidates the v0.77.0 parity close-out and v0.78.0 cutover work below
+> into the first release-candidate version stamp. All version stamps
+> (package.json / termex-core / termex-flutter-bridge / app pubspec /
+> app_version.dart) aligned to 0.79.0 by `pnpm version:bump`.
+
+### Fixed (release blockers)
+
+- **B-1 Auto-update wired**: `updateServiceProvider` + HTTPS appcast fetcher now
+  injected in `app/lib/main.dart` `ProviderScope.overrides` — per-platform
+  `Mac/Windows/LinuxAutoUpdater` selected at boot. Previously the About tab's
+  "检查更新" button threw `UnimplementedError` at runtime.
+- **B-2 Version stamps aligned**: pubspec was stuck at 0.53.7 while the
+  changelog tracked v0.78; `scripts/bump-version.mjs` now also syncs
+  `packages/termex_shared/lib/app_version.dart` (`kAppVersion`), which the
+  updater compares against the appcast — it had been frozen at 0.49.0.
+- **B-3 linux-rpm artefact restored**: `release.yml` build matrix gains the
+  `linux-rpm` distributor job that `distribute_options.yaml` already defined.
+
+### Added (v0.79.x during RC hardening)
+
+- AI settings: user-managed provider list with "+ Add Provider" dropdown;
+  only configured providers appear in the AI panel switcher.
+- PC sidebar per-category section header with "+" add button (parity with
+  the mobile `_TerminalTabHeader` pattern) for servers / proxies / snippets.
+
+## [0.78.0] — PC Cutover (Tauri build stopped)
 
 ### Deprecated / Removed (build infrastructure only — no source deletion)
 

@@ -8,6 +8,7 @@ import 'package:flutter/material.dart';
 
 import '../../../design/colors.dart';
 import '../../../design/typography.dart';
+import '../../../l10n/app_localizations.dart';
 
 /// Breadcrumb + quick-edit path bar.
 ///
@@ -72,6 +73,7 @@ class _PathBarState extends State<PathBar> {
 
   @override
   Widget build(BuildContext context) {
+    final l10n = AppLocalizations.of(context);
     return Container(
       height: 32,
       padding: const EdgeInsets.symmetric(horizontal: 8),
@@ -88,13 +90,13 @@ class _PathBarState extends State<PathBar> {
           if (!_editing && widget.onRefresh != null)
             _BarBtn(
               icon: Icons.refresh,
-              tooltip: '刷新',
+              tooltip: l10n.commonRefresh,
               onTap: widget.onRefresh!,
             ),
           // Edit toggle
           _BarBtn(
             icon: _editing ? Icons.close : Icons.edit_outlined,
-            tooltip: _editing ? '取消编辑' : '编辑路径',
+            tooltip: _editing ? l10n.sftpCancelEdit : l10n.sftpEditPath,
             onTap: _editing
                 ? _cancel
                 : () {

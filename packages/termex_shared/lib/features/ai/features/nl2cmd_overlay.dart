@@ -2,6 +2,7 @@ import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 
 import '../../../design/tokens.dart';
+import '../../../l10n/app_localizations.dart';
 import 'nl2cmd_engine.dart';
 
 /// Floating overlay for natural-language → shell command conversion.
@@ -47,6 +48,7 @@ class _Nl2CmdOverlayState extends ConsumerState<Nl2CmdOverlay> {
   }
 
   Future<void> _convert() async {
+    final l10n = AppLocalizations.of(context);
     final text = _ctrl.text.trim();
     if (text.isEmpty) return;
     setState(() {
@@ -63,7 +65,7 @@ class _Nl2CmdOverlayState extends ConsumerState<Nl2CmdOverlay> {
       // Result is in the active conversation's last message.
       // For simplicity, show a placeholder.
       setState(() {
-        _result = '(已发送到 AI 对话)';
+        _result = l10n.aiNl2cmdSent;
         _isLoading = false;
       });
     } catch (e) {
@@ -76,6 +78,7 @@ class _Nl2CmdOverlayState extends ConsumerState<Nl2CmdOverlay> {
 
   @override
   Widget build(BuildContext context) {
+    final l10n = AppLocalizations.of(context);
     return Material(
       color: Colors.transparent,
       child: Container(
@@ -101,9 +104,9 @@ class _Nl2CmdOverlayState extends ConsumerState<Nl2CmdOverlay> {
               children: [
                 const Icon(Icons.terminal, size: 14, color: TermexColors.primary),
                 const SizedBox(width: 6),
-                const Text(
-                  '自然语言 → 命令',
-                  style: TextStyle(
+                Text(
+                  l10n.aiNl2cmdTitle,
+                  style: const TextStyle(
                     fontSize: 13,
                     fontWeight: FontWeight.w600,
                     color: TermexColors.textPrimary,
@@ -121,7 +124,7 @@ class _Nl2CmdOverlayState extends ConsumerState<Nl2CmdOverlay> {
               controller: _ctrl,
               focusNode: _focus,
               decoration: InputDecoration(
-                hintText: '描述你想做什么，例如：查找大于 100MB 的文件',
+                hintText: l10n.aiNl2cmdHint,
                 hintStyle:
                     const TextStyle(fontSize: 12, color: TermexColors.textSecondary),
                 border: OutlineInputBorder(
@@ -177,9 +180,9 @@ class _Nl2CmdOverlayState extends ConsumerState<Nl2CmdOverlay> {
               children: [
                 TextButton(
                   onPressed: widget.onClose,
-                  child: const Text('取消',
-                      style:
-                          TextStyle(fontSize: 12, color: TermexColors.textSecondary)),
+                  child: Text(l10n.commonCancel,
+                      style: const TextStyle(
+                          fontSize: 12, color: TermexColors.textSecondary)),
                 ),
                 const SizedBox(width: 8),
                 ElevatedButton(
@@ -190,7 +193,7 @@ class _Nl2CmdOverlayState extends ConsumerState<Nl2CmdOverlay> {
                     minimumSize: const Size(64, 32),
                     textStyle: const TextStyle(fontSize: 12),
                   ),
-                  child: const Text('生成'),
+                  child: Text(l10n.aiNl2cmdGenerate),
                 ),
               ],
             ),

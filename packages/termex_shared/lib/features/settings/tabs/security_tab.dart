@@ -5,6 +5,7 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:termex_bridge/src/api.dart' as bridge;
 
 import '../../../design/tokens.dart';
+import '../../../l10n/app_localizations.dart';
 
 /// Settings → Security tab. Mirrors `SecurityTab.vue` in the Tauri build:
 /// shows the platform-keychain protection mode + cached credential count
@@ -46,15 +47,16 @@ class _SecurityTabState extends ConsumerState<SecurityTab> {
 
   @override
   Widget build(BuildContext context) {
+    final l10n = AppLocalizations.of(context);
     return ListView(
       padding: const EdgeInsets.all(20),
       children: [
         if (_loading)
-          const Padding(
-            padding: EdgeInsets.symmetric(vertical: 24),
+          Padding(
+            padding: const EdgeInsets.symmetric(vertical: 24),
             child: Center(
-              child: Text('加载中…',
-                  style: TextStyle(
+              child: Text(l10n.settingsSecurityLoading,
+                  style: const TextStyle(
                       fontSize: 12, color: TermexColors.textMuted)),
             ),
           )
@@ -68,11 +70,11 @@ class _SecurityTabState extends ConsumerState<SecurityTab> {
           const SizedBox(height: 16),
           _HowItWorksCard(),
         ] else
-          const Padding(
-            padding: EdgeInsets.symmetric(vertical: 24),
+          Padding(
+            padding: const EdgeInsets.symmetric(vertical: 24),
             child: Center(
-              child: Text('无法读取安全状态',
-                  style: TextStyle(
+              child: Text(l10n.settingsSecurityLoadError,
+                  style: const TextStyle(
                       fontSize: 12, color: TermexColors.textMuted)),
             ),
           ),
@@ -88,6 +90,7 @@ class _ProtectionCard extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
+    final l10n = AppLocalizations.of(context);
     return Container(
       padding: const EdgeInsets.all(14),
       decoration: BoxDecoration(
@@ -110,9 +113,9 @@ class _ProtectionCard extends StatelessWidget {
                 ),
               ),
               const SizedBox(width: 8),
-              const Text(
-                '密钥保护模式',
-                style: TextStyle(
+              Text(
+                l10n.settingsSecurityProtectionTitle,
+                style: const TextStyle(
                   fontSize: 13,
                   fontWeight: FontWeight.w600,
                   color: TermexColors.textPrimary,
@@ -123,8 +126,8 @@ class _ProtectionCard extends StatelessWidget {
           const SizedBox(height: 8),
           Text(
             available
-                ? '已使用 $platform 安全存储凭据。Termex 仅在启动时读取一次主密钥条目。'
-                : '系统密钥库不可用，已回退到本地加密（AES-256-GCM + Argon2id）。',
+                ? l10n.settingsSecurityProtectionActive(platform)
+                : l10n.settingsSecurityProtectionFallback,
             style: const TextStyle(
               fontSize: 12,
               color: TermexColors.textSecondary,
@@ -143,6 +146,7 @@ class _CredentialCountCard extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
+    final l10n = AppLocalizations.of(context);
     return Container(
       padding: const EdgeInsets.all(14),
       decoration: BoxDecoration(
@@ -152,9 +156,9 @@ class _CredentialCountCard extends StatelessWidget {
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
-          const Text(
-            '已保存的凭据',
-            style: TextStyle(
+          Text(
+            l10n.settingsSecuritySavedCredentials,
+            style: const TextStyle(
               fontSize: 12,
               fontWeight: FontWeight.w600,
               color: TermexColors.textPrimary,
@@ -170,9 +174,9 @@ class _CredentialCountCard extends StatelessWidget {
             ),
           ),
           const SizedBox(height: 2),
-          const Text(
-            '包括 SSH 密码、SSH 私钥口令、AI Provider API Key',
-            style: TextStyle(fontSize: 11, color: TermexColors.textMuted),
+          Text(
+            l10n.settingsSecurityCredentialTypes,
+            style: const TextStyle(fontSize: 11, color: TermexColors.textMuted),
           ),
         ],
       ),
@@ -183,17 +187,18 @@ class _CredentialCountCard extends StatelessWidget {
 class _HowItWorksCard extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
+    final l10n = AppLocalizations.of(context);
     final hints = [
-      '凭据从未以明文写入数据库 — 仅保存系统密钥库的引用 ID',
-      '主密钥条目在每次启动时只读取一次，避免反复弹出系统密码框',
-      'GDPR 数据擦除会同步清空密钥库中所有 Termex 条目',
+      l10n.settingsSecurityHint1,
+      l10n.settingsSecurityHint2,
+      l10n.settingsSecurityHint3,
     ];
     return Column(
       crossAxisAlignment: CrossAxisAlignment.start,
       children: [
-        const Text(
-          '工作原理',
-          style: TextStyle(
+        Text(
+          l10n.settingsSecurityHowItWorks,
+          style: const TextStyle(
             fontSize: 12,
             fontWeight: FontWeight.w600,
             color: TermexColors.textSecondary,

@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 
 import '../../design/tokens.dart';
+import '../../l10n/app_localizations.dart';
 import 'state/snippet_provider.dart';
 
 /// Shows a dialog to fill in snippet variables and returns the resolved content,
@@ -49,9 +50,10 @@ class _VariableResolverDialogState extends State<_VariableResolverDialog> {
 
   @override
   Widget build(BuildContext context) {
+    final l10n = AppLocalizations.of(context);
     return AlertDialog(
       backgroundColor: TermexColors.backgroundSecondary,
-      title: Text('填写变量 — ${widget.snippet.title}',
+      title: Text(l10n.snippetVariableTitleNamed(widget.snippet.title),
           style: const TextStyle(fontSize: 14, color: TermexColors.textPrimary)),
       content: SizedBox(
         width: 440,
@@ -63,7 +65,7 @@ class _VariableResolverDialogState extends State<_VariableResolverDialog> {
               ...widget.snippet.variables.map((v) => _VarField(variable: v, controller: _ctrls[v.name]!,
                   onChanged: (_) => setState(() {}))),
               const SizedBox(height: 16),
-              const Text('预览', style: TextStyle(fontSize: 11, color: TermexColors.textSecondary, fontWeight: FontWeight.w700)),
+              Text(l10n.snippetPreview, style: const TextStyle(fontSize: 11, color: TermexColors.textSecondary, fontWeight: FontWeight.w700)),
               const SizedBox(height: 4),
               Container(
                 width: double.infinity,
@@ -85,7 +87,7 @@ class _VariableResolverDialogState extends State<_VariableResolverDialog> {
       actions: [
         TextButton(
           onPressed: () => Navigator.pop(context),
-          child: const Text('取消', style: TextStyle(fontSize: 12, color: TermexColors.textSecondary)),
+          child: Text(l10n.commonCancel, style: const TextStyle(fontSize: 12, color: TermexColors.textSecondary)),
         ),
         ElevatedButton(
           onPressed: () => Navigator.pop(context, _preview()),
@@ -95,7 +97,7 @@ class _VariableResolverDialogState extends State<_VariableResolverDialog> {
             minimumSize: const Size(80, 32),
             textStyle: const TextStyle(fontSize: 12),
           ),
-          child: const Text('确认执行'),
+          child: Text(l10n.snippetConfirmExecute),
         ),
       ],
     );
@@ -115,6 +117,7 @@ class _VarField extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
+    final l10n = AppLocalizations.of(context);
     return Padding(
       padding: const EdgeInsets.only(bottom: 12),
       child: Column(
@@ -126,7 +129,7 @@ class _VarField extends StatelessWidget {
                   style: const TextStyle(fontSize: 12, fontWeight: FontWeight.w600, color: TermexColors.textPrimary)),
               if (variable.defaultValue != null) ...[
                 const SizedBox(width: 6),
-                Text('默认: ${variable.defaultValue}',
+                Text(l10n.snippetVariableDefault(variable.defaultValue!),
                     style: const TextStyle(fontSize: 10, color: TermexColors.textSecondary)),
               ],
             ],
@@ -136,7 +139,7 @@ class _VarField extends StatelessWidget {
             controller: controller,
             onChanged: onChanged,
             decoration: InputDecoration(
-              hintText: variable.defaultValue ?? '请输入值',
+              hintText: variable.defaultValue ?? l10n.snippetVariableInputHint,
               hintStyle: const TextStyle(fontSize: 12, color: TermexColors.textSecondary),
               border: OutlineInputBorder(
                 borderRadius: BorderRadius.circular(6),

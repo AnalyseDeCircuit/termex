@@ -12,6 +12,7 @@ import 'package:flutter/widgets.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 
 import '../../../design/colors.dart';
+import '../../../l10n/app_localizations.dart';
 import '../../monitor/monitor_panel.dart';
 import '../../sftp/sftp_panel.dart';
 import '../../sftp/state/sftp_transfer_provider.dart'
@@ -325,6 +326,7 @@ class _SubTabBar extends ConsumerWidget {
 
   @override
   Widget build(BuildContext context, WidgetRef ref) {
+    final l10n = AppLocalizations.of(context);
     return Container(
       height: 24,
       decoration: const BoxDecoration(
@@ -342,17 +344,17 @@ class _SubTabBar extends ConsumerWidget {
             label: 'SFTP',
             active: active == _SubTab.sftp,
             disabled: isLocal,
-            disabledTooltip: '本地终端不支持 SFTP',
+            disabledTooltip: l10n.tabWorkspaceSftpLocalDisabled,
             onTap: () => onTap(_SubTab.sftp),
             onDragStart: onDragStart,
             onDragEnd: (pos) => onDragEnd(pos, _SubTab.sftp),
           ),
           _DraggableWorkspaceTab(
-            label: '传输',
+            label: l10n.sftpTransfers,
             active: active == _SubTab.transfers,
             badge: transferCount,
             disabled: isLocal,
-            disabledTooltip: '本地终端不支持文件传输',
+            disabledTooltip: l10n.tabWorkspaceTransfersLocalDisabled,
             onTap: () => onTap(_SubTab.transfers),
             onDragStart: onDragStart,
             onDragEnd: (pos) => onDragEnd(pos, _SubTab.transfers),
@@ -392,6 +394,7 @@ class _PanelTabBar extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
+    final l10n = AppLocalizations.of(context);
     return Container(
       height: 24,
       decoration: const BoxDecoration(
@@ -407,7 +410,7 @@ class _PanelTabBar extends StatelessWidget {
               onTap: () => onSwitch(_SubTab.sftp),
             ),
             _WorkspaceTab(
-              label: '传输',
+              label: l10n.sftpTransfers,
               active: group == _SubTab.transfers,
               badge: transferCount,
               onTap: () => onSwitch(_SubTab.transfers),
@@ -683,10 +686,10 @@ class _TransfersPanel extends ConsumerWidget {
   Widget build(BuildContext context, WidgetRef ref) {
     final transfers = ref.watch(sftpTransferProvider(sessionId)).items;
     if (transfers.isEmpty) {
-      return const Center(
+      return Center(
         child: Text(
-          '暂无传输任务',
-          style: TextStyle(fontSize: 12, color: TermexColors.textMuted),
+          AppLocalizations.of(context).tabWorkspaceNoTransfers,
+          style: const TextStyle(fontSize: 12, color: TermexColors.textMuted),
         ),
       );
     }

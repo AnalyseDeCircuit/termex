@@ -17,6 +17,7 @@ import '../../design/colors.dart';
 import '../../design/spacing.dart';
 import '../../design/typography.dart';
 import '../../icons/termex_icons.dart';
+import '../../l10n/app_localizations.dart';
 import '../../widgets/toast.dart';
 
 class RecordingListPanel extends ConsumerStatefulWidget {
@@ -45,14 +46,15 @@ class _RecordingListPanelState extends ConsumerState<RecordingListPanel> {
   }
 
   Future<void> _delete(String id) async {
+    final l10n = AppLocalizations.of(context);
     try {
       await bridge.recordingDelete(id: id);
       if (!mounted) return;
-      ToastController.success('已删除');
+      ToastController.success(l10n.recordingDeleted);
       _reload();
     } catch (e) {
       if (!mounted) return;
-      ToastController.error('删除失败：$e');
+      ToastController.error(l10n.recordingDeleteFailed(e.toString()));
     }
   }
 
@@ -65,6 +67,7 @@ class _RecordingListPanelState extends ConsumerState<RecordingListPanel> {
           child: FutureBuilder<List<bridge.RecordingDto>>(
             future: _future,
             builder: (ctx, snap) {
+              final l10n = AppLocalizations.of(ctx);
               if (snap.connectionState != ConnectionState.done) {
                 return const Center(
                   child: SizedBox(
@@ -81,7 +84,7 @@ class _RecordingListPanelState extends ConsumerState<RecordingListPanel> {
               if (snap.hasError) {
                 return Center(
                   child: Text(
-                    '加载失败：${snap.error}',
+                    l10n.commonLoadFailed('${snap.error}'),
                     style: TermexTypography.caption.copyWith(
                       color: TermexColors.danger,
                     ),
@@ -95,7 +98,8 @@ class _RecordingListPanelState extends ConsumerState<RecordingListPanel> {
               // Group by serverName (fall back to "未关联服务器" when empty).
               final groups = <String, List<bridge.RecordingDto>>{};
               for (final r in recs) {
-                final key = r.serverName.isEmpty ? '未关联服务器' : r.serverName;
+                final key =
+                    r.serverName.isEmpty ? l10n.recordingNoServer : r.serverName;
                 groups.putIfAbsent(key, () => <bridge.RecordingDto>[]).add(r);
               }
               final entries = groups.entries.toList()
@@ -128,7 +132,9 @@ class _Header extends StatelessWidget {
   const _Header({required this.onRefresh});
 
   @override
-  Widget build(BuildContext context) => Container(
+  Widget build(BuildContext context) {
+    final l10n = AppLocalizations.of(context);
+    return Container(
         padding: const EdgeInsets.symmetric(
           horizontal: TermexSpacing.md,
           vertical: TermexSpacing.sm,
@@ -147,7 +153,7 @@ class _Header extends StatelessWidget {
             ),
             const SizedBox(width: TermexSpacing.sm),
             Text(
-              '会话录制',
+              l10n.recordingTitle,
               style: TermexTypography.bodySmall.copyWith(
                 color: TermexColors.textPrimary,
                 fontWeight: FontWeight.w500,
@@ -165,13 +171,16 @@ class _Header extends StatelessWidget {
           ],
         ),
       );
+  }
 }
 
 // ─── Empty state ──────────────────────────────────────────────────────────
 
 class _EmptyState extends StatelessWidget {
   @override
-  Widget build(BuildContext context) => Center(
+  Widget build(BuildContext context) {
+    final l10n = AppLocalizations.of(context);
+    return Center(
         child: Column(
           mainAxisSize: MainAxisSize.min,
           children: [
@@ -182,14 +191,14 @@ class _EmptyState extends StatelessWidget {
             ),
             const SizedBox(height: TermexSpacing.sm),
             Text(
-              '暂无录制',
+              l10n.recordingEmpty,
               style: TermexTypography.caption.copyWith(
                 color: TermexColors.textSecondary,
               ),
             ),
             const SizedBox(height: 4),
             Text(
-              '在终端启用录制以收集会话回放',
+              l10n.recordingEmptyHint,
               style: TermexTypography.caption.copyWith(
                 color: TermexColors.textMuted,
               ),
@@ -197,6 +206,7 @@ class _EmptyState extends StatelessWidget {
           ],
         ),
       );
+  }
 }
 
 // ─── Group + rows ─────────────────────────────────────────────────────────
@@ -280,6 +290,7 @@ class _RowState extends State<_Row> {
   @override
   Widget build(BuildContext context) {
     final r = widget.rec;
+    final l10n = AppLocalizations.of(context);
     return MouseRegion(
       onEnter: (_) => setState(() => _hovered = true),
       onExit: (_) => setState(() => _hovered = false),
@@ -324,13 +335,13 @@ class _RowState extends State<_Row> {
               if (_hovered) ...[
                 _IconBtn(
                   icon: TermexIcons.externalLink,
-                  tooltip: '打开',
+                  tooltip: l10n.recordingOpen,
                   onTap: () => widget.onOpen?.call(r.id, r.filePath),
                 ),
                 const SizedBox(width: 4),
                 _IconBtn(
                   icon: TermexIcons.delete,
-                  tooltip: '删除',
+                  tooltip: l10n.commonDelete,
                   color: TermexColors.danger,
                   onTap: widget.onDelete,
                 ),

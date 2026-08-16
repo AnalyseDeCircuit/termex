@@ -42,16 +42,16 @@ class _KeybindingsTabState extends ConsumerState<KeybindingsTab> {
     final ok = await showDialog<bool>(
       context: context,
       builder: (ctx) => AlertDialog(
-        title: const Text('恢复默认快捷键?'),
-        content: const Text('所有自定义的快捷键将被覆盖为出厂默认值。'),
+        title: Text(l10n.settingsKeybindingsResetTitle),
+        content: Text(l10n.settingsKeybindingsResetBody),
         actions: [
           TextButton(
             onPressed: () => Navigator.of(ctx).pop(false),
-            child: const Text('取消'),
+            child: Text(l10n.commonCancel),
           ),
           TextButton(
             onPressed: () => Navigator.of(ctx).pop(true),
-            child: const Text('恢复'),
+            child: Text(l10n.settingsKeybindingsReset),
           ),
         ],
       ),
@@ -99,11 +99,18 @@ class _KeybindingsTabState extends ConsumerState<KeybindingsTab> {
                 padding: const EdgeInsets.symmetric(vertical: 6, horizontal: 4),
                 child: Row(
                   children: [
-                    const Expanded(flex: 2, child: _HeaderText('命令')),
-                    const Expanded(flex: 2, child: _HeaderText('快捷键')),
-                    const Expanded(flex: 1, child: _HeaderText('上下文')),
+                    Expanded(
+                        flex: 2,
+                        child: _HeaderText(l10n.settingsKeybindingsColCommand)),
+                    Expanded(
+                        flex: 2,
+                        child:
+                            _HeaderText(l10n.settingsKeybindingsColShortcut)),
+                    Expanded(
+                        flex: 1,
+                        child: _HeaderText(l10n.settingsKeybindingsColContext)),
                     _ResetAllIconButton(
-                      tooltip: '恢复默认',
+                      tooltip: l10n.settingsKeybindingsResetTooltip,
                       onPressed: () => _confirmAndResetAll(context),
                     ),
                   ],

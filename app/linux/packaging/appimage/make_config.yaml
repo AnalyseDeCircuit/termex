@@ -1,0 +1,12 @@
+# AppImage — the distro-agnostic Linux artefact.
+display_name: Termex
+icon: app_icon.png
+generic_name: SSH Client
+startup_notify: true
+categories:
+  - Development
+  - Network
+keywords:
+  - ssh
+  - sftp
+  - terminal

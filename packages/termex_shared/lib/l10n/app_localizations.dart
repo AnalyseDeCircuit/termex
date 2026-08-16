@@ -6987,6 +6987,1704 @@ abstract class AppLocalizations {
   /// In en, this message translates to:
   /// **'(untranslated)'**
   String get keybindingsUntranslated;
+
+  /// No description provided for @settingsTerminalScrollback.
+  ///
+  /// In en, this message translates to:
+  /// **'Scrollback lines'**
+  String get settingsTerminalScrollback;
+
+  /// No description provided for @settingsTerminalScrollbackHint.
+  ///
+  /// In en, this message translates to:
+  /// **'Maximum number of history lines to keep for scrollback'**
+  String get settingsTerminalScrollbackHint;
+
+  /// No description provided for @settingsTerminalLinesOption.
+  ///
+  /// In en, this message translates to:
+  /// **'{count} lines'**
+  String settingsTerminalLinesOption(String count);
+
+  /// No description provided for @settingsTerminalTabWidth.
+  ///
+  /// In en, this message translates to:
+  /// **'Tab width'**
+  String get settingsTerminalTabWidth;
+
+  /// No description provided for @settingsTerminalSpacesOption.
+  ///
+  /// In en, this message translates to:
+  /// **'{count} spaces'**
+  String settingsTerminalSpacesOption(String count);
+
+  /// No description provided for @settingsTerminalCursorShape.
+  ///
+  /// In en, this message translates to:
+  /// **'Cursor shape'**
+  String get settingsTerminalCursorShape;
+
+  /// No description provided for @settingsTerminalCursorBlock.
+  ///
+  /// In en, this message translates to:
+  /// **'Block'**
+  String get settingsTerminalCursorBlock;
+
+  /// No description provided for @settingsTerminalCursorUnderline.
+  ///
+  /// In en, this message translates to:
+  /// **'Underline'**
+  String get settingsTerminalCursorUnderline;
+
+  /// No description provided for @settingsTerminalCursorBar.
+  ///
+  /// In en, this message translates to:
+  /// **'Bar'**
+  String get settingsTerminalCursorBar;
+
+  /// No description provided for @settingsTerminalCursorBlink.
+  ///
+  /// In en, this message translates to:
+  /// **'Cursor blink'**
+  String get settingsTerminalCursorBlink;
+
+  /// No description provided for @settingsTerminalTmux.
+  ///
+  /// In en, this message translates to:
+  /// **'Tmux multiplexing'**
+  String get settingsTerminalTmux;
+
+  /// No description provided for @settingsTerminalTmuxHint.
+  ///
+  /// In en, this message translates to:
+  /// **'Detect remote tmux sessions and show them in the status bar'**
+  String get settingsTerminalTmuxHint;
+
+  /// No description provided for @settingsAiAllConfigured.
+  ///
+  /// In en, this message translates to:
+  /// **'All providers are already configured'**
+  String get settingsAiAllConfigured;
+
+  /// No description provided for @settingsAiContextLines.
+  ///
+  /// In en, this message translates to:
+  /// **'Default context lines'**
+  String get settingsAiContextLines;
+
+  /// No description provided for @settingsAiContextLinesHint.
+  ///
+  /// In en, this message translates to:
+  /// **'Maximum terminal history lines sent to the AI'**
+  String get settingsAiContextLinesHint;
+
+  /// No description provided for @settingsAiAutoDiagnose.
+  ///
+  /// In en, this message translates to:
+  /// **'Auto error diagnosis'**
+  String get settingsAiAutoDiagnose;
+
+  /// No description provided for @settingsAiAutoDiagnoseHint.
+  ///
+  /// In en, this message translates to:
+  /// **'Automatically run AI analysis when a command fails'**
+  String get settingsAiAutoDiagnoseHint;
+
+  /// No description provided for @settingsAiRemoveProviderTitle.
+  ///
+  /// In en, this message translates to:
+  /// **'Remove {name}?'**
+  String settingsAiRemoveProviderTitle(String name);
+
+  /// No description provided for @settingsAiRemoveProviderHint.
+  ///
+  /// In en, this message translates to:
+  /// **'Removes the local configuration for {name} (the API key stays in the OS keychain and is reloaded automatically when you configure it again).'**
+  String settingsAiRemoveProviderHint(String name);
+
+  /// No description provided for @settingsAiRemove.
+  ///
+  /// In en, this message translates to:
+  /// **'Remove'**
+  String get settingsAiRemove;
+
+  /// No description provided for @settingsAiEmptyTitle.
+  ///
+  /// In en, this message translates to:
+  /// **'No AI provider configured yet'**
+  String get settingsAiEmptyTitle;
+
+  /// No description provided for @settingsAiEmptyHint.
+  ///
+  /// In en, this message translates to:
+  /// **'Click “Add Provider” at the top right to get started'**
+  String get settingsAiEmptyHint;
+
+  /// No description provided for @settingsAiBadgeActive.
+  ///
+  /// In en, this message translates to:
+  /// **'Active'**
+  String get settingsAiBadgeActive;
+
+  /// No description provided for @settingsAiBadgeConfigured.
+  ///
+  /// In en, this message translates to:
+  /// **'Configured'**
+  String get settingsAiBadgeConfigured;
+
+  /// No description provided for @settingsAiActivate.
+  ///
+  /// In en, this message translates to:
+  /// **'Activate'**
+  String get settingsAiActivate;
+
+  /// No description provided for @settingsAiCollapse.
+  ///
+  /// In en, this message translates to:
+  /// **'Collapse'**
+  String get settingsAiCollapse;
+
+  /// No description provided for @settingsAiConfigure.
+  ///
+  /// In en, this message translates to:
+  /// **'Configure'**
+  String get settingsAiConfigure;
+
+  /// No description provided for @settingsAiAddProvider.
+  ///
+  /// In en, this message translates to:
+  /// **'Add Provider'**
+  String get settingsAiAddProvider;
+
+  /// No description provided for @settingsAiPricingTitle.
+  ///
+  /// In en, this message translates to:
+  /// **'AI cost estimation price list'**
+  String get settingsAiPricingTitle;
+
+  /// No description provided for @settingsAiPricingUpdated.
+  ///
+  /// In en, this message translates to:
+  /// **'Updated {iso} · {age}'**
+  String settingsAiPricingUpdated(String iso, String age);
+
+  /// No description provided for @settingsAiPricingStale.
+  ///
+  /// In en, this message translates to:
+  /// **' · refresh recommended'**
+  String get settingsAiPricingStale;
+
+  /// No description provided for @settingsAiPricingDateUnknown.
+  ///
+  /// In en, this message translates to:
+  /// **'date unknown'**
+  String get settingsAiPricingDateUnknown;
+
+  /// No description provided for @settingsAiPricingToday.
+  ///
+  /// In en, this message translates to:
+  /// **'updated today'**
+  String get settingsAiPricingToday;
+
+  /// No description provided for @settingsAiPricingDaysAgo.
+  ///
+  /// In en, this message translates to:
+  /// **'{count} days ago'**
+  String settingsAiPricingDaysAgo(String count);
+
+  /// No description provided for @settingsKeybindingsResetTitle.
+  ///
+  /// In en, this message translates to:
+  /// **'Restore default shortcuts?'**
+  String get settingsKeybindingsResetTitle;
+
+  /// No description provided for @settingsKeybindingsResetBody.
+  ///
+  /// In en, this message translates to:
+  /// **'All custom shortcuts will be overwritten with the factory defaults.'**
+  String get settingsKeybindingsResetBody;
+
+  /// No description provided for @settingsKeybindingsReset.
+  ///
+  /// In en, this message translates to:
+  /// **'Restore'**
+  String get settingsKeybindingsReset;
+
+  /// No description provided for @settingsKeybindingsColCommand.
+  ///
+  /// In en, this message translates to:
+  /// **'Command'**
+  String get settingsKeybindingsColCommand;
+
+  /// No description provided for @settingsKeybindingsColShortcut.
+  ///
+  /// In en, this message translates to:
+  /// **'Shortcut'**
+  String get settingsKeybindingsColShortcut;
+
+  /// No description provided for @settingsKeybindingsColContext.
+  ///
+  /// In en, this message translates to:
+  /// **'Context'**
+  String get settingsKeybindingsColContext;
+
+  /// No description provided for @settingsKeybindingsResetTooltip.
+  ///
+  /// In en, this message translates to:
+  /// **'Restore defaults'**
+  String get settingsKeybindingsResetTooltip;
+
+  /// No description provided for @gitConflictTitle.
+  ///
+  /// In en, this message translates to:
+  /// **'⚠ Git Sync conflict'**
+  String get gitConflictTitle;
+
+  /// No description provided for @gitConflictFilesLabel.
+  ///
+  /// In en, this message translates to:
+  /// **'The following files have conflicts:'**
+  String get gitConflictFilesLabel;
+
+  /// No description provided for @gitConflictStrategyLabel.
+  ///
+  /// In en, this message translates to:
+  /// **'Choose a resolution strategy:'**
+  String get gitConflictStrategyLabel;
+
+  /// No description provided for @gitConflictResolveInTerminal.
+  ///
+  /// In en, this message translates to:
+  /// **'Resolve in terminal'**
+  String get gitConflictResolveInTerminal;
+
+  /// No description provided for @gitConflictUseRemote.
+  ///
+  /// In en, this message translates to:
+  /// **'Use remote'**
+  String get gitConflictUseRemote;
+
+  /// No description provided for @gitConflictKeepLocal.
+  ///
+  /// In en, this message translates to:
+  /// **'Keep local'**
+  String get gitConflictKeepLocal;
+
+  /// No description provided for @sftpChmodTitleNamed.
+  ///
+  /// In en, this message translates to:
+  /// **'Change permissions: {name}'**
+  String sftpChmodTitleNamed(String name);
+
+  /// No description provided for @sftpChmodOwner.
+  ///
+  /// In en, this message translates to:
+  /// **'Owner'**
+  String get sftpChmodOwner;
+
+  /// No description provided for @sftpChmodGroup.
+  ///
+  /// In en, this message translates to:
+  /// **'Group'**
+  String get sftpChmodGroup;
+
+  /// No description provided for @sftpChmodOthers.
+  ///
+  /// In en, this message translates to:
+  /// **'Others'**
+  String get sftpChmodOthers;
+
+  /// No description provided for @sftpChmodOctalShort.
+  ///
+  /// In en, this message translates to:
+  /// **'Octal'**
+  String get sftpChmodOctalShort;
+
+  /// No description provided for @sftpChmodRead.
+  ///
+  /// In en, this message translates to:
+  /// **'Read'**
+  String get sftpChmodRead;
+
+  /// No description provided for @sftpChmodWrite.
+  ///
+  /// In en, this message translates to:
+  /// **'Write'**
+  String get sftpChmodWrite;
+
+  /// No description provided for @sftpChmodExec.
+  ///
+  /// In en, this message translates to:
+  /// **'Execute'**
+  String get sftpChmodExec;
+
+  /// No description provided for @sftpRenameEmpty.
+  ///
+  /// In en, this message translates to:
+  /// **'Name cannot be empty'**
+  String get sftpRenameEmpty;
+
+  /// No description provided for @sftpRenameSlash.
+  ///
+  /// In en, this message translates to:
+  /// **'Name cannot contain /'**
+  String get sftpRenameSlash;
+
+  /// No description provided for @sftpRenameNewName.
+  ///
+  /// In en, this message translates to:
+  /// **'New name'**
+  String get sftpRenameNewName;
+
+  /// No description provided for @settingsHighlightsTitle.
+  ///
+  /// In en, this message translates to:
+  /// **'Keyword highlighting'**
+  String get settingsHighlightsTitle;
+
+  /// No description provided for @settingsHighlightsLoadPresets.
+  ///
+  /// In en, this message translates to:
+  /// **'Load presets'**
+  String get settingsHighlightsLoadPresets;
+
+  /// No description provided for @settingsHighlightsAddRule.
+  ///
+  /// In en, this message translates to:
+  /// **'+ Add rule'**
+  String get settingsHighlightsAddRule;
+
+  /// No description provided for @settingsHighlightsEmpty.
+  ///
+  /// In en, this message translates to:
+  /// **'No highlight rules configured yet'**
+  String get settingsHighlightsEmpty;
+
+  /// No description provided for @settingsHighlightsPatternHint.
+  ///
+  /// In en, this message translates to:
+  /// **'Keyword / regex'**
+  String get settingsHighlightsPatternHint;
+
+  /// No description provided for @settingsHighlightsRegex.
+  ///
+  /// In en, this message translates to:
+  /// **'Regex'**
+  String get settingsHighlightsRegex;
+
+  /// No description provided for @settingsHighlightsCaseSensitive.
+  ///
+  /// In en, this message translates to:
+  /// **'Case sensitive'**
+  String get settingsHighlightsCaseSensitive;
+
+  /// No description provided for @settingsHighlightsBgColor.
+  ///
+  /// In en, this message translates to:
+  /// **'Background color'**
+  String get settingsHighlightsBgColor;
+
+  /// No description provided for @settingsHighlightsFgColor.
+  ///
+  /// In en, this message translates to:
+  /// **'Foreground color (empty = follow theme)'**
+  String get settingsHighlightsFgColor;
+
+  /// No description provided for @settingsHighlightsEnabled.
+  ///
+  /// In en, this message translates to:
+  /// **'Enabled'**
+  String get settingsHighlightsEnabled;
+
+  /// No description provided for @settingsHighlightsColorInputHint.
+  ///
+  /// In en, this message translates to:
+  /// **'Enter a hex color (e.g. #6366F1)'**
+  String get settingsHighlightsColorInputHint;
+
+  /// No description provided for @settingsHighlightsColorClear.
+  ///
+  /// In en, this message translates to:
+  /// **'Clear'**
+  String get settingsHighlightsColorClear;
+
+  /// No description provided for @settingsHighlightsColorConfirm.
+  ///
+  /// In en, this message translates to:
+  /// **'OK'**
+  String get settingsHighlightsColorConfirm;
+
+  /// No description provided for @settingsPrivacyClearHistoryTitle.
+  ///
+  /// In en, this message translates to:
+  /// **'Clear history data'**
+  String get settingsPrivacyClearHistoryTitle;
+
+  /// No description provided for @settingsPrivacyClearHistoryHint.
+  ///
+  /// In en, this message translates to:
+  /// **'Keeps account settings and credentials; only clears the corresponding history.'**
+  String get settingsPrivacyClearHistoryHint;
+
+  /// No description provided for @settingsPrivacyClearConnections.
+  ///
+  /// In en, this message translates to:
+  /// **'Clear recent connection history'**
+  String get settingsPrivacyClearConnections;
+
+  /// No description provided for @settingsPrivacyClearConnectionsMsg.
+  ///
+  /// In en, this message translates to:
+  /// **'This will delete all \"recent connections\" records. Saved server configurations are not affected.'**
+  String get settingsPrivacyClearConnectionsMsg;
+
+  /// No description provided for @settingsPrivacyClearedConnections.
+  ///
+  /// In en, this message translates to:
+  /// **'Connection history cleared'**
+  String get settingsPrivacyClearedConnections;
+
+  /// No description provided for @settingsPrivacyClearAi.
+  ///
+  /// In en, this message translates to:
+  /// **'Clear AI conversation history'**
+  String get settingsPrivacyClearAi;
+
+  /// No description provided for @settingsPrivacyClearAiMsg.
+  ///
+  /// In en, this message translates to:
+  /// **'This will permanently delete all AI conversations and messages. Provider configs / API keys are kept.'**
+  String get settingsPrivacyClearAiMsg;
+
+  /// No description provided for @settingsPrivacyClearedAi.
+  ///
+  /// In en, this message translates to:
+  /// **'AI conversation history cleared'**
+  String get settingsPrivacyClearedAi;
+
+  /// No description provided for @settingsPrivacyClearSnippet.
+  ///
+  /// In en, this message translates to:
+  /// **'Clear snippet usage stats'**
+  String get settingsPrivacyClearSnippet;
+
+  /// No description provided for @settingsPrivacyClearSnippetMsg.
+  ///
+  /// In en, this message translates to:
+  /// **'This will reset the usage count of all snippets. The snippets themselves are kept.'**
+  String get settingsPrivacyClearSnippetMsg;
+
+  /// No description provided for @settingsPrivacyClearedSnippet.
+  ///
+  /// In en, this message translates to:
+  /// **'Usage stats cleared'**
+  String get settingsPrivacyClearedSnippet;
+
+  /// No description provided for @settingsPrivacyGdprTitle.
+  ///
+  /// In en, this message translates to:
+  /// **'GDPR data erasure'**
+  String get settingsPrivacyGdprTitle;
+
+  /// No description provided for @settingsPrivacyGdprHint.
+  ///
+  /// In en, this message translates to:
+  /// **'Permanently delete all local data (server configs, credentials, conversations, settings). This action cannot be undone.'**
+  String get settingsPrivacyGdprHint;
+
+  /// No description provided for @settingsPrivacyGdprButton.
+  ///
+  /// In en, this message translates to:
+  /// **'Erase all data'**
+  String get settingsPrivacyGdprButton;
+
+  /// No description provided for @settingsPrivacyConfirmClear.
+  ///
+  /// In en, this message translates to:
+  /// **'Clear'**
+  String get settingsPrivacyConfirmClear;
+
+  /// No description provided for @settingsPrivacyGdprDialogTitle.
+  ///
+  /// In en, this message translates to:
+  /// **'Confirm erasing all data'**
+  String get settingsPrivacyGdprDialogTitle;
+
+  /// No description provided for @settingsPrivacyGdprDialogBody.
+  ///
+  /// In en, this message translates to:
+  /// **'This action will permanently delete all data and cannot be undone.\nEnter your master password and type \"DELETE ALL\" to confirm.'**
+  String get settingsPrivacyGdprDialogBody;
+
+  /// No description provided for @settingsPrivacyMasterPassword.
+  ///
+  /// In en, this message translates to:
+  /// **'Master password'**
+  String get settingsPrivacyMasterPassword;
+
+  /// No description provided for @settingsPrivacyConfirmTextLabel.
+  ///
+  /// In en, this message translates to:
+  /// **'Confirmation text'**
+  String get settingsPrivacyConfirmTextLabel;
+
+  /// No description provided for @settingsPrivacyErase.
+  ///
+  /// In en, this message translates to:
+  /// **'Erase'**
+  String get settingsPrivacyErase;
+
+  /// No description provided for @settingsPrivacyEraseError.
+  ///
+  /// In en, this message translates to:
+  /// **'Confirmation text is incorrect or the master password is wrong'**
+  String get settingsPrivacyEraseError;
+
+  /// No description provided for @settingsPrivacyErased.
+  ///
+  /// In en, this message translates to:
+  /// **'Data erased'**
+  String get settingsPrivacyErased;
+
+  /// No description provided for @settingsSecurityLoading.
+  ///
+  /// In en, this message translates to:
+  /// **'Loading…'**
+  String get settingsSecurityLoading;
+
+  /// No description provided for @settingsSecurityLoadError.
+  ///
+  /// In en, this message translates to:
+  /// **'Unable to read security status'**
+  String get settingsSecurityLoadError;
+
+  /// No description provided for @settingsSecurityProtectionTitle.
+  ///
+  /// In en, this message translates to:
+  /// **'Key protection mode'**
+  String get settingsSecurityProtectionTitle;
+
+  /// No description provided for @settingsSecurityProtectionActive.
+  ///
+  /// In en, this message translates to:
+  /// **'Credentials are securely stored using {platform}. Termex reads the master key entry only once at startup.'**
+  String settingsSecurityProtectionActive(String platform);
+
+  /// No description provided for @settingsSecurityProtectionFallback.
+  ///
+  /// In en, this message translates to:
+  /// **'System keychain unavailable; fell back to local encryption (AES-256-GCM + Argon2id).'**
+  String get settingsSecurityProtectionFallback;
+
+  /// No description provided for @settingsSecuritySavedCredentials.
+  ///
+  /// In en, this message translates to:
+  /// **'Saved credentials'**
+  String get settingsSecuritySavedCredentials;
+
+  /// No description provided for @settingsSecurityCredentialTypes.
+  ///
+  /// In en, this message translates to:
+  /// **'Includes SSH passwords, SSH private key passphrases, AI provider API keys'**
+  String get settingsSecurityCredentialTypes;
+
+  /// No description provided for @settingsSecurityHowItWorks.
+  ///
+  /// In en, this message translates to:
+  /// **'How it works'**
+  String get settingsSecurityHowItWorks;
+
+  /// No description provided for @settingsSecurityHint1.
+  ///
+  /// In en, this message translates to:
+  /// **'Credentials are never written to the database in plaintext — only a reference ID from the system keychain is stored'**
+  String get settingsSecurityHint1;
+
+  /// No description provided for @settingsSecurityHint2.
+  ///
+  /// In en, this message translates to:
+  /// **'The master key entry is read only once per startup, avoiding repeated system password prompts'**
+  String get settingsSecurityHint2;
+
+  /// No description provided for @settingsSecurityHint3.
+  ///
+  /// In en, this message translates to:
+  /// **'GDPR data erasure also clears all Termex entries in the keychain'**
+  String get settingsSecurityHint3;
+
+  /// No description provided for @auditDetailTitle.
+  ///
+  /// In en, this message translates to:
+  /// **'Audit Detail'**
+  String get auditDetailTitle;
+
+  /// No description provided for @auditFieldEventType.
+  ///
+  /// In en, this message translates to:
+  /// **'Event Type'**
+  String get auditFieldEventType;
+
+  /// No description provided for @auditFieldTime.
+  ///
+  /// In en, this message translates to:
+  /// **'Time'**
+  String get auditFieldTime;
+
+  /// No description provided for @auditFieldDetail.
+  ///
+  /// In en, this message translates to:
+  /// **'Detail'**
+  String get auditFieldDetail;
+
+  /// No description provided for @auditCopyDetail.
+  ///
+  /// In en, this message translates to:
+  /// **'Copy Detail'**
+  String get auditCopyDetail;
+
+  /// No description provided for @auditKpiTotal.
+  ///
+  /// In en, this message translates to:
+  /// **'Total'**
+  String get auditKpiTotal;
+
+  /// No description provided for @auditKpiConnections.
+  ///
+  /// In en, this message translates to:
+  /// **'Connections'**
+  String get auditKpiConnections;
+
+  /// No description provided for @auditKpiCredentialAccess.
+  ///
+  /// In en, this message translates to:
+  /// **'Credential Access'**
+  String get auditKpiCredentialAccess;
+
+  /// No description provided for @auditKpiConfigChanges.
+  ///
+  /// In en, this message translates to:
+  /// **'Config Changes'**
+  String get auditKpiConfigChanges;
+
+  /// No description provided for @auditKpiMemberOps.
+  ///
+  /// In en, this message translates to:
+  /// **'Member Ops'**
+  String get auditKpiMemberOps;
+
+  /// No description provided for @auditColEvent.
+  ///
+  /// In en, this message translates to:
+  /// **'Event'**
+  String get auditColEvent;
+
+  /// No description provided for @auditPagerPrev.
+  ///
+  /// In en, this message translates to:
+  /// **'Previous'**
+  String get auditPagerPrev;
+
+  /// No description provided for @auditPagerNext.
+  ///
+  /// In en, this message translates to:
+  /// **'Next'**
+  String get auditPagerNext;
+
+  /// No description provided for @auditEmptyTitle.
+  ///
+  /// In en, this message translates to:
+  /// **'No audit logs'**
+  String get auditEmptyTitle;
+
+  /// No description provided for @auditEmptyHint.
+  ///
+  /// In en, this message translates to:
+  /// **'SSH connections, settings changes, or team operations will be written to the audit log'**
+  String get auditEmptyHint;
+
+  /// No description provided for @auditExport.
+  ///
+  /// In en, this message translates to:
+  /// **'Export'**
+  String get auditExport;
+
+  /// No description provided for @auditExportCsv.
+  ///
+  /// In en, this message translates to:
+  /// **'Export CSV'**
+  String get auditExportCsv;
+
+  /// No description provided for @auditExportJson.
+  ///
+  /// In en, this message translates to:
+  /// **'Export JSON'**
+  String get auditExportJson;
+
+  /// No description provided for @auditExported.
+  ///
+  /// In en, this message translates to:
+  /// **'Exported {path}'**
+  String auditExported(String path);
+
+  /// No description provided for @auditExportFailed.
+  ///
+  /// In en, this message translates to:
+  /// **'Export failed: {error}'**
+  String auditExportFailed(String error);
+
+  /// No description provided for @auditLabelDate.
+  ///
+  /// In en, this message translates to:
+  /// **'Date: '**
+  String get auditLabelDate;
+
+  /// No description provided for @auditLabelEvent.
+  ///
+  /// In en, this message translates to:
+  /// **'Event: '**
+  String get auditLabelEvent;
+
+  /// No description provided for @auditRangeToday.
+  ///
+  /// In en, this message translates to:
+  /// **'Today'**
+  String get auditRangeToday;
+
+  /// No description provided for @auditRangeWeek.
+  ///
+  /// In en, this message translates to:
+  /// **'This Week'**
+  String get auditRangeWeek;
+
+  /// No description provided for @auditRangeMonth.
+  ///
+  /// In en, this message translates to:
+  /// **'This Month'**
+  String get auditRangeMonth;
+
+  /// No description provided for @auditRangeAll.
+  ///
+  /// In en, this message translates to:
+  /// **'All'**
+  String get auditRangeAll;
+
+  /// Snippet usage count badge
+  ///
+  /// In en, this message translates to:
+  /// **'{count} times'**
+  String snippetUsageTimes(int count);
+
+  /// No description provided for @snippetCopy.
+  ///
+  /// In en, this message translates to:
+  /// **'Copy'**
+  String get snippetCopy;
+
+  /// No description provided for @snippetCopiedToClipboard.
+  ///
+  /// In en, this message translates to:
+  /// **'Copied to clipboard'**
+  String get snippetCopiedToClipboard;
+
+  /// No description provided for @snippetDeleteTitle.
+  ///
+  /// In en, this message translates to:
+  /// **'Delete Snippet'**
+  String get snippetDeleteTitle;
+
+  /// Confirm deleting a named snippet
+  ///
+  /// In en, this message translates to:
+  /// **'Delete “{title}”?'**
+  String snippetDeleteConfirmNamed(String title);
+
+  /// No description provided for @snippetNewTitle.
+  ///
+  /// In en, this message translates to:
+  /// **'New Snippet'**
+  String get snippetNewTitle;
+
+  /// No description provided for @snippetEditSnippet.
+  ///
+  /// In en, this message translates to:
+  /// **'Edit Snippet'**
+  String get snippetEditSnippet;
+
+  /// No description provided for @snippetNamePlaceholder.
+  ///
+  /// In en, this message translates to:
+  /// **'Snippet name'**
+  String get snippetNamePlaceholder;
+
+  /// No description provided for @snippetTagsCommaLabel.
+  ///
+  /// In en, this message translates to:
+  /// **'Tags (comma-separated)'**
+  String get snippetTagsCommaLabel;
+
+  /// No description provided for @snippetTagsPlaceholderExample.
+  ///
+  /// In en, this message translates to:
+  /// **'ssh, common, docker'**
+  String get snippetTagsPlaceholderExample;
+
+  /// No description provided for @snippetContentLabel.
+  ///
+  /// In en, this message translates to:
+  /// **'Command (use ｛｛name:default｝｝ to insert a variable)'**
+  String get snippetContentLabel;
+
+  /// Variable resolver dialog title with snippet name
+  ///
+  /// In en, this message translates to:
+  /// **'Fill variables — {title}'**
+  String snippetVariableTitleNamed(String title);
+
+  /// No description provided for @snippetPreview.
+  ///
+  /// In en, this message translates to:
+  /// **'Preview'**
+  String get snippetPreview;
+
+  /// No description provided for @snippetConfirmExecute.
+  ///
+  /// In en, this message translates to:
+  /// **'Confirm & Run'**
+  String get snippetConfirmExecute;
+
+  /// Default value hint for a snippet variable
+  ///
+  /// In en, this message translates to:
+  /// **'Default: {value}'**
+  String snippetVariableDefault(String value);
+
+  /// No description provided for @snippetVariableInputHint.
+  ///
+  /// In en, this message translates to:
+  /// **'Enter a value'**
+  String get snippetVariableInputHint;
+
+  /// No description provided for @snippetSearchPlaceholder.
+  ///
+  /// In en, this message translates to:
+  /// **'Search snippets…'**
+  String get snippetSearchPlaceholder;
+
+  /// No description provided for @snippetNoMatch.
+  ///
+  /// In en, this message translates to:
+  /// **'No matching snippets'**
+  String get snippetNoMatch;
+
+  /// No description provided for @sftpPath.
+  ///
+  /// In en, this message translates to:
+  /// **'Path'**
+  String get sftpPath;
+
+  /// No description provided for @sftpOwner.
+  ///
+  /// In en, this message translates to:
+  /// **'Owner'**
+  String get sftpOwner;
+
+  /// No description provided for @sftpGroup.
+  ///
+  /// In en, this message translates to:
+  /// **'Group'**
+  String get sftpGroup;
+
+  /// No description provided for @sftpSizeBytes.
+  ///
+  /// In en, this message translates to:
+  /// **'{bytes} bytes'**
+  String sftpSizeBytes(int bytes);
+
+  /// No description provided for @sftpFileNameHint.
+  ///
+  /// In en, this message translates to:
+  /// **'File name'**
+  String get sftpFileNameHint;
+
+  /// No description provided for @sftpFolderNameHint.
+  ///
+  /// In en, this message translates to:
+  /// **'Folder name'**
+  String get sftpFolderNameHint;
+
+  /// No description provided for @sftpCreate.
+  ///
+  /// In en, this message translates to:
+  /// **'Create'**
+  String get sftpCreate;
+
+  /// No description provided for @sftpEditorTooLarge.
+  ///
+  /// In en, this message translates to:
+  /// **'File too large ({size}); use scp to download and edit locally.'**
+  String sftpEditorTooLarge(String size);
+
+  /// No description provided for @sftpEditorBinary.
+  ///
+  /// In en, this message translates to:
+  /// **'Binary content detected; cannot use the inline editor.'**
+  String get sftpEditorBinary;
+
+  /// No description provided for @sftpEditorReadFailed.
+  ///
+  /// In en, this message translates to:
+  /// **'Read failed: {error}'**
+  String sftpEditorReadFailed(String error);
+
+  /// No description provided for @sftpEditorSaveFailed.
+  ///
+  /// In en, this message translates to:
+  /// **'Save failed: {error}'**
+  String sftpEditorSaveFailed(String error);
+
+  /// No description provided for @sftpEditorModified.
+  ///
+  /// In en, this message translates to:
+  /// **'Modified'**
+  String get sftpEditorModified;
+
+  /// No description provided for @sftpTransferResume.
+  ///
+  /// In en, this message translates to:
+  /// **'Resume'**
+  String get sftpTransferResume;
+
+  /// No description provided for @sftpTransferPause.
+  ///
+  /// In en, this message translates to:
+  /// **'Pause'**
+  String get sftpTransferPause;
+
+  /// No description provided for @sftpTransferDone.
+  ///
+  /// In en, this message translates to:
+  /// **'Done'**
+  String get sftpTransferDone;
+
+  /// No description provided for @sftpTransferFailed.
+  ///
+  /// In en, this message translates to:
+  /// **'Failed: {error}'**
+  String sftpTransferFailed(String error);
+
+  /// No description provided for @sftpTransferCancelled.
+  ///
+  /// In en, this message translates to:
+  /// **'Cancelled'**
+  String get sftpTransferCancelled;
+
+  /// No description provided for @sftpTransferPaused.
+  ///
+  /// In en, this message translates to:
+  /// **'Paused'**
+  String get sftpTransferPaused;
+
+  /// No description provided for @aiConversationsTitle.
+  ///
+  /// In en, this message translates to:
+  /// **'Conversations'**
+  String get aiConversationsTitle;
+
+  /// No description provided for @aiConversationEmpty.
+  ///
+  /// In en, this message translates to:
+  /// **'Tap + to start a new conversation'**
+  String get aiConversationEmpty;
+
+  /// No description provided for @aiRenameConversation.
+  ///
+  /// In en, this message translates to:
+  /// **'Rename Conversation'**
+  String get aiRenameConversation;
+
+  /// No description provided for @aiRenameHint.
+  ///
+  /// In en, this message translates to:
+  /// **'Enter a new title'**
+  String get aiRenameHint;
+
+  /// No description provided for @aiModelListLoading.
+  ///
+  /// In en, this message translates to:
+  /// **'Loading model list…'**
+  String get aiModelListLoading;
+
+  /// No description provided for @aiDeleteModelTitle.
+  ///
+  /// In en, this message translates to:
+  /// **'Delete Model'**
+  String get aiDeleteModelTitle;
+
+  /// No description provided for @aiDeleteModelConfirm.
+  ///
+  /// In en, this message translates to:
+  /// **'Delete {name}?'**
+  String aiDeleteModelConfirm(String name);
+
+  /// No description provided for @localAiRunning.
+  ///
+  /// In en, this message translates to:
+  /// **'Running'**
+  String get localAiRunning;
+
+  /// No description provided for @localAiStart.
+  ///
+  /// In en, this message translates to:
+  /// **'Start'**
+  String get localAiStart;
+
+  /// No description provided for @localAiDownloadWithSize.
+  ///
+  /// In en, this message translates to:
+  /// **'Download ({size})'**
+  String localAiDownloadWithSize(String size);
+
+  /// No description provided for @aiNl2cmdTitle.
+  ///
+  /// In en, this message translates to:
+  /// **'Natural Language → Command'**
+  String get aiNl2cmdTitle;
+
+  /// No description provided for @aiNl2cmdHint.
+  ///
+  /// In en, this message translates to:
+  /// **'Describe what you want to do, e.g. find files larger than 100MB'**
+  String get aiNl2cmdHint;
+
+  /// No description provided for @aiNl2cmdSent.
+  ///
+  /// In en, this message translates to:
+  /// **'(Sent to AI conversation)'**
+  String get aiNl2cmdSent;
+
+  /// No description provided for @aiNl2cmdGenerate.
+  ///
+  /// In en, this message translates to:
+  /// **'Generate'**
+  String get aiNl2cmdGenerate;
+
+  /// No description provided for @settingsAiConfigureTitle.
+  ///
+  /// In en, this message translates to:
+  /// **'Configure {name}'**
+  String settingsAiConfigureTitle(String name);
+
+  /// No description provided for @settingsAiTerminalContextLines.
+  ///
+  /// In en, this message translates to:
+  /// **'Terminal context lines'**
+  String get settingsAiTerminalContextLines;
+
+  /// No description provided for @settingsAiLinesUnit.
+  ///
+  /// In en, this message translates to:
+  /// **'{count} lines'**
+  String settingsAiLinesUnit(int count);
+
+  /// No description provided for @settingsAiVerify.
+  ///
+  /// In en, this message translates to:
+  /// **'Verify'**
+  String get settingsAiVerify;
+
+  /// No description provided for @settingsAiSelectModelError.
+  ///
+  /// In en, this message translates to:
+  /// **'Please select a model'**
+  String get settingsAiSelectModelError;
+
+  /// No description provided for @settingsAiApiKeyRequired.
+  ///
+  /// In en, this message translates to:
+  /// **'Please enter an API Key'**
+  String get settingsAiApiKeyRequired;
+
+  /// No description provided for @settingsAiVerifySuccess.
+  ///
+  /// In en, this message translates to:
+  /// **'Verification succeeded'**
+  String get settingsAiVerifySuccess;
+
+  /// No description provided for @settingsAiVerifyFailed.
+  ///
+  /// In en, this message translates to:
+  /// **'Verification failed'**
+  String get settingsAiVerifyFailed;
+
+  /// No description provided for @settingsAiLlamaEngine.
+  ///
+  /// In en, this message translates to:
+  /// **'llama-server engine'**
+  String get settingsAiLlamaEngine;
+
+  /// No description provided for @settingsAiServerPort.
+  ///
+  /// In en, this message translates to:
+  /// **'Server port'**
+  String get settingsAiServerPort;
+
+  /// No description provided for @settingsAiInferenceThreads.
+  ///
+  /// In en, this message translates to:
+  /// **'Inference threads'**
+  String get settingsAiInferenceThreads;
+
+  /// No description provided for @settingsAiContextWindow.
+  ///
+  /// In en, this message translates to:
+  /// **'Context window (tokens)'**
+  String get settingsAiContextWindow;
+
+  /// No description provided for @settingsAiAutoStartEngine.
+  ///
+  /// In en, this message translates to:
+  /// **'Auto-start engine on launch'**
+  String get settingsAiAutoStartEngine;
+
+  /// No description provided for @teamSyncDoneCount.
+  ///
+  /// In en, this message translates to:
+  /// **'Sync complete ({count} changes)'**
+  String teamSyncDoneCount(int count);
+
+  /// No description provided for @teamSyncFailed.
+  ///
+  /// In en, this message translates to:
+  /// **'Sync failed: {error}'**
+  String teamSyncFailed(String error);
+
+  /// No description provided for @teamApplied.
+  ///
+  /// In en, this message translates to:
+  /// **'Applied'**
+  String get teamApplied;
+
+  /// No description provided for @teamResolveFailed.
+  ///
+  /// In en, this message translates to:
+  /// **'Resolve failed: {error}'**
+  String teamResolveFailed(String error);
+
+  /// No description provided for @teamRoleUpdated.
+  ///
+  /// In en, this message translates to:
+  /// **'Role updated'**
+  String get teamRoleUpdated;
+
+  /// No description provided for @teamUpdateFailed.
+  ///
+  /// In en, this message translates to:
+  /// **'Update failed: {error}'**
+  String teamUpdateFailed(String error);
+
+  /// No description provided for @teamRemoved.
+  ///
+  /// In en, this message translates to:
+  /// **'Removed'**
+  String get teamRemoved;
+
+  /// No description provided for @teamRemoveFailed.
+  ///
+  /// In en, this message translates to:
+  /// **'Remove failed: {error}'**
+  String teamRemoveFailed(String error);
+
+  /// No description provided for @teamWorkspace.
+  ///
+  /// In en, this message translates to:
+  /// **'Team Workspace'**
+  String get teamWorkspace;
+
+  /// No description provided for @teamMemberBadge.
+  ///
+  /// In en, this message translates to:
+  /// **'{count} members'**
+  String teamMemberBadge(int count);
+
+  /// No description provided for @teamConflictBadge.
+  ///
+  /// In en, this message translates to:
+  /// **'{count} conflicts'**
+  String teamConflictBadge(int count);
+
+  /// No description provided for @teamChangePassphrase.
+  ///
+  /// In en, this message translates to:
+  /// **'Change Passphrase'**
+  String get teamChangePassphrase;
+
+  /// No description provided for @teamNoMembers.
+  ///
+  /// In en, this message translates to:
+  /// **'No members yet (generate an invite code to add them)'**
+  String get teamNoMembers;
+
+  /// No description provided for @teamUnnamed.
+  ///
+  /// In en, this message translates to:
+  /// **'(Unnamed)'**
+  String get teamUnnamed;
+
+  /// No description provided for @teamPendingConflicts.
+  ///
+  /// In en, this message translates to:
+  /// **'Pending sync conflicts'**
+  String get teamPendingConflicts;
+
+  /// No description provided for @teamConflictServerField.
+  ///
+  /// In en, this message translates to:
+  /// **'Server {serverId} · Field {field}'**
+  String teamConflictServerField(String serverId, String field);
+
+  /// No description provided for @teamConflictLocal.
+  ///
+  /// In en, this message translates to:
+  /// **'Local'**
+  String get teamConflictLocal;
+
+  /// No description provided for @teamConflictRemote.
+  ///
+  /// In en, this message translates to:
+  /// **'Remote'**
+  String get teamConflictRemote;
+
+  /// No description provided for @teamUseThisValue.
+  ///
+  /// In en, this message translates to:
+  /// **'Use this value'**
+  String get teamUseThisValue;
+
+  /// No description provided for @teamInviteNewMember.
+  ///
+  /// In en, this message translates to:
+  /// **'Invite New Member'**
+  String get teamInviteNewMember;
+
+  /// No description provided for @teamInviteDesc.
+  ///
+  /// In en, this message translates to:
+  /// **'Generate a one-time invite code for the new member (valid for 72 hours).'**
+  String get teamInviteDesc;
+
+  /// No description provided for @teamGenerateHint.
+  ///
+  /// In en, this message translates to:
+  /// **'Click the button below to generate an invite code.'**
+  String get teamGenerateHint;
+
+  /// No description provided for @teamGenerating.
+  ///
+  /// In en, this message translates to:
+  /// **'Generating…'**
+  String get teamGenerating;
+
+  /// No description provided for @teamExpiresAt.
+  ///
+  /// In en, this message translates to:
+  /// **'Expires: {time}'**
+  String teamExpiresAt(String time);
+
+  /// No description provided for @teamVerifyPassphraseTitle.
+  ///
+  /// In en, this message translates to:
+  /// **'Verify Team Passphrase'**
+  String get teamVerifyPassphraseTitle;
+
+  /// No description provided for @teamVerifyPassphraseDesc.
+  ///
+  /// In en, this message translates to:
+  /// **'Enter the team encryption passphrase to verify this session.'**
+  String get teamVerifyPassphraseDesc;
+
+  /// No description provided for @teamPassphrasePlaceholder.
+  ///
+  /// In en, this message translates to:
+  /// **'Passphrase'**
+  String get teamPassphrasePlaceholder;
+
+  /// No description provided for @teamVerify.
+  ///
+  /// In en, this message translates to:
+  /// **'Verify'**
+  String get teamVerify;
+
+  /// No description provided for @teamPassphraseIncorrect.
+  ///
+  /// In en, this message translates to:
+  /// **'Incorrect passphrase'**
+  String get teamPassphraseIncorrect;
+
+  /// No description provided for @teamVerifyPassed.
+  ///
+  /// In en, this message translates to:
+  /// **'Verified'**
+  String get teamVerifyPassed;
+
+  /// No description provided for @teamVerifyFailed.
+  ///
+  /// In en, this message translates to:
+  /// **'Verification failed: {error}'**
+  String teamVerifyFailed(String error);
+
+  /// No description provided for @teamLoadFailed.
+  ///
+  /// In en, this message translates to:
+  /// **'Failed to load team info'**
+  String get teamLoadFailed;
+
+  /// No description provided for @proxyNone.
+  ///
+  /// In en, this message translates to:
+  /// **'No proxy'**
+  String get proxyNone;
+
+  /// No description provided for @proxyLoading.
+  ///
+  /// In en, this message translates to:
+  /// **'Loading…'**
+  String get proxyLoading;
+
+  /// No description provided for @proxySelect.
+  ///
+  /// In en, this message translates to:
+  /// **'Select proxy'**
+  String get proxySelect;
+
+  /// No description provided for @proxyAddNew.
+  ///
+  /// In en, this message translates to:
+  /// **'+ New proxy'**
+  String get proxyAddNew;
+
+  /// No description provided for @proxyNewTitle.
+  ///
+  /// In en, this message translates to:
+  /// **'New proxy'**
+  String get proxyNewTitle;
+
+  /// No description provided for @proxyNamePlaceholder.
+  ///
+  /// In en, this message translates to:
+  /// **'My proxy'**
+  String get proxyNamePlaceholder;
+
+  /// No description provided for @proxyUsernameOptional.
+  ///
+  /// In en, this message translates to:
+  /// **'Username (optional)'**
+  String get proxyUsernameOptional;
+
+  /// No description provided for @proxyPasswordOptional.
+  ///
+  /// In en, this message translates to:
+  /// **'Password (optional)'**
+  String get proxyPasswordOptional;
+
+  /// No description provided for @proxyWarpHint.
+  ///
+  /// In en, this message translates to:
+  /// **'Connections will be routed through the local Cloudflare WARP client.'**
+  String get proxyWarpHint;
+
+  /// No description provided for @proxyTorHint.
+  ///
+  /// In en, this message translates to:
+  /// **'Connections will be routed through the local Tor network. Note: this must be disclosed in the privacy statement when publishing.'**
+  String get proxyTorHint;
+
+  /// No description provided for @proxySave.
+  ///
+  /// In en, this message translates to:
+  /// **'Save proxy'**
+  String get proxySave;
+
+  /// No description provided for @serverUnshareFromTeam.
+  ///
+  /// In en, this message translates to:
+  /// **'Unshare from team'**
+  String get serverUnshareFromTeam;
+
+  /// No description provided for @serverShareToTeam.
+  ///
+  /// In en, this message translates to:
+  /// **'Share to team'**
+  String get serverShareToTeam;
+
+  /// No description provided for @serverUnsharedFromTeamToast.
+  ///
+  /// In en, this message translates to:
+  /// **'Unshared from team'**
+  String get serverUnsharedFromTeamToast;
+
+  /// No description provided for @serverSharedToTeam.
+  ///
+  /// In en, this message translates to:
+  /// **'Shared to team'**
+  String get serverSharedToTeam;
+
+  /// No description provided for @serverUnshareAction.
+  ///
+  /// In en, this message translates to:
+  /// **'Unshare'**
+  String get serverUnshareAction;
+
+  /// No description provided for @serverShareAction.
+  ///
+  /// In en, this message translates to:
+  /// **'Share'**
+  String get serverShareAction;
+
+  /// No description provided for @serverActionFailed.
+  ///
+  /// In en, this message translates to:
+  /// **'{action} failed: {error}'**
+  String serverActionFailed(String action, String error);
+
+  /// No description provided for @serverBadgeProxyTooltip.
+  ///
+  /// In en, this message translates to:
+  /// **'Network proxy configured'**
+  String get serverBadgeProxyTooltip;
+
+  /// No description provided for @serverBadgeBastionTooltip.
+  ///
+  /// In en, this message translates to:
+  /// **'Connected via bastion'**
+  String get serverBadgeBastionTooltip;
+
+  /// No description provided for @sftpCancelEdit.
+  ///
+  /// In en, this message translates to:
+  /// **'Cancel edit'**
+  String get sftpCancelEdit;
+
+  /// No description provided for @settingsAppearanceLight.
+  ///
+  /// In en, this message translates to:
+  /// **'Light'**
+  String get settingsAppearanceLight;
+
+  /// No description provided for @settingsAppearanceDark.
+  ///
+  /// In en, this message translates to:
+  /// **'Dark'**
+  String get settingsAppearanceDark;
+
+  /// No description provided for @settingsAppearanceColorScheme.
+  ///
+  /// In en, this message translates to:
+  /// **'Terminal Color Scheme'**
+  String get settingsAppearanceColorScheme;
+
+  /// No description provided for @settingsAppearanceFontSize.
+  ///
+  /// In en, this message translates to:
+  /// **'Font Size'**
+  String get settingsAppearanceFontSize;
+
+  /// No description provided for @settingsAppearanceChinese.
+  ///
+  /// In en, this message translates to:
+  /// **'中文'**
+  String get settingsAppearanceChinese;
+
+  /// No description provided for @updateDialogTitle.
+  ///
+  /// In en, this message translates to:
+  /// **'Check for Updates'**
+  String get updateDialogTitle;
+
+  /// No description provided for @updateInProgress.
+  ///
+  /// In en, this message translates to:
+  /// **'Checking for updates…'**
+  String get updateInProgress;
+
+  /// No description provided for @updateUpToDateTitle.
+  ///
+  /// In en, this message translates to:
+  /// **'You\'re up to date'**
+  String get updateUpToDateTitle;
+
+  /// No description provided for @updateUpToDateDetail.
+  ///
+  /// In en, this message translates to:
+  /// **'Version v{version} is the latest release on the {channel} channel.'**
+  String updateUpToDateDetail(String version, String channel);
+
+  /// No description provided for @updateCheckFailedTitle.
+  ///
+  /// In en, this message translates to:
+  /// **'Check failed'**
+  String get updateCheckFailedTitle;
+
+  /// No description provided for @updateNewVersionTitle.
+  ///
+  /// In en, this message translates to:
+  /// **'New version v{version}'**
+  String updateNewVersionTitle(String version);
+
+  /// No description provided for @updateNoReleaseNotes.
+  ///
+  /// In en, this message translates to:
+  /// **'(No release notes)'**
+  String get updateNoReleaseNotes;
+
+  /// No description provided for @updateViewDownloadPage.
+  ///
+  /// In en, this message translates to:
+  /// **'View download page'**
+  String get updateViewDownloadPage;
+
+  /// No description provided for @updateRecheck.
+  ///
+  /// In en, this message translates to:
+  /// **'Check again'**
+  String get updateRecheck;
+
+  /// No description provided for @monitorSampleInterval.
+  ///
+  /// In en, this message translates to:
+  /// **'Sample Interval'**
+  String get monitorSampleInterval;
+
+  /// No description provided for @monitorSampleIntervalHint.
+  ///
+  /// In en, this message translates to:
+  /// **'Refresh rate for each monitoring metric'**
+  String get monitorSampleIntervalHint;
+
+  /// No description provided for @monitorAutoStartLabel.
+  ///
+  /// In en, this message translates to:
+  /// **'Auto-start'**
+  String get monitorAutoStartLabel;
+
+  /// No description provided for @monitorAutoStartHint.
+  ///
+  /// In en, this message translates to:
+  /// **'Automatically start monitoring after a tab connects'**
+  String get monitorAutoStartHint;
+
+  /// No description provided for @monitorPanelDisplay.
+  ///
+  /// In en, this message translates to:
+  /// **'Panel Display'**
+  String get monitorPanelDisplay;
+
+  /// No description provided for @monitorPanelDisplayHint.
+  ///
+  /// In en, this message translates to:
+  /// **'Choose which monitoring metrics to show'**
+  String get monitorPanelDisplayHint;
+
+  /// No description provided for @monitorMemory.
+  ///
+  /// In en, this message translates to:
+  /// **'Memory'**
+  String get monitorMemory;
+
+  /// No description provided for @monitorDisk.
+  ///
+  /// In en, this message translates to:
+  /// **'Disk'**
+  String get monitorDisk;
+
+  /// No description provided for @monitorNetwork.
+  ///
+  /// In en, this message translates to:
+  /// **'Network'**
+  String get monitorNetwork;
+
+  /// No description provided for @monitorProcesses.
+  ///
+  /// In en, this message translates to:
+  /// **'Processes'**
+  String get monitorProcesses;
+
+  /// No description provided for @settingsLocalAiContextSize.
+  ///
+  /// In en, this message translates to:
+  /// **'Context Window Size'**
+  String get settingsLocalAiContextSize;
+
+  /// No description provided for @settingsLocalAiContextSizeHint.
+  ///
+  /// In en, this message translates to:
+  /// **'Unit: tokens'**
+  String get settingsLocalAiContextSizeHint;
+
+  /// No description provided for @settingsLocalAiModelManagement.
+  ///
+  /// In en, this message translates to:
+  /// **'Local Model Management'**
+  String get settingsLocalAiModelManagement;
+
+  /// No description provided for @recordingDeleted.
+  ///
+  /// In en, this message translates to:
+  /// **'Deleted'**
+  String get recordingDeleted;
+
+  /// No description provided for @recordingDeleteFailed.
+  ///
+  /// In en, this message translates to:
+  /// **'Delete failed: {error}'**
+  String recordingDeleteFailed(String error);
+
+  /// No description provided for @recordingNoServer.
+  ///
+  /// In en, this message translates to:
+  /// **'No linked server'**
+  String get recordingNoServer;
+
+  /// No description provided for @recordingEmpty.
+  ///
+  /// In en, this message translates to:
+  /// **'No recordings'**
+  String get recordingEmpty;
+
+  /// No description provided for @recordingEmptyHint.
+  ///
+  /// In en, this message translates to:
+  /// **'Enable recording in the terminal to collect session replays'**
+  String get recordingEmptyHint;
+
+  /// No description provided for @recordingOpen.
+  ///
+  /// In en, this message translates to:
+  /// **'Open'**
+  String get recordingOpen;
+
+  /// No description provided for @tabWorkspaceSftpLocalDisabled.
+  ///
+  /// In en, this message translates to:
+  /// **'Local terminal does not support SFTP'**
+  String get tabWorkspaceSftpLocalDisabled;
+
+  /// No description provided for @tabWorkspaceTransfersLocalDisabled.
+  ///
+  /// In en, this message translates to:
+  /// **'Local terminal does not support file transfer'**
+  String get tabWorkspaceTransfersLocalDisabled;
+
+  /// No description provided for @tabWorkspaceNoTransfers.
+  ///
+  /// In en, this message translates to:
+  /// **'No transfer tasks'**
+  String get tabWorkspaceNoTransfers;
+
+  /// No description provided for @aiCodeBlockRun.
+  ///
+  /// In en, this message translates to:
+  /// **'Run'**
+  String get aiCodeBlockRun;
 }
 
 class _AppLocalizationsDelegate

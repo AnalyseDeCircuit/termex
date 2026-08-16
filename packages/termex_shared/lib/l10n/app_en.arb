@@ -87,80 +87,258 @@
   "taskHistoryActionClearAll": "Clear all",
   "taskHistoryDeleteConfirmTitle": "Delete task?",
   "taskHistoryDeleteConfirmBody": "Remove \"{title}\" from history. This cannot be undone.",
-  "@taskHistoryDeleteConfirmBody": {"placeholders": {"title": {"type": "String"}}},
+  "@taskHistoryDeleteConfirmBody": {
+    "placeholders": {
+      "title": {
+        "type": "String"
+      }
+    }
+  },
   "taskHistoryClearAllConfirmTitle": "Clear all tasks?",
   "taskHistoryClearAllConfirmBody": "All {count} entries will be removed. This cannot be undone.",
-  "@taskHistoryClearAllConfirmBody": {"placeholders": {"count": {"type": "int"}}},
+  "@taskHistoryClearAllConfirmBody": {
+    "placeholders": {
+      "count": {
+        "type": "int"
+      }
+    }
+  },
   "taskSftpUploadSucceededTitle": "Uploaded {fileName}",
-  "@taskSftpUploadSucceededTitle": {"placeholders": {"fileName": {"type": "String"}}},
+  "@taskSftpUploadSucceededTitle": {
+    "placeholders": {
+      "fileName": {
+        "type": "String"
+      }
+    }
+  },
   "taskSftpDownloadSucceededTitle": "Downloaded {fileName}",
-  "@taskSftpDownloadSucceededTitle": {"placeholders": {"fileName": {"type": "String"}}},
+  "@taskSftpDownloadSucceededTitle": {
+    "placeholders": {
+      "fileName": {
+        "type": "String"
+      }
+    }
+  },
   "taskSftpUploadFailedTitle": "Upload failed: {fileName}",
-  "@taskSftpUploadFailedTitle": {"placeholders": {"fileName": {"type": "String"}}},
+  "@taskSftpUploadFailedTitle": {
+    "placeholders": {
+      "fileName": {
+        "type": "String"
+      }
+    }
+  },
   "taskSftpDownloadFailedTitle": "Download failed: {fileName}",
-  "@taskSftpDownloadFailedTitle": {"placeholders": {"fileName": {"type": "String"}}},
+  "@taskSftpDownloadFailedTitle": {
+    "placeholders": {
+      "fileName": {
+        "type": "String"
+      }
+    }
+  },
   "taskSftpUploadCancelledTitle": "Upload cancelled: {fileName}",
-  "@taskSftpUploadCancelledTitle": {"placeholders": {"fileName": {"type": "String"}}},
+  "@taskSftpUploadCancelledTitle": {
+    "placeholders": {
+      "fileName": {
+        "type": "String"
+      }
+    }
+  },
   "taskSftpDownloadCancelledTitle": "Download cancelled: {fileName}",
-  "@taskSftpDownloadCancelledTitle": {"placeholders": {"fileName": {"type": "String"}}},
+  "@taskSftpDownloadCancelledTitle": {
+    "placeholders": {
+      "fileName": {
+        "type": "String"
+      }
+    }
+  },
   "taskSftpUploadSucceededBody": "Upload completed ({size})",
-  "@taskSftpUploadSucceededBody": {"placeholders": {"size": {"type": "String"}}},
+  "@taskSftpUploadSucceededBody": {
+    "placeholders": {
+      "size": {
+        "type": "String"
+      }
+    }
+  },
   "taskSftpDownloadSucceededBody": "Download completed ({size})",
-  "@taskSftpDownloadSucceededBody": {"placeholders": {"size": {"type": "String"}}},
+  "@taskSftpDownloadSucceededBody": {
+    "placeholders": {
+      "size": {
+        "type": "String"
+      }
+    }
+  },
   "taskSftpFailedBody": "{action} failed — {error}",
-  "@taskSftpFailedBody": {"placeholders": {"action": {"type": "String"}, "error": {"type": "String"}}},
+  "@taskSftpFailedBody": {
+    "placeholders": {
+      "action": {
+        "type": "String"
+      },
+      "error": {
+        "type": "String"
+      }
+    }
+  },
   "taskSftpCancelledBody": "{action} cancelled at {transferred} of {total}",
-  "@taskSftpCancelledBody": {"placeholders": {"action": {"type": "String"}, "transferred": {"type": "String"}, "total": {"type": "String"}}},
+  "@taskSftpCancelledBody": {
+    "placeholders": {
+      "action": {
+        "type": "String"
+      },
+      "transferred": {
+        "type": "String"
+      },
+      "total": {
+        "type": "String"
+      }
+    }
+  },
   "taskSftpActionUpload": "Upload",
   "taskSftpActionDownload": "Download",
   "taskPollerSummarySucceeded": "Task completed successfully",
   "taskPollerSummaryFailed": "Task failed",
   "taskPollerSummaryFailedWithExit": "Task failed (exit {exitCode})",
-  "@taskPollerSummaryFailedWithExit": {"placeholders": {"exitCode": {"type": "int"}}},
+  "@taskPollerSummaryFailedWithExit": {
+    "placeholders": {
+      "exitCode": {
+        "type": "int"
+      }
+    }
+  },
   "taskPollerSummaryCancelled": "Task cancelled",
   "taskPollerSummaryRunning": "Task started",
   "taskPollerSummaryPending": "Task queued",
   "taskPollerSummaryAwaitingConfirmation": "Task awaiting confirmation",
   "taskAiSucceededTitle": "AI reply from {model}",
-  "@taskAiSucceededTitle": {"placeholders": {"model": {"type": "String"}}},
+  "@taskAiSucceededTitle": {
+    "placeholders": {
+      "model": {
+        "type": "String"
+      }
+    }
+  },
   "taskAiSucceededTitleWithConversation": "{conversation} — reply from {model}",
-  "@taskAiSucceededTitleWithConversation": {"placeholders": {"conversation": {"type": "String"}, "model": {"type": "String"}}},
+  "@taskAiSucceededTitleWithConversation": {
+    "placeholders": {
+      "conversation": {
+        "type": "String"
+      },
+      "model": {
+        "type": "String"
+      }
+    }
+  },
   "taskAiFailedTitle": "AI generation failed",
   "taskAiFailedTitleWithConversation": "{conversation} — failed",
-  "@taskAiFailedTitleWithConversation": {"placeholders": {"conversation": {"type": "String"}}},
+  "@taskAiFailedTitleWithConversation": {
+    "placeholders": {
+      "conversation": {
+        "type": "String"
+      }
+    }
+  },
   "taskAiCancelledTitle": "AI generation cancelled",
   "taskAiCancelledTitleWithConversation": "{conversation} — cancelled",
-  "@taskAiCancelledTitleWithConversation": {"placeholders": {"conversation": {"type": "String"}}},
+  "@taskAiCancelledTitleWithConversation": {
+    "placeholders": {
+      "conversation": {
+        "type": "String"
+      }
+    }
+  },
   "taskAiSucceededBody": "Response generated",
   "taskAiSucceededBodyWithLength": "Response generated ({chars} chars)",
-  "@taskAiSucceededBodyWithLength": {"placeholders": {"chars": {"type": "int"}}},
+  "@taskAiSucceededBodyWithLength": {
+    "placeholders": {
+      "chars": {
+        "type": "int"
+      }
+    }
+  },
   "taskAiSucceededBodyWithTokens": "Response generated ({chars} chars · ↑{tokensIn} ↓{tokensOut} tokens)",
-  "@taskAiSucceededBodyWithTokens": {"placeholders": {"chars": {"type": "int"}, "tokensIn": {"type": "int"}, "tokensOut": {"type": "int"}}},
+  "@taskAiSucceededBodyWithTokens": {
+    "placeholders": {
+      "chars": {
+        "type": "int"
+      },
+      "tokensIn": {
+        "type": "int"
+      },
+      "tokensOut": {
+        "type": "int"
+      }
+    }
+  },
   "taskAiSucceededBodyWithCost": "Response generated ({chars} chars · ↑{tokensIn} ↓{tokensOut} tokens · {cost})",
-  "@taskAiSucceededBodyWithCost": {"placeholders": {"chars": {"type": "int"}, "tokensIn": {"type": "int"}, "tokensOut": {"type": "int"}, "cost": {"type": "String"}}},
+  "@taskAiSucceededBodyWithCost": {
+    "placeholders": {
+      "chars": {
+        "type": "int"
+      },
+      "tokensIn": {
+        "type": "int"
+      },
+      "tokensOut": {
+        "type": "int"
+      },
+      "cost": {
+        "type": "String"
+      }
+    }
+  },
   "taskAiFailedBody": "Generation failed",
   "taskAiFailedBodyWithError": "Generation failed — {error}",
-  "@taskAiFailedBodyWithError": {"placeholders": {"error": {"type": "String"}}},
+  "@taskAiFailedBodyWithError": {
+    "placeholders": {
+      "error": {
+        "type": "String"
+      }
+    }
+  },
   "taskAiCancelledBody": "Generation cancelled",
   "notificationThresholdsTitle": "Notification thresholds",
   "notificationThresholdsSftpToggleLabel": "Notify on SFTP success",
   "notificationThresholdsSftpToggleHint": "Disable to silence all SFTP success notifications; failures still notify.",
   "notificationThresholdsSizeLabel": "Minimum file size",
   "notificationThresholdsSizeValue": "{mb} MB",
-  "@notificationThresholdsSizeValue": {"placeholders": {"mb": {"type": "double", "format": "decimalPattern"}}},
+  "@notificationThresholdsSizeValue": {
+    "placeholders": {
+      "mb": {
+        "type": "double",
+        "format": "decimalPattern"
+      }
+    }
+  },
   "notificationThresholdsDurationLabel": "Minimum duration",
   "notificationThresholdsDurationValue": "{seconds} s",
-  "@notificationThresholdsDurationValue": {"placeholders": {"seconds": {"type": "int"}}},
+  "@notificationThresholdsDurationValue": {
+    "placeholders": {
+      "seconds": {
+        "type": "int"
+      }
+    }
+  },
   "notificationThresholdsHelp": "An SFTP success notifies when EITHER size or duration meets its threshold. Failures and AI completions always notify.",
   "notificationThresholdsReset": "Reset to defaults",
   "notificationThresholdsResetDone": "Reset to defaults",
   "notificationThresholdsUndoWindowLabel": "Undo window",
   "notificationThresholdsUndoWindowValue": "{seconds} s",
-  "@notificationThresholdsUndoWindowValue": {"placeholders": {"seconds": {"type": "int"}}},
+  "@notificationThresholdsUndoWindowValue": {
+    "placeholders": {
+      "seconds": {
+        "type": "int"
+      }
+    }
+  },
   "notificationThresholdsUndoWindowOff": "Off (instant delete)",
   "taskHistoryUndoDeleted": "Deleted",
   "taskHistoryUndoCleared": "Cleared {count} entries",
-  "@taskHistoryUndoCleared": {"placeholders": {"count": {"type": "int"}}},
+  "@taskHistoryUndoCleared": {
+    "placeholders": {
+      "count": {
+        "type": "int"
+      }
+    }
+  },
   "taskHistoryUndoAction": "Undo",
   "taskHistoryFilterAll": "All",
   "taskHistoryFilterSftp": "SFTP",
@@ -173,18 +351,54 @@
   "taskHistorySearchEmptyHint": "Clear the search box or adjust your query.",
   "taskHistoryActionClearFiltered": "Clear filtered",
   "taskHistoryActionClearFilteredWithCount": "Clear filtered ({count})",
-  "@taskHistoryActionClearFilteredWithCount": {"placeholders": {"count": {"type": "int"}}},
+  "@taskHistoryActionClearFilteredWithCount": {
+    "placeholders": {
+      "count": {
+        "type": "int"
+      }
+    }
+  },
   "taskHistoryClearFilteredConfirmTitle": "Clear filtered tasks?",
   "taskHistoryClearFilteredConfirmBody": "The {count} filtered entries will be removed. Unfiltered tasks stay. This cannot be undone after the window closes.",
-  "@taskHistoryClearFilteredConfirmBody": {"placeholders": {"count": {"type": "int"}}},
+  "@taskHistoryClearFilteredConfirmBody": {
+    "placeholders": {
+      "count": {
+        "type": "int"
+      }
+    }
+  },
   "taskHistoryRelativeSecondsAgo": "{seconds}s ago",
-  "@taskHistoryRelativeSecondsAgo": {"placeholders": {"seconds": {"type": "int"}}},
+  "@taskHistoryRelativeSecondsAgo": {
+    "placeholders": {
+      "seconds": {
+        "type": "int"
+      }
+    }
+  },
   "taskHistoryRelativeMinutesAgo": "{minutes}m ago",
-  "@taskHistoryRelativeMinutesAgo": {"placeholders": {"minutes": {"type": "int"}}},
+  "@taskHistoryRelativeMinutesAgo": {
+    "placeholders": {
+      "minutes": {
+        "type": "int"
+      }
+    }
+  },
   "taskHistoryRelativeHoursAgo": "{hours}h ago",
-  "@taskHistoryRelativeHoursAgo": {"placeholders": {"hours": {"type": "int"}}},
+  "@taskHistoryRelativeHoursAgo": {
+    "placeholders": {
+      "hours": {
+        "type": "int"
+      }
+    }
+  },
   "taskHistoryRelativeDaysAgo": "{days}d ago",
-  "@taskHistoryRelativeDaysAgo": {"placeholders": {"days": {"type": "int"}}},
+  "@taskHistoryRelativeDaysAgo": {
+    "placeholders": {
+      "days": {
+        "type": "int"
+      }
+    }
+  },
   "sidebarSearch": "Search servers...",
   "sidebarNewConnection": "New Connection",
   "sidebarNewGroup": "New Group",
@@ -1779,7 +1993,6 @@
   "recordingOneYear": "1 year",
   "recordingCleanupNow": "Clean up expired now",
   "recordingCleanupRunning": "Cleaning up…",
-
   "keybindingsNewTab": "New Tab",
   "keybindingsClosePane": "Close Pane",
   "keybindingsCopy": "Copy",
@@ -1804,5 +2017,563 @@
   "keybindingsUntranslated": "(untranslated)",
   "@keybindingsUntranslated": {
     "description": "Suffix shown next to keybinding actions that don't yet have a localized label, italicised + gray so the user can spot them."
-  }
+  },
+  "settingsTerminalScrollback": "Scrollback lines",
+  "settingsTerminalScrollbackHint": "Maximum number of history lines to keep for scrollback",
+  "settingsTerminalLinesOption": "{count} lines",
+  "@settingsTerminalLinesOption": {
+    "placeholders": {
+      "count": {
+        "type": "String"
+      }
+    }
+  },
+  "settingsTerminalTabWidth": "Tab width",
+  "settingsTerminalSpacesOption": "{count} spaces",
+  "@settingsTerminalSpacesOption": {
+    "placeholders": {
+      "count": {
+        "type": "String"
+      }
+    }
+  },
+  "settingsTerminalCursorShape": "Cursor shape",
+  "settingsTerminalCursorBlock": "Block",
+  "settingsTerminalCursorUnderline": "Underline",
+  "settingsTerminalCursorBar": "Bar",
+  "settingsTerminalCursorBlink": "Cursor blink",
+  "settingsTerminalTmux": "Tmux multiplexing",
+  "settingsTerminalTmuxHint": "Detect remote tmux sessions and show them in the status bar",
+  "settingsAiAllConfigured": "All providers are already configured",
+  "settingsAiContextLines": "Default context lines",
+  "settingsAiContextLinesHint": "Maximum terminal history lines sent to the AI",
+  "settingsAiAutoDiagnose": "Auto error diagnosis",
+  "settingsAiAutoDiagnoseHint": "Automatically run AI analysis when a command fails",
+  "settingsAiRemoveProviderTitle": "Remove {name}?",
+  "@settingsAiRemoveProviderTitle": {
+    "placeholders": {
+      "name": {
+        "type": "String"
+      }
+    }
+  },
+  "settingsAiRemoveProviderHint": "Removes the local configuration for {name} (the API key stays in the OS keychain and is reloaded automatically when you configure it again).",
+  "@settingsAiRemoveProviderHint": {
+    "placeholders": {
+      "name": {
+        "type": "String"
+      }
+    }
+  },
+  "settingsAiRemove": "Remove",
+  "settingsAiEmptyTitle": "No AI provider configured yet",
+  "settingsAiEmptyHint": "Click “Add Provider” at the top right to get started",
+  "settingsAiBadgeActive": "Active",
+  "settingsAiBadgeConfigured": "Configured",
+  "settingsAiActivate": "Activate",
+  "settingsAiCollapse": "Collapse",
+  "settingsAiConfigure": "Configure",
+  "settingsAiAddProvider": "Add Provider",
+  "settingsAiPricingTitle": "AI cost estimation price list",
+  "settingsAiPricingUpdated": "Updated {iso} · {age}",
+  "@settingsAiPricingUpdated": {
+    "placeholders": {
+      "iso": {
+        "type": "String"
+      },
+      "age": {
+        "type": "String"
+      }
+    }
+  },
+  "settingsAiPricingStale": " · refresh recommended",
+  "settingsAiPricingDateUnknown": "date unknown",
+  "settingsAiPricingToday": "updated today",
+  "settingsAiPricingDaysAgo": "{count} days ago",
+  "@settingsAiPricingDaysAgo": {
+    "placeholders": {
+      "count": {
+        "type": "String"
+      }
+    }
+  },
+  "settingsKeybindingsResetTitle": "Restore default shortcuts?",
+  "settingsKeybindingsResetBody": "All custom shortcuts will be overwritten with the factory defaults.",
+  "settingsKeybindingsReset": "Restore",
+  "settingsKeybindingsColCommand": "Command",
+  "settingsKeybindingsColShortcut": "Shortcut",
+  "settingsKeybindingsColContext": "Context",
+  "settingsKeybindingsResetTooltip": "Restore defaults",
+  "gitConflictTitle": "⚠ Git Sync conflict",
+  "gitConflictFilesLabel": "The following files have conflicts:",
+  "gitConflictStrategyLabel": "Choose a resolution strategy:",
+  "gitConflictResolveInTerminal": "Resolve in terminal",
+  "gitConflictUseRemote": "Use remote",
+  "gitConflictKeepLocal": "Keep local",
+  "sftpChmodTitleNamed": "Change permissions: {name}",
+  "@sftpChmodTitleNamed": {
+    "placeholders": {
+      "name": {
+        "type": "String"
+      }
+    }
+  },
+  "sftpChmodOwner": "Owner",
+  "sftpChmodGroup": "Group",
+  "sftpChmodOthers": "Others",
+  "sftpChmodOctalShort": "Octal",
+  "sftpChmodRead": "Read",
+  "sftpChmodWrite": "Write",
+  "sftpChmodExec": "Execute",
+  "sftpRenameEmpty": "Name cannot be empty",
+  "sftpRenameSlash": "Name cannot contain /",
+  "sftpRenameNewName": "New name",
+  "settingsHighlightsTitle": "Keyword highlighting",
+  "settingsHighlightsLoadPresets": "Load presets",
+  "settingsHighlightsAddRule": "+ Add rule",
+  "settingsHighlightsEmpty": "No highlight rules configured yet",
+  "settingsHighlightsPatternHint": "Keyword / regex",
+  "settingsHighlightsRegex": "Regex",
+  "settingsHighlightsCaseSensitive": "Case sensitive",
+  "settingsHighlightsBgColor": "Background color",
+  "settingsHighlightsFgColor": "Foreground color (empty = follow theme)",
+  "settingsHighlightsEnabled": "Enabled",
+  "settingsHighlightsColorInputHint": "Enter a hex color (e.g. #6366F1)",
+  "settingsHighlightsColorClear": "Clear",
+  "settingsHighlightsColorConfirm": "OK",
+  "settingsPrivacyClearHistoryTitle": "Clear history data",
+  "settingsPrivacyClearHistoryHint": "Keeps account settings and credentials; only clears the corresponding history.",
+  "settingsPrivacyClearConnections": "Clear recent connection history",
+  "settingsPrivacyClearConnectionsMsg": "This will delete all \"recent connections\" records. Saved server configurations are not affected.",
+  "settingsPrivacyClearedConnections": "Connection history cleared",
+  "settingsPrivacyClearAi": "Clear AI conversation history",
+  "settingsPrivacyClearAiMsg": "This will permanently delete all AI conversations and messages. Provider configs / API keys are kept.",
+  "settingsPrivacyClearedAi": "AI conversation history cleared",
+  "settingsPrivacyClearSnippet": "Clear snippet usage stats",
+  "settingsPrivacyClearSnippetMsg": "This will reset the usage count of all snippets. The snippets themselves are kept.",
+  "settingsPrivacyClearedSnippet": "Usage stats cleared",
+  "settingsPrivacyGdprTitle": "GDPR data erasure",
+  "settingsPrivacyGdprHint": "Permanently delete all local data (server configs, credentials, conversations, settings). This action cannot be undone.",
+  "settingsPrivacyGdprButton": "Erase all data",
+  "settingsPrivacyConfirmClear": "Clear",
+  "settingsPrivacyGdprDialogTitle": "Confirm erasing all data",
+  "settingsPrivacyGdprDialogBody": "This action will permanently delete all data and cannot be undone.\nEnter your master password and type \"DELETE ALL\" to confirm.",
+  "settingsPrivacyMasterPassword": "Master password",
+  "settingsPrivacyConfirmTextLabel": "Confirmation text",
+  "settingsPrivacyErase": "Erase",
+  "settingsPrivacyEraseError": "Confirmation text is incorrect or the master password is wrong",
+  "settingsPrivacyErased": "Data erased",
+  "settingsSecurityLoading": "Loading…",
+  "settingsSecurityLoadError": "Unable to read security status",
+  "settingsSecurityProtectionTitle": "Key protection mode",
+  "settingsSecurityProtectionActive": "Credentials are securely stored using {platform}. Termex reads the master key entry only once at startup.",
+  "@settingsSecurityProtectionActive": {
+    "placeholders": {
+      "platform": {
+        "type": "String"
+      }
+    }
+  },
+  "settingsSecurityProtectionFallback": "System keychain unavailable; fell back to local encryption (AES-256-GCM + Argon2id).",
+  "settingsSecuritySavedCredentials": "Saved credentials",
+  "settingsSecurityCredentialTypes": "Includes SSH passwords, SSH private key passphrases, AI provider API keys",
+  "settingsSecurityHowItWorks": "How it works",
+  "settingsSecurityHint1": "Credentials are never written to the database in plaintext — only a reference ID from the system keychain is stored",
+  "settingsSecurityHint2": "The master key entry is read only once per startup, avoiding repeated system password prompts",
+  "settingsSecurityHint3": "GDPR data erasure also clears all Termex entries in the keychain",
+  "auditDetailTitle": "Audit Detail",
+  "auditFieldEventType": "Event Type",
+  "auditFieldTime": "Time",
+  "auditFieldDetail": "Detail",
+  "auditCopyDetail": "Copy Detail",
+  "auditKpiTotal": "Total",
+  "auditKpiConnections": "Connections",
+  "auditKpiCredentialAccess": "Credential Access",
+  "auditKpiConfigChanges": "Config Changes",
+  "auditKpiMemberOps": "Member Ops",
+  "auditColEvent": "Event",
+  "auditPagerPrev": "Previous",
+  "auditPagerNext": "Next",
+  "auditEmptyTitle": "No audit logs",
+  "auditEmptyHint": "SSH connections, settings changes, or team operations will be written to the audit log",
+  "auditExport": "Export",
+  "auditExportCsv": "Export CSV",
+  "auditExportJson": "Export JSON",
+  "auditExported": "Exported {path}",
+  "@auditExported": {
+    "placeholders": {
+      "path": {
+        "type": "String"
+      }
+    }
+  },
+  "auditExportFailed": "Export failed: {error}",
+  "@auditExportFailed": {
+    "placeholders": {
+      "error": {
+        "type": "String"
+      }
+    }
+  },
+  "auditLabelDate": "Date: ",
+  "auditLabelEvent": "Event: ",
+  "auditRangeToday": "Today",
+  "auditRangeWeek": "This Week",
+  "auditRangeMonth": "This Month",
+  "auditRangeAll": "All",
+  "snippetUsageTimes": "{count} times",
+  "@snippetUsageTimes": {
+    "description": "Snippet usage count badge",
+    "placeholders": {
+      "count": {
+        "type": "int"
+      }
+    }
+  },
+  "snippetCopy": "Copy",
+  "snippetCopiedToClipboard": "Copied to clipboard",
+  "snippetDeleteTitle": "Delete Snippet",
+  "snippetDeleteConfirmNamed": "Delete “{title}”?",
+  "@snippetDeleteConfirmNamed": {
+    "description": "Confirm deleting a named snippet",
+    "placeholders": {
+      "title": {
+        "type": "String"
+      }
+    }
+  },
+  "snippetNewTitle": "New Snippet",
+  "snippetEditSnippet": "Edit Snippet",
+  "snippetNamePlaceholder": "Snippet name",
+  "snippetTagsCommaLabel": "Tags (comma-separated)",
+  "snippetTagsPlaceholderExample": "ssh, common, docker",
+  "snippetContentLabel": "Command (use ｛｛name:default｝｝ to insert a variable)",
+  "snippetVariableTitleNamed": "Fill variables — {title}",
+  "@snippetVariableTitleNamed": {
+    "description": "Variable resolver dialog title with snippet name",
+    "placeholders": {
+      "title": {
+        "type": "String"
+      }
+    }
+  },
+  "snippetPreview": "Preview",
+  "snippetConfirmExecute": "Confirm & Run",
+  "snippetVariableDefault": "Default: {value}",
+  "@snippetVariableDefault": {
+    "description": "Default value hint for a snippet variable",
+    "placeholders": {
+      "value": {
+        "type": "String"
+      }
+    }
+  },
+  "snippetVariableInputHint": "Enter a value",
+  "snippetSearchPlaceholder": "Search snippets…",
+  "snippetNoMatch": "No matching snippets",
+  "sftpPath": "Path",
+  "sftpOwner": "Owner",
+  "sftpGroup": "Group",
+  "sftpSizeBytes": "{bytes} bytes",
+  "@sftpSizeBytes": {
+    "placeholders": {
+      "bytes": {
+        "type": "int"
+      }
+    }
+  },
+  "sftpFileNameHint": "File name",
+  "sftpFolderNameHint": "Folder name",
+  "sftpCreate": "Create",
+  "sftpEditorTooLarge": "File too large ({size}); use scp to download and edit locally.",
+  "@sftpEditorTooLarge": {
+    "placeholders": {
+      "size": {
+        "type": "String"
+      }
+    }
+  },
+  "sftpEditorBinary": "Binary content detected; cannot use the inline editor.",
+  "sftpEditorReadFailed": "Read failed: {error}",
+  "@sftpEditorReadFailed": {
+    "placeholders": {
+      "error": {
+        "type": "String"
+      }
+    }
+  },
+  "sftpEditorSaveFailed": "Save failed: {error}",
+  "@sftpEditorSaveFailed": {
+    "placeholders": {
+      "error": {
+        "type": "String"
+      }
+    }
+  },
+  "sftpEditorModified": "Modified",
+  "sftpTransferResume": "Resume",
+  "sftpTransferPause": "Pause",
+  "sftpTransferDone": "Done",
+  "sftpTransferFailed": "Failed: {error}",
+  "@sftpTransferFailed": {
+    "placeholders": {
+      "error": {
+        "type": "String"
+      }
+    }
+  },
+  "sftpTransferCancelled": "Cancelled",
+  "sftpTransferPaused": "Paused",
+  "aiConversationsTitle": "Conversations",
+  "aiConversationEmpty": "Tap + to start a new conversation",
+  "aiRenameConversation": "Rename Conversation",
+  "aiRenameHint": "Enter a new title",
+  "aiModelListLoading": "Loading model list…",
+  "aiDeleteModelTitle": "Delete Model",
+  "aiDeleteModelConfirm": "Delete {name}?",
+  "@aiDeleteModelConfirm": {
+    "placeholders": {
+      "name": {
+        "type": "String"
+      }
+    }
+  },
+  "localAiRunning": "Running",
+  "localAiStart": "Start",
+  "localAiDownloadWithSize": "Download ({size})",
+  "@localAiDownloadWithSize": {
+    "placeholders": {
+      "size": {
+        "type": "String"
+      }
+    }
+  },
+  "aiNl2cmdTitle": "Natural Language → Command",
+  "aiNl2cmdHint": "Describe what you want to do, e.g. find files larger than 100MB",
+  "aiNl2cmdSent": "(Sent to AI conversation)",
+  "aiNl2cmdGenerate": "Generate",
+  "settingsAiConfigureTitle": "Configure {name}",
+  "@settingsAiConfigureTitle": {
+    "placeholders": {
+      "name": {
+        "type": "String"
+      }
+    }
+  },
+  "settingsAiTerminalContextLines": "Terminal context lines",
+  "settingsAiLinesUnit": "{count} lines",
+  "@settingsAiLinesUnit": {
+    "placeholders": {
+      "count": {
+        "type": "int"
+      }
+    }
+  },
+  "settingsAiVerify": "Verify",
+  "settingsAiSelectModelError": "Please select a model",
+  "settingsAiApiKeyRequired": "Please enter an API Key",
+  "settingsAiVerifySuccess": "Verification succeeded",
+  "settingsAiVerifyFailed": "Verification failed",
+  "settingsAiLlamaEngine": "llama-server engine",
+  "settingsAiServerPort": "Server port",
+  "settingsAiInferenceThreads": "Inference threads",
+  "settingsAiContextWindow": "Context window (tokens)",
+  "settingsAiAutoStartEngine": "Auto-start engine on launch",
+  "teamSyncDoneCount": "Sync complete ({count} changes)",
+  "@teamSyncDoneCount": {
+    "placeholders": {
+      "count": {
+        "type": "int"
+      }
+    }
+  },
+  "teamSyncFailed": "Sync failed: {error}",
+  "@teamSyncFailed": {
+    "placeholders": {
+      "error": {
+        "type": "String"
+      }
+    }
+  },
+  "teamApplied": "Applied",
+  "teamResolveFailed": "Resolve failed: {error}",
+  "@teamResolveFailed": {
+    "placeholders": {
+      "error": {
+        "type": "String"
+      }
+    }
+  },
+  "teamRoleUpdated": "Role updated",
+  "teamUpdateFailed": "Update failed: {error}",
+  "@teamUpdateFailed": {
+    "placeholders": {
+      "error": {
+        "type": "String"
+      }
+    }
+  },
+  "teamRemoved": "Removed",
+  "teamRemoveFailed": "Remove failed: {error}",
+  "@teamRemoveFailed": {
+    "placeholders": {
+      "error": {
+        "type": "String"
+      }
+    }
+  },
+  "teamWorkspace": "Team Workspace",
+  "teamMemberBadge": "{count} members",
+  "@teamMemberBadge": {
+    "placeholders": {
+      "count": {
+        "type": "int"
+      }
+    }
+  },
+  "teamConflictBadge": "{count} conflicts",
+  "@teamConflictBadge": {
+    "placeholders": {
+      "count": {
+        "type": "int"
+      }
+    }
+  },
+  "teamChangePassphrase": "Change Passphrase",
+  "teamNoMembers": "No members yet (generate an invite code to add them)",
+  "teamUnnamed": "(Unnamed)",
+  "teamPendingConflicts": "Pending sync conflicts",
+  "teamConflictServerField": "Server {serverId} · Field {field}",
+  "@teamConflictServerField": {
+    "placeholders": {
+      "serverId": {
+        "type": "String"
+      },
+      "field": {
+        "type": "String"
+      }
+    }
+  },
+  "teamConflictLocal": "Local",
+  "teamConflictRemote": "Remote",
+  "teamUseThisValue": "Use this value",
+  "teamInviteNewMember": "Invite New Member",
+  "teamInviteDesc": "Generate a one-time invite code for the new member (valid for 72 hours).",
+  "teamGenerateHint": "Click the button below to generate an invite code.",
+  "teamGenerating": "Generating…",
+  "teamExpiresAt": "Expires: {time}",
+  "@teamExpiresAt": {
+    "placeholders": {
+      "time": {
+        "type": "String"
+      }
+    }
+  },
+  "teamVerifyPassphraseTitle": "Verify Team Passphrase",
+  "teamVerifyPassphraseDesc": "Enter the team encryption passphrase to verify this session.",
+  "teamPassphrasePlaceholder": "Passphrase",
+  "teamVerify": "Verify",
+  "teamPassphraseIncorrect": "Incorrect passphrase",
+  "teamVerifyPassed": "Verified",
+  "teamVerifyFailed": "Verification failed: {error}",
+  "@teamVerifyFailed": {
+    "placeholders": {
+      "error": {
+        "type": "String"
+      }
+    }
+  },
+  "teamLoadFailed": "Failed to load team info",
+  "proxyNone": "No proxy",
+  "proxyLoading": "Loading…",
+  "proxySelect": "Select proxy",
+  "proxyAddNew": "+ New proxy",
+  "proxyNewTitle": "New proxy",
+  "proxyNamePlaceholder": "My proxy",
+  "proxyUsernameOptional": "Username (optional)",
+  "proxyPasswordOptional": "Password (optional)",
+  "proxyWarpHint": "Connections will be routed through the local Cloudflare WARP client.",
+  "proxyTorHint": "Connections will be routed through the local Tor network. Note: this must be disclosed in the privacy statement when publishing.",
+  "proxySave": "Save proxy",
+  "serverUnshareFromTeam": "Unshare from team",
+  "serverShareToTeam": "Share to team",
+  "serverUnsharedFromTeamToast": "Unshared from team",
+  "serverSharedToTeam": "Shared to team",
+  "serverUnshareAction": "Unshare",
+  "serverShareAction": "Share",
+  "serverActionFailed": "{action} failed: {error}",
+  "@serverActionFailed": {
+    "placeholders": {
+      "action": {
+        "type": "String"
+      },
+      "error": {
+        "type": "String"
+      }
+    }
+  },
+  "serverBadgeProxyTooltip": "Network proxy configured",
+  "serverBadgeBastionTooltip": "Connected via bastion",
+  "sftpCancelEdit": "Cancel edit",
+  "settingsAppearanceLight": "Light",
+  "settingsAppearanceDark": "Dark",
+  "settingsAppearanceColorScheme": "Terminal Color Scheme",
+  "settingsAppearanceFontSize": "Font Size",
+  "settingsAppearanceChinese": "中文",
+  "updateDialogTitle": "Check for Updates",
+  "updateInProgress": "Checking for updates…",
+  "updateUpToDateTitle": "You're up to date",
+  "updateUpToDateDetail": "Version v{version} is the latest release on the {channel} channel.",
+  "@updateUpToDateDetail": {
+    "placeholders": {
+      "version": {
+        "type": "String"
+      },
+      "channel": {
+        "type": "String"
+      }
+    }
+  },
+  "updateCheckFailedTitle": "Check failed",
+  "updateNewVersionTitle": "New version v{version}",
+  "@updateNewVersionTitle": {
+    "placeholders": {
+      "version": {
+        "type": "String"
+      }
+    }
+  },
+  "updateNoReleaseNotes": "(No release notes)",
+  "updateViewDownloadPage": "View download page",
+  "updateRecheck": "Check again",
+  "monitorSampleInterval": "Sample Interval",
+  "monitorSampleIntervalHint": "Refresh rate for each monitoring metric",
+  "monitorAutoStartLabel": "Auto-start",
+  "monitorAutoStartHint": "Automatically start monitoring after a tab connects",
+  "monitorPanelDisplay": "Panel Display",
+  "monitorPanelDisplayHint": "Choose which monitoring metrics to show",
+  "monitorMemory": "Memory",
+  "monitorDisk": "Disk",
+  "monitorNetwork": "Network",
+  "monitorProcesses": "Processes",
+  "settingsLocalAiContextSize": "Context Window Size",
+  "settingsLocalAiContextSizeHint": "Unit: tokens",
+  "settingsLocalAiModelManagement": "Local Model Management",
+  "recordingDeleted": "Deleted",
+  "recordingDeleteFailed": "Delete failed: {error}",
+  "@recordingDeleteFailed": {
+    "placeholders": {
+      "error": {
+        "type": "String"
+      }
+    }
+  },
+  "recordingNoServer": "No linked server",
+  "recordingEmpty": "No recordings",
+  "recordingEmptyHint": "Enable recording in the terminal to collect session replays",
+  "recordingOpen": "Open",
+  "tabWorkspaceSftpLocalDisabled": "Local terminal does not support SFTP",
+  "tabWorkspaceTransfersLocalDisabled": "Local terminal does not support file transfer",
+  "tabWorkspaceNoTransfers": "No transfer tasks",
+  "aiCodeBlockRun": "Run"
 }

@@ -4,27 +4,30 @@ library;
 import 'package:flutter/material.dart';
 
 import '../../../design/colors.dart';
+import '../../../l10n/app_localizations.dart';
 
 /// Shows the "New File" dialog. Returns the file name or `null` if cancelled.
 Future<String?> showNewFileDialog(BuildContext context) {
+  final l10n = AppLocalizations.of(context);
   return showDialog<String>(
     context: context,
-    builder: (_) => const _NameDialog(
-      title: '新建文件',
-      hint: '文件名',
-      confirmLabel: '创建',
+    builder: (_) => _NameDialog(
+      title: l10n.sftpNewFile,
+      hint: l10n.sftpFileNameHint,
+      confirmLabel: l10n.sftpCreate,
     ),
   );
 }
 
 /// Shows the "New Folder" dialog. Returns the folder name or `null` if cancelled.
 Future<String?> showNewFolderDialog(BuildContext context) {
+  final l10n = AppLocalizations.of(context);
   return showDialog<String>(
     context: context,
-    builder: (_) => const _NameDialog(
-      title: '新建文件夹',
-      hint: '文件夹名',
-      confirmLabel: '创建',
+    builder: (_) => _NameDialog(
+      title: l10n.sftpNewFolder,
+      hint: l10n.sftpFolderNameHint,
+      confirmLabel: l10n.sftpCreate,
     ),
   );
 }
@@ -55,13 +58,14 @@ class _NameDialogState extends State<_NameDialog> {
   }
 
   void _submit() {
+    final l10n = AppLocalizations.of(context);
     final name = _ctrl.text.trim();
     if (name.isEmpty) {
-      setState(() => _error = '名称不能为空');
+      setState(() => _error = l10n.sftpRenameEmpty);
       return;
     }
     if (name.contains('/')) {
-      setState(() => _error = '名称不能包含 /');
+      setState(() => _error = l10n.sftpRenameSlash);
       return;
     }
     Navigator.of(context).pop(name);
@@ -95,7 +99,7 @@ class _NameDialogState extends State<_NameDialog> {
       actions: [
         TextButton(
           onPressed: () => Navigator.of(context).pop(),
-          child: const Text('取消'),
+          child: Text(AppLocalizations.of(context).sftpCancel),
         ),
         TextButton(
           onPressed: _submit,

@@ -6,6 +6,7 @@ import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 
 import '../../../design/tokens.dart';
+import '../../../l10n/app_localizations.dart';
 import '../../ai/local_ai/local_ai_panel.dart';
 import '../state/settings_provider.dart';
 import '../widgets/setting_row.dart';
@@ -17,12 +18,13 @@ class LocalAiTab extends ConsumerWidget {
   Widget build(BuildContext context, WidgetRef ref) {
     final settings = ref.watch(settingsProvider).settings;
     final notifier = ref.read(settingsProvider.notifier);
+    final l10n = AppLocalizations.of(context);
 
     return ListView(
       padding: const EdgeInsets.all(20),
       children: [
         SettingRow(
-          label: '服务端口',
+          label: l10n.settingsAiServerPort,
           child: _numberField(
             value: settings.localAiPort,
             onChanged: (v) =>
@@ -30,7 +32,7 @@ class LocalAiTab extends ConsumerWidget {
           ),
         ),
         SettingRow(
-          label: '推理线程数',
+          label: l10n.settingsAiInferenceThreads,
           child: _numberField(
             value: settings.localAiThreads,
             onChanged: (v) =>
@@ -38,8 +40,8 @@ class LocalAiTab extends ConsumerWidget {
           ),
         ),
         SettingRow(
-          label: '上下文窗口大小',
-          hint: '单位：token',
+          label: l10n.settingsLocalAiContextSize,
+          hint: l10n.settingsLocalAiContextSizeHint,
           child: _numberField(
             value: settings.localAiContextSize,
             onChanged: (v) =>
@@ -47,9 +49,9 @@ class LocalAiTab extends ConsumerWidget {
           ),
         ),
         const Divider(height: 32),
-        const Text(
-          '本地模型管理',
-          style: TextStyle(
+        Text(
+          l10n.settingsLocalAiModelManagement,
+          style: const TextStyle(
             fontSize: 13,
             fontWeight: FontWeight.w600,
             color: TermexColors.textPrimary,

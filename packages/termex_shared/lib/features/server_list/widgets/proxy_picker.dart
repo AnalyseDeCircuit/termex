@@ -4,6 +4,7 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 import '../../../design/colors.dart';
 import '../../../design/spacing.dart';
 import '../../../design/typography.dart';
+import '../../../l10n/app_localizations.dart';
 import '../../../widgets/bottom_sheet.dart';
 import '../../../widgets/button.dart';
 import '../../../widgets/list_item.dart';
@@ -62,17 +63,18 @@ class ProxyPicker extends ConsumerWidget {
 
   @override
   Widget build(BuildContext context, WidgetRef ref) {
+    final l10n = AppLocalizations.of(context);
     final proxies = ref.watch(_proxyListProvider);
     final selected = proxies.where((p) => p.id == selectedProxyId).firstOrNull;
 
     final subtitle = selectedProxyId == null
-        ? '不使用代理'
+        ? l10n.proxyNone
         : selected != null
             ? '${selected.type.label} — ${selected.host ?? ''}:${selected.port ?? ''}'
-            : '加载中…';
+            : l10n.proxyLoading;
 
     return TermexListItem(
-      title: '代理',
+      title: l10n.connectionProxy,
       subtitle: subtitle,
       trailing: _ChevronIcon(),
       onTap: () async {
@@ -119,6 +121,7 @@ class _ProxyPickerSheetState extends State<_ProxyPickerSheet> {
   Widget build(BuildContext context) {
     if (_showForm) return _NewProxyForm(onSave: widget.onCreateNew);
 
+    final l10n = AppLocalizations.of(context);
     final colors = TermexColorScheme.dark();
     return Padding(
       padding: const EdgeInsets.only(
@@ -133,13 +136,13 @@ class _ProxyPickerSheetState extends State<_ProxyPickerSheet> {
           Padding(
             padding: const EdgeInsets.symmetric(vertical: TermexSpacing.md),
             child: Text(
-              '选择代理',
+              l10n.proxySelect,
               style: TermexTypography.heading3.copyWith(color: colors.textPrimary),
               textAlign: TextAlign.center,
             ),
           ),
           TermexListItem(
-            title: '不使用代理',
+            title: l10n.proxyNone,
             selected: widget.currentId == null,
             onTap: () => widget.onPick(null),
           ),
@@ -152,7 +155,7 @@ class _ProxyPickerSheetState extends State<_ProxyPickerSheet> {
               )),
           const SizedBox(height: TermexSpacing.sm),
           TermexButton(
-            label: '+ 新建代理',
+            label: l10n.proxyAddNew,
             variant: ButtonVariant.ghost,
             onPressed: () => setState(() => _showForm = true),
           ),
@@ -214,6 +217,7 @@ class _NewProxyFormState extends State<_NewProxyForm> {
 
   @override
   Widget build(BuildContext context) {
+    final l10n = AppLocalizations.of(context);
     final colors = TermexColorScheme.dark();
     return SingleChildScrollView(
       padding: const EdgeInsets.only(
@@ -228,15 +232,15 @@ class _NewProxyFormState extends State<_NewProxyForm> {
           Padding(
             padding: const EdgeInsets.symmetric(vertical: TermexSpacing.md),
             child: Text(
-              '新建代理',
+              l10n.proxyNewTitle,
               style: TermexTypography.heading3.copyWith(color: colors.textPrimary),
               textAlign: TextAlign.center,
             ),
           ),
           TermexTextField(
             controller: _nameCtrl,
-            label: '代理名称',
-            placeholder: '我的代理',
+            label: l10n.connectionProxyName,
+            placeholder: l10n.proxyNamePlaceholder,
             onChanged: (_) => setState(() {}),
           ),
           const SizedBox(height: TermexSpacing.sm),
@@ -249,14 +253,14 @@ class _NewProxyFormState extends State<_NewProxyForm> {
             const SizedBox(height: TermexSpacing.sm),
             TermexTextField(
               controller: _hostCtrl,
-              label: '主机',
+              label: l10n.connectionHost,
               placeholder: '127.0.0.1',
               onChanged: (_) => setState(() {}),
             ),
             const SizedBox(height: TermexSpacing.sm),
             TermexTextField(
               controller: _portCtrl,
-              label: '端口',
+              label: l10n.connectionPort,
               placeholder: '1080',
               keyboardType: const TextInputType.numberWithOptions(),
               onChanged: (_) => setState(() {}),
@@ -264,13 +268,13 @@ class _NewProxyFormState extends State<_NewProxyForm> {
             const SizedBox(height: TermexSpacing.sm),
             TermexTextField(
               controller: _userCtrl,
-              label: '用户名（可选）',
+              label: l10n.proxyUsernameOptional,
               placeholder: '',
             ),
             const SizedBox(height: TermexSpacing.sm),
             TermexTextField(
               controller: _passCtrl,
-              label: '密码（可选）',
+              label: l10n.proxyPasswordOptional,
               placeholder: '',
               obscureText: true,
             ),
@@ -279,14 +283,14 @@ class _NewProxyFormState extends State<_NewProxyForm> {
             const SizedBox(height: TermexSpacing.sm),
             Text(
               _type == ProxyType.cloudflareWarp
-                  ? '将通过本机 Cloudflare WARP 客户端路由连接。'
-                  : '将通过本机 Tor 网络路由连接。注意：上架时需在隐私声明中说明。',
+                  ? l10n.proxyWarpHint
+                  : l10n.proxyTorHint,
               style: TermexTypography.bodySmall.copyWith(color: colors.textMuted),
             ),
           ],
           const SizedBox(height: TermexSpacing.md),
           TermexButton(
-            label: '保存代理',
+            label: l10n.proxySave,
             variant: ButtonVariant.primary,
             onPressed: _canSave ? _save : null,
           ),

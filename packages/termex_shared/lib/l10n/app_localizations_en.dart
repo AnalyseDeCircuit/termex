@@ -3757,4 +3757,964 @@ class AppLocalizationsEn extends AppLocalizations {
 
   @override
   String get keybindingsUntranslated => '(untranslated)';
+
+  @override
+  String get settingsTerminalScrollback => 'Scrollback lines';
+
+  @override
+  String get settingsTerminalScrollbackHint =>
+      'Maximum number of history lines to keep for scrollback';
+
+  @override
+  String settingsTerminalLinesOption(String count) {
+    return '$count lines';
+  }
+
+  @override
+  String get settingsTerminalTabWidth => 'Tab width';
+
+  @override
+  String settingsTerminalSpacesOption(String count) {
+    return '$count spaces';
+  }
+
+  @override
+  String get settingsTerminalCursorShape => 'Cursor shape';
+
+  @override
+  String get settingsTerminalCursorBlock => 'Block';
+
+  @override
+  String get settingsTerminalCursorUnderline => 'Underline';
+
+  @override
+  String get settingsTerminalCursorBar => 'Bar';
+
+  @override
+  String get settingsTerminalCursorBlink => 'Cursor blink';
+
+  @override
+  String get settingsTerminalTmux => 'Tmux multiplexing';
+
+  @override
+  String get settingsTerminalTmuxHint =>
+      'Detect remote tmux sessions and show them in the status bar';
+
+  @override
+  String get settingsAiAllConfigured => 'All providers are already configured';
+
+  @override
+  String get settingsAiContextLines => 'Default context lines';
+
+  @override
+  String get settingsAiContextLinesHint =>
+      'Maximum terminal history lines sent to the AI';
+
+  @override
+  String get settingsAiAutoDiagnose => 'Auto error diagnosis';
+
+  @override
+  String get settingsAiAutoDiagnoseHint =>
+      'Automatically run AI analysis when a command fails';
+
+  @override
+  String settingsAiRemoveProviderTitle(String name) {
+    return 'Remove $name?';
+  }
+
+  @override
+  String settingsAiRemoveProviderHint(String name) {
+    return 'Removes the local configuration for $name (the API key stays in the OS keychain and is reloaded automatically when you configure it again).';
+  }
+
+  @override
+  String get settingsAiRemove => 'Remove';
+
+  @override
+  String get settingsAiEmptyTitle => 'No AI provider configured yet';
+
+  @override
+  String get settingsAiEmptyHint =>
+      'Click “Add Provider” at the top right to get started';
+
+  @override
+  String get settingsAiBadgeActive => 'Active';
+
+  @override
+  String get settingsAiBadgeConfigured => 'Configured';
+
+  @override
+  String get settingsAiActivate => 'Activate';
+
+  @override
+  String get settingsAiCollapse => 'Collapse';
+
+  @override
+  String get settingsAiConfigure => 'Configure';
+
+  @override
+  String get settingsAiAddProvider => 'Add Provider';
+
+  @override
+  String get settingsAiPricingTitle => 'AI cost estimation price list';
+
+  @override
+  String settingsAiPricingUpdated(String iso, String age) {
+    return 'Updated $iso · $age';
+  }
+
+  @override
+  String get settingsAiPricingStale => ' · refresh recommended';
+
+  @override
+  String get settingsAiPricingDateUnknown => 'date unknown';
+
+  @override
+  String get settingsAiPricingToday => 'updated today';
+
+  @override
+  String settingsAiPricingDaysAgo(String count) {
+    return '$count days ago';
+  }
+
+  @override
+  String get settingsKeybindingsResetTitle => 'Restore default shortcuts?';
+
+  @override
+  String get settingsKeybindingsResetBody =>
+      'All custom shortcuts will be overwritten with the factory defaults.';
+
+  @override
+  String get settingsKeybindingsReset => 'Restore';
+
+  @override
+  String get settingsKeybindingsColCommand => 'Command';
+
+  @override
+  String get settingsKeybindingsColShortcut => 'Shortcut';
+
+  @override
+  String get settingsKeybindingsColContext => 'Context';
+
+  @override
+  String get settingsKeybindingsResetTooltip => 'Restore defaults';
+
+  @override
+  String get gitConflictTitle => '⚠ Git Sync conflict';
+
+  @override
+  String get gitConflictFilesLabel => 'The following files have conflicts:';
+
+  @override
+  String get gitConflictStrategyLabel => 'Choose a resolution strategy:';
+
+  @override
+  String get gitConflictResolveInTerminal => 'Resolve in terminal';
+
+  @override
+  String get gitConflictUseRemote => 'Use remote';
+
+  @override
+  String get gitConflictKeepLocal => 'Keep local';
+
+  @override
+  String sftpChmodTitleNamed(String name) {
+    return 'Change permissions: $name';
+  }
+
+  @override
+  String get sftpChmodOwner => 'Owner';
+
+  @override
+  String get sftpChmodGroup => 'Group';
+
+  @override
+  String get sftpChmodOthers => 'Others';
+
+  @override
+  String get sftpChmodOctalShort => 'Octal';
+
+  @override
+  String get sftpChmodRead => 'Read';
+
+  @override
+  String get sftpChmodWrite => 'Write';
+
+  @override
+  String get sftpChmodExec => 'Execute';
+
+  @override
+  String get sftpRenameEmpty => 'Name cannot be empty';
+
+  @override
+  String get sftpRenameSlash => 'Name cannot contain /';
+
+  @override
+  String get sftpRenameNewName => 'New name';
+
+  @override
+  String get settingsHighlightsTitle => 'Keyword highlighting';
+
+  @override
+  String get settingsHighlightsLoadPresets => 'Load presets';
+
+  @override
+  String get settingsHighlightsAddRule => '+ Add rule';
+
+  @override
+  String get settingsHighlightsEmpty => 'No highlight rules configured yet';
+
+  @override
+  String get settingsHighlightsPatternHint => 'Keyword / regex';
+
+  @override
+  String get settingsHighlightsRegex => 'Regex';
+
+  @override
+  String get settingsHighlightsCaseSensitive => 'Case sensitive';
+
+  @override
+  String get settingsHighlightsBgColor => 'Background color';
+
+  @override
+  String get settingsHighlightsFgColor =>
+      'Foreground color (empty = follow theme)';
+
+  @override
+  String get settingsHighlightsEnabled => 'Enabled';
+
+  @override
+  String get settingsHighlightsColorInputHint =>
+      'Enter a hex color (e.g. #6366F1)';
+
+  @override
+  String get settingsHighlightsColorClear => 'Clear';
+
+  @override
+  String get settingsHighlightsColorConfirm => 'OK';
+
+  @override
+  String get settingsPrivacyClearHistoryTitle => 'Clear history data';
+
+  @override
+  String get settingsPrivacyClearHistoryHint =>
+      'Keeps account settings and credentials; only clears the corresponding history.';
+
+  @override
+  String get settingsPrivacyClearConnections =>
+      'Clear recent connection history';
+
+  @override
+  String get settingsPrivacyClearConnectionsMsg =>
+      'This will delete all \"recent connections\" records. Saved server configurations are not affected.';
+
+  @override
+  String get settingsPrivacyClearedConnections => 'Connection history cleared';
+
+  @override
+  String get settingsPrivacyClearAi => 'Clear AI conversation history';
+
+  @override
+  String get settingsPrivacyClearAiMsg =>
+      'This will permanently delete all AI conversations and messages. Provider configs / API keys are kept.';
+
+  @override
+  String get settingsPrivacyClearedAi => 'AI conversation history cleared';
+
+  @override
+  String get settingsPrivacyClearSnippet => 'Clear snippet usage stats';
+
+  @override
+  String get settingsPrivacyClearSnippetMsg =>
+      'This will reset the usage count of all snippets. The snippets themselves are kept.';
+
+  @override
+  String get settingsPrivacyClearedSnippet => 'Usage stats cleared';
+
+  @override
+  String get settingsPrivacyGdprTitle => 'GDPR data erasure';
+
+  @override
+  String get settingsPrivacyGdprHint =>
+      'Permanently delete all local data (server configs, credentials, conversations, settings). This action cannot be undone.';
+
+  @override
+  String get settingsPrivacyGdprButton => 'Erase all data';
+
+  @override
+  String get settingsPrivacyConfirmClear => 'Clear';
+
+  @override
+  String get settingsPrivacyGdprDialogTitle => 'Confirm erasing all data';
+
+  @override
+  String get settingsPrivacyGdprDialogBody =>
+      'This action will permanently delete all data and cannot be undone.\nEnter your master password and type \"DELETE ALL\" to confirm.';
+
+  @override
+  String get settingsPrivacyMasterPassword => 'Master password';
+
+  @override
+  String get settingsPrivacyConfirmTextLabel => 'Confirmation text';
+
+  @override
+  String get settingsPrivacyErase => 'Erase';
+
+  @override
+  String get settingsPrivacyEraseError =>
+      'Confirmation text is incorrect or the master password is wrong';
+
+  @override
+  String get settingsPrivacyErased => 'Data erased';
+
+  @override
+  String get settingsSecurityLoading => 'Loading…';
+
+  @override
+  String get settingsSecurityLoadError => 'Unable to read security status';
+
+  @override
+  String get settingsSecurityProtectionTitle => 'Key protection mode';
+
+  @override
+  String settingsSecurityProtectionActive(String platform) {
+    return 'Credentials are securely stored using $platform. Termex reads the master key entry only once at startup.';
+  }
+
+  @override
+  String get settingsSecurityProtectionFallback =>
+      'System keychain unavailable; fell back to local encryption (AES-256-GCM + Argon2id).';
+
+  @override
+  String get settingsSecuritySavedCredentials => 'Saved credentials';
+
+  @override
+  String get settingsSecurityCredentialTypes =>
+      'Includes SSH passwords, SSH private key passphrases, AI provider API keys';
+
+  @override
+  String get settingsSecurityHowItWorks => 'How it works';
+
+  @override
+  String get settingsSecurityHint1 =>
+      'Credentials are never written to the database in plaintext — only a reference ID from the system keychain is stored';
+
+  @override
+  String get settingsSecurityHint2 =>
+      'The master key entry is read only once per startup, avoiding repeated system password prompts';
+
+  @override
+  String get settingsSecurityHint3 =>
+      'GDPR data erasure also clears all Termex entries in the keychain';
+
+  @override
+  String get auditDetailTitle => 'Audit Detail';
+
+  @override
+  String get auditFieldEventType => 'Event Type';
+
+  @override
+  String get auditFieldTime => 'Time';
+
+  @override
+  String get auditFieldDetail => 'Detail';
+
+  @override
+  String get auditCopyDetail => 'Copy Detail';
+
+  @override
+  String get auditKpiTotal => 'Total';
+
+  @override
+  String get auditKpiConnections => 'Connections';
+
+  @override
+  String get auditKpiCredentialAccess => 'Credential Access';
+
+  @override
+  String get auditKpiConfigChanges => 'Config Changes';
+
+  @override
+  String get auditKpiMemberOps => 'Member Ops';
+
+  @override
+  String get auditColEvent => 'Event';
+
+  @override
+  String get auditPagerPrev => 'Previous';
+
+  @override
+  String get auditPagerNext => 'Next';
+
+  @override
+  String get auditEmptyTitle => 'No audit logs';
+
+  @override
+  String get auditEmptyHint =>
+      'SSH connections, settings changes, or team operations will be written to the audit log';
+
+  @override
+  String get auditExport => 'Export';
+
+  @override
+  String get auditExportCsv => 'Export CSV';
+
+  @override
+  String get auditExportJson => 'Export JSON';
+
+  @override
+  String auditExported(String path) {
+    return 'Exported $path';
+  }
+
+  @override
+  String auditExportFailed(String error) {
+    return 'Export failed: $error';
+  }
+
+  @override
+  String get auditLabelDate => 'Date: ';
+
+  @override
+  String get auditLabelEvent => 'Event: ';
+
+  @override
+  String get auditRangeToday => 'Today';
+
+  @override
+  String get auditRangeWeek => 'This Week';
+
+  @override
+  String get auditRangeMonth => 'This Month';
+
+  @override
+  String get auditRangeAll => 'All';
+
+  @override
+  String snippetUsageTimes(int count) {
+    return '$count times';
+  }
+
+  @override
+  String get snippetCopy => 'Copy';
+
+  @override
+  String get snippetCopiedToClipboard => 'Copied to clipboard';
+
+  @override
+  String get snippetDeleteTitle => 'Delete Snippet';
+
+  @override
+  String snippetDeleteConfirmNamed(String title) {
+    return 'Delete “$title”?';
+  }
+
+  @override
+  String get snippetNewTitle => 'New Snippet';
+
+  @override
+  String get snippetEditSnippet => 'Edit Snippet';
+
+  @override
+  String get snippetNamePlaceholder => 'Snippet name';
+
+  @override
+  String get snippetTagsCommaLabel => 'Tags (comma-separated)';
+
+  @override
+  String get snippetTagsPlaceholderExample => 'ssh, common, docker';
+
+  @override
+  String get snippetContentLabel =>
+      'Command (use ｛｛name:default｝｝ to insert a variable)';
+
+  @override
+  String snippetVariableTitleNamed(String title) {
+    return 'Fill variables — $title';
+  }
+
+  @override
+  String get snippetPreview => 'Preview';
+
+  @override
+  String get snippetConfirmExecute => 'Confirm & Run';
+
+  @override
+  String snippetVariableDefault(String value) {
+    return 'Default: $value';
+  }
+
+  @override
+  String get snippetVariableInputHint => 'Enter a value';
+
+  @override
+  String get snippetSearchPlaceholder => 'Search snippets…';
+
+  @override
+  String get snippetNoMatch => 'No matching snippets';
+
+  @override
+  String get sftpPath => 'Path';
+
+  @override
+  String get sftpOwner => 'Owner';
+
+  @override
+  String get sftpGroup => 'Group';
+
+  @override
+  String sftpSizeBytes(int bytes) {
+    return '$bytes bytes';
+  }
+
+  @override
+  String get sftpFileNameHint => 'File name';
+
+  @override
+  String get sftpFolderNameHint => 'Folder name';
+
+  @override
+  String get sftpCreate => 'Create';
+
+  @override
+  String sftpEditorTooLarge(String size) {
+    return 'File too large ($size); use scp to download and edit locally.';
+  }
+
+  @override
+  String get sftpEditorBinary =>
+      'Binary content detected; cannot use the inline editor.';
+
+  @override
+  String sftpEditorReadFailed(String error) {
+    return 'Read failed: $error';
+  }
+
+  @override
+  String sftpEditorSaveFailed(String error) {
+    return 'Save failed: $error';
+  }
+
+  @override
+  String get sftpEditorModified => 'Modified';
+
+  @override
+  String get sftpTransferResume => 'Resume';
+
+  @override
+  String get sftpTransferPause => 'Pause';
+
+  @override
+  String get sftpTransferDone => 'Done';
+
+  @override
+  String sftpTransferFailed(String error) {
+    return 'Failed: $error';
+  }
+
+  @override
+  String get sftpTransferCancelled => 'Cancelled';
+
+  @override
+  String get sftpTransferPaused => 'Paused';
+
+  @override
+  String get aiConversationsTitle => 'Conversations';
+
+  @override
+  String get aiConversationEmpty => 'Tap + to start a new conversation';
+
+  @override
+  String get aiRenameConversation => 'Rename Conversation';
+
+  @override
+  String get aiRenameHint => 'Enter a new title';
+
+  @override
+  String get aiModelListLoading => 'Loading model list…';
+
+  @override
+  String get aiDeleteModelTitle => 'Delete Model';
+
+  @override
+  String aiDeleteModelConfirm(String name) {
+    return 'Delete $name?';
+  }
+
+  @override
+  String get localAiRunning => 'Running';
+
+  @override
+  String get localAiStart => 'Start';
+
+  @override
+  String localAiDownloadWithSize(String size) {
+    return 'Download ($size)';
+  }
+
+  @override
+  String get aiNl2cmdTitle => 'Natural Language → Command';
+
+  @override
+  String get aiNl2cmdHint =>
+      'Describe what you want to do, e.g. find files larger than 100MB';
+
+  @override
+  String get aiNl2cmdSent => '(Sent to AI conversation)';
+
+  @override
+  String get aiNl2cmdGenerate => 'Generate';
+
+  @override
+  String settingsAiConfigureTitle(String name) {
+    return 'Configure $name';
+  }
+
+  @override
+  String get settingsAiTerminalContextLines => 'Terminal context lines';
+
+  @override
+  String settingsAiLinesUnit(int count) {
+    return '$count lines';
+  }
+
+  @override
+  String get settingsAiVerify => 'Verify';
+
+  @override
+  String get settingsAiSelectModelError => 'Please select a model';
+
+  @override
+  String get settingsAiApiKeyRequired => 'Please enter an API Key';
+
+  @override
+  String get settingsAiVerifySuccess => 'Verification succeeded';
+
+  @override
+  String get settingsAiVerifyFailed => 'Verification failed';
+
+  @override
+  String get settingsAiLlamaEngine => 'llama-server engine';
+
+  @override
+  String get settingsAiServerPort => 'Server port';
+
+  @override
+  String get settingsAiInferenceThreads => 'Inference threads';
+
+  @override
+  String get settingsAiContextWindow => 'Context window (tokens)';
+
+  @override
+  String get settingsAiAutoStartEngine => 'Auto-start engine on launch';
+
+  @override
+  String teamSyncDoneCount(int count) {
+    return 'Sync complete ($count changes)';
+  }
+
+  @override
+  String teamSyncFailed(String error) {
+    return 'Sync failed: $error';
+  }
+
+  @override
+  String get teamApplied => 'Applied';
+
+  @override
+  String teamResolveFailed(String error) {
+    return 'Resolve failed: $error';
+  }
+
+  @override
+  String get teamRoleUpdated => 'Role updated';
+
+  @override
+  String teamUpdateFailed(String error) {
+    return 'Update failed: $error';
+  }
+
+  @override
+  String get teamRemoved => 'Removed';
+
+  @override
+  String teamRemoveFailed(String error) {
+    return 'Remove failed: $error';
+  }
+
+  @override
+  String get teamWorkspace => 'Team Workspace';
+
+  @override
+  String teamMemberBadge(int count) {
+    return '$count members';
+  }
+
+  @override
+  String teamConflictBadge(int count) {
+    return '$count conflicts';
+  }
+
+  @override
+  String get teamChangePassphrase => 'Change Passphrase';
+
+  @override
+  String get teamNoMembers =>
+      'No members yet (generate an invite code to add them)';
+
+  @override
+  String get teamUnnamed => '(Unnamed)';
+
+  @override
+  String get teamPendingConflicts => 'Pending sync conflicts';
+
+  @override
+  String teamConflictServerField(String serverId, String field) {
+    return 'Server $serverId · Field $field';
+  }
+
+  @override
+  String get teamConflictLocal => 'Local';
+
+  @override
+  String get teamConflictRemote => 'Remote';
+
+  @override
+  String get teamUseThisValue => 'Use this value';
+
+  @override
+  String get teamInviteNewMember => 'Invite New Member';
+
+  @override
+  String get teamInviteDesc =>
+      'Generate a one-time invite code for the new member (valid for 72 hours).';
+
+  @override
+  String get teamGenerateHint =>
+      'Click the button below to generate an invite code.';
+
+  @override
+  String get teamGenerating => 'Generating…';
+
+  @override
+  String teamExpiresAt(String time) {
+    return 'Expires: $time';
+  }
+
+  @override
+  String get teamVerifyPassphraseTitle => 'Verify Team Passphrase';
+
+  @override
+  String get teamVerifyPassphraseDesc =>
+      'Enter the team encryption passphrase to verify this session.';
+
+  @override
+  String get teamPassphrasePlaceholder => 'Passphrase';
+
+  @override
+  String get teamVerify => 'Verify';
+
+  @override
+  String get teamPassphraseIncorrect => 'Incorrect passphrase';
+
+  @override
+  String get teamVerifyPassed => 'Verified';
+
+  @override
+  String teamVerifyFailed(String error) {
+    return 'Verification failed: $error';
+  }
+
+  @override
+  String get teamLoadFailed => 'Failed to load team info';
+
+  @override
+  String get proxyNone => 'No proxy';
+
+  @override
+  String get proxyLoading => 'Loading…';
+
+  @override
+  String get proxySelect => 'Select proxy';
+
+  @override
+  String get proxyAddNew => '+ New proxy';
+
+  @override
+  String get proxyNewTitle => 'New proxy';
+
+  @override
+  String get proxyNamePlaceholder => 'My proxy';
+
+  @override
+  String get proxyUsernameOptional => 'Username (optional)';
+
+  @override
+  String get proxyPasswordOptional => 'Password (optional)';
+
+  @override
+  String get proxyWarpHint =>
+      'Connections will be routed through the local Cloudflare WARP client.';
+
+  @override
+  String get proxyTorHint =>
+      'Connections will be routed through the local Tor network. Note: this must be disclosed in the privacy statement when publishing.';
+
+  @override
+  String get proxySave => 'Save proxy';
+
+  @override
+  String get serverUnshareFromTeam => 'Unshare from team';
+
+  @override
+  String get serverShareToTeam => 'Share to team';
+
+  @override
+  String get serverUnsharedFromTeamToast => 'Unshared from team';
+
+  @override
+  String get serverSharedToTeam => 'Shared to team';
+
+  @override
+  String get serverUnshareAction => 'Unshare';
+
+  @override
+  String get serverShareAction => 'Share';
+
+  @override
+  String serverActionFailed(String action, String error) {
+    return '$action failed: $error';
+  }
+
+  @override
+  String get serverBadgeProxyTooltip => 'Network proxy configured';
+
+  @override
+  String get serverBadgeBastionTooltip => 'Connected via bastion';
+
+  @override
+  String get sftpCancelEdit => 'Cancel edit';
+
+  @override
+  String get settingsAppearanceLight => 'Light';
+
+  @override
+  String get settingsAppearanceDark => 'Dark';
+
+  @override
+  String get settingsAppearanceColorScheme => 'Terminal Color Scheme';
+
+  @override
+  String get settingsAppearanceFontSize => 'Font Size';
+
+  @override
+  String get settingsAppearanceChinese => '中文';
+
+  @override
+  String get updateDialogTitle => 'Check for Updates';
+
+  @override
+  String get updateInProgress => 'Checking for updates…';
+
+  @override
+  String get updateUpToDateTitle => 'You\'re up to date';
+
+  @override
+  String updateUpToDateDetail(String version, String channel) {
+    return 'Version v$version is the latest release on the $channel channel.';
+  }
+
+  @override
+  String get updateCheckFailedTitle => 'Check failed';
+
+  @override
+  String updateNewVersionTitle(String version) {
+    return 'New version v$version';
+  }
+
+  @override
+  String get updateNoReleaseNotes => '(No release notes)';
+
+  @override
+  String get updateViewDownloadPage => 'View download page';
+
+  @override
+  String get updateRecheck => 'Check again';
+
+  @override
+  String get monitorSampleInterval => 'Sample Interval';
+
+  @override
+  String get monitorSampleIntervalHint =>
+      'Refresh rate for each monitoring metric';
+
+  @override
+  String get monitorAutoStartLabel => 'Auto-start';
+
+  @override
+  String get monitorAutoStartHint =>
+      'Automatically start monitoring after a tab connects';
+
+  @override
+  String get monitorPanelDisplay => 'Panel Display';
+
+  @override
+  String get monitorPanelDisplayHint =>
+      'Choose which monitoring metrics to show';
+
+  @override
+  String get monitorMemory => 'Memory';
+
+  @override
+  String get monitorDisk => 'Disk';
+
+  @override
+  String get monitorNetwork => 'Network';
+
+  @override
+  String get monitorProcesses => 'Processes';
+
+  @override
+  String get settingsLocalAiContextSize => 'Context Window Size';
+
+  @override
+  String get settingsLocalAiContextSizeHint => 'Unit: tokens';
+
+  @override
+  String get settingsLocalAiModelManagement => 'Local Model Management';
+
+  @override
+  String get recordingDeleted => 'Deleted';
+
+  @override
+  String recordingDeleteFailed(String error) {
+    return 'Delete failed: $error';
+  }
+
+  @override
+  String get recordingNoServer => 'No linked server';
+
+  @override
+  String get recordingEmpty => 'No recordings';
+
+  @override
+  String get recordingEmptyHint =>
+      'Enable recording in the terminal to collect session replays';
+
+  @override
+  String get recordingOpen => 'Open';
+
+  @override
+  String get tabWorkspaceSftpLocalDisabled =>
+      'Local terminal does not support SFTP';
+
+  @override
+  String get tabWorkspaceTransfersLocalDisabled =>
+      'Local terminal does not support file transfer';
+
+  @override
+  String get tabWorkspaceNoTransfers => 'No transfer tasks';
+
+  @override
+  String get aiCodeBlockRun => 'Run';
 }

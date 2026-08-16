@@ -5,8 +5,11 @@
 # Exit code 0 = OK; exit code 1 = mismatch found.
 set -euo pipefail
 
-ZH="app/lib/l10n/app_zh.arb"
-EN="app/lib/l10n/app_en.arb"
+# v0.79.0: ARB files live in the shared package (moved out of app/ during
+# the v0.69 restructure). The old app/lib/l10n/ path no longer exists, so
+# this check had been silently exiting 2 in CI.
+ZH="packages/termex_shared/lib/l10n/app_zh.arb"
+EN="packages/termex_shared/lib/l10n/app_en.arb"
 
 if [[ ! -f "$ZH" || ! -f "$EN" ]]; then
   echo "❌ ARB files not found. Run from the repository root." >&2

@@ -14,6 +14,7 @@ import 'package:flutter/material.dart';
 import 'package:termex_bridge/src/api.dart' as bridge;
 
 import '../../../design/colors.dart';
+import '../../../l10n/app_localizations.dart';
 
 const int _maxBytes = 1024 * 1024; // 1 MiB
 const int _binaryProbeBytes = 1024;
@@ -72,10 +73,11 @@ class _FileEditorDialogState extends State<_FileEditorDialog> {
   }
 
   Future<void> _loadFile() async {
+    final l10n = AppLocalizations.of(context);
     if (widget.fileSize > _maxBytes) {
       setState(() {
         _loading = false;
-        _errorMessage = '文件过大（${_formatSize(widget.fileSize)}），请用 scp 下载到本地编辑。';
+        _errorMessage = l10n.sftpEditorTooLarge(_formatSize(widget.fileSize));
       });
       return;
     }
@@ -92,7 +94,7 @@ class _FileEditorDialogState extends State<_FileEditorDialog> {
       if (probe.contains(0)) {
         setState(() {
           _loading = false;
-          _errorMessage = '检测到二进制内容，无法使用内联编辑器编辑。';
+          _errorMessage = l10n.sftpEditorBinary;
         });
         return;
       }
@@ -102,12 +104,13 @@ class _FileEditorDialogState extends State<_FileEditorDialog> {
     } catch (e) {
       setState(() {
         _loading = false;
-        _errorMessage = '读取失败：$e';
+        _errorMessage = l10n.sftpEditorReadFailed(e.toString());
       });
     }
   }
 
   Future<void> _save() async {
+    final l10n = AppLocalizations.of(context);
     setState(() => _saving = true);
     try {
       final bytes = utf8.encode(_controller.text);
@@ -124,7 +127,7 @@ class _FileEditorDialogState extends State<_FileEditorDialog> {
     } catch (e) {
       setState(() {
         _saving = false;
-        _errorMessage = '保存失败：$e';
+        _errorMessage = l10n.sftpEditorSaveFailed(e.toString());
       });
     }
   }
@@ -154,6 +157,7 @@ class _FileEditorDialogState extends State<_FileEditorDialog> {
   }
 
   Widget _buildTitleBar(String fileName) {
+    final l10n = AppLocalizations.of(context);
     return Padding(
       padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 10),
       child: Row(
@@ -172,11 +176,12 @@ class _FileEditorDialogState extends State<_FileEditorDialog> {
             ),
           ),
           if (_modified)
-            const Padding(
-              padding: EdgeInsets.only(right: 8),
+            Padding(
+              padding: const EdgeInsets.only(right: 8),
               child: Text(
-                '已修改',
-                style: TextStyle(color: TermexColors.warning, fontSize: 11),
+                l10n.sftpEditorModified,
+                style: const TextStyle(
+                    color: TermexColors.warning, fontSize: 11),
               ),
             ),
           Text(
@@ -248,6 +253,7 @@ class _FileEditorDialogState extends State<_FileEditorDialog> {
   }
 
   Widget _buildFooter() {
+    final l10n = AppLocalizations.of(context);
     return Padding(
       padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 8),
       child: Row(
@@ -255,8 +261,8 @@ class _FileEditorDialogState extends State<_FileEditorDialog> {
         children: [
           TextButton(
             onPressed: _saving ? null : () => Navigator.pop(context),
-            child: const Text('取消',
-                style: TextStyle(color: TermexColors.textMuted)),
+            child: Text(l10n.sftpCancel,
+                style: const TextStyle(color: TermexColors.textMuted)),
           ),
           const SizedBox(width: 8),
           TextButton(
@@ -268,8 +274,8 @@ class _FileEditorDialogState extends State<_FileEditorDialog> {
                     child: CircularProgressIndicator(
                         strokeWidth: 2, color: TermexColors.primary),
                   )
-                : const Text('保存',
-                    style: TextStyle(color: TermexColors.primary)),
+                : Text(l10n.commonSave,
+                    style: const TextStyle(color: TermexColors.primary)),
           ),
         ],
       ),

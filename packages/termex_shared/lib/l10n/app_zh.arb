@@ -177,80 +177,258 @@
   "taskHistoryActionClearAll": "清空全部",
   "taskHistoryDeleteConfirmTitle": "删除任务？",
   "taskHistoryDeleteConfirmBody": "将「{title}」从历史中移除，操作不可撤销。",
-  "@taskHistoryDeleteConfirmBody": {"placeholders": {"title": {"type": "String"}}},
+  "@taskHistoryDeleteConfirmBody": {
+    "placeholders": {
+      "title": {
+        "type": "String"
+      }
+    }
+  },
   "taskHistoryClearAllConfirmTitle": "清空所有任务？",
   "taskHistoryClearAllConfirmBody": "将清除全部 {count} 条记录，操作不可撤销。",
-  "@taskHistoryClearAllConfirmBody": {"placeholders": {"count": {"type": "int"}}},
+  "@taskHistoryClearAllConfirmBody": {
+    "placeholders": {
+      "count": {
+        "type": "int"
+      }
+    }
+  },
   "taskSftpUploadSucceededTitle": "已上传 {fileName}",
-  "@taskSftpUploadSucceededTitle": {"placeholders": {"fileName": {"type": "String"}}},
+  "@taskSftpUploadSucceededTitle": {
+    "placeholders": {
+      "fileName": {
+        "type": "String"
+      }
+    }
+  },
   "taskSftpDownloadSucceededTitle": "已下载 {fileName}",
-  "@taskSftpDownloadSucceededTitle": {"placeholders": {"fileName": {"type": "String"}}},
+  "@taskSftpDownloadSucceededTitle": {
+    "placeholders": {
+      "fileName": {
+        "type": "String"
+      }
+    }
+  },
   "taskSftpUploadFailedTitle": "上传失败：{fileName}",
-  "@taskSftpUploadFailedTitle": {"placeholders": {"fileName": {"type": "String"}}},
+  "@taskSftpUploadFailedTitle": {
+    "placeholders": {
+      "fileName": {
+        "type": "String"
+      }
+    }
+  },
   "taskSftpDownloadFailedTitle": "下载失败：{fileName}",
-  "@taskSftpDownloadFailedTitle": {"placeholders": {"fileName": {"type": "String"}}},
+  "@taskSftpDownloadFailedTitle": {
+    "placeholders": {
+      "fileName": {
+        "type": "String"
+      }
+    }
+  },
   "taskSftpUploadCancelledTitle": "上传已取消：{fileName}",
-  "@taskSftpUploadCancelledTitle": {"placeholders": {"fileName": {"type": "String"}}},
+  "@taskSftpUploadCancelledTitle": {
+    "placeholders": {
+      "fileName": {
+        "type": "String"
+      }
+    }
+  },
   "taskSftpDownloadCancelledTitle": "下载已取消：{fileName}",
-  "@taskSftpDownloadCancelledTitle": {"placeholders": {"fileName": {"type": "String"}}},
+  "@taskSftpDownloadCancelledTitle": {
+    "placeholders": {
+      "fileName": {
+        "type": "String"
+      }
+    }
+  },
   "taskSftpUploadSucceededBody": "上传完成（{size}）",
-  "@taskSftpUploadSucceededBody": {"placeholders": {"size": {"type": "String"}}},
+  "@taskSftpUploadSucceededBody": {
+    "placeholders": {
+      "size": {
+        "type": "String"
+      }
+    }
+  },
   "taskSftpDownloadSucceededBody": "下载完成（{size}）",
-  "@taskSftpDownloadSucceededBody": {"placeholders": {"size": {"type": "String"}}},
+  "@taskSftpDownloadSucceededBody": {
+    "placeholders": {
+      "size": {
+        "type": "String"
+      }
+    }
+  },
   "taskSftpFailedBody": "{action}失败 — {error}",
-  "@taskSftpFailedBody": {"placeholders": {"action": {"type": "String"}, "error": {"type": "String"}}},
+  "@taskSftpFailedBody": {
+    "placeholders": {
+      "action": {
+        "type": "String"
+      },
+      "error": {
+        "type": "String"
+      }
+    }
+  },
   "taskSftpCancelledBody": "{action}于 {transferred} / {total} 时取消",
-  "@taskSftpCancelledBody": {"placeholders": {"action": {"type": "String"}, "transferred": {"type": "String"}, "total": {"type": "String"}}},
+  "@taskSftpCancelledBody": {
+    "placeholders": {
+      "action": {
+        "type": "String"
+      },
+      "transferred": {
+        "type": "String"
+      },
+      "total": {
+        "type": "String"
+      }
+    }
+  },
   "taskSftpActionUpload": "上传",
   "taskSftpActionDownload": "下载",
   "taskPollerSummarySucceeded": "任务成功完成",
   "taskPollerSummaryFailed": "任务失败",
   "taskPollerSummaryFailedWithExit": "任务失败（退出码 {exitCode}）",
-  "@taskPollerSummaryFailedWithExit": {"placeholders": {"exitCode": {"type": "int"}}},
+  "@taskPollerSummaryFailedWithExit": {
+    "placeholders": {
+      "exitCode": {
+        "type": "int"
+      }
+    }
+  },
   "taskPollerSummaryCancelled": "任务已取消",
   "taskPollerSummaryRunning": "任务已启动",
   "taskPollerSummaryPending": "任务排队中",
   "taskPollerSummaryAwaitingConfirmation": "任务等待确认",
   "taskAiSucceededTitle": "AI 回复（{model}）",
-  "@taskAiSucceededTitle": {"placeholders": {"model": {"type": "String"}}},
+  "@taskAiSucceededTitle": {
+    "placeholders": {
+      "model": {
+        "type": "String"
+      }
+    }
+  },
   "taskAiSucceededTitleWithConversation": "{conversation} — 来自 {model} 的回复",
-  "@taskAiSucceededTitleWithConversation": {"placeholders": {"conversation": {"type": "String"}, "model": {"type": "String"}}},
+  "@taskAiSucceededTitleWithConversation": {
+    "placeholders": {
+      "conversation": {
+        "type": "String"
+      },
+      "model": {
+        "type": "String"
+      }
+    }
+  },
   "taskAiFailedTitle": "AI 生成失败",
   "taskAiFailedTitleWithConversation": "{conversation} — 失败",
-  "@taskAiFailedTitleWithConversation": {"placeholders": {"conversation": {"type": "String"}}},
+  "@taskAiFailedTitleWithConversation": {
+    "placeholders": {
+      "conversation": {
+        "type": "String"
+      }
+    }
+  },
   "taskAiCancelledTitle": "AI 生成已取消",
   "taskAiCancelledTitleWithConversation": "{conversation} — 已取消",
-  "@taskAiCancelledTitleWithConversation": {"placeholders": {"conversation": {"type": "String"}}},
+  "@taskAiCancelledTitleWithConversation": {
+    "placeholders": {
+      "conversation": {
+        "type": "String"
+      }
+    }
+  },
   "taskAiSucceededBody": "回复已生成",
   "taskAiSucceededBodyWithLength": "回复已生成（{chars} 字符）",
-  "@taskAiSucceededBodyWithLength": {"placeholders": {"chars": {"type": "int"}}},
+  "@taskAiSucceededBodyWithLength": {
+    "placeholders": {
+      "chars": {
+        "type": "int"
+      }
+    }
+  },
   "taskAiSucceededBodyWithTokens": "回复已生成（{chars} 字符 · ↑{tokensIn} ↓{tokensOut} tokens）",
-  "@taskAiSucceededBodyWithTokens": {"placeholders": {"chars": {"type": "int"}, "tokensIn": {"type": "int"}, "tokensOut": {"type": "int"}}},
+  "@taskAiSucceededBodyWithTokens": {
+    "placeholders": {
+      "chars": {
+        "type": "int"
+      },
+      "tokensIn": {
+        "type": "int"
+      },
+      "tokensOut": {
+        "type": "int"
+      }
+    }
+  },
   "taskAiSucceededBodyWithCost": "回复已生成（{chars} 字符 · ↑{tokensIn} ↓{tokensOut} tokens · {cost}）",
-  "@taskAiSucceededBodyWithCost": {"placeholders": {"chars": {"type": "int"}, "tokensIn": {"type": "int"}, "tokensOut": {"type": "int"}, "cost": {"type": "String"}}},
+  "@taskAiSucceededBodyWithCost": {
+    "placeholders": {
+      "chars": {
+        "type": "int"
+      },
+      "tokensIn": {
+        "type": "int"
+      },
+      "tokensOut": {
+        "type": "int"
+      },
+      "cost": {
+        "type": "String"
+      }
+    }
+  },
   "taskAiFailedBody": "生成失败",
   "taskAiFailedBodyWithError": "生成失败 — {error}",
-  "@taskAiFailedBodyWithError": {"placeholders": {"error": {"type": "String"}}},
+  "@taskAiFailedBodyWithError": {
+    "placeholders": {
+      "error": {
+        "type": "String"
+      }
+    }
+  },
   "taskAiCancelledBody": "生成已取消",
   "notificationThresholdsTitle": "通知阈值",
   "notificationThresholdsSftpToggleLabel": "SFTP 成功时通知",
   "notificationThresholdsSftpToggleHint": "关闭后所有 SFTP 成功事件不弹通知；失败仍会通知。",
   "notificationThresholdsSizeLabel": "最小文件大小",
   "notificationThresholdsSizeValue": "{mb} MB",
-  "@notificationThresholdsSizeValue": {"placeholders": {"mb": {"type": "double", "format": "decimalPattern"}}},
+  "@notificationThresholdsSizeValue": {
+    "placeholders": {
+      "mb": {
+        "type": "double",
+        "format": "decimalPattern"
+      }
+    }
+  },
   "notificationThresholdsDurationLabel": "最小持续时间",
   "notificationThresholdsDurationValue": "{seconds} 秒",
-  "@notificationThresholdsDurationValue": {"placeholders": {"seconds": {"type": "int"}}},
+  "@notificationThresholdsDurationValue": {
+    "placeholders": {
+      "seconds": {
+        "type": "int"
+      }
+    }
+  },
   "notificationThresholdsHelp": "SFTP 成功事件只要满足大小或时长任一阈值就通知。失败 / AI 完成始终通知。",
   "notificationThresholdsReset": "恢复默认",
   "notificationThresholdsResetDone": "已恢复默认",
   "notificationThresholdsUndoWindowLabel": "撤销窗口",
   "notificationThresholdsUndoWindowValue": "{seconds} 秒",
-  "@notificationThresholdsUndoWindowValue": {"placeholders": {"seconds": {"type": "int"}}},
+  "@notificationThresholdsUndoWindowValue": {
+    "placeholders": {
+      "seconds": {
+        "type": "int"
+      }
+    }
+  },
   "notificationThresholdsUndoWindowOff": "关闭（立即删除）",
   "taskHistoryUndoDeleted": "已删除",
   "taskHistoryUndoCleared": "已清空 {count} 条记录",
-  "@taskHistoryUndoCleared": {"placeholders": {"count": {"type": "int"}}},
+  "@taskHistoryUndoCleared": {
+    "placeholders": {
+      "count": {
+        "type": "int"
+      }
+    }
+  },
   "taskHistoryUndoAction": "撤销",
   "taskHistoryFilterAll": "全部",
   "taskHistoryFilterSftp": "SFTP",
@@ -263,18 +441,54 @@
   "taskHistorySearchEmptyHint": "清空搜索框或调整关键词。",
   "taskHistoryActionClearFiltered": "清除筛选项",
   "taskHistoryActionClearFilteredWithCount": "清除筛选项（{count}）",
-  "@taskHistoryActionClearFilteredWithCount": {"placeholders": {"count": {"type": "int"}}},
+  "@taskHistoryActionClearFilteredWithCount": {
+    "placeholders": {
+      "count": {
+        "type": "int"
+      }
+    }
+  },
   "taskHistoryClearFilteredConfirmTitle": "清除筛选下的任务？",
   "taskHistoryClearFilteredConfirmBody": "将清除筛选下的 {count} 条记录，未筛选条目保留。撤销窗口关闭后操作不可恢复。",
-  "@taskHistoryClearFilteredConfirmBody": {"placeholders": {"count": {"type": "int"}}},
+  "@taskHistoryClearFilteredConfirmBody": {
+    "placeholders": {
+      "count": {
+        "type": "int"
+      }
+    }
+  },
   "taskHistoryRelativeSecondsAgo": "{seconds} 秒前",
-  "@taskHistoryRelativeSecondsAgo": {"placeholders": {"seconds": {"type": "int"}}},
+  "@taskHistoryRelativeSecondsAgo": {
+    "placeholders": {
+      "seconds": {
+        "type": "int"
+      }
+    }
+  },
   "taskHistoryRelativeMinutesAgo": "{minutes} 分钟前",
-  "@taskHistoryRelativeMinutesAgo": {"placeholders": {"minutes": {"type": "int"}}},
+  "@taskHistoryRelativeMinutesAgo": {
+    "placeholders": {
+      "minutes": {
+        "type": "int"
+      }
+    }
+  },
   "taskHistoryRelativeHoursAgo": "{hours} 小时前",
-  "@taskHistoryRelativeHoursAgo": {"placeholders": {"hours": {"type": "int"}}},
+  "@taskHistoryRelativeHoursAgo": {
+    "placeholders": {
+      "hours": {
+        "type": "int"
+      }
+    }
+  },
   "taskHistoryRelativeDaysAgo": "{days} 天前",
-  "@taskHistoryRelativeDaysAgo": {"placeholders": {"days": {"type": "int"}}},
+  "@taskHistoryRelativeDaysAgo": {
+    "placeholders": {
+      "days": {
+        "type": "int"
+      }
+    }
+  },
   "sidebarSearch": "搜索服务器...",
   "sidebarNewConnection": "新建连接",
   "sidebarNewGroup": "新建分组",
@@ -1869,7 +2083,6 @@
   "recordingOneYear": "1年",
   "recordingCleanupNow": "立即清理过期录制",
   "recordingCleanupRunning": "清理中…",
-
   "keybindingsNewTab": "新建标签页",
   "keybindingsClosePane": "关闭窗格",
   "keybindingsCopy": "复制",
@@ -1888,5 +2101,563 @@
   "keybindingsReloadWindow": "重新载入窗口",
   "keybindingsToggleFullscreen": "切换全屏",
   "sidebarProxies": "代理",
-  "keybindingsUntranslated": "(未翻译)"
+  "keybindingsUntranslated": "(未翻译)",
+  "settingsTerminalScrollback": "滚动缓冲行数",
+  "settingsTerminalScrollbackHint": "向上回滚历史的最大行数",
+  "settingsTerminalLinesOption": "{count} 行",
+  "@settingsTerminalLinesOption": {
+    "placeholders": {
+      "count": {
+        "type": "String"
+      }
+    }
+  },
+  "settingsTerminalTabWidth": "Tab 宽度",
+  "settingsTerminalSpacesOption": "{count} 空格",
+  "@settingsTerminalSpacesOption": {
+    "placeholders": {
+      "count": {
+        "type": "String"
+      }
+    }
+  },
+  "settingsTerminalCursorShape": "光标形状",
+  "settingsTerminalCursorBlock": "方块",
+  "settingsTerminalCursorUnderline": "下划线",
+  "settingsTerminalCursorBar": "竖线",
+  "settingsTerminalCursorBlink": "光标闪烁",
+  "settingsTerminalTmux": "Tmux 多路复用",
+  "settingsTerminalTmuxHint": "检测远端 tmux 会话并在状态栏显示",
+  "settingsAiAllConfigured": "所有 Provider 都已配置",
+  "settingsAiContextLines": "默认上下文行数",
+  "settingsAiContextLinesHint": "发送给 AI 的终端历史行数上限",
+  "settingsAiAutoDiagnose": "自动错误诊断",
+  "settingsAiAutoDiagnoseHint": "命令失败时自动触发 AI 分析",
+  "settingsAiRemoveProviderTitle": "移除 {name}?",
+  "@settingsAiRemoveProviderTitle": {
+    "placeholders": {
+      "name": {
+        "type": "String"
+      }
+    }
+  },
+  "settingsAiRemoveProviderHint": "将删除 {name} 的本地配置（API key 仍保留在系统钥匙串中，重新配置时会自动加载）。",
+  "@settingsAiRemoveProviderHint": {
+    "placeholders": {
+      "name": {
+        "type": "String"
+      }
+    }
+  },
+  "settingsAiRemove": "移除",
+  "settingsAiEmptyTitle": "尚未配置 AI Provider",
+  "settingsAiEmptyHint": "点击右上「Add Provider」选择一个开始",
+  "settingsAiBadgeActive": "当前",
+  "settingsAiBadgeConfigured": "已配置",
+  "settingsAiActivate": "激活",
+  "settingsAiCollapse": "收起",
+  "settingsAiConfigure": "配置",
+  "settingsAiAddProvider": "Add Provider",
+  "settingsAiPricingTitle": "AI 成本估算价格表",
+  "settingsAiPricingUpdated": "更新于 {iso} · {age}",
+  "@settingsAiPricingUpdated": {
+    "placeholders": {
+      "iso": {
+        "type": "String"
+      },
+      "age": {
+        "type": "String"
+      }
+    }
+  },
+  "settingsAiPricingStale": " · 建议刷新",
+  "settingsAiPricingDateUnknown": "日期未知",
+  "settingsAiPricingToday": "今天更新",
+  "settingsAiPricingDaysAgo": "{count} 天前",
+  "@settingsAiPricingDaysAgo": {
+    "placeholders": {
+      "count": {
+        "type": "String"
+      }
+    }
+  },
+  "settingsKeybindingsResetTitle": "恢复默认快捷键?",
+  "settingsKeybindingsResetBody": "所有自定义的快捷键将被覆盖为出厂默认值。",
+  "settingsKeybindingsReset": "恢复",
+  "settingsKeybindingsColCommand": "命令",
+  "settingsKeybindingsColShortcut": "快捷键",
+  "settingsKeybindingsColContext": "上下文",
+  "settingsKeybindingsResetTooltip": "恢复默认",
+  "gitConflictTitle": "⚠ Git Sync 冲突",
+  "gitConflictFilesLabel": "以下文件存在冲突：",
+  "gitConflictStrategyLabel": "选择解决策略：",
+  "gitConflictResolveInTerminal": "终端中解决",
+  "gitConflictUseRemote": "使用远端",
+  "gitConflictKeepLocal": "保留本地",
+  "sftpChmodTitleNamed": "修改权限：{name}",
+  "@sftpChmodTitleNamed": {
+    "placeholders": {
+      "name": {
+        "type": "String"
+      }
+    }
+  },
+  "sftpChmodOwner": "所有者",
+  "sftpChmodGroup": "组",
+  "sftpChmodOthers": "其他",
+  "sftpChmodOctalShort": "八进制",
+  "sftpChmodRead": "读",
+  "sftpChmodWrite": "写",
+  "sftpChmodExec": "执行",
+  "sftpRenameEmpty": "名称不能为空",
+  "sftpRenameSlash": "名称不能包含 /",
+  "sftpRenameNewName": "新名称",
+  "settingsHighlightsTitle": "关键词高亮",
+  "settingsHighlightsLoadPresets": "加载预设",
+  "settingsHighlightsAddRule": "+ 新增规则",
+  "settingsHighlightsEmpty": "尚未配置任何高亮规则",
+  "settingsHighlightsPatternHint": "关键字 / 正则",
+  "settingsHighlightsRegex": "正则",
+  "settingsHighlightsCaseSensitive": "区分大小写",
+  "settingsHighlightsBgColor": "背景色",
+  "settingsHighlightsFgColor": "前景色 (留空 = 跟随主题)",
+  "settingsHighlightsEnabled": "启用",
+  "settingsHighlightsColorInputHint": "输入十六进制颜色（如 #6366F1）",
+  "settingsHighlightsColorClear": "清除",
+  "settingsHighlightsColorConfirm": "确定",
+  "settingsPrivacyClearHistoryTitle": "清除历史数据",
+  "settingsPrivacyClearHistoryHint": "保留账号设置与凭据，仅清空相应历史。",
+  "settingsPrivacyClearConnections": "清除最近连接历史",
+  "settingsPrivacyClearConnectionsMsg": "将删除全部\"最近连接\"记录，已保存的服务器配置不受影响。",
+  "settingsPrivacyClearedConnections": "已清除连接历史",
+  "settingsPrivacyClearAi": "清除 AI 对话历史",
+  "settingsPrivacyClearAiMsg": "将永久删除所有 AI 对话与消息。Provider 配置 / API Key 保留。",
+  "settingsPrivacyClearedAi": "已清除 AI 对话历史",
+  "settingsPrivacyClearSnippet": "清除 Snippet 使用统计",
+  "settingsPrivacyClearSnippetMsg": "将重置所有 Snippet 的使用次数，Snippet 本身保留。",
+  "settingsPrivacyClearedSnippet": "已清除使用统计",
+  "settingsPrivacyGdprTitle": "GDPR 数据擦除",
+  "settingsPrivacyGdprHint": "永久删除所有本地数据（服务器配置、凭据、对话、设置）。此操作不可恢复。",
+  "settingsPrivacyGdprButton": "擦除所有数据",
+  "settingsPrivacyConfirmClear": "清除",
+  "settingsPrivacyGdprDialogTitle": "确认擦除所有数据",
+  "settingsPrivacyGdprDialogBody": "此操作将永久删除所有数据，无法恢复。\n请输入主密码并键入 \"DELETE ALL\" 确认。",
+  "settingsPrivacyMasterPassword": "主密码",
+  "settingsPrivacyConfirmTextLabel": "确认文本",
+  "settingsPrivacyErase": "擦除",
+  "settingsPrivacyEraseError": "确认文字不正确或主密码错误",
+  "settingsPrivacyErased": "数据已擦除",
+  "settingsSecurityLoading": "加载中…",
+  "settingsSecurityLoadError": "无法读取安全状态",
+  "settingsSecurityProtectionTitle": "密钥保护模式",
+  "settingsSecurityProtectionActive": "已使用 {platform} 安全存储凭据。Termex 仅在启动时读取一次主密钥条目。",
+  "@settingsSecurityProtectionActive": {
+    "placeholders": {
+      "platform": {
+        "type": "String"
+      }
+    }
+  },
+  "settingsSecurityProtectionFallback": "系统密钥库不可用，已回退到本地加密（AES-256-GCM + Argon2id）。",
+  "settingsSecuritySavedCredentials": "已保存的凭据",
+  "settingsSecurityCredentialTypes": "包括 SSH 密码、SSH 私钥口令、AI Provider API Key",
+  "settingsSecurityHowItWorks": "工作原理",
+  "settingsSecurityHint1": "凭据从未以明文写入数据库 — 仅保存系统密钥库的引用 ID",
+  "settingsSecurityHint2": "主密钥条目在每次启动时只读取一次，避免反复弹出系统密码框",
+  "settingsSecurityHint3": "GDPR 数据擦除会同步清空密钥库中所有 Termex 条目",
+  "auditDetailTitle": "审计详情",
+  "auditFieldEventType": "事件类型",
+  "auditFieldTime": "时间",
+  "auditFieldDetail": "详情",
+  "auditCopyDetail": "复制详情",
+  "auditKpiTotal": "总记录",
+  "auditKpiConnections": "连接",
+  "auditKpiCredentialAccess": "凭据访问",
+  "auditKpiConfigChanges": "配置变更",
+  "auditKpiMemberOps": "成员操作",
+  "auditColEvent": "事件",
+  "auditPagerPrev": "上一页",
+  "auditPagerNext": "下一页",
+  "auditEmptyTitle": "暂无审计日志",
+  "auditEmptyHint": "建立 SSH 连接、修改设置或团队操作会写入审计日志",
+  "auditExport": "导出",
+  "auditExportCsv": "导出 CSV",
+  "auditExportJson": "导出 JSON",
+  "auditExported": "已导出 {path}",
+  "@auditExported": {
+    "placeholders": {
+      "path": {
+        "type": "String"
+      }
+    }
+  },
+  "auditExportFailed": "导出失败：{error}",
+  "@auditExportFailed": {
+    "placeholders": {
+      "error": {
+        "type": "String"
+      }
+    }
+  },
+  "auditLabelDate": "日期：",
+  "auditLabelEvent": "事件：",
+  "auditRangeToday": "今天",
+  "auditRangeWeek": "本周",
+  "auditRangeMonth": "本月",
+  "auditRangeAll": "全部",
+  "snippetUsageTimes": "{count} 次",
+  "@snippetUsageTimes": {
+    "description": "Snippet usage count badge",
+    "placeholders": {
+      "count": {
+        "type": "int"
+      }
+    }
+  },
+  "snippetCopy": "复制",
+  "snippetCopiedToClipboard": "已复制到剪贴板",
+  "snippetDeleteTitle": "删除 Snippet",
+  "snippetDeleteConfirmNamed": "确定要删除「{title}」吗？",
+  "@snippetDeleteConfirmNamed": {
+    "description": "Confirm deleting a named snippet",
+    "placeholders": {
+      "title": {
+        "type": "String"
+      }
+    }
+  },
+  "snippetNewTitle": "新建 Snippet",
+  "snippetEditSnippet": "编辑 Snippet",
+  "snippetNamePlaceholder": "Snippet 名称",
+  "snippetTagsCommaLabel": "标签（逗号分隔）",
+  "snippetTagsPlaceholderExample": "ssh, 常用, docker",
+  "snippetContentLabel": "命令内容（使用 ｛｛变量名:默认值｝｝ 插入变量）",
+  "snippetVariableTitleNamed": "填写变量 — {title}",
+  "@snippetVariableTitleNamed": {
+    "description": "Variable resolver dialog title with snippet name",
+    "placeholders": {
+      "title": {
+        "type": "String"
+      }
+    }
+  },
+  "snippetPreview": "预览",
+  "snippetConfirmExecute": "确认执行",
+  "snippetVariableDefault": "默认: {value}",
+  "@snippetVariableDefault": {
+    "description": "Default value hint for a snippet variable",
+    "placeholders": {
+      "value": {
+        "type": "String"
+      }
+    }
+  },
+  "snippetVariableInputHint": "请输入值",
+  "snippetSearchPlaceholder": "搜索 snippet…",
+  "snippetNoMatch": "没有匹配的 Snippet",
+  "sftpPath": "路径",
+  "sftpOwner": "所有者",
+  "sftpGroup": "所属组",
+  "sftpSizeBytes": "{bytes} 字节",
+  "@sftpSizeBytes": {
+    "placeholders": {
+      "bytes": {
+        "type": "int"
+      }
+    }
+  },
+  "sftpFileNameHint": "文件名",
+  "sftpFolderNameHint": "文件夹名",
+  "sftpCreate": "创建",
+  "sftpEditorTooLarge": "文件过大（{size}），请用 scp 下载到本地编辑。",
+  "@sftpEditorTooLarge": {
+    "placeholders": {
+      "size": {
+        "type": "String"
+      }
+    }
+  },
+  "sftpEditorBinary": "检测到二进制内容，无法使用内联编辑器编辑。",
+  "sftpEditorReadFailed": "读取失败：{error}",
+  "@sftpEditorReadFailed": {
+    "placeholders": {
+      "error": {
+        "type": "String"
+      }
+    }
+  },
+  "sftpEditorSaveFailed": "保存失败：{error}",
+  "@sftpEditorSaveFailed": {
+    "placeholders": {
+      "error": {
+        "type": "String"
+      }
+    }
+  },
+  "sftpEditorModified": "已修改",
+  "sftpTransferResume": "继续",
+  "sftpTransferPause": "暂停",
+  "sftpTransferDone": "完成",
+  "sftpTransferFailed": "失败：{error}",
+  "@sftpTransferFailed": {
+    "placeholders": {
+      "error": {
+        "type": "String"
+      }
+    }
+  },
+  "sftpTransferCancelled": "已取消",
+  "sftpTransferPaused": "已暂停",
+  "aiConversationsTitle": "对话",
+  "aiConversationEmpty": "点击 + 开始新对话",
+  "aiRenameConversation": "重命名对话",
+  "aiRenameHint": "输入新标题",
+  "aiModelListLoading": "正在加载模型列表…",
+  "aiDeleteModelTitle": "删除模型",
+  "aiDeleteModelConfirm": "确定要删除 {name} 吗？",
+  "@aiDeleteModelConfirm": {
+    "placeholders": {
+      "name": {
+        "type": "String"
+      }
+    }
+  },
+  "localAiRunning": "运行中",
+  "localAiStart": "启动",
+  "localAiDownloadWithSize": "下载 ({size})",
+  "@localAiDownloadWithSize": {
+    "placeholders": {
+      "size": {
+        "type": "String"
+      }
+    }
+  },
+  "aiNl2cmdTitle": "自然语言 → 命令",
+  "aiNl2cmdHint": "描述你想做什么，例如：查找大于 100MB 的文件",
+  "aiNl2cmdSent": "(已发送到 AI 对话)",
+  "aiNl2cmdGenerate": "生成",
+  "settingsAiConfigureTitle": "配置 {name}",
+  "@settingsAiConfigureTitle": {
+    "placeholders": {
+      "name": {
+        "type": "String"
+      }
+    }
+  },
+  "settingsAiTerminalContextLines": "终端上下文行数",
+  "settingsAiLinesUnit": "{count} 行",
+  "@settingsAiLinesUnit": {
+    "placeholders": {
+      "count": {
+        "type": "int"
+      }
+    }
+  },
+  "settingsAiVerify": "验证",
+  "settingsAiSelectModelError": "请选择模型",
+  "settingsAiApiKeyRequired": "请填写 API Key",
+  "settingsAiVerifySuccess": "验证成功",
+  "settingsAiVerifyFailed": "验证失败",
+  "settingsAiLlamaEngine": "llama-server 引擎",
+  "settingsAiServerPort": "服务端口",
+  "settingsAiInferenceThreads": "推理线程数",
+  "settingsAiContextWindow": "上下文窗口 (token)",
+  "settingsAiAutoStartEngine": "启动时自动启动引擎",
+  "teamSyncDoneCount": "同步完成（{count} 项变更）",
+  "@teamSyncDoneCount": {
+    "placeholders": {
+      "count": {
+        "type": "int"
+      }
+    }
+  },
+  "teamSyncFailed": "同步失败：{error}",
+  "@teamSyncFailed": {
+    "placeholders": {
+      "error": {
+        "type": "String"
+      }
+    }
+  },
+  "teamApplied": "已应用",
+  "teamResolveFailed": "解决失败：{error}",
+  "@teamResolveFailed": {
+    "placeholders": {
+      "error": {
+        "type": "String"
+      }
+    }
+  },
+  "teamRoleUpdated": "已更新角色",
+  "teamUpdateFailed": "更新失败：{error}",
+  "@teamUpdateFailed": {
+    "placeholders": {
+      "error": {
+        "type": "String"
+      }
+    }
+  },
+  "teamRemoved": "已移除",
+  "teamRemoveFailed": "移除失败：{error}",
+  "@teamRemoveFailed": {
+    "placeholders": {
+      "error": {
+        "type": "String"
+      }
+    }
+  },
+  "teamWorkspace": "团队工作区",
+  "teamMemberBadge": "{count} 成员",
+  "@teamMemberBadge": {
+    "placeholders": {
+      "count": {
+        "type": "int"
+      }
+    }
+  },
+  "teamConflictBadge": "{count} 冲突",
+  "@teamConflictBadge": {
+    "placeholders": {
+      "count": {
+        "type": "int"
+      }
+    }
+  },
+  "teamChangePassphrase": "修改口令",
+  "teamNoMembers": "暂无成员（生成邀请码后即可加入）",
+  "teamUnnamed": "(未命名)",
+  "teamPendingConflicts": "待解决的同步冲突",
+  "teamConflictServerField": "服务器 {serverId} · 字段 {field}",
+  "@teamConflictServerField": {
+    "placeholders": {
+      "serverId": {
+        "type": "String"
+      },
+      "field": {
+        "type": "String"
+      }
+    }
+  },
+  "teamConflictLocal": "本地",
+  "teamConflictRemote": "远端",
+  "teamUseThisValue": "使用此值",
+  "teamInviteNewMember": "邀请新成员",
+  "teamInviteDesc": "为新成员生成一次性邀请码（72 小时内有效）。",
+  "teamGenerateHint": "点击下方按钮生成邀请码。",
+  "teamGenerating": "生成中…",
+  "teamExpiresAt": "过期：{time}",
+  "@teamExpiresAt": {
+    "placeholders": {
+      "time": {
+        "type": "String"
+      }
+    }
+  },
+  "teamVerifyPassphraseTitle": "验证团队口令",
+  "teamVerifyPassphraseDesc": "输入团队加密口令验证当前会话。",
+  "teamPassphrasePlaceholder": "口令",
+  "teamVerify": "验证",
+  "teamPassphraseIncorrect": "口令不正确",
+  "teamVerifyPassed": "验证通过",
+  "teamVerifyFailed": "验证失败：{error}",
+  "@teamVerifyFailed": {
+    "placeholders": {
+      "error": {
+        "type": "String"
+      }
+    }
+  },
+  "teamLoadFailed": "加载团队信息失败",
+  "proxyNone": "不使用代理",
+  "proxyLoading": "加载中…",
+  "proxySelect": "选择代理",
+  "proxyAddNew": "+ 新建代理",
+  "proxyNewTitle": "新建代理",
+  "proxyNamePlaceholder": "我的代理",
+  "proxyUsernameOptional": "用户名（可选）",
+  "proxyPasswordOptional": "密码（可选）",
+  "proxyWarpHint": "将通过本机 Cloudflare WARP 客户端路由连接。",
+  "proxyTorHint": "将通过本机 Tor 网络路由连接。注意：上架时需在隐私声明中说明。",
+  "proxySave": "保存代理",
+  "serverUnshareFromTeam": "取消团队共享",
+  "serverShareToTeam": "分享到团队",
+  "serverUnsharedFromTeamToast": "已取消团队共享",
+  "serverSharedToTeam": "已分享至团队",
+  "serverUnshareAction": "取消共享",
+  "serverShareAction": "分享",
+  "serverActionFailed": "{action}失败：{error}",
+  "@serverActionFailed": {
+    "placeholders": {
+      "action": {
+        "type": "String"
+      },
+      "error": {
+        "type": "String"
+      }
+    }
+  },
+  "serverBadgeProxyTooltip": "已配置网络代理",
+  "serverBadgeBastionTooltip": "经跳板机连接",
+  "sftpCancelEdit": "取消编辑",
+  "settingsAppearanceLight": "浅色",
+  "settingsAppearanceDark": "深色",
+  "settingsAppearanceColorScheme": "终端配色方案",
+  "settingsAppearanceFontSize": "字体大小",
+  "settingsAppearanceChinese": "中文",
+  "updateDialogTitle": "检查更新",
+  "updateInProgress": "正在检查更新…",
+  "updateUpToDateTitle": "已是最新版本",
+  "updateUpToDateDetail": "当前版本 v{version} 是 {channel} 渠道的最新发布。",
+  "@updateUpToDateDetail": {
+    "placeholders": {
+      "version": {
+        "type": "String"
+      },
+      "channel": {
+        "type": "String"
+      }
+    }
+  },
+  "updateCheckFailedTitle": "检查失败",
+  "updateNewVersionTitle": "新版本 v{version}",
+  "@updateNewVersionTitle": {
+    "placeholders": {
+      "version": {
+        "type": "String"
+      }
+    }
+  },
+  "updateNoReleaseNotes": "（无发布说明）",
+  "updateViewDownloadPage": "查看下载页",
+  "updateRecheck": "重新检查",
+  "monitorSampleInterval": "采样间隔",
+  "monitorSampleIntervalHint": "每个监控指标的刷新频率",
+  "monitorAutoStartLabel": "自动启动",
+  "monitorAutoStartHint": "标签连接成功后自动开启监控",
+  "monitorPanelDisplay": "面板显示",
+  "monitorPanelDisplayHint": "选择需要展示的监控指标",
+  "monitorMemory": "内存",
+  "monitorDisk": "磁盘",
+  "monitorNetwork": "网络",
+  "monitorProcesses": "进程",
+  "settingsLocalAiContextSize": "上下文窗口大小",
+  "settingsLocalAiContextSizeHint": "单位：token",
+  "settingsLocalAiModelManagement": "本地模型管理",
+  "recordingDeleted": "已删除",
+  "recordingDeleteFailed": "删除失败：{error}",
+  "@recordingDeleteFailed": {
+    "placeholders": {
+      "error": {
+        "type": "String"
+      }
+    }
+  },
+  "recordingNoServer": "未关联服务器",
+  "recordingEmpty": "暂无录制",
+  "recordingEmptyHint": "在终端启用录制以收集会话回放",
+  "recordingOpen": "打开",
+  "tabWorkspaceSftpLocalDisabled": "本地终端不支持 SFTP",
+  "tabWorkspaceTransfersLocalDisabled": "本地终端不支持文件传输",
+  "tabWorkspaceNoTransfers": "暂无传输任务",
+  "aiCodeBlockRun": "运行"
 }

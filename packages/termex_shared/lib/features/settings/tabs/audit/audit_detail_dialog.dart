@@ -5,6 +5,7 @@ import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 
 import '../../../../design/colors.dart';
+import '../../../../l10n/app_localizations.dart';
 import '../../state/settings_provider.dart';
 
 Future<void> showAuditDetailDialog(
@@ -24,6 +25,7 @@ class _AuditDetailDialog extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
+    final l10n = AppLocalizations.of(context);
     return Dialog(
       backgroundColor: TermexColors.backgroundSecondary,
       shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(8)),
@@ -42,10 +44,10 @@ class _AuditDetailDialog extends StatelessWidget {
                 children: [
                   _Field(label: 'ID', value: entry.id),
                   const SizedBox(height: 10),
-                  _Field(label: '事件类型', value: entry.eventType),
+                  _Field(label: l10n.auditFieldEventType, value: entry.eventType),
                   const SizedBox(height: 10),
                   _Field(
-                    label: '时间',
+                    label: l10n.auditFieldTime,
                     value: _formatDate(entry.createdAt),
                   ),
                   const SizedBox(height: 10),
@@ -63,15 +65,15 @@ class _AuditDetailDialog extends StatelessWidget {
                     onPressed: () async {
                       await Clipboard.setData(ClipboardData(text: entry.detail));
                     },
-                    child: const Text('复制详情',
-                        style: TextStyle(
+                    child: Text(l10n.auditCopyDetail,
+                        style: const TextStyle(
                             color: TermexColors.textSecondary, fontSize: 12)),
                   ),
                   const SizedBox(width: 8),
                   TextButton(
                     onPressed: () => Navigator.pop(context),
-                    child: const Text('关闭',
-                        style: TextStyle(color: TermexColors.primary, fontSize: 12)),
+                    child: Text(l10n.commonClose,
+                        style: const TextStyle(color: TermexColors.primary, fontSize: 12)),
                   ),
                 ],
               ),
@@ -95,6 +97,7 @@ class _TitleBar extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
+    final l10n = AppLocalizations.of(context);
     return Padding(
       padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 12),
       child: Row(
@@ -102,10 +105,10 @@ class _TitleBar extends StatelessWidget {
           const Icon(Icons.receipt_long_outlined,
               size: 16, color: TermexColors.primary),
           const SizedBox(width: 8),
-          const Expanded(
+          Expanded(
             child: Text(
-              '审计详情',
-              style: TextStyle(
+              l10n.auditDetailTitle,
+              style: const TextStyle(
                 fontSize: 14,
                 fontWeight: FontWeight.w600,
                 color: TermexColors.textPrimary,
@@ -162,12 +165,13 @@ class _DetailField extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
+    final l10n = AppLocalizations.of(context);
     return Column(
       crossAxisAlignment: CrossAxisAlignment.start,
       children: [
-        const Text(
-          '详情',
-          style: TextStyle(
+        Text(
+          l10n.auditFieldDetail,
+          style: const TextStyle(
               fontSize: 11,
               color: TermexColors.textMuted,
               fontWeight: FontWeight.w600),

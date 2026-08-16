@@ -1,6 +1,6 @@
 [package]
 name        = "termex_flutter_bridge"
-version = "0.53.7"
+version = "0.79.0"
 edition     = "2021"
 license     = "MIT"
 description = "flutter_rust_bridge v2 binding layer for Termex"

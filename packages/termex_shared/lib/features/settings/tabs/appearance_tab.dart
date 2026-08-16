@@ -2,6 +2,7 @@ import 'package:flutter/material.dart' hide ThemeMode;
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 
 import '../../../../design/tokens.dart';
+import '../../../l10n/app_localizations.dart';
 import '../state/settings_provider.dart';
 
 class AppearanceTab extends ConsumerWidget {
@@ -15,31 +16,32 @@ class AppearanceTab extends ConsumerWidget {
   Widget build(BuildContext context, WidgetRef ref) {
     final settings = ref.watch(settingsProvider).settings;
     final notifier = ref.read(settingsProvider.notifier);
+    final l10n = AppLocalizations.of(context);
 
     return ListView(
       padding: const EdgeInsets.all(20),
       children: [
-        _Section(title: '主题', children: [
+        _Section(title: l10n.appearanceTheme, children: [
           _RadioRow<ThemeMode>(
-            label: '跟随系统',
+            label: l10n.appearanceFollowSystem,
             value: ThemeMode.system,
             groupValue: settings.themeMode,
             onChanged: (v) => notifier.update(settings.copyWith(themeMode: v)),
           ),
           _RadioRow<ThemeMode>(
-            label: '浅色',
+            label: l10n.settingsAppearanceLight,
             value: ThemeMode.light,
             groupValue: settings.themeMode,
             onChanged: (v) => notifier.update(settings.copyWith(themeMode: v)),
           ),
           _RadioRow<ThemeMode>(
-            label: '深色',
+            label: l10n.settingsAppearanceDark,
             value: ThemeMode.dark,
             groupValue: settings.themeMode,
             onChanged: (v) => notifier.update(settings.copyWith(themeMode: v)),
           ),
         ]),
-        _Section(title: '终端配色方案', children: [
+        _Section(title: l10n.settingsAppearanceColorScheme, children: [
           Wrap(
             spacing: 8,
             runSpacing: 8,
@@ -72,9 +74,9 @@ class AppearanceTab extends ConsumerWidget {
             }).toList(),
           ),
         ]),
-        _Section(title: '字体', children: [
+        _Section(title: l10n.settingsIdxFontLabel, children: [
           _LabeledRow(
-            label: '字体大小',
+            label: l10n.settingsAppearanceFontSize,
             child: Row(
               children: [
                 Text('${settings.fontSize.round()}', style: const TextStyle(fontSize: 12, color: TermexColors.textPrimary)),
@@ -93,34 +95,34 @@ class AppearanceTab extends ConsumerWidget {
             ),
           ),
         ]),
-        _Section(title: '光标', children: [
+        _Section(title: l10n.settingsIdxCursorLabel, children: [
           _RadioRow<CursorShape>(
-            label: '方块',
+            label: l10n.settingsTerminalCursorBlock,
             value: CursorShape.block,
             groupValue: settings.cursorShape,
             onChanged: (v) => notifier.update(settings.copyWith(cursorShape: v)),
           ),
           _RadioRow<CursorShape>(
-            label: '下划线',
+            label: l10n.settingsTerminalCursorUnderline,
             value: CursorShape.underline,
             groupValue: settings.cursorShape,
             onChanged: (v) => notifier.update(settings.copyWith(cursorShape: v)),
           ),
           _RadioRow<CursorShape>(
-            label: '竖线',
+            label: l10n.settingsTerminalCursorBar,
             value: CursorShape.bar,
             groupValue: settings.cursorShape,
             onChanged: (v) => notifier.update(settings.copyWith(cursorShape: v)),
           ),
           _ToggleRow(
-            label: '光标闪烁',
+            label: l10n.settingsTerminalCursorBlink,
             value: settings.cursorBlink,
             onChanged: (v) => notifier.update(settings.copyWith(cursorBlink: v)),
           ),
         ]),
-        _Section(title: '语言', children: [
+        _Section(title: l10n.appearanceLanguage, children: [
           _RadioRow<Language>(
-            label: '中文',
+            label: l10n.settingsAppearanceChinese,
             value: Language.zhCN,
             groupValue: settings.language,
             onChanged: (v) => notifier.update(settings.copyWith(language: v)),

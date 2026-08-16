@@ -67,3 +67,6 @@ docs/iterations/
 # Lives at ../termex-core-private next to this repo. See Phase 1a notes
 # in docs/iterations/v0.54.0-pc-private-split.md
 /termex-core-private
+
+# flutter_distributor packaging output
+app/release/

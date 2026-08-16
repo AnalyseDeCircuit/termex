@@ -12,6 +12,7 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 
 import '../../../design/tokens.dart';
 import '../../../icons/termex_icons.dart';
+import '../../../l10n/app_localizations.dart';
 import '../../../widgets/button.dart';
 import '../../../widgets/dialog.dart';
 import '../../../widgets/text_field.dart';
@@ -23,50 +24,51 @@ class PrivacyTab extends ConsumerWidget {
 
   @override
   Widget build(BuildContext context, WidgetRef ref) {
+    final l10n = AppLocalizations.of(context);
     final notifier = ref.read(settingsProvider.notifier);
     return ListView(
       padding: const EdgeInsets.all(20),
       children: [
         _DangerSection(
-          title: '清除历史数据',
-          hint: '保留账号设置与凭据，仅清空相应历史。',
+          title: l10n.settingsPrivacyClearHistoryTitle,
+          hint: l10n.settingsPrivacyClearHistoryHint,
           children: [
             _ClearButton(
-              label: '清除最近连接历史',
+              label: l10n.settingsPrivacyClearConnections,
               icon: TermexIcons.history,
               onTap: () => _confirmAndClear(
                 context,
-                title: '清除最近连接历史',
-                message: '将删除全部"最近连接"记录，已保存的服务器配置不受影响。',
+                title: l10n.settingsPrivacyClearConnections,
+                message: l10n.settingsPrivacyClearConnectionsMsg,
                 doClear: () async {
                   await notifier.clearConnectionHistory();
-                  ToastController.success('已清除连接历史');
+                  ToastController.success(l10n.settingsPrivacyClearedConnections);
                 },
               ),
             ),
             _ClearButton(
-              label: '清除 AI 对话历史',
+              label: l10n.settingsPrivacyClearAi,
               icon: TermexIcons.ai,
               onTap: () => _confirmAndClear(
                 context,
-                title: '清除 AI 对话历史',
-                message: '将永久删除所有 AI 对话与消息。Provider 配置 / API Key 保留。',
+                title: l10n.settingsPrivacyClearAi,
+                message: l10n.settingsPrivacyClearAiMsg,
                 doClear: () async {
                   await notifier.clearAiConversations();
-                  ToastController.success('已清除 AI 对话历史');
+                  ToastController.success(l10n.settingsPrivacyClearedAi);
                 },
               ),
             ),
             _ClearButton(
-              label: '清除 Snippet 使用统计',
+              label: l10n.settingsPrivacyClearSnippet,
               icon: TermexIcons.snippet,
               onTap: () => _confirmAndClear(
                 context,
-                title: '清除 Snippet 使用统计',
-                message: '将重置所有 Snippet 的使用次数，Snippet 本身保留。',
+                title: l10n.settingsPrivacyClearSnippet,
+                message: l10n.settingsPrivacyClearSnippetMsg,
                 doClear: () async {
                   await notifier.clearSnippetStats();
-                  ToastController.success('已清除使用统计');
+                  ToastController.success(l10n.settingsPrivacyClearedSnippet);
                 },
               ),
             ),
@@ -74,15 +76,14 @@ class PrivacyTab extends ConsumerWidget {
         ),
         const SizedBox(height: 24),
         _DangerSection(
-          title: 'GDPR 数据擦除',
-          hint:
-              '永久删除所有本地数据（服务器配置、凭据、对话、设置）。此操作不可恢复。',
+          title: l10n.settingsPrivacyGdprTitle,
+          hint: l10n.settingsPrivacyGdprHint,
           danger: true,
           children: [
             Align(
               alignment: Alignment.centerLeft,
               child: TermexButton(
-                label: '擦除所有数据',
+                label: l10n.settingsPrivacyGdprButton,
                 variant: ButtonVariant.danger,
                 icon: const TermexIconWidget(TermexIcons.delete, size: 14),
                 onPressed: () => _showGdprDialog(context, notifier),
@@ -100,11 +101,12 @@ class PrivacyTab extends ConsumerWidget {
     required String message,
     required Future<void> Function() doClear,
   }) async {
+    final l10n = AppLocalizations.of(context);
     final ok = await showConfirmDialog(
       context: context,
       title: title,
       message: message,
-      confirmLabel: '清除',
+      confirmLabel: l10n.settingsPrivacyConfirmClear,
       destructive: true,
     );
     if (ok == true) {
@@ -116,11 +118,12 @@ class PrivacyTab extends ConsumerWidget {
     BuildContext context,
     SettingsNotifier notifier,
   ) async {
+    final l10n = AppLocalizations.of(context);
     final passwordCtrl = TextEditingController();
     final confirmCtrl = TextEditingController();
     final ok = await showTermexDialog<bool>(
       context: context,
-      title: '确认擦除所有数据',
+      title: l10n.settingsPrivacyGdprDialogTitle,
       size: DialogSize.small,
       body: SizedBox(
         width: 380,
@@ -128,26 +131,26 @@ class PrivacyTab extends ConsumerWidget {
           mainAxisSize: MainAxisSize.min,
           crossAxisAlignment: CrossAxisAlignment.start,
           children: [
-            const Text(
-              '此操作将永久删除所有数据，无法恢复。\n请输入主密码并键入 "DELETE ALL" 确认。',
-              style: TextStyle(
+            Text(
+              l10n.settingsPrivacyGdprDialogBody,
+              style: const TextStyle(
                 fontSize: 12,
                 color: TermexColors.textSecondary,
               ),
             ),
             const SizedBox(height: 12),
-            const Text('主密码',
-                style: TextStyle(
+            Text(l10n.settingsPrivacyMasterPassword,
+                style: const TextStyle(
                     fontSize: 11, color: TermexColors.textSecondary)),
             const SizedBox(height: 4),
             TermexTextField(
               controller: passwordCtrl,
               obscureText: true,
-              placeholder: '主密码',
+              placeholder: l10n.settingsPrivacyMasterPassword,
             ),
             const SizedBox(height: 10),
-            const Text('确认文本',
-                style: TextStyle(
+            Text(l10n.settingsPrivacyConfirmTextLabel,
+                style: const TextStyle(
                     fontSize: 11, color: TermexColors.textSecondary)),
             const SizedBox(height: 4),
             TermexTextField(
@@ -160,7 +163,7 @@ class PrivacyTab extends ConsumerWidget {
       actions: [
         Builder(
           builder: (ctx) => TermexButton(
-            label: '取消',
+            label: l10n.commonCancel,
             variant: ButtonVariant.ghost,
             onPressed: () =>
                 Navigator.of(ctx, rootNavigator: true).pop(false),
@@ -168,7 +171,7 @@ class PrivacyTab extends ConsumerWidget {
         ),
         Builder(
           builder: (ctx) => TermexButton(
-            label: '擦除',
+            label: l10n.settingsPrivacyErase,
             variant: ButtonVariant.danger,
             onPressed: () =>
                 Navigator.of(ctx, rootNavigator: true).pop(true),
@@ -182,9 +185,9 @@ class PrivacyTab extends ConsumerWidget {
         confirmCtrl.text,
       );
       if (!success && context.mounted) {
-        ToastController.error('确认文字不正确或主密码错误');
+        ToastController.error(l10n.settingsPrivacyEraseError);
       } else if (success && context.mounted) {
-        ToastController.success('数据已擦除');
+        ToastController.success(l10n.settingsPrivacyErased);
       }
     }
   }

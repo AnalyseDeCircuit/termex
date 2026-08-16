@@ -4,6 +4,7 @@ library;
 import 'package:flutter/material.dart';
 
 import '../../../design/colors.dart';
+import '../../../l10n/app_localizations.dart';
 
 /// Shows the chmod dialog and returns the new octal permission string (e.g.
 /// "755"), or `null` if the user cancels.
@@ -68,10 +69,11 @@ class _ChmodDialogState extends State<ChmodDialog> {
 
   @override
   Widget build(BuildContext context) {
+    final l10n = AppLocalizations.of(context);
     return AlertDialog(
       backgroundColor: TermexColors.backgroundSecondary,
       title: Text(
-        '修改权限：${widget.fileName}',
+        l10n.sftpChmodTitleNamed(widget.fileName),
         style: const TextStyle(
             color: TermexColors.textPrimary, fontSize: 15),
       ),
@@ -80,17 +82,30 @@ class _ChmodDialogState extends State<ChmodDialog> {
         child: Column(
           mainAxisSize: MainAxisSize.min,
           children: [
-            _PermGroup(label: '所有者', bits: _bits, offset: 0, onToggle: _toggleBit),
+            _PermGroup(
+                label: l10n.sftpChmodOwner,
+                bits: _bits,
+                offset: 0,
+                onToggle: _toggleBit),
             const SizedBox(height: 8),
-            _PermGroup(label: '组', bits: _bits, offset: 3, onToggle: _toggleBit),
+            _PermGroup(
+                label: l10n.sftpChmodGroup,
+                bits: _bits,
+                offset: 3,
+                onToggle: _toggleBit),
             const SizedBox(height: 8),
-            _PermGroup(label: '其他', bits: _bits, offset: 6, onToggle: _toggleBit),
+            _PermGroup(
+                label: l10n.sftpChmodOthers,
+                bits: _bits,
+                offset: 6,
+                onToggle: _toggleBit),
             const SizedBox(height: 16),
             // Octal input
             Row(
               children: [
-                const Text('八进制',
-                    style: TextStyle(color: TermexColors.textSecondary)),
+                Text(l10n.sftpChmodOctalShort,
+                    style: const TextStyle(
+                        color: TermexColors.textSecondary)),
                 const SizedBox(width: 12),
                 SizedBox(
                   width: 80,
@@ -116,11 +131,11 @@ class _ChmodDialogState extends State<ChmodDialog> {
       actions: [
         TextButton(
           onPressed: () => Navigator.of(context).pop(),
-          child: const Text('取消'),
+          child: Text(l10n.commonCancel),
         ),
         TextButton(
           onPressed: () => Navigator.of(context).pop(_octalCtrl.text),
-          child: const Text('确认'),
+          child: Text(l10n.commonConfirm),
         ),
       ],
     );
@@ -161,6 +176,12 @@ class _PermGroup extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
+    final l10n = AppLocalizations.of(context);
+    final permLabels = [
+      l10n.sftpChmodRead,
+      l10n.sftpChmodWrite,
+      l10n.sftpChmodExec,
+    ];
     return Row(
       children: [
         SizedBox(
@@ -173,7 +194,7 @@ class _PermGroup extends StatelessWidget {
           Padding(
             padding: const EdgeInsets.only(right: 4),
             child: FilterChip(
-              label: Text(['读', '写', '执行'][i],
+              label: Text(permLabels[i],
                   style: TextStyle(
                     fontSize: 12,
                     color: bits[offset + i]

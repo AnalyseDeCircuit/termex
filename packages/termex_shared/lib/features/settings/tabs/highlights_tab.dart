@@ -5,6 +5,7 @@ import 'package:flutter/services.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 
 import '../../../design/tokens.dart';
+import '../../../l10n/app_localizations.dart';
 import '../state/settings_provider.dart';
 
 /// Settings → Highlights tab. Mirrors `HighlightsTab.vue`:
@@ -98,34 +99,39 @@ class _HighlightsTabState extends ConsumerState<HighlightsTab> {
       _rules = external;
     }
 
+    final l10n = AppLocalizations.of(context);
+
     return Column(
       children: [
         Padding(
           padding: const EdgeInsets.fromLTRB(20, 16, 20, 8),
           child: Row(
             children: [
-              const Text(
-                '关键词高亮',
-                style: TextStyle(
+              Text(
+                l10n.settingsHighlightsTitle,
+                style: const TextStyle(
                   fontSize: 16,
                   fontWeight: FontWeight.w600,
                   color: TermexColors.textPrimary,
                 ),
               ),
               const Spacer(),
-              _SecondaryButton(label: '加载预设', onTap: _loadPresets),
+              _SecondaryButton(
+                  label: l10n.settingsHighlightsLoadPresets,
+                  onTap: _loadPresets),
               const SizedBox(width: 8),
-              _PrimaryButton(label: '+ 新增规则', onTap: _addRule),
+              _PrimaryButton(
+                  label: l10n.settingsHighlightsAddRule, onTap: _addRule),
             ],
           ),
         ),
         if (_rules.isEmpty)
-          const Padding(
-            padding: EdgeInsets.symmetric(vertical: 40),
+          Padding(
+            padding: const EdgeInsets.symmetric(vertical: 40),
             child: Center(
               child: Text(
-                '尚未配置任何高亮规则',
-                style: TextStyle(
+                l10n.settingsHighlightsEmpty,
+                style: const TextStyle(
                   fontSize: 12,
                   color: TermexColors.textMuted,
                 ),
@@ -330,6 +336,7 @@ class _RuleRowState extends State<_RuleRow> {
 
   @override
   Widget build(BuildContext context) {
+    final l10n = AppLocalizations.of(context);
     final r = widget.rule;
     return Container(
       padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 6),
@@ -347,7 +354,7 @@ class _RuleRowState extends State<_RuleRow> {
               onTapOutside: (_) => _commitPattern(),
               decoration: InputDecoration(
                 isDense: true,
-                hintText: '关键字 / 正则',
+                hintText: l10n.settingsHighlightsPatternHint,
                 hintStyle: const TextStyle(
                   fontSize: 12,
                   color: TermexColors.textMuted,
@@ -376,26 +383,26 @@ class _RuleRowState extends State<_RuleRow> {
           ),
           const SizedBox(width: 8),
           _MiniToggle(
-            label: '正则',
+            label: l10n.settingsHighlightsRegex,
             value: r.isRegex,
             onChanged: (v) => widget.onChanged(r.copyWith(isRegex: v)),
           ),
           _MiniToggle(
             label: 'Aa',
-            tooltip: '区分大小写',
+            tooltip: l10n.settingsHighlightsCaseSensitive,
             value: r.caseSensitive,
             onChanged: (v) =>
                 widget.onChanged(r.copyWith(caseSensitive: v)),
           ),
           const SizedBox(width: 4),
           _ColorSwatch(
-            tooltip: '背景色',
+            tooltip: l10n.settingsHighlightsBgColor,
             color: r.backgroundColor,
             onChanged: (c) =>
                 widget.onChanged(r.copyWith(backgroundColor: c)),
           ),
           _ColorSwatch(
-            tooltip: '前景色 (留空 = 跟随主题)',
+            tooltip: l10n.settingsHighlightsFgColor,
             color: r.foregroundColor,
             allowEmpty: true,
             onChanged: (c) =>
@@ -403,12 +410,12 @@ class _RuleRowState extends State<_RuleRow> {
           ),
           const SizedBox(width: 4),
           _MiniToggle(
-            label: '启用',
+            label: l10n.settingsHighlightsEnabled,
             value: r.enabled,
             onChanged: (v) => widget.onChanged(r.copyWith(enabled: v)),
           ),
           IconButton(
-            tooltip: '删除',
+            tooltip: l10n.commonDelete,
             icon: const Icon(Icons.delete_outline,
                 size: 16, color: TermexColors.textMuted),
             visualDensity: VisualDensity.compact,
@@ -525,6 +532,7 @@ class _ColorSwatch extends StatelessWidget {
   }
 
   Future<void> _pickColor(BuildContext context) async {
+    final l10n = AppLocalizations.of(context);
     final ctrl = TextEditingController(text: color);
     final result = await showDialog<String>(
       context: context,
@@ -537,9 +545,9 @@ class _ColorSwatch extends StatelessWidget {
           mainAxisSize: MainAxisSize.min,
           crossAxisAlignment: CrossAxisAlignment.start,
           children: [
-            const Text(
-              '输入十六进制颜色（如 #6366F1）',
-              style: TextStyle(
+            Text(
+              l10n.settingsHighlightsColorInputHint,
+              style: const TextStyle(
                   fontSize: 11, color: TermexColors.textMuted),
             ),
             const SizedBox(height: 8),
@@ -584,14 +592,14 @@ class _ColorSwatch extends StatelessWidget {
           if (allowEmpty)
             TextButton(
               onPressed: () => Navigator.of(ctx).pop(''),
-              child: const Text('清除',
-                  style:
-                      TextStyle(color: TermexColors.textSecondary)),
+              child: Text(l10n.settingsHighlightsColorClear,
+                  style: const TextStyle(
+                      color: TermexColors.textSecondary)),
             ),
           TextButton(
             onPressed: () => Navigator.of(ctx).pop(null),
-            child: const Text('取消',
-                style: TextStyle(color: TermexColors.textSecondary)),
+            child: Text(l10n.commonCancel,
+                style: const TextStyle(color: TermexColors.textSecondary)),
           ),
           ElevatedButton(
             onPressed: () => Navigator.of(ctx).pop(ctrl.text.trim()),
@@ -599,7 +607,7 @@ class _ColorSwatch extends StatelessWidget {
               backgroundColor: TermexColors.primary,
               foregroundColor: const Color(0xFFFFFFFF),
             ),
-            child: const Text('确定'),
+            child: Text(l10n.settingsHighlightsColorConfirm),
           ),
         ],
       ),

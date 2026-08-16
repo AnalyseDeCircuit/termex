@@ -1,0 +1,3 @@
+# Portable ZIP — no installer, no registry writes. Kept because the 0.53.x
+# line shipped one and locked-down / offline Windows machines rely on it.
+display_name: Termex

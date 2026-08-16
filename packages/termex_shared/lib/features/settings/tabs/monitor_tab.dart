@@ -2,6 +2,7 @@ import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 
 import '../../../design/tokens.dart';
+import '../../../l10n/app_localizations.dart';
 import '../state/settings_provider.dart';
 import '../widgets/compact_controls.dart';
 import '../widgets/setting_row.dart';
@@ -15,13 +16,14 @@ class MonitorTab extends ConsumerWidget {
   Widget build(BuildContext context, WidgetRef ref) {
     final settings = ref.watch(settingsProvider).settings;
     final notifier = ref.read(settingsProvider.notifier);
+    final l10n = AppLocalizations.of(context);
 
     return ListView(
       padding: const EdgeInsets.all(20),
       children: [
         SettingRow(
-          label: '采样间隔',
-          hint: '每个监控指标的刷新频率',
+          label: l10n.monitorSampleInterval,
+          hint: l10n.monitorSampleIntervalHint,
           child: _IntervalSelector(
             value: settings.monitorIntervalMs,
             onChanged: (v) =>
@@ -29,8 +31,8 @@ class MonitorTab extends ConsumerWidget {
           ),
         ),
         SettingRow(
-          label: '自动启动',
-          hint: '标签连接成功后自动开启监控',
+          label: l10n.monitorAutoStartLabel,
+          hint: l10n.monitorAutoStartHint,
           child: Align(
             alignment: Alignment.centerLeft,
             child: CompactSwitch(
@@ -42,8 +44,8 @@ class MonitorTab extends ConsumerWidget {
         ),
         const SizedBox(height: 4),
         SettingRow(
-          label: '面板显示',
-          hint: '选择需要展示的监控指标',
+          label: l10n.monitorPanelDisplay,
+          hint: l10n.monitorPanelDisplayHint,
           child: _PanelCheckboxes(
             settings: settings,
             onToggle: (key, value) {
@@ -154,6 +156,7 @@ class _PanelCheckboxes extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
+    final l10n = AppLocalizations.of(context);
     return Wrap(
       spacing: 12,
       runSpacing: 6,
@@ -163,19 +166,19 @@ class _PanelCheckboxes extends StatelessWidget {
             value: settings.monitorShowCpu,
             onChanged: (v) => onToggle('cpu', v)),
         _Check(
-            label: '内存',
+            label: l10n.monitorMemory,
             value: settings.monitorShowMemory,
             onChanged: (v) => onToggle('memory', v)),
         _Check(
-            label: '磁盘',
+            label: l10n.monitorDisk,
             value: settings.monitorShowDisk,
             onChanged: (v) => onToggle('disk', v)),
         _Check(
-            label: '网络',
+            label: l10n.monitorNetwork,
             value: settings.monitorShowNetwork,
             onChanged: (v) => onToggle('network', v)),
         _Check(
-            label: '进程',
+            label: l10n.monitorProcesses,
             value: settings.monitorShowProcesses,
             onChanged: (v) => onToggle('processes', v)),
       ],

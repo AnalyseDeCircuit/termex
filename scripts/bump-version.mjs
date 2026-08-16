@@ -34,6 +34,14 @@ const CARGO_FILES = [
 
 const PUBSPEC = resolve(root, "app/pubspec.yaml");
 
+// Dart-side version constant consumed by the auto-update service
+// (appcast comparison). Falling out of sync here makes the updater
+// think every release is "new" (or none are) — see v0.79.0 B-2 fix.
+const APP_VERSION_DART = resolve(
+  root,
+  "packages/termex_shared/lib/app_version.dart",
+);
+
 function readJson(path) {
   return JSON.parse(readFileSync(path, "utf-8"));
 }
@@ -115,6 +123,19 @@ if (updatePubspec(PUBSPEC, newVersion)) {
   console.log(`  ✓ ${pubspecLabel}`);
 } else {
   console.log(`  ⏭  ${pubspecLabel} (skipped, not present)`);
+}
+
+const appVersionLabel = APP_VERSION_DART.replace(root + "/", "");
+if (existsSync(APP_VERSION_DART)) {
+  let dart = readFileSync(APP_VERSION_DART, "utf-8");
+  dart = dart.replace(
+    /const String kAppVersion = '[^']+';/,
+    `const String kAppVersion = '${newVersion}';`,
+  );
+  writeFileSync(APP_VERSION_DART, dart);
+  console.log(`  ✓ ${appVersionLabel}`);
+} else {
+  console.log(`  ⏭  ${appVersionLabel} (skipped, not present)`);
 }
 
 console.log(`\nNext steps:`);
