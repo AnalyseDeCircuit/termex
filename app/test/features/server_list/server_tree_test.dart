@@ -1,3 +1,4 @@
+import 'package:flutter/gestures.dart' show kSecondaryButton;
 import 'package:flutter/widgets.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:flutter_test/flutter_test.dart';
@@ -98,6 +99,123 @@ void main() {
       );
       await tester.pump();
       expect(find.text('No servers yet.'), findsOneWidget);
+    });
+
+
+    // ─── Context menus ───────────────────────────────────────────────────────
+    // The legacy Tauri sidebar exposed edit / duplicate / rename / move / delete
+    // on a server row. The Flutter port shipped only connect + share, so these
+    // pin the restored parity.
+
+    Future<void> pumpTree(
+      WidgetTester tester, {
+      required List<ServerDto> servers,
+      List<GroupDto> groups = const [],
+    }) async {
+      await tester.pumpWidget(
+        _wrap(
+          const ServerTree(),
+          overrides: [
+            serverListProvider.overrideWith(() => _StubServerNotifier(servers)),
+            groupListProvider.overrideWith(() => _StubGroupNotifier(groups)),
+          ],
+        ),
+      );
+      await tester.pumpAndSettle();
+    }
+
+    testWidgets('server row menu offers the legacy edit actions',
+        (tester) async {
+      await pumpTree(tester, servers: [_server()]);
+
+      await tester.tap(find.text('prod-web'), buttons: kSecondaryButton);
+      await tester.pumpAndSettle();
+
+      expect(find.text('Connect'), findsOneWidget);
+      expect(find.text('Edit'), findsOneWidget);
+      expect(find.text('Duplicate'), findsOneWidget);
+      expect(find.text('Rename'), findsOneWidget);
+      expect(find.text('Delete'), findsOneWidget);
+    });
+
+    testWidgets('server row menu offers Move to Group when a group exists',
+        (tester) async {
+      await pumpTree(tester, servers: [_server()], groups: [_group()]);
+
+      await tester.tap(find.text('prod-web'), buttons: kSecondaryButton);
+      await tester.pumpAndSettle();
+
+      expect(find.text('Move to Group'), findsOneWidget);
+    });
+
+    testWidgets('Move to Group is hidden when there is nowhere to move',
+        (tester) async {
+      // No groups exist and the server is already ungrouped.
+      await pumpTree(tester, servers: [_server()]);
+
+      await tester.tap(find.text('prod-web'), buttons: kSecondaryButton);
+      await tester.pumpAndSettle();
+
+      expect(find.text('Move to Group'), findsNothing);
+    });
+
+    testWidgets('a grouped server can be ungrouped even with no other group',
+        (tester) async {
+      await pumpTree(
+        tester,
+        servers: [_server(groupId: 'g1')],
+        groups: [_group()],
+      );
+
+      await tester.tap(find.text('prod-web'), buttons: kSecondaryButton);
+      await tester.pumpAndSettle();
+
+      // Its own group is not offered as a destination, but leaving it is.
+      expect(find.text('Move to Group'), findsOneWidget);
+    });
+
+    testWidgets('a team-shared server hides edit but still allows duplicating',
+        (tester) async {
+      const shared = ServerDto(
+        id: '2',
+        name: 'team-box',
+        host: '10.0.0.9',
+        port: 22,
+        username: 'ops',
+        authType: 'password',
+        sortOrder: 0,
+        tags: [],
+        createdAt: '2024-01-01T00:00:00Z',
+        updatedAt: '2024-01-01T00:00:00Z',
+        teamId: 'team-1',
+      );
+      await pumpTree(tester, servers: [shared]);
+
+      await tester.tap(find.text('team-box'), buttons: kSecondaryButton);
+      await tester.pumpAndSettle();
+
+      // Owned by whoever shared it — editing in place would be a lie.
+      expect(find.text('Edit'), findsNothing);
+      expect(find.text('Rename'), findsNothing);
+      expect(find.text('Move to Group'), findsNothing);
+      expect(find.text('Duplicate'), findsOneWidget);
+    });
+
+
+    testWidgets('blank-area menu offers create, import and export',
+        (tester) async {
+      await pumpTree(tester, servers: []);
+
+      // Right-click the empty region of the tree rather than a row.
+      await tester.tapAt(
+        tester.getBottomLeft(find.byType(ServerTree)) - const Offset(-40, 40),
+        buttons: kSecondaryButton,
+      );
+      await tester.pumpAndSettle();
+
+      expect(find.text('New Connection'), findsOneWidget);
+      expect(find.text('New Group'), findsOneWidget);
+      expect(find.text('Export Config'), findsOneWidget);
     });
 
     testWidgets('renders a single server node', (tester) async {

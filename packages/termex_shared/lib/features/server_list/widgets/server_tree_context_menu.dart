@@ -34,6 +34,14 @@ class _ServerTreeContextMenuState extends State<ServerTreeContextMenu>
   late final AnimationController _ctrl;
   late final Animation<double> _fade;
 
+  /// Index of the row whose flyout is currently open, if any.
+  int? _openSubmenu;
+
+  /// Anchors each submenu-bearing row so its flyout can be positioned against
+  /// the row itself rather than against a height computed from item counts,
+  /// which dividers and ellipsised labels would throw off.
+  final Map<int, LayerLink> _links = {};
+
   @override
   void initState() {
     super.initState();
@@ -49,6 +57,31 @@ class _ServerTreeContextMenuState extends State<ServerTreeContextMenu>
   void dispose() {
     _ctrl.dispose();
     super.dispose();
+  }
+
+  LayerLink _linkFor(int index) => _links.putIfAbsent(index, LayerLink.new);
+
+  Widget _buildRow(int index, ServerTreeMenuItem item) {
+    final row = _ContextRow(
+      item: item,
+      onTap: () {
+        widget.onDismiss();
+        item.onSelect?.call();
+      },
+      onHoverChanged: (hovered) {
+        // Hovering any row closes a sibling's flyout; only a row that has one
+        // opens it.
+        setState(() {
+          if (hovered) {
+            _openSubmenu = item.hasChildren ? index : null;
+          } else if (!item.hasChildren && _openSubmenu == index) {
+            _openSubmenu = null;
+          }
+        });
+      },
+    );
+    if (!item.hasChildren) return row;
+    return CompositedTransformTarget(link: _linkFor(index), child: row);
   }
 
   @override
@@ -93,42 +126,111 @@ class _ServerTreeContextMenuState extends State<ServerTreeContextMenu>
               ),
               child: Column(
                 mainAxisSize: MainAxisSize.min,
-                children: widget.items
-                    .map((it) => it.divided
-                        ? Column(
-                            mainAxisSize: MainAxisSize.min,
-                            children: [
-                              const Padding(
-                                padding: EdgeInsets.symmetric(
-                                    vertical: TermexSpacing.xs),
-                                child: ColoredBox(
-                                  color: TermexColors.border,
-                                  child: SizedBox(
-                                      height: 1, width: double.infinity),
-                                ),
-                              ),
-                              _ContextRow(
-                                item: it,
-                                onTap: () {
-                                  widget.onDismiss();
-                                  it.onSelect?.call();
-                                },
-                              ),
-                            ],
-                          )
-                        : _ContextRow(
-                            item: it,
-                            onTap: () {
-                              widget.onDismiss();
-                              it.onSelect?.call();
-                            },
-                          ))
-                    .toList(),
+                children: [
+                  for (final (index, it) in widget.items.indexed)
+                    if (it.divided)
+                      Column(
+                        mainAxisSize: MainAxisSize.min,
+                        children: [
+                          const Padding(
+                            padding: EdgeInsets.symmetric(
+                                vertical: TermexSpacing.xs),
+                            child: ColoredBox(
+                              color: TermexColors.border,
+                              child:
+                                  SizedBox(height: 1, width: double.infinity),
+                            ),
+                          ),
+                          _buildRow(index, it),
+                        ],
+                      )
+                    else
+                      _buildRow(index, it),
+                ],
               ),
             ),
           ),
         ),
+        if (_openSubmenu != null) _buildSubmenu(_openSubmenu!, menuWidth),
       ],
+    );
+  }
+
+  /// Flyout for the hovered parent row, anchored to its right edge.
+  Widget _buildSubmenu(int index, double parentWidth) {
+    final item = widget.items[index];
+    const submenuWidth = 200.0;
+
+    return CompositedTransformFollower(
+      link: _linkFor(index),
+      showWhenUnlinked: false,
+      // Overlap the parent by a few pixels so the pointer can cross into the
+      // flyout without passing over a gap, which would close it mid-travel.
+      offset: Offset(parentWidth - 4, -TermexSpacing.xs),
+      child: Align(
+        alignment: Alignment.topLeft,
+        child: MouseRegion(
+          onEnter: (_) => setState(() => _openSubmenu = index),
+          onExit: (_) => setState(() => _openSubmenu = null),
+          child: Container(
+            width: submenuWidth,
+            constraints: BoxConstraints(
+              maxHeight: widget.screenSize.height * 0.6,
+            ),
+            padding: const EdgeInsets.symmetric(vertical: TermexSpacing.xs),
+            decoration: BoxDecoration(
+              color: TermexColors.backgroundPrimary,
+              borderRadius: TermexRadius.md,
+              border: Border.all(color: TermexColors.border),
+              boxShadow: const [
+                BoxShadow(
+                  color: Color(0x14000000),
+                  blurRadius: 12,
+                  offset: Offset(0, 4),
+                ),
+              ],
+            ),
+            child: SingleChildScrollView(
+              child: Column(
+                mainAxisSize: MainAxisSize.min,
+                children: [
+                  for (final child in item.children!)
+                    if (child.divided)
+                      Column(
+                        mainAxisSize: MainAxisSize.min,
+                        children: [
+                          const Padding(
+                            padding: EdgeInsets.symmetric(
+                                vertical: TermexSpacing.xs),
+                            child: ColoredBox(
+                              color: TermexColors.border,
+                              child:
+                                  SizedBox(height: 1, width: double.infinity),
+                            ),
+                          ),
+                          _ContextRow(
+                            item: child,
+                            onTap: () {
+                              widget.onDismiss();
+                              child.onSelect?.call();
+                            },
+                          ),
+                        ],
+                      )
+                    else
+                      _ContextRow(
+                        item: child,
+                        onTap: () {
+                          widget.onDismiss();
+                          child.onSelect?.call();
+                        },
+                      ),
+                ],
+              ),
+            ),
+          ),
+        ),
+      ),
     );
   }
 }
@@ -140,19 +242,38 @@ class ServerTreeMenuItem {
   final bool divided;
   final VoidCallback? onSelect;
 
+  /// Nested entries, revealed on hover. Used by "Move to Group", which lists
+  /// every group plus an ungroup entry — the legacy sidebar showed the same
+  /// set as a flyout rather than flattening it into the parent menu.
+  ///
+  /// An item with children is not itself selectable; [onSelect] is ignored.
+  final List<ServerTreeMenuItem>? children;
+
   const ServerTreeMenuItem({
     required this.icon,
     required this.label,
     this.danger = false,
     this.divided = false,
     this.onSelect,
+    this.children,
   });
+
+  bool get hasChildren => children != null && children!.isNotEmpty;
 }
 
 class _ContextRow extends StatefulWidget {
   final ServerTreeMenuItem item;
   final VoidCallback onTap;
-  const _ContextRow({required this.item, required this.onTap});
+
+  /// Called with the row's hover state so the parent menu can open or close
+  /// this row's submenu flyout.
+  final void Function(bool hovered)? onHoverChanged;
+
+  const _ContextRow({
+    required this.item,
+    required this.onTap,
+    this.onHoverChanged,
+  });
 
   @override
   State<_ContextRow> createState() => _ContextRowState();
@@ -161,6 +282,11 @@ class _ContextRow extends StatefulWidget {
 class _ContextRowState extends State<_ContextRow> {
   bool _hovered = false;
 
+  void _setHovered(bool value) {
+    setState(() => _hovered = value);
+    widget.onHoverChanged?.call(value);
+  }
+
   @override
   Widget build(BuildContext context) {
     final color = widget.item.danger
@@ -168,10 +294,12 @@ class _ContextRowState extends State<_ContextRow> {
         : TermexColors.textPrimary;
     return MouseRegion(
       cursor: SystemMouseCursors.click,
-      onEnter: (_) => setState(() => _hovered = true),
-      onExit: (_) => setState(() => _hovered = false),
+      onEnter: (_) => _setHovered(true),
+      onExit: (_) => _setHovered(false),
       child: GestureDetector(
-        onTap: widget.onTap,
+        // A parent row only reveals its flyout; selecting it would dismiss the
+        // menu before the nested entries could be reached.
+        onTap: widget.item.hasChildren ? null : widget.onTap,
         behavior: HitTestBehavior.opaque,
         child: AnimatedContainer(
           duration: const Duration(milliseconds: 80),
@@ -186,10 +314,16 @@ class _ContextRowState extends State<_ContextRow> {
             children: [
               TermexIconWidget(widget.item.icon, size: 13, color: color),
               const SizedBox(width: TermexSpacing.sm),
-              Text(
-                widget.item.label,
-                style: TermexTypography.bodySmall.copyWith(color: color),
+              Expanded(
+                child: Text(
+                  widget.item.label,
+                  overflow: TextOverflow.ellipsis,
+                  style: TermexTypography.bodySmall.copyWith(color: color),
+                ),
               ),
+              if (widget.item.hasChildren)
+                TermexIconWidget(TermexIcons.chevronRight,
+                    size: 12, color: TermexColors.textMuted),
             ],
           ),
         ),

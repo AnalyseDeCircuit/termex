@@ -180,20 +180,58 @@ impl client::Handler for ClientHandler {
 }
 
 /// Authenticates with the SSH server using a password.
+///
+/// Tries the plain `password` auth method first, then falls back to
+/// `keyboard-interactive` feeding the same password into each prompt.
+/// Many OpenSSH servers ship with `KbdInteractiveAuthentication yes` and
+/// `PasswordAuthentication no` (or only advertise keyboard-interactive),
+/// so a client that only sends the `password` method fails to connect
+/// even with correct credentials — the classic "works in `ssh` but not in
+/// my SSH library" symptom. Covering both methods fixes new-node connects
+/// against those servers.
 pub async fn auth_password(
     handle: &mut client::Handle<ClientHandler>,
     username: &str,
     password: &str,
 ) -> Result<(), SshError> {
-    let result = handle
-        .authenticate_password(username, password)
+    // 1) Plain "password" method.
+    match handle.authenticate_password(username, password).await {
+        Ok(true) => return Ok(()),
+        Ok(false) => {
+            // Rejected OR the method isn't offered — fall through to
+            // keyboard-interactive with the same password.
+        }
+        Err(e) => return Err(SshError::AuthFailed(e.to_string())),
+    }
+
+    // 2) keyboard-interactive fallback.
+    use russh::client::KeyboardInteractiveAuthResponse;
+    let mut resp = handle
+        .authenticate_keyboard_interactive_start(username.to_string(), None)
         .await
         .map_err(|e| SshError::AuthFailed(e.to_string()))?;
 
-    if !result {
-        return Err(SshError::AuthFailed("password rejected".into()));
+    // Bound the prompt round-trips so a misbehaving server can't loop
+    // forever. Real password flows resolve in one or two rounds.
+    for _ in 0..10 {
+        match resp {
+            KeyboardInteractiveAuthResponse::Success => return Ok(()),
+            KeyboardInteractiveAuthResponse::Failure => {
+                return Err(SshError::AuthFailed("password rejected".into()));
+            }
+            KeyboardInteractiveAuthResponse::InfoRequest { prompts, .. } => {
+                // Answer every prompt with the password (the overwhelmingly
+                // common case is a single "Password:" prompt). An empty
+                // prompt list is informational and gets an empty response.
+                let answers = vec![password.to_string(); prompts.len()];
+                resp = handle
+                    .authenticate_keyboard_interactive_respond(answers)
+                    .await
+                    .map_err(|e| SshError::AuthFailed(e.to_string()))?;
+            }
+        }
     }
-    Ok(())
+    Err(SshError::AuthFailed("password rejected".into()))
 }
 
 /// Authenticates with the SSH server using a private key from content (bytes).

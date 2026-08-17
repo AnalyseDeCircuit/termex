@@ -39,6 +39,21 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
   Also fixed the CI ARB-completeness check that pointed at a dead
   `app/lib/l10n/` path.
 
+### Fixed (SSH connect + sidebar)
+
+- **Password auth now falls back to keyboard-interactive.** `auth_password`
+  (`crates/termex-core/src/ssh/auth.rs`) tried only the plain `password` SSH
+  method. Many OpenSSH servers advertise only `keyboard-interactive`
+  (`KbdInteractiveAuthentication yes`, the default on most distros), so a
+  new node would fail to connect *and* fail the "Test connection" check even
+  with correct credentials — the classic "works in `ssh` but not in the
+  library" symptom. Now tries `password` first, then keyboard-interactive
+  feeding the same password into each prompt.
+- **Sidebar blank-area right-click menu.** Right-clicking empty space in the
+  server tree previously did nothing. It now opens a root context menu with
+  New Connection / New Group / Import SSH config, matching the legacy Tauri
+  sidebar. (A server row's own right-click menu still wins on rows.)
+
 ### Fixed (GitHub issues)
 
 - **#24 SFTP chmod / chown now functional.** The core `SftpHandle::chmod`

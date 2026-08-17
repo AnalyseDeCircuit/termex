@@ -31,6 +31,18 @@ Future<ServerDto> updateServer(
 Future<void> deleteServer({required String id}) =>
     TermexBridge.instance.api.crateApiServerDeleteServer(id: id);
 
+/// Reads the stored credentials for `id`.
+///
+/// Exists so duplicating a server can carry its secrets across. Creating the
+/// copy from the `ServerDto` alone would silently drop them — the DTO holds no
+/// secrets by design — leaving a server that looks complete and cannot
+/// connect.
+///
+/// Goes through the cached keychain accessor, never `keyring::Entry`, so it
+/// cannot trigger a second OS password prompt.
+Future<ServerCredentials> getServerCredentials({required String id}) =>
+    TermexBridge.instance.api.crateApiServerGetServerCredentials(id: id);
+
 /// Move a server to a different group (or un-group it).
 Future<void> moveServerToGroup({required String id, String? groupId}) =>
     TermexBridge.instance.api
@@ -100,6 +112,32 @@ class QuickConnectEntry {
           port == other.port &&
           username == other.username &&
           usedAt == other.usedAt;
+}
+
+/// Secrets belonging to one server, read back out of the OS keychain.
+///
+/// Absent entries come back as `None` rather than an error: a key-auth server
+/// legitimately has no password, and a key without a passphrase has none
+/// either.
+class ServerCredentials {
+  final String? password;
+  final String? passphrase;
+
+  const ServerCredentials({
+    this.password,
+    this.passphrase,
+  });
+
+  @override
+  int get hashCode => password.hashCode ^ passphrase.hashCode;
+
+  @override
+  bool operator ==(Object other) =>
+      identical(this, other) ||
+      other is ServerCredentials &&
+          runtimeType == other.runtimeType &&
+          password == other.password &&
+          passphrase == other.passphrase;
 }
 
 /// Lightweight server DTO for Flutter.

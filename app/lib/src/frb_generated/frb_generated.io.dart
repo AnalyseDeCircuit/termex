@@ -622,6 +622,9 @@ abstract class TermexBridgeApiImplPlatform
   SecurityStatus dco_decode_security_status(dynamic raw);
 
   @protected
+  ServerCredentials dco_decode_server_credentials(dynamic raw);
+
+  @protected
   ServerDto dco_decode_server_dto(dynamic raw);
 
   @protected
@@ -1301,6 +1304,9 @@ abstract class TermexBridgeApiImplPlatform
 
   @protected
   SecurityStatus sse_decode_security_status(SseDeserializer deserializer);
+
+  @protected
+  ServerCredentials sse_decode_server_credentials(SseDeserializer deserializer);
 
   @protected
   ServerDto sse_decode_server_dto(SseDeserializer deserializer);
@@ -2031,6 +2037,10 @@ abstract class TermexBridgeApiImplPlatform
   @protected
   void sse_encode_security_status(
       SecurityStatus self, SseSerializer serializer);
+
+  @protected
+  void sse_encode_server_credentials(
+      ServerCredentials self, SseSerializer serializer);
 
   @protected
   void sse_encode_server_dto(ServerDto self, SseSerializer serializer);

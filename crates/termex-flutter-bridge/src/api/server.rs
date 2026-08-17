@@ -503,6 +503,32 @@ pub fn delete_server(id: String) -> Result<(), String> {
     })
 }
 
+/// Secrets belonging to one server, read back out of the OS keychain.
+///
+/// Absent entries come back as `None` rather than an error: a key-auth server
+/// legitimately has no password, and a key without a passphrase has none
+/// either.
+pub struct ServerCredentials {
+    pub password: Option<String>,
+    pub passphrase: Option<String>,
+}
+
+/// Reads the stored credentials for `id`.
+///
+/// Exists so duplicating a server can carry its secrets across. Creating the
+/// copy from the `ServerDto` alone would silently drop them — the DTO holds no
+/// secrets by design — leaving a server that looks complete and cannot
+/// connect.
+///
+/// Goes through the cached keychain accessor, never `keyring::Entry`, so it
+/// cannot trigger a second OS password prompt.
+pub fn get_server_credentials(id: String) -> Result<ServerCredentials, String> {
+    Ok(ServerCredentials {
+        password: keychain::get(&format!("termex:ssh:password:{id}")).ok(),
+        passphrase: keychain::get(&format!("termex:ssh:passphrase:{id}")).ok(),
+    })
+}
+
 /// Move a server to a different group (or un-group it).
 pub fn move_server_to_group(id: String, group_id: Option<String>) -> Result<(), String> {
     let now = Utc::now().to_rfc3339();
