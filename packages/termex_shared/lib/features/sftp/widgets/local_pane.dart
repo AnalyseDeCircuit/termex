@@ -1,6 +1,8 @@
 /// Local filesystem pane for the SFTP dual-pane browser.
 library;
 
+import 'dart:async';
+
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:termex_bridge/src/api.dart' as bridge;
@@ -48,7 +50,11 @@ class _LocalPaneState extends ConsumerState<LocalPane> {
         .currentPath;
     notifier.setLocalLoading(true);
     try {
-      final entries = await bridge.localListDir(path: currentPath);
+      final entries = await bridge
+          .localListDir(path: currentPath)
+          .timeout(const Duration(seconds: 20),
+              onTimeout: () => throw TimeoutException(
+                  'localListDir("$currentPath") did not return within 20s'));
       if (!mounted) return;
       setState(() {
         _entries = entries
@@ -64,7 +70,10 @@ class _LocalPaneState extends ConsumerState<LocalPane> {
                 ))
             .toList();
       });
-    } catch (_) {
+    } catch (e) {
+      // Previously swallowed, so a failure looked exactly like an empty
+      // directory and gave the user nothing to report.
+      notifier.setLocalError(e.toString());
       if (mounted) setState(() => _entries = []);
     } finally {
       notifier.setLocalLoading(false);

@@ -130,6 +130,11 @@ class SftpPaneNotifier extends FamilyNotifier<SftpPaneState, String> {
   void setRemoteError(String? error) => state =
       state.copyWith(remote: state.remote.copyWith(errorMessage: error));
 
+  /// Counterpart to [setRemoteError]. Its absence is why a failed local
+  /// listing rendered as an empty directory rather than as the failure it was.
+  void setLocalError(String? error) => state =
+      state.copyWith(local: state.local.copyWith(errorMessage: error));
+
   // ── Internal ─────────────────────────────────────────────────────────────
 
   static String _homeDir() {

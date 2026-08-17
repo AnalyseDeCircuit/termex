@@ -1,6 +1,8 @@
 /// Remote filesystem pane for the SFTP dual-pane browser.
 library;
 
+import 'dart:async';
+
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:termex_bridge/src/api.dart' as bridge;
@@ -78,8 +80,14 @@ class _RemotePaneState extends ConsumerState<RemotePane> {
     notifier.setRemoteLoading(true);
     notifier.setRemoteError(null);
     try {
-      final entries =
-          await bridge.sftpList(sessionId: widget.sessionId, path: path);
+      // Bounded so a request that never comes back shows a reason instead of
+      // an endless spinner. The pane had no timeout at all, which is why a
+      // stalled listing was indistinguishable from a slow one.
+      final entries = await bridge
+          .sftpList(sessionId: widget.sessionId, path: path)
+          .timeout(const Duration(seconds: 20),
+              onTimeout: () => throw TimeoutException(
+                  'sftpList("$path") did not return within 20s'));
       if (!mounted) return;
       setState(() {
         _entries = entries

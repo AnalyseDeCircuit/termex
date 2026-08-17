@@ -61,7 +61,10 @@ class TermexIcons {
 
   // ── Cloud / AI / Monitor ─────────────────────────────────────────────────
   static const IconData cloud   = LucideIcons.cloud;
-  static const IconData ai      = LucideIcons.brain;
+  // Sparkles, not a brain: the Tauri toolbar rendered the AI toggle as the
+  // ✨ glyph (&#x2728; in TerminalTabs.vue), and that is the mark users
+  // associate with the feature.
+  static const IconData ai      = LucideIcons.sparkles;
   static const IconData monitor = LucideIcons.monitor;
 
   // ── Recording playback ───────────────────────────────────────────────────
