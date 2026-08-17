@@ -38,15 +38,39 @@ pub struct SftpHandle {
 }
 
 impl SftpHandle {
+    /// How long the whole subsystem handshake may take before giving up.
+    ///
+    /// A server that refuses the sftp subsystem — not installed, disabled in
+    /// sshd_config, or blocked by a ForceCommand — leaves the client waiting
+    /// for a VERSION packet that is never sent. Without a bound the caller
+    /// hangs forever, which surfaced as an SFTP panel spinning indefinitely
+    /// while the shell on the same connection worked fine.
+    const OPEN_TIMEOUT: std::time::Duration = std::time::Duration::from_secs(15);
+
     /// Opens an SFTP subsystem on the given SSH handle.
     pub async fn open(handle: &client::Handle<ClientHandler>) -> Result<Self, SftpError> {
+        tokio::time::timeout(Self::OPEN_TIMEOUT, Self::open_inner(handle))
+            .await
+            .map_err(|_| {
+                SftpError::ChannelError(
+                    "timed out opening the SFTP subsystem — the server may not \
+                     offer sftp (check the Subsystem directive in sshd_config)"
+                        .to_string(),
+                )
+            })?
+    }
+
+    async fn open_inner(handle: &client::Handle<ClientHandler>) -> Result<Self, SftpError> {
         let channel = handle
             .channel_open_session()
             .await
             .map_err(|e| SftpError::ChannelError(e.to_string()))?;
 
+        // want_reply: the server's success/failure for this request is what
+        // tells us the subsystem actually started. Requesting no reply meant a
+        // refusal was indistinguishable from silence.
         channel
-            .request_subsystem(false, "sftp")
+            .request_subsystem(true, "sftp")
             .await
             .map_err(|e| SftpError::ChannelError(e.to_string()))?;
 
