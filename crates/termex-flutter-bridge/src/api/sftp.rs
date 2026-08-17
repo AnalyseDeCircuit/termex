@@ -58,11 +58,19 @@ pub async fn close_sftp_channel(session_id: String) -> Result<(), String> {
 
 /// Returns `true` if an SFTP channel is currently cached for `session_id`.
 pub async fn is_sftp_open(session_id: String) -> bool {
-    let Some(entry) = session_registry::REGISTRY.get(&session_id) else {
-        return false;
+    // Clone the Arc'd mutex and release the DashMap shard guard before
+    // awaiting — holding it across `.await` blocks every registry access
+    // on the same shard (see `SessionEntry`).
+    let sftp_lock = {
+        let Some(entry) = session_registry::REGISTRY.get(&session_id) else {
+            return false;
+        };
+        entry.sftp.clone()
     };
-    let is_open = entry.sftp.lock().await.is_some();
-    is_open
+    // Bound to a local: as a tail expression the guard would outlive
+    // `sftp_lock` and fail to borrow-check.
+    let open = sftp_lock.lock().await.is_some();
+    open
 }
 
 // ─── Directory operations ─────────────────────────────────────────────────────

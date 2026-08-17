@@ -17,10 +17,16 @@ use tokio::sync::{mpsc, Mutex as AsyncMutex};
 /// `sftp` caches an opened SFTP subsystem for the session. Wrapped in an
 /// `Arc` so clones can outlive the entry-ref lifetime (useful for spawning
 /// background transfer tasks without holding the DashMap guard).
+/// Both mutexes are wrapped in `Arc` so callers can clone the handle and
+/// **drop the DashMap `Ref` before awaiting**. `REGISTRY.get()` returns a
+/// guard holding a synchronous shard lock; holding it across an `.await`
+/// blocks every other access that hashes to the same shard, which
+/// deadlocked SFTP (see `ensure_sftp`). Cloning the `Arc` lets the shard
+/// lock be released immediately.
 pub struct SessionEntry {
     pub cmd_tx: mpsc::UnboundedSender<ChannelCommand>,
-    pub session: AsyncMutex<Option<SshSession>>,
-    pub sftp: AsyncMutex<Option<Arc<SftpHandle>>>,
+    pub session: Arc<AsyncMutex<Option<SshSession>>>,
+    pub sftp: Arc<AsyncMutex<Option<Arc<SftpHandle>>>>,
 }
 
 /// Global registry of active SSH sessions, keyed by session_id.
@@ -40,8 +46,8 @@ pub fn insert(
         session_id,
         SessionEntry {
             cmd_tx,
-            session: AsyncMutex::new(Some(session)),
-            sftp: AsyncMutex::new(None),
+            session: Arc::new(AsyncMutex::new(Some(session))),
+            sftp: Arc::new(AsyncMutex::new(None)),
         },
     );
 }
@@ -54,8 +60,8 @@ pub fn insert_cmd_only(session_id: String, cmd_tx: mpsc::UnboundedSender<Channel
         session_id,
         SessionEntry {
             cmd_tx,
-            session: AsyncMutex::new(None),
-            sftp: AsyncMutex::new(None),
+            session: Arc::new(AsyncMutex::new(None)),
+            sftp: Arc::new(AsyncMutex::new(None)),
         },
     );
 }
@@ -74,17 +80,36 @@ pub fn send(session_id: &str, cmd: ChannelCommand) -> Result<(), String> {
 /// Takes the owned SshSession out of the entry, leaving a cmd-only shell.
 /// Used by `close_ssh_session` to perform a graceful disconnect.
 pub async fn take_session(session_id: &str) -> Option<SshSession> {
-    let entry = REGISTRY.get(session_id)?;
-    let taken = entry.session.lock().await.take();
+    // Clone the Arc and release the DashMap shard guard before awaiting —
+    // see the SessionEntry doc comment.
+    let session_lock = {
+        let entry = REGISTRY.get(session_id)?;
+        entry.session.clone()
+    };
+    // Bound to a local: as a tail expression the guard would outlive
+    // `session_lock` and fail to borrow-check.
+    let taken = session_lock.lock().await.take();
     taken
 }
 
 /// Ensures an SFTP subsystem is open for the session; returns a cloneable
 /// handle. If the subsystem is already open, the cached handle is returned.
 pub async fn ensure_sftp(session_id: &str) -> Result<Arc<SftpHandle>, String> {
-    let entry = REGISTRY
-        .get(session_id)
-        .ok_or_else(|| format!("SSH session not found: {session_id}"))?;
+    // Clone both Arc'd mutexes, then drop the DashMap `Ref` immediately.
+    //
+    // Previously the `Ref` was held for the whole function, i.e. across the
+    // sftp lock, the session lock, and the `SftpHandle::open` network
+    // round-trip. `REGISTRY.get()` holds a *synchronous* shard lock, so any
+    // other registry access hashing to the same shard — every terminal
+    // read/write, every other SFTP call — blocked behind it. Opening the
+    // SFTP pane therefore hung both file panes forever even though the SSH
+    // session itself was healthy.
+    let (sftp_lock, session_lock) = {
+        let entry = REGISTRY
+            .get(session_id)
+            .ok_or_else(|| format!("SSH session not found: {session_id}"))?;
+        (entry.sftp.clone(), entry.session.clone())
+    };
 
     // The sftp lock is held across the open, not just around the check.
     // Releasing it in between let two callers both miss the fast path and both
@@ -92,14 +117,14 @@ pub async fn ensure_sftp(session_id: &str) -> Result<Arc<SftpHandle>, String> {
     // directory listing is already in flight. The second handle then replaced
     // the first in the registry, orphaning a live channel whose owner was
     // still awaiting it.
-    let mut sftp_guard = entry.sftp.lock().await;
+    let mut sftp_guard = sftp_lock.lock().await;
 
     // Re-check: a caller that was queued on this lock may have just opened it.
     if let Some(handle) = sftp_guard.as_ref() {
         return Ok(handle.clone());
     }
 
-    let session_guard = entry.session.lock().await;
+    let session_guard = session_lock.lock().await;
     let session = session_guard
         .as_ref()
         .ok_or_else(|| format!("SSH session {session_id} has been closed"))?;
@@ -115,11 +140,13 @@ pub async fn ensure_sftp(session_id: &str) -> Result<Arc<SftpHandle>, String> {
 
 /// Closes the SFTP subsystem if one is open. Idempotent.
 pub async fn close_sftp(session_id: &str) {
-    let Some(entry) = REGISTRY.get(session_id) else {
-        return;
+    let sftp_lock = {
+        let Some(entry) = REGISTRY.get(session_id) else {
+            return;
+        };
+        entry.sftp.clone()
     };
-    let taken = entry.sftp.lock().await.take();
-    drop(entry);
+    let taken = sftp_lock.lock().await.take();
     if let Some(arc) = taken {
         // Best-effort: try to take exclusive ownership and close cleanly.
         if let Ok(handle) = Arc::try_unwrap(arc) {

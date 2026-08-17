@@ -628,10 +628,18 @@ pub async fn daemon_connect_via_ssh(
 /// its combined stdout. Errors include a hint indicating whether
 /// the session was not registered or the command itself failed.
 async fn ssh_exec_capture(ssh_session_id: &str, command: &str) -> Result<String, String> {
-    let entry = crate::session_registry::REGISTRY
-        .get(ssh_session_id)
-        .ok_or_else(|| format!("ERR_NOT_FOUND: ssh session {ssh_session_id} not registered"))?;
-    let guard = entry.session.lock().await;
+    // Clone the Arc'd mutex, then drop the DashMap shard guard before the
+    // await chain — see `SessionEntry`. Holding it across `exec_command`
+    // would block unrelated registry traffic on the same shard.
+    let session_lock = {
+        let entry = crate::session_registry::REGISTRY
+            .get(ssh_session_id)
+            .ok_or_else(|| {
+                format!("ERR_NOT_FOUND: ssh session {ssh_session_id} not registered")
+            })?;
+        entry.session.clone()
+    };
+    let guard = session_lock.lock().await;
     let session = guard
         .as_ref()
         .ok_or_else(|| "ERR_WS: ssh session closed".to_string())?;
