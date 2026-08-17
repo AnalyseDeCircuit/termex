@@ -86,15 +86,19 @@ pub async fn ensure_sftp(session_id: &str) -> Result<Arc<SftpHandle>, String> {
         .get(session_id)
         .ok_or_else(|| format!("SSH session not found: {session_id}"))?;
 
-    // Fast path: SFTP already open.
-    {
-        let sftp_guard = entry.sftp.lock().await;
-        if let Some(handle) = sftp_guard.as_ref() {
-            return Ok(handle.clone());
-        }
+    // The sftp lock is held across the open, not just around the check.
+    // Releasing it in between let two callers both miss the fast path and both
+    // open a subsystem — the UI does exactly that, opening the channel while a
+    // directory listing is already in flight. The second handle then replaced
+    // the first in the registry, orphaning a live channel whose owner was
+    // still awaiting it.
+    let mut sftp_guard = entry.sftp.lock().await;
+
+    // Re-check: a caller that was queued on this lock may have just opened it.
+    if let Some(handle) = sftp_guard.as_ref() {
+        return Ok(handle.clone());
     }
 
-    // Slow path: open a fresh subsystem while the SshSession stays locked.
     let session_guard = entry.session.lock().await;
     let session = session_guard
         .as_ref()
@@ -102,10 +106,9 @@ pub async fn ensure_sftp(session_id: &str) -> Result<Arc<SftpHandle>, String> {
     let opened = SftpHandle::open(session.handle())
         .await
         .map_err(|e| e.to_string())?;
-    let arc = Arc::new(opened);
     drop(session_guard);
 
-    let mut sftp_guard = entry.sftp.lock().await;
+    let arc = Arc::new(opened);
     *sftp_guard = Some(arc.clone());
     Ok(arc)
 }

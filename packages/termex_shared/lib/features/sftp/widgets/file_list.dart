@@ -48,32 +48,40 @@ class SftpFilterBar extends StatelessWidget {
       ),
       child: Row(
         children: [
-          InkWell(
-            onTap: onToggleHidden,
-            child: Padding(
-              padding: const EdgeInsets.symmetric(horizontal: 4, vertical: 2),
-              child: Row(
-                children: [
-                  Icon(
-                    showHidden
-                        ? Icons.visibility
-                        : Icons.visibility_off_outlined,
-                    size: 13,
-                    color: showHidden
-                        ? TermexColors.primary
-                        : TermexColors.textSecondary,
-                  ),
-                  const SizedBox(width: 4),
-                  Text(
-                    l10n.sftpShowHidden,
-                    style: TextStyle(
-                      fontSize: 11,
+          Flexible(
+            child: InkWell(
+              onTap: onToggleHidden,
+              child: Padding(
+                padding: const EdgeInsets.symmetric(horizontal: 4, vertical: 2),
+                child: Row(
+                  children: [
+                    Icon(
+                      showHidden
+                          ? Icons.visibility
+                          : Icons.visibility_off_outlined,
+                      size: 13,
                       color: showHidden
                           ? TermexColors.primary
                           : TermexColors.textSecondary,
                     ),
-                  ),
-                ],
+                    const SizedBox(width: 4),
+                    // Ellipsises instead of overflowing once the pane is docked
+                    // narrow; the icon alone still conveys the toggle state.
+                    Flexible(
+                      child: Text(
+                        l10n.sftpShowHidden,
+                        overflow: TextOverflow.ellipsis,
+                        softWrap: false,
+                        style: TextStyle(
+                          fontSize: 11,
+                          color: showHidden
+                              ? TermexColors.primary
+                              : TermexColors.textSecondary,
+                        ),
+                      ),
+                    ),
+                  ],
+                ),
               ),
             ),
           ),
@@ -102,15 +110,18 @@ class SftpFilterBar extends StatelessWidget {
                     ))
                 .toList(),
             child: Container(
-              padding:
-                  const EdgeInsets.symmetric(horizontal: 8, vertical: 2),
+              padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 2),
               child: Row(
                 children: [
                   const Icon(Icons.sort,
                       size: 12, color: TermexColors.textSecondary),
                   const SizedBox(width: 4),
+                  // Not Flexible: PopupMenuButton gives its child unbounded
+                  // width, where a flex child asserts. The label is short and
+                  // the toggle on the left absorbs the shrinking instead.
                   Text(
                     _label(sort, l10n),
+                    softWrap: false,
                     style: const TextStyle(
                         fontSize: 11, color: TermexColors.textSecondary),
                   ),
@@ -152,24 +163,39 @@ class FileListHeader extends StatelessWidget {
         color: TermexColors.backgroundTertiary,
         border: Border(bottom: BorderSide(color: TermexColors.border)),
       ),
-      child: Row(
-        children: [
-          const SizedBox(width: 23), // icon placeholder
-          Expanded(flex: 5, child: _ColHeader(l10n.sftpColName)),
-          SizedBox(
-              width: 80,
-              child: _ColHeader(l10n.sftpColSize, align: TextAlign.right)),
-          const SizedBox(width: 8),
-          SizedBox(
-              width: 100,
-              child:
-                  _ColHeader(l10n.sftpColModified, align: TextAlign.right)),
-          const SizedBox(width: 8),
-          SizedBox(
-              width: 80,
-              child: _ColHeader(l10n.sftpColPermissions,
-                  align: TextAlign.right)),
-        ],
+      // Same width-derived column set the rows use, so the two never disagree.
+      // The fixed 23 + 80 + 8 + 100 + 8 + 80 this used to draw needed 315px
+      // before the name column got anything, which a side-docked pane does not
+      // have — hence the ~100px overflow.
+      child: LayoutBuilder(
+        builder: (_, c) {
+          final cols = SftpColumns.forWidth(c.maxWidth);
+          return Row(
+            children: [
+              const SizedBox(width: SftpColumns.iconWidth),
+              Expanded(flex: 5, child: _ColHeader(l10n.sftpColName)),
+              if (cols.showSize) ...[
+                SizedBox(
+                    width: SftpColumns.sizeWidth,
+                    child:
+                        _ColHeader(l10n.sftpColSize, align: TextAlign.right)),
+                const SizedBox(width: SftpColumns.gap),
+              ],
+              if (cols.showModified) ...[
+                SizedBox(
+                    width: SftpColumns.modifiedWidth,
+                    child: _ColHeader(l10n.sftpColModified,
+                        align: TextAlign.right)),
+                const SizedBox(width: SftpColumns.gap),
+              ],
+              if (cols.showPermissions)
+                SizedBox(
+                    width: SftpColumns.permissionsWidth,
+                    child: _ColHeader(l10n.sftpColPermissions,
+                        align: TextAlign.right)),
+            ],
+          );
+        },
       ),
     );
   }
@@ -250,8 +276,7 @@ class _FileListState extends State<FileList> {
       return Center(
         child: Text(
           AppLocalizations.of(context).sftpEmptyDir,
-          style:
-              const TextStyle(color: TermexColors.textMuted, fontSize: 12),
+          style: const TextStyle(color: TermexColors.textMuted, fontSize: 12),
         ),
       );
     }
@@ -259,21 +284,30 @@ class _FileListState extends State<FileList> {
     return KeyboardListener(
       focusNode: FocusNode(),
       onKeyEvent: _handleKey,
-      child: ListView.builder(
-        itemCount: widget.entries.length,
-        itemExtent: 28,
-        itemBuilder: (context, i) {
-          final entry = widget.entries[i];
-          return FileRow(
-            key: ValueKey(entry.name),
-            data: entry,
-            isSelected: widget.selectedNames.contains(entry.name),
-            onTap: () {
-              setState(() => _cursorIndex = i);
-              widget.onToggleSelect(entry.name);
+      // Resolved once for the whole list rather than per row: every row must
+      // agree with FileListHeader, and a LayoutBuilder per row would re-measure
+      // on every scroll.
+      child: LayoutBuilder(
+        builder: (context, c) {
+          final cols = SftpColumns.forWidth(c.maxWidth - 16);
+          return ListView.builder(
+            itemCount: widget.entries.length,
+            itemExtent: 28,
+            itemBuilder: (context, i) {
+              final entry = widget.entries[i];
+              return FileRow(
+                key: ValueKey(entry.name),
+                columns: cols,
+                data: entry,
+                isSelected: widget.selectedNames.contains(entry.name),
+                onTap: () {
+                  setState(() => _cursorIndex = i);
+                  widget.onToggleSelect(entry.name);
+                },
+                onDoubleTap: () => widget.onOpen(entry),
+                onSecondaryTap: () => _showContextMenu(context, entry, i),
+              );
             },
-            onDoubleTap: () => widget.onOpen(entry),
-            onSecondaryTap: () => _showContextMenu(context, entry, i),
           );
         },
       ),
@@ -286,16 +320,19 @@ class _FileListState extends State<FileList> {
     if (entries.isEmpty) return;
 
     if (event.logicalKey == LogicalKeyboardKey.arrowDown) {
-      setState(() => _cursorIndex = (_cursorIndex + 1).clamp(0, entries.length - 1));
+      setState(
+          () => _cursorIndex = (_cursorIndex + 1).clamp(0, entries.length - 1));
     } else if (event.logicalKey == LogicalKeyboardKey.arrowUp) {
-      setState(() => _cursorIndex = (_cursorIndex - 1).clamp(0, entries.length - 1));
+      setState(
+          () => _cursorIndex = (_cursorIndex - 1).clamp(0, entries.length - 1));
     } else if (event.logicalKey == LogicalKeyboardKey.enter ||
         event.logicalKey == LogicalKeyboardKey.space) {
       widget.onOpen(entries[_cursorIndex]);
     }
   }
 
-  void _showContextMenu(BuildContext context, FileRowData entry, int idx) async {
+  void _showContextMenu(
+      BuildContext context, FileRowData entry, int idx) async {
     setState(() => _cursorIndex = idx);
     final RenderBox box = context.findRenderObject() as RenderBox;
     final offset = box.localToGlobal(Offset.zero);

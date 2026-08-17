@@ -47,11 +47,18 @@ class _SftpPanelState extends ConsumerState<SftpPanel> {
   Widget build(BuildContext context) {
     final sftpState = ref.watch(sftpSessionProvider(widget.sessionId));
 
-    if (sftpState.status == SftpChannelStatus.opening) {
-      return const _LoadingView(message: '正在打开 SFTP 通道…');
-    }
     if (sftpState.status == SftpChannelStatus.error) {
       return _ErrorView(message: sftpState.errorMessage ?? '未知错误');
+    }
+
+    // `closed` is the state on the very first frame, because open() is
+    // deferred to a post-frame callback. Falling through to the panel here
+    // mounted RemotePane, whose initState immediately listed the remote
+    // directory over a channel that did not exist yet — that request raced
+    // the open() call for the same channel and the panes sat on their
+    // spinners. Wait for the channel instead.
+    if (!sftpState.isOpen) {
+      return const _LoadingView(message: '正在打开 SFTP 通道…');
     }
 
     return _PanelBody(sessionId: widget.sessionId);

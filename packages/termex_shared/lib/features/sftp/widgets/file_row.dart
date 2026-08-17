@@ -31,12 +31,68 @@ class FileRowData {
 ///
 /// [isSelected] highlights the row with the primary accent color.
 /// [onDoubleTap] navigates into directories or triggers download for files.
+/// Which metadata columns fit in the space a file list actually has.
+///
+/// Derived from the list's own width rather than the window's. Column
+/// visibility used to key off `MediaQuery.sizeOf(context).width < 600`, which
+/// reports the whole window: docking the SFTP panel to the side of a wide
+/// window left that check reading "desktop" while each pane was barely 200px,
+/// so the full column set was rendered and the header row overflowed.
+class SftpColumns {
+  final bool showSize;
+  final bool showModified;
+  final bool showPermissions;
+
+  const SftpColumns({
+    required this.showSize,
+    required this.showModified,
+    required this.showPermissions,
+  });
+
+  /// Leading icon plus its gap. The header reserves the same amount.
+  static const double iconWidth = 23;
+  static const double sizeWidth = 72;
+  static const double modifiedWidth = 100;
+  static const double permissionsWidth = 80;
+  static const double gap = 8;
+
+  /// Below this the name column stops being readable, so a metadata column is
+  /// dropped instead.
+  static const double minNameWidth = 96;
+
+  /// Drops columns right-to-left — permissions first, then modified, then
+  /// size — keeping the name legible for as long as possible.
+  factory SftpColumns.forWidth(double available) {
+    // `available` excludes the row's own horizontal padding.
+    var remaining = available - iconWidth - minNameWidth;
+
+    final showSize = remaining >= sizeWidth + gap;
+    if (showSize) remaining -= sizeWidth + gap;
+
+    final showModified = showSize && remaining >= modifiedWidth + gap;
+    if (showModified) remaining -= modifiedWidth + gap;
+
+    final showPermissions =
+        showModified && remaining >= permissionsWidth + gap;
+
+    return SftpColumns(
+      showSize: showSize,
+      showModified: showModified,
+      showPermissions: showPermissions,
+    );
+  }
+}
+
 class FileRow extends StatelessWidget {
   final FileRowData data;
   final bool isSelected;
   final VoidCallback? onTap;
   final VoidCallback? onDoubleTap;
   final VoidCallback? onSecondaryTap;
+
+  /// Columns to draw. Supplied by [FileList] so every row agrees with the
+  /// header; omitting it falls back to whatever fits the enclosing width.
+  final SftpColumns? columns;
 
   const FileRow({
     super.key,
@@ -45,6 +101,7 @@ class FileRow extends StatelessWidget {
     this.onTap,
     this.onDoubleTap,
     this.onSecondaryTap,
+    this.columns,
   });
 
   @override
@@ -56,6 +113,34 @@ class FileRow extends StatelessWidget {
     final rowHeight = isMobile ? 44.0 : 28.0;
     final iconSize = isMobile ? 22.0 : 15.0;
     final padding = EdgeInsets.symmetric(horizontal: isMobile ? 12 : 8);
+
+    if (columns == null) {
+      return LayoutBuilder(
+        builder: (_, c) => _build(
+          context,
+          SftpColumns.forWidth(c.maxWidth - padding.horizontal),
+          rowHeight: rowHeight,
+          iconSize: iconSize,
+          padding: padding,
+          isMobile: isMobile,
+        ),
+      );
+    }
+    return _build(context, columns!,
+        rowHeight: rowHeight,
+        iconSize: iconSize,
+        padding: padding,
+        isMobile: isMobile);
+  }
+
+  Widget _build(
+    BuildContext context,
+    SftpColumns cols, {
+    required double rowHeight,
+    required double iconSize,
+    required EdgeInsets padding,
+    required bool isMobile,
+  }) {
     return GestureDetector(
       behavior: HitTestBehavior.opaque,
       onTap: onTap,
@@ -93,22 +178,25 @@ class FileRow extends StatelessWidget {
               ),
             ),
             // Size
-            SizedBox(
-              width: isMobile ? 60 : 72,
-              child: Text(
-                data.isDirectory ? '' : _formatSize(data.sizeBytes),
-                style: TextStyle(
-                  fontSize: isMobile ? 12 : 11,
-                  color: TermexColors.textMuted,
-                ),
-                textAlign: TextAlign.right,
-              ),
-            ),
-            const SizedBox(width: 8),
-            // Modified date — hidden on mobile to keep the name column readable.
-            if (!isMobile) ...[
+            if (cols.showSize) ...[
               SizedBox(
-                width: 100,
+                width: isMobile ? 60 : SftpColumns.sizeWidth,
+                child: Text(
+                  data.isDirectory ? '' : _formatSize(data.sizeBytes),
+                  style: TextStyle(
+                    fontSize: isMobile ? 12 : 11,
+                    color: TermexColors.textMuted,
+                  ),
+                  textAlign: TextAlign.right,
+                ),
+              ),
+              const SizedBox(width: SftpColumns.gap),
+            ],
+            // Dropped first when the pane narrows; also absent on mobile,
+            // where a long-press opens the full info sheet instead.
+            if (cols.showModified) ...[
+              SizedBox(
+                width: SftpColumns.modifiedWidth,
                 child: Text(
                   _formatDate(data.modifiedAt),
                   style: const TextStyle(
@@ -118,11 +206,10 @@ class FileRow extends StatelessWidget {
                   textAlign: TextAlign.right,
                 ),
               ),
-              const SizedBox(width: 8),
+              const SizedBox(width: SftpColumns.gap),
             ],
-            // Permissions — hidden on mobile (long-press opens info sheet).
-            if (!isMobile) SizedBox(
-              width: 80,
+            if (cols.showPermissions) SizedBox(
+              width: SftpColumns.permissionsWidth,
               child: Text(
                 data.permissions ?? '',
                 style: TermexTypography.monospace.copyWith(
