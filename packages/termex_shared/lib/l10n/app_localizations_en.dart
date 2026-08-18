@@ -1576,6 +1576,10 @@ class AppLocalizationsEn extends AppLocalizations {
   String get ctxCloudCopyDetail => 'Copy details';
 
   @override
+  String get monitorPriming =>
+      'Establishing a baseline: CPU and network are cumulative counters, so rates need a second sample.';
+
+  @override
   String get contextConnect => 'Connect';
 
   @override

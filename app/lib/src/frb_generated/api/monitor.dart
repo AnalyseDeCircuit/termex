@@ -6,7 +6,7 @@
 import '../frb_generated.dart';
 import 'package:flutter_rust_bridge/flutter_rust_bridge_for_generated.dart';
 
-// These functions are ignored because they are not marked as `pub`: `signal_number`
+// These functions are ignored because they are not marked as `pub`: `run_batch`, `sample`, `signal_number`
 // These types are ignored because they are neither used by any `pub` functions nor (for structs and enums) marked `#[frb(unignore)]`: `CpuMetrics`, `DiskMetrics`, `MemoryMetrics`, `NetInterface`, `NetworkMetrics`, `SystemMetrics`
 // These function are ignored because they are on traits that is not defined in current crate (put an empty `#[frb]` on it to unignore): `clone`, `clone`, `clone`, `clone`, `clone`, `clone`, `clone`, `clone`, `fmt`, `fmt`, `fmt`, `fmt`, `fmt`, `fmt`, `fmt`, `fmt`
 
@@ -41,6 +41,14 @@ Future<List<ProcessInfo>> monitorListProcesses(
         {required String sessionId, required int limit}) =>
     TermexBridge.instance.api.crateApiMonitorMonitorListProcesses(
         sessionId: sessionId, limit: limit);
+
+/// Drops a session's counter baseline.
+///
+/// Called on disconnect so that reconnecting to a rebooted host does not
+/// difference against pre-reboot counters and report a nonsense spike.
+Future<void> monitorForgetSession({required String sessionId}) =>
+    TermexBridge.instance.api
+        .crateApiMonitorMonitorForgetSession(sessionId: sessionId);
 
 /// Sends a Unix signal to a remote process.  Front-end callers must supply
 /// the `process_name` (captured from the process list) so this function can

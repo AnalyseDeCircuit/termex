@@ -2950,6 +2950,12 @@ abstract class AppLocalizations {
   /// **'Copy details'**
   String get ctxCloudCopyDetail;
 
+  /// No description provided for @monitorPriming.
+  ///
+  /// In en, this message translates to:
+  /// **'Establishing a baseline: CPU and network are cumulative counters, so rates need a second sample.'**
+  String get monitorPriming;
+
   /// No description provided for @contextConnect.
   ///
   /// In en, this message translates to:

@@ -884,6 +884,7 @@
   "ctxCloudCopyLabel": "Copy name",
   "ctxCopied": "Copied to clipboard",
   "ctxCloudCopyDetail": "Copy details",
+  "monitorPriming": "Establishing a baseline: CPU and network are cumulative counters, so rates need a second sample.",
   "contextConnect": "Connect",
   "contextEdit": "Edit",
   "contextDuplicate": "Duplicate",

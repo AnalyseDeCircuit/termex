@@ -1553,6 +1553,9 @@ class AppLocalizationsZh extends AppLocalizations {
   String get ctxCloudCopyDetail => '复制详情';
 
   @override
+  String get monitorPriming => '正在建立基线：CPU 与网络为累计计数器，需要两次采样才能得出速率。';
+
+  @override
   String get contextConnect => '连接';
 
   @override

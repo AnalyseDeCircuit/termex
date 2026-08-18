@@ -50,16 +50,18 @@ class MonitorState {
         errorMessage: clearError ? null : (errorMessage ?? this.errorMessage),
       );
 
-  /// True when the OSS bridge stub returns all-zero data — the panel uses
-  /// this to surface a "Pro integration needed" hint instead of a sea of
-  /// 0% gauges.
-  bool get looksStubbed {
-    final l = latest;
-    if (l == null) return false;
-    return l.cpuPercent == 0 &&
-        l.memTotalMb == BigInt.zero &&
-        l.diskTotalGb == 0;
-  }
+  /// True while the collector is still priming its baseline.
+  ///
+  /// `/proc/stat` and `/proc/net/dev` are cumulative counters, so CPU% and
+  /// throughput only exist relative to a previous read — the first tick of a
+  /// session necessarily reports 0 for both. Absolute gauges (memory, disk)
+  /// are correct immediately, so the tell is a single sample, not the zeros.
+  ///
+  /// This replaced `looksStubbed`, which reported "commercial build
+  /// required" whenever everything read zero. That was wrong on both counts:
+  /// the collector is OSS, and it was the bridge returning hard-coded zeros
+  /// rather than anything being gated.
+  bool get isPriming => latest != null && history.length < 2;
 }
 
 class MonitorNotifier extends FamilyNotifier<MonitorState, String> {

@@ -14,6 +14,15 @@ use std::collections::HashMap;
 use std::sync::Mutex;
 
 use once_cell::sync::Lazy;
+use termex_core::monitor::collector::{
+    DerivedStats, MonitorSampler, build_batch_command, parse_snapshot,
+};
+use termex_core::monitor::types::ServerOS;
+
+/// Per-session previous counters, so CPU% and network throughput can be
+/// derived from consecutive samples.
+static SAMPLER: Lazy<Mutex<MonitorSampler>> =
+    Lazy::new(|| Mutex::new(MonitorSampler::new()));
 
 // ─── DTOs ────────────────────────────────────────────────────────────────────
 
@@ -189,26 +198,87 @@ pub fn monitor_collect_local_stats() -> Result<SystemStats, String> {
     }
 }
 
-pub fn monitor_get_stats(session_id: String) -> Result<SystemStats, String> {
-    let _ = session_id;
+/// Runs the batched collection command on `session_id` and returns the raw
+/// stdout.
+///
+/// Clones the session `Arc` and drops the DashMap `Ref` before awaiting:
+/// `REGISTRY.get()` hands back a guard over a synchronous shard lock, and
+/// holding it across an `.await` blocks every other session hashing to the
+/// same shard (this is what deadlocked SFTP).
+async fn run_batch(session_id: &str) -> Result<String, String> {
+    let session = {
+        let entry = crate::session_registry::REGISTRY
+            .get(session_id)
+            .ok_or_else(|| format!("no active session {session_id}"))?;
+        entry.session.clone()
+    };
+    let guard = session.lock().await;
+    let session = guard
+        .as_ref()
+        .ok_or_else(|| format!("session {session_id} is disconnected"))?;
+
+    // OS detection would need its own round-trip; the Linux command is also
+    // the `Unknown` fallback and works on any host with /proc.
+    let cmd = build_batch_command(ServerOS::Linux);
+    let (stdout, _exit) = session
+        .exec_command(&cmd)
+        .await
+        .map_err(|e| format!("monitor collection failed: {e}"))?;
+    Ok(stdout)
+}
+
+/// Samples `session_id` and folds the result into the per-session baseline.
+///
+/// Cumulative counters (`/proc/stat`, `/proc/net/dev`) mean the first tick of
+/// a session can only prime the baseline and reports 0% / 0 B/s; the tick
+/// after it carries real numbers.
+async fn sample(session_id: &str, process_limit: usize) -> Result<DerivedStats, String> {
+    let stdout = run_batch(session_id).await?;
+    let snapshot = parse_snapshot(&stdout, process_limit);
+    let now_ms = chrono::Utc::now().timestamp_millis();
+    let mut sampler = SAMPLER.lock().unwrap();
+    Ok(sampler.ingest(session_id, snapshot, now_ms))
+}
+
+pub async fn monitor_get_stats(session_id: String) -> Result<SystemStats, String> {
+    let d = sample(&session_id, 0).await?;
     Ok(SystemStats {
-        cpu_percent: 0.0,
-        mem_used_mb: 0,
-        mem_total_mb: 0,
-        disk_used_gb: 0.0,
-        disk_total_gb: 0.0,
-        net_rx_bytes: 0,
-        net_tx_bytes: 0,
+        cpu_percent: d.cpu_percent,
+        mem_used_mb: d.mem_used_mb,
+        mem_total_mb: d.mem_total_mb,
+        disk_used_gb: d.disk_used_gb,
+        disk_total_gb: d.disk_total_gb,
+        net_rx_bytes: d.net_rx_bytes,
+        net_tx_bytes: d.net_tx_bytes,
         timestamp: chrono::Utc::now().to_rfc3339(),
     })
 }
 
-pub fn monitor_list_processes(
+pub async fn monitor_list_processes(
     session_id: String,
     limit: i32,
 ) -> Result<Vec<ProcessInfo>, String> {
-    let _ = (session_id, limit);
-    Ok(vec![])
+    let limit = limit.clamp(0, 100) as usize;
+    let d = sample(&session_id, limit).await?;
+    Ok(d.processes
+        .into_iter()
+        .map(|p| ProcessInfo {
+            pid: p.pid,
+            user: p.user,
+            cpu_percent: p.cpu_percent as f32,
+            memory_percent: p.mem_percent as f32,
+            command: p.command,
+            started_at: None,
+        })
+        .collect())
+}
+
+/// Drops a session's counter baseline.
+///
+/// Called on disconnect so that reconnecting to a rebooted host does not
+/// difference against pre-reboot counters and report a nonsense spike.
+pub fn monitor_forget_session(session_id: String) {
+    SAMPLER.lock().unwrap().forget(&session_id);
 }
 
 /// Sends a Unix signal to a remote process.  Front-end callers must supply

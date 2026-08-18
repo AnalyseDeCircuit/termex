@@ -5,11 +5,10 @@
 /// list. Cards honour the user's per-panel show/hide settings.
 ///
 /// Data source: [`monitorProvider`] which polls
-/// `bridge.monitorGetStats(sessionId)` on the configured interval. The OSS
-/// bridge returns zeroed `SystemStats` until the closed-source
-/// `termex-core-private` crate provides real remote collection — same
-/// behaviour as the legacy Tauri OSS build, which gates collection behind
-/// the `private` Cargo feature.
+/// `bridge.monitorGetStats(sessionId)` on the configured interval. That now
+/// runs a batched `/proc` + `df` + `ps` command over the session's SSH exec
+/// channel and parses it in `termex_core::monitor::collector` — no agent to
+/// install and nothing gated behind the commercial build.
 ///
 /// v0.77.0 PC final parity: restored to OSS termex_shared (was deleted in
 /// v0.69 restructure and marked "Pro forever stub").
@@ -22,6 +21,7 @@ import '../../design/colors.dart';
 import '../../design/spacing.dart';
 import '../../design/typography.dart';
 import '../../icons/termex_icons.dart';
+import '../../l10n/app_localizations.dart';
 import '../../widgets/clickable.dart';
 import '../settings/state/settings_provider.dart';
 import 'state/monitor_provider.dart';
@@ -82,7 +82,7 @@ class _MonitorPanelState extends ConsumerState<MonitorPanel> {
           _InfoBar(
             isCollecting: state.isCollecting,
             sessionId: widget.sessionId,
-            stubbed: state.looksStubbed,
+            priming: state.isPriming,
             onToggle: () {
               final notifier =
                   ref.read(monitorProvider(widget.sessionId).notifier);
@@ -94,10 +94,10 @@ class _MonitorPanelState extends ConsumerState<MonitorPanel> {
             },
           ),
           const SizedBox(height: TermexSpacing.md),
-          if (state.looksStubbed)
+          if (state.isPriming)
             const Padding(
               padding: EdgeInsets.only(bottom: TermexSpacing.md),
-              child: _StubBanner(),
+              child: _PrimingBanner(),
             ),
           Expanded(
             child: LayoutBuilder(
@@ -140,13 +140,13 @@ class _MonitorPanelState extends ConsumerState<MonitorPanel> {
 
 class _InfoBar extends StatelessWidget {
   final bool isCollecting;
-  final bool stubbed;
+  final bool priming;
   final String sessionId;
   final VoidCallback onToggle;
 
   const _InfoBar({
     required this.isCollecting,
-    required this.stubbed,
+    required this.priming,
     required this.sessionId,
     required this.onToggle,
   });
@@ -228,8 +228,9 @@ class _InfoBar extends StatelessWidget {
 
 // ─── Stub banner ──────────────────────────────────────────────────────────
 
-class _StubBanner extends StatelessWidget {
-  const _StubBanner();
+/// Shown on the first tick only — see `MonitorState.isPriming`.
+class _PrimingBanner extends StatelessWidget {
+  const _PrimingBanner();
 
   @override
   Widget build(BuildContext context) {
@@ -252,8 +253,7 @@ class _StubBanner extends StatelessWidget {
           const SizedBox(width: TermexSpacing.sm),
           Expanded(
             child: Text(
-              '当前以 OSS 桥接 stub 运行（全 0 数据）。远程系统指标真实采集由商业版 '
-              '`termex-core-private` 提供，与旧 Tauri OSS 行为一致。',
+              AppLocalizations.of(context).monitorPriming,
               style: TermexTypography.caption.copyWith(
                 color: context.colors.textSecondary,
               ),

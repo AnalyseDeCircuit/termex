@@ -52,44 +52,6 @@ String tabLabelFor(SettingsTab t, AppLocalizations l) => switch (t) {
       SettingsTab.about => l.settingsAbout,
     };
 
-/// A setting-search entry used to jump directly to a specific tab when the
-/// user types in the search box.  Spec §4.1.5.
-class SettingEntry {
-  final String id;
-  final String label;
-  final String description;
-  final SettingsTab tab;
-
-  const SettingEntry({
-    required this.id,
-    required this.label,
-    required this.description,
-    required this.tab,
-  });
-}
-
-/// Returns the localized search index.  Lazily built from the current
-/// [AppLocalizations]; called only when the user types into the search box,
-/// so the i18n cost is paid only when needed.
-List<SettingEntry> buildSettingsIndex(AppLocalizations l) => [
-      SettingEntry(id: 'theme', label: l.settingsIdxThemeLabel, description: l.settingsIdxThemeDesc, tab: SettingsTab.appearance),
-      SettingEntry(id: 'font', label: l.settingsIdxFontLabel, description: l.settingsIdxFontDesc, tab: SettingsTab.appearance),
-      SettingEntry(id: 'notifications', label: l.notificationThresholdsTitle, description: l.notificationThresholdsHelp, tab: SettingsTab.notifications),
-      SettingEntry(id: 'cursor', label: l.settingsIdxCursorLabel, description: l.settingsIdxCursorDesc, tab: SettingsTab.terminal),
-      SettingEntry(id: 'scrollback', label: l.settingsIdxScrollbackLabel, description: l.settingsIdxScrollbackDesc, tab: SettingsTab.terminal),
-      SettingEntry(id: 'tab_width', label: l.settingsIdxTabWidthLabel, description: l.settingsIdxTabWidthDesc, tab: SettingsTab.terminal),
-      SettingEntry(id: 'keybindings', label: l.settingsIdxKeybindingsLabel, description: l.settingsIdxKeybindingsDesc, tab: SettingsTab.keybindings),
-      SettingEntry(id: 'ai_provider', label: l.settingsIdxAiProviderLabel, description: l.settingsIdxAiProviderDesc, tab: SettingsTab.ai),
-      SettingEntry(id: 'ai_context', label: l.settingsIdxAiContextLabel, description: l.settingsIdxAiContextDesc, tab: SettingsTab.ai),
-      SettingEntry(id: 'team_passphrase', label: l.settingsIdxTeamPassphraseLabel, description: l.settingsIdxTeamPassphraseDesc, tab: SettingsTab.team),
-      SettingEntry(id: 'privacy_clear', label: l.settingsIdxPrivacyClearLabel, description: l.settingsIdxPrivacyClearDesc, tab: SettingsTab.privacy),
-      SettingEntry(id: 'gdpr_erase', label: l.settingsIdxGdprEraseLabel, description: l.settingsIdxGdprEraseDesc, tab: SettingsTab.privacy),
-      SettingEntry(id: 'backup', label: l.settingsIdxBackupLabel, description: l.settingsIdxBackupDesc, tab: SettingsTab.backup),
-      SettingEntry(id: 'audit', label: l.settingsIdxAuditLabel, description: l.settingsIdxAuditDesc, tab: SettingsTab.audit),
-      SettingEntry(id: 'local_ai', label: l.settingsIdxLocalAiLabel, description: l.settingsIdxLocalAiDesc, tab: SettingsTab.localAi),
-      SettingEntry(id: 'about', label: l.settingsIdxAboutLabel, description: l.settingsIdxAboutDesc, tab: SettingsTab.about),
-    ];
-
 /// Caller-injected extra sidebar entry (v0.79.54). Lets the mobile shell
 /// surface mobile-only settings (e.g. push-notification thresholds) as a
 /// first-class sidebar item alongside the built-in tabs without having
@@ -157,36 +119,15 @@ class _SettingsPageState extends ConsumerState<SettingsPage> {
   /// Active sidebar entry. Holds either a [SettingsTab] (built-in) or
   /// the [SettingsExtraTab.id] string of a caller-injected extra.
   late Object _active = widget.initialTab ?? SettingsTab.appearance;
-  final _searchCtrl = TextEditingController();
-  String _searchQuery = '';
 
   @override
   void dispose() {
-    _searchCtrl.dispose();
     super.dispose();
-  }
-
-  /// Filters the settings index against the current search query.
-  ///
-  /// v0.77.0: extended to also match the entry's tab label, so users
-  /// typing sidebar names ("外观", "终端", "隐私") get pointed at any
-  /// settings inside that tab even when no individual SettingEntry's
-  /// label/description happens to contain the word.
-  List<SettingEntry> filteredIndex(AppLocalizations l) {
-    if (_searchQuery.isEmpty) return const [];
-    final q = _searchQuery.toLowerCase();
-    return buildSettingsIndex(l).where((e) {
-      if (e.label.toLowerCase().contains(q)) return true;
-      if (e.description.toLowerCase().contains(q)) return true;
-      if (tabLabelFor(e.tab, l).toLowerCase().contains(q)) return true;
-      return false;
-    }).toList();
   }
 
   @override
   Widget build(BuildContext context) {
     final l10n = AppLocalizations.of(context);
-    final matches = filteredIndex(l10n);
 
     return Scaffold(
       backgroundColor: context.colors.backgroundPrimary,
@@ -199,10 +140,6 @@ class _SettingsPageState extends ConsumerState<SettingsPage> {
           // In embedded mode the host dialog paints its own header, so the
           // bar collapses to nothing there.
           if (!widget.embedded) const _TitleBar(),
-          _SearchBar(
-            controller: _searchCtrl,
-            onChanged: (q) => setState(() => _searchQuery = q),
-          ),
           Expanded(
             child: Row(
               children: [
@@ -228,15 +165,7 @@ class _SettingsPageState extends ConsumerState<SettingsPage> {
                     ),
                   ),
                 ),
-                Expanded(
-                  child: _searchQuery.isNotEmpty
-                      ? _SearchResults(
-                          matches: matches,
-                          onTap: (tab) =>
-                              setState(() => _active = tab),
-                        )
-                      : _buildContent(),
-                ),
+                Expanded(child: _buildContent()),
               ],
             ),
           ),
@@ -312,7 +241,9 @@ class _TitleBar extends StatelessWidget {
   Widget build(BuildContext context) {
     final l10n = AppLocalizations.of(context);
     return Container(
-      height: 44,
+      // 32, not 44: the bar carries a single label and no controls, so the
+      // extra height only pushed the panel's actual content down.
+      height: 32,
       padding: const EdgeInsets.symmetric(horizontal: 16),
       decoration: BoxDecoration(
         color: context.colors.backgroundSecondary,
@@ -323,99 +254,13 @@ class _TitleBar extends StatelessWidget {
           Text(
             l10n.settingsTitle,
             style: TextStyle(
-              fontSize: 15,
+              fontSize: 13,
               fontWeight: FontWeight.w600,
               color: context.colors.textPrimary,
             ),
           ),
         ],
       ),
-    );
-  }
-}
-
-class _SearchBar extends StatelessWidget {
-  final TextEditingController controller;
-  final void Function(String) onChanged;
-
-  const _SearchBar({required this.controller, required this.onChanged});
-
-  @override
-  Widget build(BuildContext context) {
-    final l10n = AppLocalizations.of(context);
-    // v0.77.0: tightened from ~50px overall height to ~32px so the
-    // search bar feels like an inline filter, not a hero input.
-    return Container(
-      padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 4),
-      decoration: BoxDecoration(
-        color: context.colors.backgroundSecondary,
-        border: Border(bottom: BorderSide(color: context.colors.border)),
-      ),
-      child: SizedBox(
-        height: 28,
-        child: TextField(
-          controller: controller,
-          onChanged: onChanged,
-          decoration: InputDecoration(
-            hintText: l10n.settingsSearchPlaceholder,
-            hintStyle: TextStyle(
-                fontSize: 12, color: context.colors.textSecondary),
-            prefixIcon: Icon(Icons.search,
-                size: 14, color: context.colors.textSecondary),
-            prefixIconConstraints:
-                const BoxConstraints(minWidth: 26, minHeight: 26),
-            border: OutlineInputBorder(
-              borderRadius: BorderRadius.circular(4),
-              borderSide: BorderSide(color: context.colors.border),
-            ),
-            enabledBorder: OutlineInputBorder(
-              borderRadius: BorderRadius.circular(4),
-              borderSide: BorderSide(color: context.colors.border),
-            ),
-            contentPadding:
-                const EdgeInsets.symmetric(horizontal: 4, vertical: 0),
-            isDense: true,
-          ),
-          style:
-              TextStyle(fontSize: 12, color: context.colors.textPrimary),
-        ),
-      ),
-    );
-  }
-}
-
-class _SearchResults extends StatelessWidget {
-  final List<SettingEntry> matches;
-  final void Function(SettingsTab) onTap;
-
-  const _SearchResults({required this.matches, required this.onTap});
-
-  @override
-  Widget build(BuildContext context) {
-    if (matches.isEmpty) {
-      return Center(
-        child: Text(
-          AppLocalizations.of(context).settingsSearchNoMatch,
-          style: TextStyle(
-              fontSize: 13, color: context.colors.textSecondary),
-        ),
-      );
-    }
-    return ListView.separated(
-      padding: const EdgeInsets.all(16),
-      itemCount: matches.length,
-      separatorBuilder: (_, __) => Divider(color: context.colors.border, height: 1),
-      itemBuilder: (ctx, i) {
-        final e = matches[i];
-        return ListTile(
-          dense: true,
-          title: Text(e.label,
-              style: TextStyle(fontSize: 13, color: context.colors.textPrimary)),
-          subtitle: Text(e.description,
-              style: TextStyle(fontSize: 11, color: context.colors.textSecondary)),
-          onTap: () => onTap(e.tab),
-        );
-      },
     );
   }
 }
@@ -471,8 +316,7 @@ class _SidebarItem extends StatelessWidget {
                   color: isActive
                       ? context.colors.textPrimary
                       : context.colors.textSecondary,
-                  fontWeight:
-                      isActive ? FontWeight.w500 : FontWeight.normal,
+                  fontWeight: isActive ? FontWeight.w500 : FontWeight.normal,
                 ),
               ),
             ),
@@ -495,7 +339,6 @@ class _SidebarItem extends StatelessWidget {
         SettingsTab.localAi => Icons.psychology_outlined,
         SettingsTab.about => Icons.info_outline,
       };
-
 }
 
 /// Sidebar entry for a caller-injected [SettingsExtraTab]. Matches
@@ -552,8 +395,7 @@ class _ExtraSidebarItem extends StatelessWidget {
                   color: isActive
                       ? context.colors.textPrimary
                       : context.colors.textSecondary,
-                  fontWeight:
-                      isActive ? FontWeight.w500 : FontWeight.normal,
+                  fontWeight: isActive ? FontWeight.w500 : FontWeight.normal,
                 ),
               ),
             ),
