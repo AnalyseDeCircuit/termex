@@ -14,6 +14,7 @@ import '../dialogs/file_info_dialog.dart';
 import '../dialogs/new_file_dialog.dart';
 import '../dialogs/rename_dialog.dart';
 import '../state/sftp_pane_provider.dart';
+import '../state/sftp_session_provider.dart';
 import '../state/sftp_transfer_provider.dart';
 import 'file_list.dart';
 import 'path_bar.dart';
@@ -45,7 +46,13 @@ class _RemotePaneState extends ConsumerState<RemotePane> {
   @override
   void initState() {
     super.initState();
-    _loadCurrentDir();
+    // Deferred for the same reason as LocalPane: `_loadCurrentDir` calls
+    // `setRemoteLoading(true)` first, and mutating a provider during the
+    // build phase throws — leaving the spinner on with no request in
+    // flight and no timeout armed. See the comment in local_pane.dart.
+    WidgetsBinding.instance.addPostFrameCallback((_) {
+      if (mounted) _loadCurrentDir();
+    });
   }
 
   List<FileRowData> _viewEntries() {
@@ -76,7 +83,22 @@ class _RemotePaneState extends ConsumerState<RemotePane> {
 
   Future<void> _loadCurrentDir() async {
     final notifier = ref.read(sftpPaneProvider(widget.sessionId).notifier);
-    final path = ref.read(sftpPaneProvider(widget.sessionId)).remote.currentPath;
+    var path = ref.read(sftpPaneProvider(widget.sessionId)).remote.currentPath;
+
+    // The pane's initial remote path is the literal placeholder `~`, but SFTP
+    // does no shell expansion — `~` is just a directory name to the server, so
+    // listing it fails with "no such file". `sftpSessionProvider.open()` has
+    // already canonicalised `.` into the real home (e.g. /home/huzou); adopt
+    // that here instead of sending the placeholder over the wire.
+    if (path == '~') {
+      final resolved =
+          ref.read(sftpSessionProvider(widget.sessionId)).remoteCwd;
+      if (resolved.isNotEmpty && resolved != '~') {
+        path = resolved;
+        notifier.navigateRemote(resolved);
+      }
+    }
+
     notifier.setRemoteLoading(true);
     notifier.setRemoteError(null);
     try {

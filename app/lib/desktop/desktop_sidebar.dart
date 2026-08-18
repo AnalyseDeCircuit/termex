@@ -9,6 +9,7 @@ import 'package:termex_shared/features/cloud/cloud_panel.dart';
 import 'package:termex_shared/features/proxy/proxy_panel.dart';
 import 'package:termex_shared/features/recording/recording_list_panel.dart';
 import 'package:termex_shared/features/server_list/widgets/server_form_dialog.dart';
+import 'package:termex_shared/features/server_list/widgets/server_search_bar.dart';
 import 'package:termex_shared/features/server_list/widgets/server_tree.dart';
 import 'package:termex_shared/features/server_list/widgets/import_ssh_config_dialog.dart';
 import 'package:termex_shared/features/server_list/models/group_dto.dart';
@@ -300,7 +301,7 @@ void _runCategoryAdd(
 /// Add button on the right when the category supports adding new
 /// entities. v0.79.59 aligned mobile + desktop both painting host-side
 /// add affordances; this widget closes the desktop gap.
-class _CategorySectionHeader extends StatelessWidget {
+class _CategorySectionHeader extends ConsumerWidget {
   final SidebarCategory category;
   final VoidCallback onAdd;
 
@@ -322,8 +323,13 @@ class _CategorySectionHeader extends StatelessWidget {
       category == SidebarCategory.proxies ||
       category == SidebarCategory.snippets;
 
+  /// Search currently only filters the server list.
+  bool get _hasSearch => category == SidebarCategory.servers;
+
   @override
-  Widget build(BuildContext context) {
+  Widget build(BuildContext context, WidgetRef ref) {
+    final searchVisible = ref.watch(serverSearchVisibleProvider);
+
     return Container(
       height: 28,
       padding: const EdgeInsets.symmetric(horizontal: 12),
@@ -342,30 +348,59 @@ class _CategorySectionHeader extends StatelessWidget {
             ),
           ),
           const Spacer(),
-          if (_hasAdd) _SectionAddButton(onTap: onAdd),
+          if (_hasSearch)
+            _SectionIconButton(
+              icon: TermexIcons.search,
+              tooltip: searchVisible ? '关闭搜索' : '搜索',
+              active: searchVisible,
+              onTap: () => ref
+                  .read(serverSearchVisibleProvider.notifier)
+                  .update((v) => !v),
+            ),
+          if (_hasSearch && _hasAdd) const SizedBox(width: 2),
+          if (_hasAdd)
+            _SectionIconButton(
+              icon: TermexIcons.add,
+              tooltip: '新建',
+              onTap: onAdd,
+            ),
         ],
       ),
     );
   }
 }
 
-/// Small "+" affordance reused by [_CategorySectionHeader]. Sized to
+/// Small icon affordance reused by [_CategorySectionHeader]. Sized to
 /// sit naturally inside a 28-px header without dominating it.
-class _SectionAddButton extends StatefulWidget {
+class _SectionIconButton extends StatefulWidget {
+  final IconData icon;
+  final String tooltip;
   final VoidCallback onTap;
-  const _SectionAddButton({required this.onTap});
+
+  /// Renders in the accent colour regardless of hover — used by the search
+  /// toggle so an open search field stays visibly the reason the list is
+  /// filtered.
+  final bool active;
+
+  const _SectionIconButton({
+    required this.icon,
+    required this.tooltip,
+    required this.onTap,
+    this.active = false,
+  });
 
   @override
-  State<_SectionAddButton> createState() => _SectionAddButtonState();
+  State<_SectionIconButton> createState() => _SectionIconButtonState();
 }
 
-class _SectionAddButtonState extends State<_SectionAddButton> {
+class _SectionIconButtonState extends State<_SectionIconButton> {
   bool _hovered = false;
 
   @override
   Widget build(BuildContext context) {
+    final highlighted = _hovered || widget.active;
     return Tooltip(
-      message: '新建',
+      message: widget.tooltip,
       child: MouseRegion(
         cursor: SystemMouseCursors.click,
         onEnter: (_) => setState(() => _hovered = true),
@@ -378,15 +413,15 @@ class _SectionAddButtonState extends State<_SectionAddButton> {
             height: 20,
             alignment: Alignment.center,
             decoration: BoxDecoration(
-              color: _hovered
+              color: highlighted
                   ? TermexColors.primary.withValues(alpha: 0.15)
                   : const Color(0x00000000),
               borderRadius: BorderRadius.circular(3),
             ),
             child: TermexIconWidget(
-              TermexIcons.add,
+              widget.icon,
               size: 12,
-              color: _hovered
+              color: highlighted
                   ? TermexColors.primary
                   : TermexColors.textSecondary,
             ),

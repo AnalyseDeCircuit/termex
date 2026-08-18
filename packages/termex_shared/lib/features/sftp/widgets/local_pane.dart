@@ -39,7 +39,17 @@ class _LocalPaneState extends ConsumerState<LocalPane> {
   @override
   void initState() {
     super.initState();
-    _loadCurrentDir();
+    // Deferred to the first post-frame callback: `_loadCurrentDir` starts by
+    // calling `setLocalLoading(true)`, and mutating a provider while the
+    // widget tree is still building throws
+    // "tried to modify a provider while the widget tree was building".
+    // That exception aborted `_loadCurrentDir` *after* the spinner was
+    // switched on but *before* `localListDir` was ever called — so the
+    // request was never sent, the 20s timeout never armed, and the `finally`
+    // that clears the spinner never ran. The pane span forever.
+    WidgetsBinding.instance.addPostFrameCallback((_) {
+      if (mounted) _loadCurrentDir();
+    });
   }
 
   Future<void> _loadCurrentDir() async {

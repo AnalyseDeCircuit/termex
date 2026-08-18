@@ -539,6 +539,13 @@ class _ServerTreeState extends ConsumerState<ServerTree> {
 
   @override
   Widget build(BuildContext context) {
+    // Dropping the field has to drop the filter with it, or hiding the search
+    // would leave the list silently filtered with nothing on screen to explain
+    // why entries are missing.
+    ref.listen<bool>(serverSearchVisibleProvider, (_, visible) {
+      if (!visible && _query.isNotEmpty) setState(() => _query = '');
+    });
+
     final serversAsync = ref.watch(serverListProvider);
     final groupsAsync = ref.watch(groupListProvider);
 
@@ -553,17 +560,22 @@ class _ServerTreeState extends ConsumerState<ServerTree> {
 
     return Column(
       children: [
-        Padding(
-          padding: const EdgeInsets.fromLTRB(
-            TermexSpacing.sm,
-            TermexSpacing.sm,
-            TermexSpacing.sm,
-            TermexSpacing.xs,
+        // Only present once the header's search toggle is on — the field used
+        // to sit here permanently, which made a short server list look busier
+        // than it is.
+        if (ref.watch(serverSearchVisibleProvider))
+          Padding(
+            padding: const EdgeInsets.fromLTRB(
+              TermexSpacing.sm,
+              TermexSpacing.sm,
+              TermexSpacing.sm,
+              TermexSpacing.xs,
+            ),
+            child: ServerSearchBar(
+              autofocus: true,
+              onChanged: (q) => setState(() => _query = q),
+            ),
           ),
-          child: ServerSearchBar(
-            onChanged: (q) => setState(() => _query = q),
-          ),
-        ),
         Expanded(
           // Blank-area right-click → root context menu. A server row's own
           // GestureDetector wins the gesture arena for taps landing on a

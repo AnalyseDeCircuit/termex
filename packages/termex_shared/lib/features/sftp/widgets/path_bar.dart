@@ -123,24 +123,34 @@ class _PathBarState extends State<PathBar> {
                 ' / ',
                 style: TextStyle(fontSize: 12, color: TermexColors.textMuted),
               ),
-            GestureDetector(
-              onTap: () {
-                final target = _joinParts(parts.sublist(0, i + 1));
-                widget.onNavigate(target);
-              },
-              child: Text(
+            // The trailing segment is the directory already being shown, so
+            // it is rendered as plain text and not navigable; only the
+            // ancestors get the click affordance (pointer cursor + underline).
+            Builder(builder: (_) {
+              final isCurrent = i == parts.length - 1;
+              final label = Text(
                 parts[i].isEmpty ? '/' : parts[i],
                 style: TermexTypography.monospace.copyWith(
                   fontSize: 12,
-                  color: i == parts.length - 1
+                  color: isCurrent
                       ? TermexColors.textPrimary
                       : TermexColors.primary,
-                  decoration: i == parts.length - 1
-                      ? null
-                      : TextDecoration.underline,
+                  decoration:
+                      isCurrent ? null : TextDecoration.underline,
                 ),
-              ),
-            ),
+              );
+              if (isCurrent) return label;
+              return MouseRegion(
+                cursor: SystemMouseCursors.click,
+                child: GestureDetector(
+                  onTap: () {
+                    final target = _joinParts(parts.sublist(0, i + 1));
+                    widget.onNavigate(target);
+                  },
+                  child: label,
+                ),
+              );
+            }),
           ],
         ],
       ),

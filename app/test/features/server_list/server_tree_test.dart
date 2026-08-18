@@ -6,6 +6,7 @@ import 'package:termex_shared/features/server_list/models/group_dto.dart';
 import 'package:termex_shared/features/server_list/models/server_dto.dart';
 import 'package:termex_shared/features/server_list/state/group_provider.dart';
 import 'package:termex_shared/features/server_list/state/server_provider.dart';
+import 'package:termex_shared/features/server_list/widgets/server_search_bar.dart';
 import 'package:termex_shared/features/server_list/widgets/server_tree.dart';
 import 'package:termex_shared/l10n/app_localizations.dart';
 
@@ -216,6 +217,83 @@ void main() {
       expect(find.text('New Connection'), findsOneWidget);
       expect(find.text('New Group'), findsOneWidget);
       expect(find.text('Export Config'), findsOneWidget);
+    });
+
+
+    // ─── Collapsible search ──────────────────────────────────────────────────
+    // The field used to sit above the list permanently; it is now behind a
+    // toggle in the section header so a short list reads as a plain list.
+
+    testWidgets('search field is hidden until the toggle is on',
+        (tester) async {
+      await pumpTree(tester, servers: [_server()]);
+      expect(find.byType(ServerSearchBar), findsNothing);
+    });
+
+    testWidgets('search field appears when the toggle flips on',
+        (tester) async {
+      final container = ProviderContainer(overrides: [
+        serverListProvider.overrideWith(() => _StubServerNotifier([_server()])),
+        groupListProvider.overrideWith(() => _EmptyGroupNotifier()),
+      ]);
+      addTearDown(container.dispose);
+
+      await tester.pumpWidget(
+        UncontrolledProviderScope(
+          container: container,
+          child: WidgetsApp(
+            color: const Color(0xFF1E1E2E),
+            pageRouteBuilder: _route,
+            localizationsDelegates: AppLocalizations.localizationsDelegates,
+            supportedLocales: AppLocalizations.supportedLocales,
+            home: const ServerTree(),
+          ),
+        ),
+      );
+      await tester.pumpAndSettle();
+      expect(find.byType(ServerSearchBar), findsNothing);
+
+      container.read(serverSearchVisibleProvider.notifier).state = true;
+      await tester.pumpAndSettle();
+      expect(find.byType(ServerSearchBar), findsOneWidget);
+    });
+
+    // Hiding the field has to drop the filter too, or rows stay missing with
+    // nothing on screen explaining why.
+    testWidgets('hiding the search clears an active filter', (tester) async {
+      final container = ProviderContainer(overrides: [
+        serverListProvider.overrideWith(
+            () => _StubServerNotifier([_server(), _server(id: '2', name: 'db')])),
+        groupListProvider.overrideWith(() => _EmptyGroupNotifier()),
+      ]);
+      addTearDown(container.dispose);
+
+      await tester.pumpWidget(
+        UncontrolledProviderScope(
+          container: container,
+          child: WidgetsApp(
+            color: const Color(0xFF1E1E2E),
+            pageRouteBuilder: _route,
+            localizationsDelegates: AppLocalizations.localizationsDelegates,
+            supportedLocales: AppLocalizations.supportedLocales,
+            home: const ServerTree(),
+          ),
+        ),
+      );
+      container.read(serverSearchVisibleProvider.notifier).state = true;
+      await tester.pumpAndSettle();
+
+      await tester.enterText(find.byType(EditableText), 'db');
+      await tester.pump(const Duration(milliseconds: 400));
+      // 'db' also matches the text inside the field itself, so the filter is
+      // asserted through the row that must disappear.
+      expect(find.text('prod-web'), findsNothing);
+
+      container.read(serverSearchVisibleProvider.notifier).state = false;
+      await tester.pumpAndSettle();
+
+      expect(find.byType(ServerSearchBar), findsNothing);
+      expect(find.text('prod-web'), findsOneWidget);
     });
 
     testWidgets('renders a single server node', (tester) async {
