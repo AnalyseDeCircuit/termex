@@ -13,6 +13,7 @@ import '../../../design/spacing.dart';
 import '../../../l10n/app_localizations.dart';
 import '../../../widgets/button.dart';
 import '../../../widgets/checkbox.dart';
+import '../../../widgets/clickable.dart';
 import '../../../widgets/dialog.dart';
 import '../../../widgets/divider.dart';
 import '../../../widgets/text_field.dart';
@@ -525,7 +526,7 @@ class _FormTabBar extends StatelessWidget {
 
   Widget _tab(String label, _FormTab tab, {bool disabled = false}) {
     final active = value == tab;
-    return GestureDetector(
+    return Clickable(
       behavior: HitTestBehavior.opaque,
       onTap: disabled ? null : () => onChanged(tab),
       child: Opacity(
@@ -660,7 +661,7 @@ class _AuthTabBody extends ConsumerWidget {
               // on mobile keyboards. file_picker copies the file into
               // the app sandbox on iOS (sandboxing) and returns that
               // copy's path — we pass it straight to keychain SSH auth.
-              trailing: GestureDetector(
+              trailing: Clickable(
                 behavior: HitTestBehavior.opaque,
                 onTap: state._pickKeyFile,
                 child: Padding(
@@ -1089,7 +1090,7 @@ class _KeySourceTabs extends StatelessWidget {
 
   Widget _tab(String label, _KeySource source) {
     final active = value == source;
-    return GestureDetector(
+    return Clickable(
       behavior: HitTestBehavior.opaque,
       onTap: () => onChanged(source),
       child: Container(

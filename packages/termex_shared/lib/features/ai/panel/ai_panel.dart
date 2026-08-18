@@ -19,6 +19,7 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 
 import '../../../design/tokens.dart';
 import '../../../l10n/app_localizations.dart';
+import '../../../widgets/clickable.dart';
 import '../provider/provider_switcher.dart';
 import '../state/provider_config_provider.dart';
 import 'ai_input.dart';
@@ -179,7 +180,7 @@ class _AiOnboardingGate extends StatelessWidget {
               ),
               const SizedBox(height: 20),
               if (onConfigure != null)
-                GestureDetector(
+                Clickable(
                   behavior: HitTestBehavior.opaque,
                   onTap: onConfigure,
                   child: Container(
@@ -312,7 +313,7 @@ class _Toolbar extends StatelessWidget {
           // a filled-bar indicator (open) for visual continuity.
           Tooltip(
             message: '历史对话',
-            child: GestureDetector(
+            child: Clickable(
               onTap: onToggleHistory,
               child: Icon(
                 historyOpen

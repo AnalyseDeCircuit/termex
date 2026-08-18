@@ -15,6 +15,7 @@ import 'package:termex_bridge/src/api.dart' as bridge;
 
 import '../../../../design/colors.dart';
 import '../../../../l10n/app_localizations.dart';
+import '../../../../widgets/clickable.dart';
 
 /// Preset date-range option.
 enum AuditDateRange { today, week, month, all }
@@ -258,7 +259,7 @@ class _Chip extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    return GestureDetector(
+    return Clickable(
       onTap: onTap,
       child: Container(
         padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 3),

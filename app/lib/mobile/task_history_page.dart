@@ -17,6 +17,7 @@ import 'package:termex_shared/design/spacing.dart';
 import 'package:termex_shared/design/typography.dart';
 import 'package:termex_shared/icons/termex_icons.dart';
 import 'package:termex_shared/l10n/app_localizations.dart';
+import 'package:termex_shared/widgets/clickable.dart';
 import 'package:termex_shared/widgets/dialog.dart';
 import 'package:termex_shared/widgets/text_field.dart';
 
@@ -485,7 +486,7 @@ class _UndoBanner extends StatelessWidget {
             ),
           ),
           const SizedBox(width: TermexSpacing.sm),
-          GestureDetector(
+          Clickable(
             behavior: HitTestBehavior.opaque,
             onTap: onUndo,
             child: Padding(
@@ -499,7 +500,7 @@ class _UndoBanner extends StatelessWidget {
               ),
             ),
           ),
-          GestureDetector(
+          Clickable(
             behavior: HitTestBehavior.opaque,
             onTap: onDismiss,
             child: Container(
@@ -539,7 +540,7 @@ class _Header extends StatelessWidget {
       ),
       child: Row(
         children: [
-          GestureDetector(
+          Clickable(
             behavior: HitTestBehavior.opaque,
             onTap: () => Navigator.of(context).maybePop(),
             child: const SizedBox(
@@ -562,7 +563,7 @@ class _Header extends StatelessWidget {
             ),
           ),
           if (trailingLabel != null)
-            GestureDetector(
+            Clickable(
               behavior: HitTestBehavior.opaque,
               onTap: onTrailingTap,
               child: Padding(
@@ -638,7 +639,7 @@ class _TaskRow extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     final l10n = AppLocalizations.of(context);
-    return GestureDetector(
+    return Clickable(
       behavior: HitTestBehavior.opaque,
       onLongPress: onLongPress,
       onTap: () => Navigator.of(context).push(PageRouteBuilder<void>(
@@ -818,7 +819,7 @@ class _Chip extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    return GestureDetector(
+    return Clickable(
       behavior: HitTestBehavior.opaque,
       onTap: onTap,
       child: Container(
@@ -881,7 +882,7 @@ class _SearchBox extends StatelessWidget {
           color: TermexColors.textSecondary,
         ),
         trailing: hasQuery
-            ? GestureDetector(
+            ? Clickable(
                 behavior: HitTestBehavior.opaque,
                 onTap: onClear,
                 child: const SizedBox(

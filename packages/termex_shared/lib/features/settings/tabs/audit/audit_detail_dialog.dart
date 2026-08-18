@@ -6,6 +6,7 @@ import 'package:flutter/services.dart';
 
 import '../../../../design/colors.dart';
 import '../../../../l10n/app_localizations.dart';
+import '../../../../widgets/clickable.dart';
 import '../../state/settings_provider.dart';
 
 Future<void> showAuditDetailDialog(
@@ -115,7 +116,7 @@ class _TitleBar extends StatelessWidget {
               ),
             ),
           ),
-          GestureDetector(
+          Clickable(
             onTap: () => Navigator.pop(context),
             child: const Icon(Icons.close,
                 size: 16, color: TermexColors.textMuted),

@@ -4,6 +4,7 @@ import 'package:flutter/services.dart';
 import '../design/colors.dart';
 import '../design/radius.dart';
 import '../design/elevation.dart';
+import 'clickable.dart';
 
 enum PopoverPosition { top, bottom, left, right }
 
@@ -149,7 +150,7 @@ class _TermexPopoverState extends State<TermexPopover>
   Widget build(BuildContext context) {
     return CompositedTransformTarget(
       link: _layerLink,
-      child: GestureDetector(
+      child: Clickable(
         onTap: _togglePopover,
         child: widget.trigger,
       ),

@@ -7,6 +7,7 @@ import 'package:flutter/widgets.dart';
 import '../../../design/colors.dart';
 import '../../../design/spacing.dart';
 import '../../../design/typography.dart';
+import '../../../widgets/clickable.dart';
 
 class TakeoverConfirmDialog extends StatelessWidget {
   final String currentOwnerName;
@@ -53,7 +54,7 @@ class TakeoverConfirmDialog extends StatelessWidget {
           Row(
             mainAxisAlignment: MainAxisAlignment.end,
             children: [
-              GestureDetector(
+              Clickable(
                 onTap: onCancel,
                 child: Container(
                   padding: const EdgeInsets.symmetric(
@@ -69,7 +70,7 @@ class TakeoverConfirmDialog extends StatelessWidget {
                 ),
               ),
               const SizedBox(width: TermexSpacing.sm),
-              GestureDetector(
+              Clickable(
                 onTap: onConfirm,
                 child: Container(
                   padding: const EdgeInsets.symmetric(

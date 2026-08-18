@@ -12,6 +12,7 @@ import 'package:flutter/widgets.dart';
 import '../../../design/colors.dart';
 import '../../../design/spacing.dart';
 import '../../../design/typography.dart';
+import '../../../widgets/clickable.dart';
 import '../model/risk_assessment.dart';
 
 enum ConfirmationDecision { approve, deny }
@@ -233,7 +234,7 @@ class _SheetButton extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    return GestureDetector(
+    return Clickable(
       onTap: onPressed,
       child: Container(
         padding: const EdgeInsets.symmetric(

@@ -3,6 +3,7 @@ import 'package:flutter/services.dart';
 
 import '../../../design/tokens.dart';
 import '../../../l10n/app_localizations.dart';
+import '../../../widgets/clickable.dart';
 
 /// Renders a fenced code block with a copy button.
 class CodeBlock extends StatefulWidget {
@@ -113,7 +114,7 @@ class _HeaderButton extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    return GestureDetector(
+    return Clickable(
       onTap: onTap,
       child: Row(
         mainAxisSize: MainAxisSize.min,

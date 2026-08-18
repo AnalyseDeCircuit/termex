@@ -6,6 +6,7 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 
 import '../../../design/tokens.dart';
 import '../../../l10n/app_localizations.dart';
+import '../../../widgets/clickable.dart';
 import '../state/settings_provider.dart';
 
 /// Settings → Highlights tab. Mirrors `HighlightsTab.vue`:
@@ -445,7 +446,7 @@ class _MiniToggle extends StatelessWidget {
     final tip = tooltip ?? label;
     return Tooltip(
       message: tip,
-      child: GestureDetector(
+      child: Clickable(
         onTap: () => onChanged(!value),
         child: Padding(
           padding: const EdgeInsets.symmetric(horizontal: 6, vertical: 4),
@@ -498,7 +499,7 @@ class _ColorSwatch extends StatelessWidget {
     final hex = color.isEmpty ? null : _parseHex(color);
     return Tooltip(
       message: tooltip,
-      child: GestureDetector(
+      child: Clickable(
         onTap: () => _pickColor(context),
         child: Container(
           width: 22,
@@ -572,7 +573,7 @@ class _ColorSwatch extends StatelessWidget {
               spacing: 6,
               runSpacing: 6,
               children: _kSwatchPresets.map((c) {
-                return GestureDetector(
+                return Clickable(
                   onTap: () => ctrl.text = c,
                   child: Container(
                     width: 22,

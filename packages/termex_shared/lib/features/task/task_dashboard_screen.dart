@@ -7,6 +7,7 @@ import 'package:flutter/widgets.dart';
 import '../../design/colors.dart';
 import '../../design/spacing.dart';
 import '../../design/typography.dart';
+import '../../widgets/clickable.dart';
 import 'model/task_view_model.dart';
 import 'widgets/assign_task_sheet.dart';
 import 'widgets/task_queue_panel.dart';
@@ -93,7 +94,7 @@ class _AssignFab extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    return GestureDetector(
+    return Clickable(
       onTap: () => _show(context),
       child: Container(
         width: 56,

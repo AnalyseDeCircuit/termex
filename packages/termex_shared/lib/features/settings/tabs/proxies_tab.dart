@@ -7,6 +7,7 @@ import '../../../design/spacing.dart';
 import '../../../design/typography.dart';
 import '../../../design/radius.dart';
 import '../../../l10n/app_localizations.dart';
+import '../../../widgets/clickable.dart';
 
 // ── Provider ─────────────────────────────────────────────────────────────────
 
@@ -141,7 +142,7 @@ class _AddButton extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    return GestureDetector(
+    return Clickable(
       onTap: onTap,
       child: Container(
         padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 5),
@@ -291,7 +292,7 @@ class _ActionIcon extends StatelessWidget {
   Widget build(BuildContext context) {
     return Tooltip(
       message: tooltip,
-      child: GestureDetector(
+      child: Clickable(
         onTap: onTap,
         child: Padding(
           padding: const EdgeInsets.symmetric(horizontal: 4),
@@ -434,7 +435,7 @@ class _AddProxyDialogState extends State<_AddProxyDialog> {
                         borderRadius: BorderRadius.circular(4),
                         borderSide: const BorderSide(color: TermexColors.border),
                       ),
-                      suffixIcon: GestureDetector(
+                      suffixIcon: Clickable(
                         onTap: () =>
                             setState(() => _obscurePass = !_obscurePass),
                         child: Icon(

@@ -9,6 +9,7 @@ import 'package:flutter/widgets.dart';
 import '../../../design/colors.dart';
 import '../../../design/spacing.dart';
 import '../../../design/typography.dart';
+import '../../../widgets/clickable.dart';
 import '../model/task_view_model.dart';
 
 class AssignTaskRequest {
@@ -144,7 +145,7 @@ class _AssignTaskSheetState extends State<AssignTaskSheet> {
           Row(
             mainAxisAlignment: MainAxisAlignment.end,
             children: [
-              GestureDetector(
+              Clickable(
                 onTap: _busy ? null : () => Navigator.of(context).maybePop(),
                 child: Padding(
                   padding: const EdgeInsets.symmetric(
@@ -160,7 +161,7 @@ class _AssignTaskSheetState extends State<AssignTaskSheet> {
                 ),
               ),
               const SizedBox(width: TermexSpacing.sm),
-              GestureDetector(
+              Clickable(
                 onTap: _canSubmit ? _submit : null,
                 child: Container(
                   padding: const EdgeInsets.symmetric(
@@ -218,7 +219,7 @@ class _ServerPicker extends StatelessWidget {
           runSpacing: TermexSpacing.xs,
           children: servers.map((s) {
             final active = s.id == selected;
-            return GestureDetector(
+            return Clickable(
               onTap: () => onSelect(s.id),
               child: Container(
                 padding: const EdgeInsets.symmetric(
@@ -272,7 +273,7 @@ class _AiCliPicker extends StatelessWidget {
           runSpacing: TermexSpacing.xs,
           children: AiCliKind.values.map((k) {
             final active = k == value;
-            return GestureDetector(
+            return Clickable(
               onTap: () => onChange(k),
               child: Container(
                 padding: const EdgeInsets.symmetric(

@@ -9,8 +9,8 @@ import 'package:termex_shared/features/cloud/cloud_panel.dart';
 import 'package:termex_shared/features/proxy/proxy_panel.dart';
 import 'package:termex_shared/features/recording/recording_list_panel.dart';
 import 'package:termex_shared/features/server_list/widgets/server_form_dialog.dart';
-import 'package:termex_shared/features/server_list/widgets/server_search_bar.dart';
 import 'package:termex_shared/features/server_list/widgets/server_tree.dart';
+import 'package:termex_shared/features/sidebar_search.dart';
 import 'package:termex_shared/features/server_list/widgets/import_ssh_config_dialog.dart';
 import 'package:termex_shared/features/server_list/models/group_dto.dart';
 import 'package:termex_shared/features/server_list/state/group_provider.dart';
@@ -323,12 +323,22 @@ class _CategorySectionHeader extends ConsumerWidget {
       category == SidebarCategory.proxies ||
       category == SidebarCategory.snippets;
 
-  /// Search currently only filters the server list.
-  bool get _hasSearch => category == SidebarCategory.servers;
+  /// Panel key for the shared search-visibility state, or null for
+  /// categories with nothing to filter. Cloud is a sectioned status view
+  /// rather than a list of user-owned entries, so it has no search.
+  String? get _searchPanel => switch (category) {
+        SidebarCategory.servers => SidebarSearchPanel.servers,
+        SidebarCategory.proxies => SidebarSearchPanel.proxies,
+        SidebarCategory.snippets => SidebarSearchPanel.snippets,
+        SidebarCategory.recordings => SidebarSearchPanel.recordings,
+        SidebarCategory.cloud => null,
+      };
 
   @override
   Widget build(BuildContext context, WidgetRef ref) {
-    final searchVisible = ref.watch(serverSearchVisibleProvider);
+    final panel = _searchPanel;
+    final searchVisible =
+        panel != null && ref.watch(sidebarSearchVisibleProvider(panel));
 
     return Container(
       height: 28,
@@ -348,16 +358,16 @@ class _CategorySectionHeader extends ConsumerWidget {
             ),
           ),
           const Spacer(),
-          if (_hasSearch)
+          if (panel != null)
             _SectionIconButton(
               icon: TermexIcons.search,
               tooltip: searchVisible ? '关闭搜索' : '搜索',
               active: searchVisible,
               onTap: () => ref
-                  .read(serverSearchVisibleProvider.notifier)
+                  .read(sidebarSearchVisibleProvider(panel).notifier)
                   .update((v) => !v),
             ),
-          if (_hasSearch && _hasAdd) const SizedBox(width: 2),
+          if (panel != null && _hasAdd) const SizedBox(width: 2),
           if (_hasAdd)
             _SectionIconButton(
               icon: TermexIcons.add,

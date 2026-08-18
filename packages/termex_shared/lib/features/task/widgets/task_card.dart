@@ -18,6 +18,7 @@ import 'package:flutter/widgets.dart';
 import '../../../design/colors.dart';
 import '../../../design/spacing.dart';
 import '../../../design/typography.dart';
+import '../../../widgets/clickable.dart';
 import '../model/task_view_model.dart';
 import 'task_status_badge.dart';
 
@@ -35,7 +36,7 @@ class TaskCard extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    return GestureDetector(
+    return Clickable(
       onTap: onTap,
       child: Container(
         margin: const EdgeInsets.symmetric(
@@ -171,7 +172,7 @@ class _CardButton extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    return GestureDetector(
+    return Clickable(
       onTap: onPressed,
       child: Container(
         padding: const EdgeInsets.symmetric(

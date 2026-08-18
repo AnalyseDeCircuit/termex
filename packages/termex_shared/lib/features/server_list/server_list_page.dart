@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import '../../l10n/app_localizations.dart';
+import '../../widgets/clickable.dart';
 import 'models/server_dto.dart';
 import 'state/server_provider.dart';
 import 'widgets/delete_server_dialog.dart';
@@ -109,7 +110,7 @@ class _ServerTile extends StatelessWidget {
       ),
     );
     if (onTap == null && onLongPress == null) return tile;
-    return GestureDetector(
+    return Clickable(
       behavior: HitTestBehavior.opaque,
       onTap: onTap,
       onLongPress: onLongPress,
@@ -209,7 +210,7 @@ class _ActionSheetItem extends StatelessWidget {
   Widget build(BuildContext context) {
     final color =
         destructive ? const Color(0xFFF38BA8) : const Color(0xFFCDD6F4);
-    return GestureDetector(
+    return Clickable(
       behavior: HitTestBehavior.opaque,
       onTap: onTap,
       child: Container(

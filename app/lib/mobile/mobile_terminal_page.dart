@@ -9,6 +9,7 @@ import 'package:termex_shared/design/mobile_tokens.dart';
 import 'package:termex_shared/design/typography.dart';
 import 'package:termex_shared/features/server_list/models/server_dto.dart';
 import 'package:termex_shared/icons/termex_icons.dart';
+import 'package:termex_shared/widgets/clickable.dart';
 import 'package:xterm/core.dart' show TerminalKey;
 import 'package:xterm/xterm.dart' as xt;
 
@@ -354,7 +355,7 @@ class _HeaderBar extends StatelessWidget {
       ),
       child: Row(
         children: [
-          GestureDetector(
+          Clickable(
             behavior: HitTestBehavior.opaque,
             onTap: onClose,
             child: Container(
@@ -502,7 +503,7 @@ class _ToolbarButton extends StatelessWidget {
         : TermexColors.backgroundTertiary;
     return Padding(
       padding: const EdgeInsets.symmetric(horizontal: 4),
-      child: GestureDetector(
+      child: Clickable(
         behavior: HitTestBehavior.opaque,
         onTap: onTap,
         child: Container(

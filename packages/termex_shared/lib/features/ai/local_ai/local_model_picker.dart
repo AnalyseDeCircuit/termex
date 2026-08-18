@@ -9,6 +9,7 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 
 import '../../../design/tokens.dart';
 import '../../../l10n/app_localizations.dart';
+import '../../../widgets/clickable.dart';
 import '../state/local_ai_provider.dart';
 
 class LocalModelPicker extends ConsumerWidget {
@@ -275,7 +276,7 @@ class _TextBtn extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    return GestureDetector(
+    return Clickable(
       onTap: onTap,
       child: Row(
         mainAxisSize: MainAxisSize.min,
@@ -303,7 +304,7 @@ class _IconBtn extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    return GestureDetector(
+    return Clickable(
       onTap: onTap,
       child: Padding(
         padding: const EdgeInsets.all(2),

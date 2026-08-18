@@ -3,6 +3,7 @@ import '../design/colors.dart';
 import '../design/mobile_tokens.dart';
 import '../design/typography.dart';
 import 'badge.dart';
+import 'clickable.dart';
 
 class BottomBarItem {
   final Widget icon;
@@ -164,7 +165,7 @@ class _BottomBarTab extends StatelessWidget {
       button: true,
       selected: selected,
       label: item.label,
-      child: GestureDetector(
+      child: Clickable(
         onTap: onTap,
         behavior: HitTestBehavior.opaque,
         child: SizedBox(

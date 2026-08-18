@@ -10,6 +10,7 @@ import 'package:flutter/services.dart';
 
 import '../../../../design/colors.dart';
 import '../../../../design/typography.dart';
+import '../../../widgets/clickable.dart';
 import 'search_controller.dart';
 
 export 'search_controller.dart';
@@ -286,7 +287,7 @@ class _ToggleButton extends StatelessWidget {
   Widget build(BuildContext context) {
     return Tooltip(
       message: tooltip,
-      child: GestureDetector(
+      child: Clickable(
         onTap: onTap,
         child: AnimatedContainer(
           duration: const Duration(milliseconds: 120),
@@ -331,7 +332,7 @@ class _IconBtn extends StatelessWidget {
   Widget build(BuildContext context) {
     return Tooltip(
       message: tooltip,
-      child: GestureDetector(
+      child: Clickable(
         onTap: enabled ? onTap : null,
         child: SizedBox(
           width: 28,

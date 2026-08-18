@@ -10,6 +10,7 @@ import 'package:flutter/services.dart';
 
 import '../../../../design/colors.dart';
 import '../../../../design/typography.dart';
+import '../../../widgets/clickable.dart';
 
 /// Result returned by [showHostKeyDialog].
 enum HostKeyDecision {
@@ -181,7 +182,7 @@ class _FingerprintBlock extends StatelessWidget {
           const SizedBox(width: 8),
           Tooltip(
             message: '复制指纹',
-            child: GestureDetector(
+            child: Clickable(
               onTap: () => Clipboard.setData(ClipboardData(text: fingerprint)),
               child: const Icon(
                 Icons.copy_outlined,
@@ -209,7 +210,7 @@ class _Button extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    return GestureDetector(
+    return Clickable(
       onTap: onTap,
       child: Container(
         padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 8),

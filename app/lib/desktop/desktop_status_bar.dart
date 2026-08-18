@@ -12,6 +12,7 @@ import 'package:termex_shared/system/auto_updater.dart';
 import 'package:termex_shared/system/state/update_provider.dart';
 import 'package:termex_shared/terminal/broadcast_registry.dart';
 import 'package:termex_shared/terminal/features/tmux/tmux_provider.dart';
+import 'package:termex_shared/widgets/clickable.dart';
 import 'state/desktop_shell_state.dart';
 
 /// Bottom status bar — mirrors Tauri's StatusBar.vue with connection status,
@@ -61,7 +62,7 @@ class DesktopStatusBar extends ConsumerWidget {
           if (activeForwards > 0) ...[
             Tooltip(
               message: '$activeForwards 条端口转发活跃 · 点击查看',
-              child: GestureDetector(
+              child: Clickable(
                 onTap: () => toggleDesktopSidePanel(ref, DesktopSidePanel.portForward),
                 child: _StatusChip(
                   icon: Icons.swap_horiz,

@@ -7,6 +7,7 @@ import 'package:flutter/widgets.dart';
 import '../../../design/colors.dart';
 import '../../../design/spacing.dart';
 import '../../../design/typography.dart';
+import '../../../widgets/clickable.dart';
 import '../model/cost_view_model.dart';
 
 /// Renders three labelled rows + a save/cancel pair. The host
@@ -202,7 +203,7 @@ class _DialogButton extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    return GestureDetector(
+    return Clickable(
       onTap: onPressed,
       child: Container(
         padding: const EdgeInsets.symmetric(

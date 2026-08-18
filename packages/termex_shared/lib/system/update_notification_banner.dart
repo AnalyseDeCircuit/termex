@@ -8,6 +8,7 @@ import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 
 import '../design/tokens.dart';
+import '../widgets/clickable.dart';
 import 'auto_updater.dart';
 import 'state/update_provider.dart';
 
@@ -39,7 +40,7 @@ class UpdateNotificationBanner extends ConsumerWidget {
         ? Icons.download_done
         : Icons.new_releases;
 
-    return GestureDetector(
+    return Clickable(
       onTap: onOpenSettings,
       child: Container(
         padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 4),

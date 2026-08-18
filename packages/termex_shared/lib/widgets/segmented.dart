@@ -3,6 +3,7 @@ import '../design/colors.dart';
 import '../design/radius.dart';
 import '../design/spacing.dart';
 import '../design/typography.dart';
+import 'clickable.dart';
 
 class TermexSegmented extends StatefulWidget {
   final List<String> items;
@@ -101,7 +102,7 @@ class _TermexSegmentedState extends State<TermexSegmented>
                   children: [
                     for (int i = 0; i < count; i++)
                       Expanded(
-                        child: GestureDetector(
+                        child: Clickable(
                           onTap: () => widget.onChanged(i),
                           behavior: HitTestBehavior.opaque,
                           child: Semantics(

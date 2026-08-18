@@ -1,21 +1,12 @@
 import 'dart:async';
 
 import 'package:flutter/widgets.dart';
-import 'package:flutter_riverpod/flutter_riverpod.dart';
 
 import '../../../design/colors.dart';
 import '../../../design/typography.dart';
 import '../../../design/radius.dart';
 import '../../../design/spacing.dart';
 import '../../../icons/termex_icons.dart';
-
-/// Whether the sidebar search input is revealed.
-///
-/// The field used to occupy the top of the server list permanently. It is now
-/// behind a toggle in the section header so the sidebar reads as a plain list
-/// until someone actually searches. Shared state because the toggle and the
-/// field live in sibling widgets.
-final serverSearchVisibleProvider = StateProvider<bool>((_) => false);
 
 /// Full-width search input that sits at the top of the server sidebar.
 /// Emits the filtered query with a 300 ms debounce.

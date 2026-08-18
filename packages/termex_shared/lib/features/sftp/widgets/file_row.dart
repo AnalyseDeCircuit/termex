@@ -5,6 +5,7 @@ import 'package:flutter/material.dart';
 
 import '../../../design/colors.dart';
 import '../../../design/typography.dart';
+import '../../../widgets/clickable.dart';
 
 /// Data required to render one file row.
 class FileRowData {
@@ -141,11 +142,14 @@ class FileRow extends StatelessWidget {
     required EdgeInsets padding,
     required bool isMobile,
   }) {
-    return GestureDetector(
+    return Clickable(
       behavior: HitTestBehavior.opaque,
       onTap: onTap,
       onDoubleTap: onDoubleTap,
-      onSecondaryTap: onSecondaryTap,
+      // Clickable hands the anchor position to secondary-tap handlers; this
+      // row's callback doesn't need it.
+      onSecondaryTap:
+          onSecondaryTap == null ? null : (_) => onSecondaryTap!(),
       child: Container(
         height: rowHeight,
         padding: padding,

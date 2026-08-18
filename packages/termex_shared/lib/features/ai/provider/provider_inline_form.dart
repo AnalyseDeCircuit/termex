@@ -8,6 +8,7 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 
 import '../../../design/tokens.dart';
 import '../../../l10n/app_localizations.dart';
+import '../../../widgets/clickable.dart';
 import '../local_ai/local_model_picker.dart';
 import '../local_ai/server_status.dart';
 import '../state/conversation_provider.dart';
@@ -137,7 +138,7 @@ class _ProviderInlineFormState extends ConsumerState<ProviderInlineForm> {
                     controller: _apiKeyCtrl,
                     hint: '${meta.label} API key',
                     obscure: _obscureKey,
-                    suffix: GestureDetector(
+                    suffix: Clickable(
                       onTap: () =>
                           setState(() => _obscureKey = !_obscureKey),
                       child: Icon(
@@ -357,7 +358,7 @@ class _SmallBtn extends StatelessWidget {
             : TermexColors.primary)
         : TermexColors.backgroundTertiary;
     final fg = primary ? Colors.white : TermexColors.textPrimary;
-    return GestureDetector(
+    return Clickable(
       onTap: onTap,
       child: Container(
         padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 6),

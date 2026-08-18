@@ -7,6 +7,7 @@ import 'package:flutter/widgets.dart';
 import '../../../design/colors.dart';
 import '../../../design/spacing.dart';
 import '../../../design/typography.dart';
+import '../../../widgets/clickable.dart';
 import '../model/task_metrics_vm.dart';
 
 class ReconnectBanner extends StatelessWidget {
@@ -121,7 +122,7 @@ class _AttemptRow extends StatelessWidget {
           ),
           if (isFailed && onRetry != null) ...[
             const SizedBox(width: TermexSpacing.sm),
-            GestureDetector(
+            Clickable(
               onTap: () => onRetry!(attempt.serverId),
               child: Text(
                 'Retry now',

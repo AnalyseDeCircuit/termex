@@ -12,6 +12,7 @@ import 'package:flutter/widgets.dart';
 import '../../../design/colors.dart';
 import '../../../design/spacing.dart';
 import '../../../design/typography.dart';
+import '../../../widgets/clickable.dart';
 import 'voice_transcript_state.dart';
 
 /// Interface the widget calls into for speech recognition.
@@ -115,7 +116,7 @@ class _VoiceInputWidgetState extends State<VoiceInputWidget> {
           ),
         ],
         const SizedBox(height: TermexSpacing.sm),
-        GestureDetector(
+        Clickable(
           onTap: widget.onSwitchToKeyboard,
           child: Padding(
             padding: const EdgeInsets.all(TermexSpacing.xs),
@@ -148,7 +149,7 @@ class _MicButton extends StatelessWidget {
     final color = !enabled
         ? TermexColors.textMuted
         : (listening ? TermexColors.primary : TermexColors.backgroundTertiary);
-    return GestureDetector(
+    return Clickable(
       onTap: enabled ? onTap : null,
       child: Container(
         width: 96,

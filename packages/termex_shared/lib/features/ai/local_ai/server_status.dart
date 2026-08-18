@@ -2,6 +2,7 @@ import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 
 import '../../../../design/tokens.dart';
+import '../../../widgets/clickable.dart';
 import '../state/local_ai_provider.dart';
 
 /// Compact status indicator shown at the top of the local AI panel.
@@ -140,7 +141,7 @@ class _StopButton extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    return GestureDetector(
+    return Clickable(
       onTap: onTap,
       child: Container(
         padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 3),

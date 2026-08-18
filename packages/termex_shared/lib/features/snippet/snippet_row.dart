@@ -4,6 +4,7 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 
 import '../../design/tokens.dart';
 import '../../l10n/app_localizations.dart';
+import '../../widgets/clickable.dart';
 import 'snippet_variable_resolver.dart';
 import 'state/snippet_provider.dart';
 
@@ -191,7 +192,7 @@ class _ActionBtn extends StatelessWidget {
   @override
   Widget build(BuildContext context) => Tooltip(
         message: tooltip,
-        child: GestureDetector(
+        child: Clickable(
           onTap: onTap,
           child: Container(
             width: 28,

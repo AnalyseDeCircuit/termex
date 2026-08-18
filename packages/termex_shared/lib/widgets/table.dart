@@ -1,6 +1,8 @@
 import 'package:flutter/widgets.dart';
 import 'package:termex_shared/design/tokens.dart';
 
+import 'clickable.dart';
+
 enum SortDirection { none, asc, desc }
 
 class TermexColumn<T> {
@@ -300,7 +302,7 @@ class _HeaderCheckbox extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    return GestureDetector(
+    return Clickable(
       onTap: onTap,
       child: Container(
         width: 16,
@@ -333,7 +335,7 @@ class _RowCheckbox extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    return GestureDetector(
+    return Clickable(
       onTap: onTap,
       child: Container(
         width: 16,

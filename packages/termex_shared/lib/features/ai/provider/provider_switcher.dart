@@ -2,6 +2,7 @@ import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 
 import '../../../design/tokens.dart';
+import '../../../widgets/clickable.dart';
 import '../state/conversation_provider.dart';
 import '../state/provider_config_provider.dart';
 import 'provider_config_dialog.dart';
@@ -18,7 +19,7 @@ class ProviderSwitcher extends ConsumerWidget {
     final meta = metaFor(active);
     final config = configState.activeConfig;
 
-    return GestureDetector(
+    return Clickable(
       onTap: () => _showMenu(context, ref),
       child: Container(
         padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 4),

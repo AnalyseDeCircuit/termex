@@ -3,6 +3,7 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 
 import '../../../../design/tokens.dart';
 import '../../../l10n/app_localizations.dart';
+import '../../../widgets/clickable.dart';
 import '../state/keybinding_provider.dart';
 import '../widgets/conflict_warning.dart';
 import '../widgets/keybinding_capture.dart';
@@ -224,7 +225,7 @@ class _ResetAllIconButton extends StatelessWidget {
   Widget build(BuildContext context) {
     return Tooltip(
       message: tooltip,
-      child: GestureDetector(
+      child: Clickable(
         behavior: HitTestBehavior.opaque,
         onTap: onPressed,
         child: const Icon(
@@ -306,7 +307,7 @@ class _KeybindingRow extends StatelessWidget {
                   fontSize: 11, color: TermexColors.textSecondary),
             ),
           ),
-          GestureDetector(
+          Clickable(
             onTap: onReset,
             child: const Icon(Icons.restore,
                 size: 14, color: TermexColors.textSecondary),

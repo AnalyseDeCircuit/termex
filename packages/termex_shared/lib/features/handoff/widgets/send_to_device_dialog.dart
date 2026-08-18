@@ -10,6 +10,7 @@ import 'package:flutter/widgets.dart';
 import '../../../design/colors.dart';
 import '../../../design/spacing.dart';
 import '../../../design/typography.dart';
+import '../../../widgets/clickable.dart';
 import '../model/handoff_view_model.dart';
 
 class SendToDeviceDialog extends StatelessWidget {
@@ -71,7 +72,7 @@ class SendToDeviceDialog extends StatelessWidget {
           Row(
             mainAxisAlignment: MainAxisAlignment.end,
             children: [
-              GestureDetector(
+              Clickable(
                 onTap: onCancel,
                 child: Text(
                   'Cancel',
@@ -99,7 +100,7 @@ class _DeviceRow extends StatelessWidget {
     final color = device.isOnline
         ? TermexColors.success
         : TermexColors.textMuted;
-    return GestureDetector(
+    return Clickable(
       onTap: onTap,
       child: Container(
         padding: const EdgeInsets.symmetric(

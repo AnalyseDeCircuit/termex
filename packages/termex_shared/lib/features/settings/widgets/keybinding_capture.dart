@@ -2,6 +2,7 @@ import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 
 import '../../../design/tokens.dart';
+import '../../../widgets/clickable.dart';
 
 /// Captures a keyboard shortcut from the user.
 ///
@@ -82,7 +83,7 @@ class _KeybindingCaptureState extends State<KeybindingCapture> {
 
   @override
   Widget build(BuildContext context) {
-    return GestureDetector(
+    return Clickable(
       onTap: widget.onTap,
       child: KeyboardListener(
         focusNode: _focus,

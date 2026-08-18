@@ -13,6 +13,7 @@ import 'package:termex_shared/features/server_list/server_list_page.dart';
 import 'package:termex_shared/features/server_list/widgets/server_form_dialog.dart';
 import 'package:termex_shared/features/snippet/snippet_library.dart';
 import 'package:termex_shared/widgets/bottom_bar.dart';
+import 'package:termex_shared/widgets/clickable.dart';
 
 import 'mobile_settings_page.dart';
 import 'mobile_sftp_page.dart';
@@ -234,7 +235,7 @@ class _NavRailItem extends StatelessWidget {
       button: true,
       selected: selected,
       label: label,
-      child: GestureDetector(
+      child: Clickable(
         behavior: HitTestBehavior.opaque,
         onTap: onTap,
         child: Padding(
@@ -439,7 +440,7 @@ class _AiTabRoot extends StatelessWidget {
           top: 0,
           right: 0,
           child: SafeArea(
-            child: GestureDetector(
+            child: Clickable(
               behavior: HitTestBehavior.opaque,
               onTap: () => Navigator.of(context).push(PageRouteBuilder<void>(
                 pageBuilder: (_, __, ___) => const MobileTaskHistoryPage(),
@@ -690,7 +691,7 @@ class _MobileSidebarTab extends StatelessWidget {
     final color =
         active ? TermexColors.primary : TermexColors.textSecondary;
     return Expanded(
-      child: GestureDetector(
+      child: Clickable(
         behavior: HitTestBehavior.opaque,
         onTap: onTap,
         child: Container(
@@ -752,7 +753,7 @@ class _TerminalTabHeader extends StatelessWidget {
           ),
           const Spacer(),
           if (onAddServer != null)
-            GestureDetector(
+            Clickable(
               behavior: HitTestBehavior.opaque,
               onTap: onAddServer,
               child: Container(

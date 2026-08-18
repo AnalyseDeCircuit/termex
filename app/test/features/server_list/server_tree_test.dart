@@ -7,6 +7,7 @@ import 'package:termex_shared/features/server_list/models/server_dto.dart';
 import 'package:termex_shared/features/server_list/state/group_provider.dart';
 import 'package:termex_shared/features/server_list/state/server_provider.dart';
 import 'package:termex_shared/features/server_list/widgets/server_search_bar.dart';
+import 'package:termex_shared/features/sidebar_search.dart';
 import 'package:termex_shared/features/server_list/widgets/server_tree.dart';
 import 'package:termex_shared/l10n/app_localizations.dart';
 
@@ -253,7 +254,7 @@ void main() {
       await tester.pumpAndSettle();
       expect(find.byType(ServerSearchBar), findsNothing);
 
-      container.read(serverSearchVisibleProvider.notifier).state = true;
+      container.read(sidebarSearchVisibleProvider(SidebarSearchPanel.servers).notifier).state = true;
       await tester.pumpAndSettle();
       expect(find.byType(ServerSearchBar), findsOneWidget);
     });
@@ -280,7 +281,7 @@ void main() {
           ),
         ),
       );
-      container.read(serverSearchVisibleProvider.notifier).state = true;
+      container.read(sidebarSearchVisibleProvider(SidebarSearchPanel.servers).notifier).state = true;
       await tester.pumpAndSettle();
 
       await tester.enterText(find.byType(EditableText), 'db');
@@ -289,7 +290,7 @@ void main() {
       // asserted through the row that must disappear.
       expect(find.text('prod-web'), findsNothing);
 
-      container.read(serverSearchVisibleProvider.notifier).state = false;
+      container.read(sidebarSearchVisibleProvider(SidebarSearchPanel.servers).notifier).state = false;
       await tester.pumpAndSettle();
 
       expect(find.byType(ServerSearchBar), findsNothing);

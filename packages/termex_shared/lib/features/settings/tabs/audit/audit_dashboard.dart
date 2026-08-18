@@ -18,6 +18,7 @@ import '../../../../design/colors.dart';
 import '../../../../design/spacing.dart';
 import '../../../../design/typography.dart';
 import '../../../../l10n/app_localizations.dart';
+import '../../../../widgets/clickable.dart';
 import '../../state/settings_provider.dart';
 import 'audit_detail_dialog.dart';
 import 'audit_filter_bar.dart';
@@ -348,7 +349,7 @@ class _LogRowState extends State<_LogRow> {
   Widget build(BuildContext context) => MouseRegion(
         onEnter: (_) => setState(() => _hovered = true),
         onExit: (_) => setState(() => _hovered = false),
-        child: GestureDetector(
+        child: Clickable(
           onTap: widget.onTap,
           child: Container(
             padding: const EdgeInsets.symmetric(
@@ -451,7 +452,7 @@ class _PageBtn extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     final enabled = onTap != null;
-    return GestureDetector(
+    return Clickable(
       onTap: onTap,
       child: Container(
         padding: const EdgeInsets.symmetric(

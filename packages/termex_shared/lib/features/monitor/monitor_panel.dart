@@ -22,6 +22,7 @@ import '../../design/colors.dart';
 import '../../design/spacing.dart';
 import '../../design/typography.dart';
 import '../../icons/termex_icons.dart';
+import '../../widgets/clickable.dart';
 import '../settings/state/settings_provider.dart';
 import 'state/monitor_provider.dart';
 import 'widgets/metric_cards.dart';
@@ -179,7 +180,7 @@ class _InfoBar extends StatelessWidget {
             ),
           ),
         const Spacer(),
-        GestureDetector(
+        Clickable(
           onTap: onToggle,
           child: Container(
             padding: const EdgeInsets.symmetric(
@@ -387,7 +388,7 @@ class _LoadingView extends StatelessWidget {
                 ),
               ),
             if (!isCollecting)
-              GestureDetector(
+              Clickable(
                 onTap: onStart,
                 child: Container(
                   padding: const EdgeInsets.symmetric(

@@ -1,6 +1,8 @@
 import 'package:flutter/widgets.dart';
 import 'package:termex_shared/design/tokens.dart';
 
+import 'clickable.dart';
+
 class TreeNode<T> {
   final String key;
   final T data;
@@ -145,7 +147,7 @@ class _TreeRowState<T> extends State<_TreeRow<T>>
     final depth = widget.flatNode.depth;
     final hasChildren = !node.leaf && (node.children?.isNotEmpty ?? false);
 
-    return GestureDetector(
+    return Clickable(
       behavior: HitTestBehavior.opaque,
       onTap: () => widget.onSelect?.call(node.data),
       child: Padding(
@@ -156,7 +158,7 @@ class _TreeRowState<T> extends State<_TreeRow<T>>
               width: 20,
               height: 20,
               child: hasChildren
-                  ? GestureDetector(
+                  ? Clickable(
                       behavior: HitTestBehavior.opaque,
                       onTap: () => widget.onToggleExpand?.call(node.key),
                       child: Center(

@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 
 import '../../../../design/tokens.dart';
+import '../../../widgets/clickable.dart';
 import '../state/local_ai_provider.dart';
 
 /// Progress bar for an in-progress model download.
@@ -67,7 +68,7 @@ class ModelDownloadProgress extends StatelessWidget {
                 ),
               ),
               const SizedBox(width: 8),
-              GestureDetector(
+              Clickable(
                 onTap: onCancel,
                 child: const Icon(Icons.close, size: 14, color: TermexColors.danger),
               ),

@@ -7,6 +7,7 @@ import '../design/typography.dart';
 import '../design/radius.dart';
 import '../design/spacing.dart';
 import '../design/elevation.dart';
+import 'clickable.dart';
 
 enum ToastType { info, success, warning, error }
 
@@ -160,7 +161,7 @@ class _ToastItemState extends State<_ToastItem>
       position: _slide,
       child: FadeTransition(
         opacity: _fade,
-        child: GestureDetector(
+        child: Clickable(
           onTap: widget.onDismiss,
           child: Container(
             constraints: const BoxConstraints(maxWidth: 360),

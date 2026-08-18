@@ -18,6 +18,7 @@ import 'server_tree_node.dart';
 import 'server_tree_context_menu.dart';
 import 'server_form_dialog.dart';
 import 'import_ssh_config_dialog.dart';
+import '../../sidebar_search.dart';
 import 'server_search_bar.dart';
 
 /// The main sidebar server tree.
@@ -542,7 +543,8 @@ class _ServerTreeState extends ConsumerState<ServerTree> {
     // Dropping the field has to drop the filter with it, or hiding the search
     // would leave the list silently filtered with nothing on screen to explain
     // why entries are missing.
-    ref.listen<bool>(serverSearchVisibleProvider, (_, visible) {
+    ref.listen<bool>(
+        sidebarSearchVisibleProvider(SidebarSearchPanel.servers), (_, visible) {
       if (!visible && _query.isNotEmpty) setState(() => _query = '');
     });
 
@@ -563,7 +565,7 @@ class _ServerTreeState extends ConsumerState<ServerTree> {
         // Only present once the header's search toggle is on — the field used
         // to sit here permanently, which made a short server list look busier
         // than it is.
-        if (ref.watch(serverSearchVisibleProvider))
+        if (ref.watch(sidebarSearchVisibleProvider(SidebarSearchPanel.servers)))
           Padding(
             padding: const EdgeInsets.fromLTRB(
               TermexSpacing.sm,

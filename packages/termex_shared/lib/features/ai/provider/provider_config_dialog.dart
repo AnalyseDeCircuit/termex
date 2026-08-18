@@ -3,6 +3,7 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 
 import '../../../design/tokens.dart';
 import '../../../l10n/app_localizations.dart';
+import '../../../widgets/clickable.dart';
 import '../state/conversation_provider.dart';
 import '../state/provider_config_provider.dart';
 import 'provider_registry.dart';
@@ -114,7 +115,7 @@ class _ProviderConfigDialogState extends ConsumerState<_ProviderConfigDialog> {
                         obscureText: _obscureKey,
                         decoration: _inputDecoration(
                           hint: '${meta.label} API key',
-                          suffix: GestureDetector(
+                          suffix: Clickable(
                             onTap: () =>
                                 setState(() => _obscureKey = !_obscureKey),
                             child: Icon(
@@ -258,7 +259,7 @@ class _VerifyButton extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     final l10n = AppLocalizations.of(context);
-    return GestureDetector(
+    return Clickable(
       onTap: isVerifying ? null : onTap,
       child: Container(
         padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 8),

@@ -2,6 +2,7 @@ import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 
 import '../../../design/tokens.dart';
+import '../../../widgets/clickable.dart';
 import 'command_extractor.dart';
 
 /// Inline chip showing an extracted command with risk indicator and action buttons.
@@ -105,7 +106,7 @@ class _ActionBtn extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    return GestureDetector(
+    return Clickable(
       onTap: onTap,
       child: Opacity(
         opacity: onTap == null ? 0.3 : 1.0,

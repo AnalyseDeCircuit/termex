@@ -22,6 +22,7 @@ import '../../design/colors.dart';
 import '../../design/spacing.dart';
 import '../../design/typography.dart';
 import '../../icons/termex_icons.dart';
+import '../../widgets/clickable.dart';
 
 class CloudPanel extends ConsumerStatefulWidget {
   const CloudPanel({super.key});
@@ -168,7 +169,7 @@ class _Header extends StatelessWidget {
               ),
             ),
             const Spacer(),
-            GestureDetector(
+            Clickable(
               onTap: onRefresh,
               child: const TermexIconWidget(
                 TermexIcons.refresh,

@@ -26,6 +26,7 @@ import 'package:termex_shared/design/colors.dart';
 import 'package:termex_shared/design/typography.dart';
 import 'package:termex_shared/features/settings/settings_page.dart';
 import 'package:termex_shared/icons/termex_icons.dart';
+import 'package:termex_shared/widgets/clickable.dart';
 
 import 'background_service.dart';
 import 'notifications_test_row.dart';
@@ -180,7 +181,7 @@ class _BatteryBanner extends StatelessWidget {
             ),
           ),
           const SizedBox(width: 8),
-          GestureDetector(
+          Clickable(
             behavior: HitTestBehavior.opaque,
             onTap: busy ? null : onOpenSettings,
             child: Padding(
@@ -194,7 +195,7 @@ class _BatteryBanner extends StatelessWidget {
               ),
             ),
           ),
-          GestureDetector(
+          Clickable(
             behavior: HitTestBehavior.opaque,
             onTap: onDismiss,
             child: Container(

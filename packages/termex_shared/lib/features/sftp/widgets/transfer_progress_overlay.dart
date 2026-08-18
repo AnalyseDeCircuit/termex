@@ -9,6 +9,7 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 
 import '../../../design/colors.dart';
 import '../../../l10n/app_localizations.dart';
+import '../../../widgets/clickable.dart';
 import '../state/sftp_transfer_provider.dart';
 
 /// Renders a floating panel of in-progress and recent transfers.
@@ -87,7 +88,7 @@ class _Header extends StatelessWidget {
                   fontSize: 13)),
           const Spacer(),
           if (hasCompleted)
-            GestureDetector(
+            Clickable(
               onTap: onClear,
               child: Text(l10n.sftpClearCompleted,
                   style: const TextStyle(
@@ -226,7 +227,7 @@ class _IconBtn extends StatelessWidget {
   Widget build(BuildContext context) {
     return Tooltip(
       message: tooltip,
-      child: GestureDetector(
+      child: Clickable(
         onTap: onTap,
         behavior: HitTestBehavior.opaque,
         child: SizedBox(

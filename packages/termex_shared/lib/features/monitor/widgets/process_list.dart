@@ -13,6 +13,7 @@ import 'package:termex_bridge/src/api.dart' as bridge;
 import '../../../design/colors.dart';
 import '../../../design/spacing.dart';
 import '../../../design/typography.dart';
+import '../../../widgets/clickable.dart';
 
 enum ProcessSort { cpu, mem }
 
@@ -161,7 +162,7 @@ class _SortChip extends StatelessWidget {
   });
 
   @override
-  Widget build(BuildContext context) => GestureDetector(
+  Widget build(BuildContext context) => Clickable(
         onTap: onTap,
         child: Container(
           padding: const EdgeInsets.symmetric(horizontal: 6, vertical: 2),

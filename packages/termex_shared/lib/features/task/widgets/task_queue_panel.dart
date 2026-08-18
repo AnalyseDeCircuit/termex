@@ -10,6 +10,7 @@ import 'package:flutter/widgets.dart';
 import '../../../design/colors.dart';
 import '../../../design/spacing.dart';
 import '../../../design/typography.dart';
+import '../../../widgets/clickable.dart';
 import '../model/task_view_model.dart';
 import 'task_card.dart';
 
@@ -147,7 +148,7 @@ class _Tab extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     return Expanded(
-      child: GestureDetector(
+      child: Clickable(
         onTap: onTap,
         child: Container(
           decoration: BoxDecoration(

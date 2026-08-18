@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 import '../../../design/tokens.dart';
+import '../../../widgets/clickable.dart';
 
 /// Banner shown when a keybinding conflicts with an existing one.
 class ConflictWarning extends StatelessWidget {
@@ -31,7 +32,7 @@ class ConflictWarning extends StatelessWidget {
               style: const TextStyle(fontSize: 12, color: TermexColors.warning),
             ),
           ),
-          GestureDetector(
+          Clickable(
             onTap: onDismiss,
             child: const Icon(Icons.close, size: 13, color: TermexColors.textSecondary),
           ),

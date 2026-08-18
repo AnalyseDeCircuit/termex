@@ -3,6 +3,7 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 
 import '../../../design/tokens.dart';
 import '../../../l10n/app_localizations.dart';
+import '../../../widgets/clickable.dart';
 import '../state/conversation_provider.dart';
 import '../state/provider_config_provider.dart';
 
@@ -133,7 +134,7 @@ class _Header extends StatelessWidget {
             ),
           ),
           const Spacer(),
-          GestureDetector(
+          Clickable(
             onTap: onNew,
             child: const Icon(Icons.add, size: 16, color: TermexColors.textSecondary),
           ),
@@ -160,10 +161,10 @@ class _ConversationRow extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    return GestureDetector(
+    return Clickable(
       onTap: onSelect,
       onLongPress: onRename,
-      onSecondaryTap: onRename,
+      onSecondaryTap: (_) => onRename(),
       child: Container(
         height: 40,
         padding: const EdgeInsets.symmetric(horizontal: 10),
@@ -199,7 +200,7 @@ class _ConversationRow extends StatelessWidget {
                 ),
               ),
             ),
-            GestureDetector(
+            Clickable(
               onTap: onDelete,
               child: const Opacity(
                 opacity: 0.5,

@@ -9,6 +9,7 @@ import 'package:flutter/material.dart';
 
 import '../../../../design/colors.dart';
 import '../../../../design/typography.dart';
+import '../../../widgets/clickable.dart';
 import 'tmux_controller.dart';
 
 export 'tmux_controller.dart';
@@ -99,10 +100,9 @@ class _WindowTab extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    return GestureDetector(
+    return Clickable(
       onTap: onTap,
-      onSecondaryTapUp: (details) =>
-          _showContextMenu(context, details.globalPosition),
+      onSecondaryTap: (position) => _showContextMenu(context, position),
       child: Container(
         padding: const EdgeInsets.symmetric(horizontal: 12),
         decoration: BoxDecoration(
@@ -226,7 +226,7 @@ class _IconBtn extends StatelessWidget {
   Widget build(BuildContext context) {
     return Tooltip(
       message: tooltip,
-      child: GestureDetector(
+      child: Clickable(
         onTap: onTap,
         child: const SizedBox(
           width: 28,

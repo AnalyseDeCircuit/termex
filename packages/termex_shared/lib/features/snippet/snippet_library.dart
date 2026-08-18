@@ -1,8 +1,11 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 
+import '../sidebar_search.dart';
+
 import '../../design/tokens.dart';
 import '../../l10n/app_localizations.dart';
+import '../../widgets/clickable.dart';
 import 'snippet_editor.dart';
 import 'snippet_row.dart';
 import 'state/snippet_provider.dart';
@@ -51,6 +54,18 @@ class _SnippetLibraryState extends ConsumerState<SnippetLibrary> {
       return SnippetEditor(existing: editingId == '__new__' ? null : existing);
     }
 
+    ref.listen<bool>(
+      sidebarSearchVisibleProvider(SidebarSearchPanel.snippets),
+      (_, visible) {
+        // Dropping the field has to drop the filter with it, or entries stay
+        // missing with nothing on screen explaining why.
+        if (!visible) {
+          _searchCtrl.clear();
+          ref.read(snippetProvider.notifier).setSearch('');
+        }
+      },
+    );
+
     return Column(
       children: [
         // v0.79.59: toolbar slimmed down. The inline "+ 新建" elevated
@@ -60,37 +75,43 @@ class _SnippetLibraryState extends ConsumerState<SnippetLibrary> {
         // and forced the search field into a 32pt min-height column.
         // Removing it lets the search field collapse to its natural
         // ~32pt and reclaims the right-side real estate.
-        Container(
-          padding: const EdgeInsets.fromLTRB(12, 6, 12, 6),
-          decoration: const BoxDecoration(
-            border: Border(bottom: BorderSide(color: TermexColors.border)),
-          ),
-          child: SizedBox(
-            height: 32,
-            child: TextField(
-              controller: _searchCtrl,
-              onChanged: ref.read(snippetProvider.notifier).setSearch,
-              decoration: InputDecoration(
-                hintText: l10n.snippetSearchPlaceholder,
-                hintStyle: const TextStyle(fontSize: 12, color: TermexColors.textSecondary),
-                prefixIcon: const Icon(Icons.search, size: 14, color: TermexColors.textSecondary),
-                prefixIconConstraints:
-                    const BoxConstraints(minWidth: 30, minHeight: 30),
-                border: OutlineInputBorder(
-                  borderRadius: BorderRadius.circular(6),
-                  borderSide: const BorderSide(color: TermexColors.border),
+        // Behind the section-header search toggle — the field used to sit
+        // here permanently, which made a short snippet list look busier
+        // than it is. Hiding it also clears the query below.
+        if (ref.watch(
+            sidebarSearchVisibleProvider(SidebarSearchPanel.snippets)))
+          Container(
+            padding: const EdgeInsets.fromLTRB(12, 6, 12, 6),
+            decoration: const BoxDecoration(
+              border: Border(bottom: BorderSide(color: TermexColors.border)),
+            ),
+            child: SizedBox(
+              height: 32,
+              child: TextField(
+                controller: _searchCtrl,
+                autofocus: true,
+                onChanged: ref.read(snippetProvider.notifier).setSearch,
+                decoration: InputDecoration(
+                  hintText: l10n.snippetSearchPlaceholder,
+                  hintStyle: const TextStyle(fontSize: 12, color: TermexColors.textSecondary),
+                  prefixIcon: const Icon(Icons.search, size: 14, color: TermexColors.textSecondary),
+                  prefixIconConstraints:
+                      const BoxConstraints(minWidth: 30, minHeight: 30),
+                  border: OutlineInputBorder(
+                    borderRadius: BorderRadius.circular(6),
+                    borderSide: const BorderSide(color: TermexColors.border),
+                  ),
+                  enabledBorder: OutlineInputBorder(
+                    borderRadius: BorderRadius.circular(6),
+                    borderSide: const BorderSide(color: TermexColors.border),
+                  ),
+                  contentPadding: EdgeInsets.zero,
+                  isDense: true,
                 ),
-                enabledBorder: OutlineInputBorder(
-                  borderRadius: BorderRadius.circular(6),
-                  borderSide: const BorderSide(color: TermexColors.border),
-                ),
-                contentPadding: EdgeInsets.zero,
-                isDense: true,
+                style: const TextStyle(fontSize: 12, color: TermexColors.textPrimary),
               ),
-              style: const TextStyle(fontSize: 12, color: TermexColors.textPrimary),
             ),
           ),
-        ),
         // v0.79.59: tightened tag-filter row. The previous 36pt SizedBox
         // with vertical:6 padding rendered a visually-tall band with a
         // disproportionate gap before the first row (~140pt total). The
@@ -171,7 +192,7 @@ class _TagFilter extends ConsumerWidget {
 
   @override
   Widget build(BuildContext context, WidgetRef ref) {
-    return GestureDetector(
+    return Clickable(
       onTap: () => ref.read(snippetProvider.notifier).setTag(tag),
       child: Container(
         margin: const EdgeInsets.only(right: 6),

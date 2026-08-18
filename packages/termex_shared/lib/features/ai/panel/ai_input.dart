@@ -3,6 +3,7 @@ import 'package:flutter/services.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 
 import '../../../design/tokens.dart';
+import '../../../widgets/clickable.dart';
 import '../state/ai_stream_provider.dart';
 import '../state/conversation_provider.dart' show AiProvider;
 import '../state/provider_config_provider.dart';
@@ -153,7 +154,7 @@ class _SendButton extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    return GestureDetector(
+    return Clickable(
       onTap: enabled ? onTap : null,
       child: Container(
         width: 36,
@@ -178,7 +179,7 @@ class _CancelButton extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    return GestureDetector(
+    return Clickable(
       onTap: onTap,
       child: Container(
         width: 36,
@@ -224,7 +225,7 @@ class _RateLimitBanner extends StatelessWidget {
               style: const TextStyle(fontSize: 12, color: TermexColors.warning),
             ),
           ),
-          GestureDetector(
+          Clickable(
             onTap: onRetry,
             child: const Text(
               '重试',

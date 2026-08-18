@@ -20,6 +20,7 @@ import '../../design/colors.dart';
 import '../../design/spacing.dart';
 import '../../design/typography.dart';
 import '../../l10n/app_localizations.dart';
+import '../../widgets/clickable.dart';
 import '../../widgets/slider.dart';
 import '../../widgets/toggle.dart';
 import 'notification_settings_provider.dart';
@@ -148,7 +149,7 @@ class _NotificationThresholdsSection extends ConsumerWidget {
           const SizedBox(height: TermexSpacing.sm),
           Align(
             alignment: Alignment.centerRight,
-            child: GestureDetector(
+            child: Clickable(
               behavior: HitTestBehavior.opaque,
               onTap: () {
                 notifier.resetToDefaults();

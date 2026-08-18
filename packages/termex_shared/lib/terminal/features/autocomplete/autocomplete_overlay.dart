@@ -9,6 +9,7 @@ import 'package:flutter/material.dart';
 
 import '../../../../design/colors.dart';
 import '../../../../design/typography.dart';
+import '../../../widgets/clickable.dart';
 import 'autocomplete_engine.dart';
 
 export 'autocomplete_engine.dart';
@@ -127,7 +128,7 @@ class _SuggestionRow extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    return GestureDetector(
+    return Clickable(
       onTap: onTap,
       child: Container(
         height: 28,

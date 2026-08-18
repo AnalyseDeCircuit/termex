@@ -19,6 +19,7 @@ import 'package:termex_shared/features/server_list/models/server_dto.dart';
 import 'package:termex_shared/features/sftp/state/sftp_session_provider.dart';
 import 'package:termex_shared/features/sftp/widgets/remote_pane.dart';
 import 'package:termex_shared/icons/termex_icons.dart';
+import 'package:termex_shared/widgets/clickable.dart';
 
 import 'background_service.dart';
 import 'battery_nag.dart';
@@ -169,7 +170,7 @@ class _HeaderBar extends StatelessWidget {
       ),
       child: Row(
         children: [
-          GestureDetector(
+          Clickable(
             behavior: HitTestBehavior.opaque,
             onTap: onClose,
             child: Container(

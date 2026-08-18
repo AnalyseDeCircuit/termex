@@ -27,6 +27,7 @@ import '../../design/spacing.dart';
 import '../../design/typography.dart';
 import '../../icons/termex_icons.dart';
 import '../../widgets/button.dart';
+import '../../widgets/clickable.dart';
 import '../../widgets/dialog.dart';
 import '../../widgets/text_field.dart';
 import '../../widgets/toast.dart';
@@ -367,7 +368,7 @@ class _MemberRowState extends State<_MemberRow> {
             ),
             const SizedBox(width: TermexSpacing.sm),
             if (m.role != bridge.TeamRole.owner)
-              GestureDetector(
+              Clickable(
                 onTap: widget.onRemove,
                 child: const TermexIconWidget(
                   TermexIcons.delete,
@@ -408,7 +409,7 @@ class _RolePicker extends StatelessWidget {
           bridge.TeamRole.member,
           bridge.TeamRole.viewer,
         ])
-          GestureDetector(
+          Clickable(
             onTap: () => r == role ? null : onChanged(r),
             child: Container(
               padding: const EdgeInsets.symmetric(horizontal: 6, vertical: 2),
@@ -569,7 +570,7 @@ class _ValueCell extends StatelessWidget {
               ),
             ),
             const SizedBox(height: TermexSpacing.xs),
-            GestureDetector(
+            Clickable(
               onTap: onUse,
               child: Text(
                 l10n.teamUseThisValue,
@@ -649,7 +650,7 @@ Future<void> _showInviteDialog(BuildContext context) async {
                     bridge.TeamRole.member,
                     bridge.TeamRole.viewer,
                   ])
-                    GestureDetector(
+                    Clickable(
                       onTap: () => setSt(() => role = r),
                       child: Container(
                         padding: const EdgeInsets.symmetric(
@@ -753,7 +754,7 @@ class _InviteCodeBox extends StatelessWidget {
                   ),
                 ),
               ),
-              GestureDetector(
+              Clickable(
                 onTap: () async {
                   await Clipboard.setData(
                       ClipboardData(text: invite.code));

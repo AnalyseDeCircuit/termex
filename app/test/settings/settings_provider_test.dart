@@ -30,12 +30,18 @@ void main() {
       expect(state.isDirty, isFalse);
     });
 
-    test('update marks dirty', () {
+    // Settings auto-save as of v0.79.x: `update` applies the change and
+    // schedules the write immediately, so it never leaves the state dirty.
+    // The old behaviour (dirty until an explicit Save) drove a Save/Cancel
+    // bar that appeared at the top of the panel on every toggle.
+    test('update applies the change without leaving state dirty', () {
       final container = ProviderContainer();
       addTearDown(container.dispose);
       const updated = AppSettings(fontSize: 18);
       container.read(settingsProvider.notifier).update(updated);
-      expect(container.read(settingsProvider).isDirty, isTrue);
+      final state = container.read(settingsProvider);
+      expect(state.settings.fontSize, 18);
+      expect(state.isDirty, isFalse);
     });
 
     test('resetToDefaults clears dirty', () {

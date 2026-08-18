@@ -3,6 +3,7 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 
 import '../../../../design/tokens.dart';
 import '../../../l10n/app_localizations.dart';
+import '../../../widgets/clickable.dart';
 import '../state/settings_provider.dart';
 
 class AppearanceTab extends ConsumerWidget {
@@ -47,7 +48,7 @@ class AppearanceTab extends ConsumerWidget {
             runSpacing: 8,
             children: _colorSchemes.map((scheme) {
               final isSelected = settings.colorScheme == scheme;
-              return GestureDetector(
+              return Clickable(
                 onTap: () => notifier.update(settings.copyWith(colorScheme: scheme)),
                 child: Container(
                   padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 5),
@@ -182,7 +183,7 @@ class _RadioRow<T> extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    return GestureDetector(
+    return Clickable(
       onTap: () => onChanged(value),
       child: Padding(
         padding: const EdgeInsets.symmetric(vertical: 3),

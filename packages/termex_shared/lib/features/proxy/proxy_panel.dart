@@ -2,7 +2,11 @@ import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 
+import '../server_list/widgets/server_search_bar.dart';
+import '../sidebar_search.dart';
+
 import '../../design/tokens.dart';
+import '../../widgets/clickable.dart';
 import 'state/proxy_provider.dart';
 
 /// Proxy configuration panel — list proxies, add/delete, set default, test.
@@ -22,9 +26,33 @@ class _ProxyPanelState extends ConsumerState<ProxyPanel> {
     });
   }
 
+  /// Filter text. Local to the panel — proxies had no search at all before,
+  /// so there is no provider-side query to reuse.
+  String _query = '';
+
   @override
   Widget build(BuildContext context) {
     final state = ref.watch(proxyProvider);
+
+    ref.listen<bool>(
+      sidebarSearchVisibleProvider(SidebarSearchPanel.proxies),
+      (_, visible) {
+        // Hiding the field drops the filter too, so rows never stay missing
+        // without a visible reason.
+        if (!visible && _query.isNotEmpty) setState(() => _query = '');
+      },
+    );
+
+    final q = _query.trim().toLowerCase();
+    final visible = q.isEmpty
+        ? state.proxies
+        : state.proxies
+            .where((p) =>
+                p.host.toLowerCase().contains(q) ||
+                p.address.toLowerCase().contains(q) ||
+                (p.username ?? '').toLowerCase().contains(q) ||
+                p.proxyType.name.toLowerCase().contains(q))
+            .toList(growable: false);
 
     return Container(
       color: TermexColors.backgroundPrimary,
@@ -37,14 +65,23 @@ class _ProxyPanelState extends ConsumerState<ProxyPanel> {
           // duplicated the title and pushed the proxy list down ~50px.
           // Callers that need to open the add dialog imperatively can
           // call [AddProxyDialog.show].
+          if (ref.watch(
+              sidebarSearchVisibleProvider(SidebarSearchPanel.proxies)))
+            Padding(
+              padding: const EdgeInsets.fromLTRB(12, 8, 12, 4),
+              child: ServerSearchBar(
+                autofocus: true,
+                onChanged: (v) => setState(() => _query = v),
+              ),
+            ),
           if (state.error != null) _ErrorBanner(message: state.error!),
           Expanded(
             child: state.isLoading
                 ? const Center(child: CircularProgressIndicator(strokeWidth: 2))
-                : state.proxies.isEmpty
+                : visible.isEmpty
                     ? _EmptyState()
                     : _ProxyList(
-                        proxies: state.proxies, testingId: state.testingId),
+                        proxies: visible, testingId: state.testingId),
           ),
         ],
       ),
@@ -368,7 +405,7 @@ class _AddProxyDialogState extends ConsumerState<_AddProxyDialog> {
                 style: const TextStyle(
                     color: TermexColors.textPrimary, fontSize: 13),
                 decoration: _inputDeco('').copyWith(
-                  suffixIcon: GestureDetector(
+                  suffixIcon: Clickable(
                     onTap: () =>
                         setState(() => _showPassword = !_showPassword),
                     child: Padding(
@@ -454,7 +491,7 @@ class _ProtocolChip extends StatelessWidget {
   });
 
   @override
-  Widget build(BuildContext context) => GestureDetector(
+  Widget build(BuildContext context) => Clickable(
         onTap: onTap,
         child: Container(
           padding:

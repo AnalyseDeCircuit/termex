@@ -9,6 +9,7 @@ import 'package:flutter/widgets.dart';
 import '../../../design/colors.dart';
 import '../../../design/spacing.dart';
 import '../../../design/typography.dart';
+import '../../../widgets/clickable.dart';
 
 class TakenOverBanner extends StatelessWidget {
   final String newOwnerName;
@@ -61,7 +62,7 @@ class TakenOverBanner extends StatelessWidget {
           ),
           if (onTakeBack != null) ...[
             const SizedBox(width: TermexSpacing.sm),
-            GestureDetector(
+            Clickable(
               onTap: onTakeBack,
               child: Text(
                 'Take back',

@@ -2,6 +2,7 @@ import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 
 import '../../../design/tokens.dart';
+import '../../../widgets/clickable.dart';
 import '../state/ai_stream_provider.dart';
 import 'error_detector.dart';
 
@@ -133,7 +134,7 @@ class _ErrorCard extends StatelessWidget {
             ),
           ),
           const SizedBox(width: 8),
-          GestureDetector(
+          Clickable(
             onTap: onDiagnose,
             child: Container(
               padding:

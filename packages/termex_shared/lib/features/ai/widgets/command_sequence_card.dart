@@ -8,6 +8,7 @@ import '../../../design/colors.dart';
 import '../../../design/radius.dart';
 import '../../../design/spacing.dart';
 import '../../../design/typography.dart';
+import '../../../widgets/clickable.dart';
 import '../features/playbook.dart';
 
 /// Callback fired when the user requests to run a single step.
@@ -74,7 +75,7 @@ class _Header extends StatelessWidget {
             ),
           ),
         ),
-        GestureDetector(
+        Clickable(
           onTap: onRunAll,
           child: Container(
             padding: const EdgeInsets.symmetric(
@@ -172,7 +173,7 @@ class _StepRow extends StatelessWidget {
             ),
           ),
           const SizedBox(width: 6),
-          GestureDetector(
+          Clickable(
             onTap: canRun && step.status != PlaybookStepStatus.running
                 ? onRun
                 : null,

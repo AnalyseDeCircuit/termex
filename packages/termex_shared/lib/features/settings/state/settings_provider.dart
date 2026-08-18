@@ -1,3 +1,5 @@
+import 'dart:async';
+
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:termex_bridge/src/api.dart' as bridge;
 import 'package:termex_bridge/src/models.dart' as bridge_models;
@@ -211,9 +213,35 @@ class SettingsNotifier extends Notifier<SettingsState> {
     }
   }
 
+  /// Applies a settings change and persists it immediately.
+  ///
+  /// Settings are auto-saved: there is no explicit Save/Cancel step. The
+  /// previous flow flipped `isDirty`, which made a Save/Cancel bar appear
+  /// at the top of the settings panel on every keystroke or toggle —
+  /// intrusive for a surface where each control is independent and
+  /// instantly reversible. State updates optimistically so the UI reacts
+  /// without waiting on the round-trip; a persistence failure surfaces
+  /// through `errorMessage` rather than blocking the change.
   void update(AppSettings settings) {
-    state = state.copyWith(settings: settings, isDirty: true);
+    state = state.copyWith(settings: settings, isDirty: false);
     _pushThemeToLive(settings.themeMode);
+    _persist(settings);
+  }
+
+  /// Debounced write-behind for [update]. Rapid changes (dragging the
+  /// font-size slider, typing in a text field) coalesce into one bridge
+  /// call instead of hammering the DB on every frame.
+  Timer? _persistTimer;
+
+  void _persist(AppSettings settings) {
+    _persistTimer?.cancel();
+    _persistTimer = Timer(const Duration(milliseconds: 300), () async {
+      try {
+        await bridge.settingsSave(settings: _toBridge(settings));
+      } catch (e) {
+        state = state.copyWith(errorMessage: e.toString());
+      }
+    });
   }
 
   /// Mirrors the user's settings-page selection into the live theme

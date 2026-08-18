@@ -3,6 +3,7 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 
 import '../../../design/tokens.dart';
 import '../../../l10n/app_localizations.dart';
+import '../../../widgets/clickable.dart';
 import 'nl2cmd_engine.dart';
 
 /// Floating overlay for natural-language → shell command conversion.
@@ -113,7 +114,7 @@ class _Nl2CmdOverlayState extends ConsumerState<Nl2CmdOverlay> {
                   ),
                 ),
                 const Spacer(),
-                GestureDetector(
+                Clickable(
                   onTap: widget.onClose,
                   child: const Icon(Icons.close, size: 14, color: TermexColors.textSecondary),
                 ),
@@ -232,7 +233,7 @@ class _ResultRow extends StatelessWidget {
             ),
           ),
           if (onAccept != null)
-            GestureDetector(
+            Clickable(
               onTap: onAccept,
               child: const Icon(Icons.send_rounded,
                   size: 14, color: TermexColors.primary),

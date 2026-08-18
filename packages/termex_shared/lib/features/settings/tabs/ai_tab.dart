@@ -15,6 +15,7 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 import '../../../design/tokens.dart';
 import '../../../icons/termex_icons.dart';
 import '../../../l10n/app_localizations.dart';
+import '../../../widgets/clickable.dart';
 import '../../ai/provider/provider_inline_form.dart';
 import '../../ai/provider/provider_registry.dart';
 import '../../ai/state/ai_pricing.dart';
@@ -584,7 +585,7 @@ class _MiniBtn extends StatelessWidget {
   });
 
   @override
-  Widget build(BuildContext context) => GestureDetector(
+  Widget build(BuildContext context) => Clickable(
         onTap: onTap,
         child: Container(
           padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 5),
@@ -625,7 +626,7 @@ class _IconBtn extends StatelessWidget {
   @override
   Widget build(BuildContext context) => Tooltip(
         message: tooltip,
-        child: GestureDetector(
+        child: Clickable(
           onTap: onTap,
           child: Container(
             padding:

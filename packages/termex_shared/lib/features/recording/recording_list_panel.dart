@@ -11,6 +11,9 @@ library;
 
 import 'package:flutter/widgets.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
+
+import '../server_list/widgets/server_search_bar.dart';
+import '../sidebar_search.dart';
 import 'package:termex_bridge/src/api.dart' as bridge;
 
 import '../../design/colors.dart';
@@ -18,6 +21,7 @@ import '../../design/spacing.dart';
 import '../../design/typography.dart';
 import '../../icons/termex_icons.dart';
 import '../../l10n/app_localizations.dart';
+import '../../widgets/clickable.dart';
 import '../../widgets/toast.dart';
 
 class RecordingListPanel extends ConsumerStatefulWidget {
@@ -58,11 +62,32 @@ class _RecordingListPanelState extends ConsumerState<RecordingListPanel> {
     }
   }
 
+  /// Filter text. Local to the panel — recordings had no search before.
+  String _query = '';
+
   @override
   Widget build(BuildContext context) {
+    ref.listen<bool>(
+      sidebarSearchVisibleProvider(SidebarSearchPanel.recordings),
+      (_, visible) {
+        // Hiding the field drops the filter too, so rows never stay missing
+        // without a visible reason.
+        if (!visible && _query.isNotEmpty) setState(() => _query = '');
+      },
+    );
+
     return Column(
       children: [
         _Header(onRefresh: _reload),
+        if (ref.watch(
+            sidebarSearchVisibleProvider(SidebarSearchPanel.recordings)))
+          Padding(
+            padding: const EdgeInsets.fromLTRB(12, 8, 12, 4),
+            child: ServerSearchBar(
+              autofocus: true,
+              onChanged: (v) => setState(() => _query = v),
+            ),
+          ),
         Expanded(
           child: FutureBuilder<List<bridge.RecordingDto>>(
             future: _future,
@@ -91,7 +116,15 @@ class _RecordingListPanelState extends ConsumerState<RecordingListPanel> {
                   ),
                 );
               }
-              final recs = snap.data ?? const <bridge.RecordingDto>[];
+              final all = snap.data ?? const <bridge.RecordingDto>[];
+              final q = _query.trim().toLowerCase();
+              final recs = q.isEmpty
+                  ? all
+                  : all
+                      .where((r) =>
+                          r.serverName.toLowerCase().contains(q) ||
+                          r.startedAt.toLowerCase().contains(q))
+                      .toList(growable: false);
               if (recs.isEmpty) {
                 return _EmptyState();
               }
@@ -160,7 +193,7 @@ class _Header extends StatelessWidget {
               ),
             ),
             const Spacer(),
-            GestureDetector(
+            Clickable(
               onTap: onRefresh,
               child: const TermexIconWidget(
                 TermexIcons.refresh,
@@ -294,7 +327,7 @@ class _RowState extends State<_Row> {
     return MouseRegion(
       onEnter: (_) => setState(() => _hovered = true),
       onExit: (_) => setState(() => _hovered = false),
-      child: GestureDetector(
+      child: Clickable(
         onDoubleTap: () => widget.onOpen?.call(r.id, r.filePath),
         child: Container(
           padding: const EdgeInsets.symmetric(
@@ -368,7 +401,7 @@ class _IconBtn extends StatelessWidget {
   });
 
   @override
-  Widget build(BuildContext context) => GestureDetector(
+  Widget build(BuildContext context) => Clickable(
         onTap: onTap,
         child: SizedBox(
           width: 20,

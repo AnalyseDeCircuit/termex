@@ -16,6 +16,7 @@ import 'package:termex_shared/design/spacing.dart';
 import 'package:termex_shared/design/typography.dart';
 import 'package:termex_shared/icons/termex_icons.dart';
 import 'package:termex_shared/l10n/app_localizations.dart';
+import 'package:termex_shared/widgets/clickable.dart';
 
 import 'task_event_bus.dart';
 
@@ -81,7 +82,7 @@ class _Header extends StatelessWidget {
       ),
       child: Row(
         children: [
-          GestureDetector(
+          Clickable(
             behavior: HitTestBehavior.opaque,
             onTap: () => Navigator.of(context).maybePop(),
             child: const SizedBox(

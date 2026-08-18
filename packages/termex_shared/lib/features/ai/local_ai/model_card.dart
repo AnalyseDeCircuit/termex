@@ -3,6 +3,7 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 
 import '../../../../design/tokens.dart';
 import '../../../l10n/app_localizations.dart';
+import '../../../widgets/clickable.dart';
 import '../state/local_ai_provider.dart';
 import 'download_progress.dart';
 
@@ -182,7 +183,7 @@ class _Action extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     final color = danger ? TermexColors.danger : TermexColors.primary;
-    return GestureDetector(
+    return Clickable(
       onTap: onTap,
       child: Row(
         mainAxisSize: MainAxisSize.min,

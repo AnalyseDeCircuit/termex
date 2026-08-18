@@ -7,6 +7,7 @@ import 'package:flutter/services.dart';
 import '../../../design/colors.dart';
 import '../../../design/typography.dart';
 import '../../../l10n/app_localizations.dart';
+import '../../../widgets/clickable.dart';
 import '../widgets/file_row.dart';
 
 /// Shows the file properties dialog. Returns when the user closes it.
@@ -144,7 +145,7 @@ class _InfoRow extends StatelessWidget {
             ),
           ),
           if (copyable)
-            GestureDetector(
+            Clickable(
               onTap: () => Clipboard.setData(ClipboardData(text: value)),
               child: const Icon(Icons.copy_outlined,
                   size: 13, color: TermexColors.textMuted),

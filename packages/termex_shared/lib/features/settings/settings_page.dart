@@ -6,8 +6,8 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 
 import '../../design/tokens.dart';
 import '../../l10n/app_localizations.dart';
+import '../../widgets/clickable.dart';
 import '../notifications/notifications_tab.dart';
-import 'state/settings_provider.dart';
 import 'tabs/about_tab.dart';
 import 'tabs/ai_tab.dart';
 import 'tabs/appearance_tab.dart';
@@ -186,20 +186,19 @@ class _SettingsPageState extends ConsumerState<SettingsPage> {
   @override
   Widget build(BuildContext context) {
     final l10n = AppLocalizations.of(context);
-    final isDirty = ref.watch(settingsProvider).isDirty;
     final matches = filteredIndex(l10n);
 
     return Scaffold(
       backgroundColor: TermexColors.backgroundPrimary,
       body: Column(
         children: [
-          _TitleBar(
-            isDirty: isDirty,
-            hideLabel: widget.embedded,
-            onSave: () => ref.read(settingsProvider.notifier).save(),
-            onReset: () =>
-                ref.read(settingsProvider.notifier).resetToDefaults(),
-          ),
+          // Settings auto-save (see SettingsNotifier.update), so the title
+          // bar carries no Save/Cancel pair. It used to appear the moment
+          // any control changed, shifting the whole panel down and implying
+          // the change was pending when it had in fact already applied.
+          // In embedded mode the host dialog paints its own header, so the
+          // bar collapses to nothing there.
+          if (!widget.embedded) const _TitleBar(),
           _SearchBar(
             controller: _searchCtrl,
             onChanged: (q) => setState(() => _searchQuery = q),
@@ -303,29 +302,15 @@ class _SettingsPageState extends ConsumerState<SettingsPage> {
   }
 }
 
+/// Standalone-route header. Settings auto-save, so this is a plain title
+/// strip with no Save/Cancel actions. The embedded (dialog) presentation
+/// skips it entirely — the host dialog paints its own header.
 class _TitleBar extends StatelessWidget {
-  final bool isDirty;
-  final bool hideLabel;
-  final VoidCallback onSave;
-  final VoidCallback onReset;
-
-  const _TitleBar({
-    required this.isDirty,
-    required this.onSave,
-    required this.onReset,
-    this.hideLabel = false,
-  });
+  const _TitleBar();
 
   @override
   Widget build(BuildContext context) {
     final l10n = AppLocalizations.of(context);
-    // Embedded mode (e.g. desktop modal) hides the label because the host
-    // dialog already paints "设置" in its own header — without this, users
-    // saw a duplicate "设置" stacked vertically in the modal. Action
-    // buttons stay visible so dirty changes can still be saved.
-    if (hideLabel && !isDirty) {
-      return const SizedBox.shrink();
-    }
     return Container(
       height: 44,
       padding: const EdgeInsets.symmetric(horizontal: 16),
@@ -335,35 +320,14 @@ class _TitleBar extends StatelessWidget {
       ),
       child: Row(
         children: [
-          if (!hideLabel)
-            Text(
-              l10n.settingsTitle,
-              style: const TextStyle(
-                fontSize: 15,
-                fontWeight: FontWeight.w600,
-                color: TermexColors.textPrimary,
-              ),
+          Text(
+            l10n.settingsTitle,
+            style: const TextStyle(
+              fontSize: 15,
+              fontWeight: FontWeight.w600,
+              color: TermexColors.textPrimary,
             ),
-          const Spacer(),
-          if (isDirty) ...[
-            TextButton(
-              onPressed: onReset,
-              child: Text(l10n.commonCancel,
-                  style: const TextStyle(
-                      fontSize: 12, color: TermexColors.textSecondary)),
-            ),
-            const SizedBox(width: 8),
-            ElevatedButton(
-              onPressed: onSave,
-              style: ElevatedButton.styleFrom(
-                backgroundColor: TermexColors.primary,
-                foregroundColor: Colors.white,
-                minimumSize: const Size(64, 30),
-                textStyle: const TextStyle(fontSize: 12),
-              ),
-              child: Text(l10n.commonSave),
-            ),
-          ],
+          ),
         ],
       ),
     );
@@ -476,7 +440,7 @@ class _SidebarItem extends StatelessWidget {
     final horizontalPad = isMobile ? 6.0 : 12.0;
     final iconSize = isMobile ? 13.0 : 14.0;
     final iconGap = isMobile ? 4.0 : 8.0;
-    return GestureDetector(
+    return Clickable(
       onTap: onTap,
       child: Container(
         height: 36,
@@ -557,7 +521,7 @@ class _ExtraSidebarItem extends StatelessWidget {
     final horizontalPad = isMobile ? 6.0 : 12.0;
     final iconSize = isMobile ? 13.0 : 14.0;
     final iconGap = isMobile ? 4.0 : 8.0;
-    return GestureDetector(
+    return Clickable(
       onTap: onTap,
       child: Container(
         height: 36,

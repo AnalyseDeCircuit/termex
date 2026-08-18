@@ -6,6 +6,7 @@ import '../../../design/colors.dart';
 import '../../../design/spacing.dart';
 import '../../../design/typography.dart';
 import '../../../l10n/app_localizations.dart';
+import '../../../widgets/clickable.dart';
 import '../state/settings_provider.dart';
 
 /// Terminal session recording configuration tab.
@@ -198,7 +199,7 @@ class _FormatCard extends StatelessWidget {
         ? TermexColors.primary.withValues(alpha: 0.08)
         : TermexColors.backgroundTertiary;
 
-    return GestureDetector(
+    return Clickable(
       onTap: onTap,
       child: Container(
         padding: const EdgeInsets.all(TermexSpacing.md),
@@ -255,7 +256,7 @@ class _CleanupButton extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    return GestureDetector(
+    return Clickable(
       onTap: loading ? null : onTap,
       child: Container(
         padding: const EdgeInsets.symmetric(vertical: 10),

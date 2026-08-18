@@ -11,6 +11,7 @@ import 'package:flutter/widgets.dart';
 import '../../../design/colors.dart';
 import '../../../design/spacing.dart';
 import '../../../design/typography.dart';
+import '../../../widgets/clickable.dart';
 import '../model/cost_view_model.dart';
 
 class CostDashboard extends StatelessWidget {
@@ -209,7 +210,7 @@ class _TaskRow extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    return GestureDetector(
+    return Clickable(
       onTap: onTap == null ? null : () => onTap!(row.taskId),
       child: Container(
         padding: const EdgeInsets.symmetric(

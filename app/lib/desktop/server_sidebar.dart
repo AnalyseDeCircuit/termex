@@ -12,6 +12,7 @@ import 'package:termex_shared/design/spacing.dart';
 import 'package:termex_shared/design/typography.dart';
 import 'package:termex_shared/icons/termex_icons.dart';
 import 'package:termex_shared/widgets/button.dart';
+import 'package:termex_shared/widgets/clickable.dart';
 import 'package:termex_shared/widgets/text_field.dart';
 import 'package:termex_shared/features/server_list/models/server_dto.dart';
 import 'package:termex_shared/features/server_list/state/server_provider.dart';
@@ -208,7 +209,7 @@ class _ServerTileState extends State<_ServerTile> {
     return MouseRegion(
       onEnter: (_) => setState(() => _hovered = true),
       onExit: (_) => setState(() => _hovered = false),
-      child: GestureDetector(
+      child: Clickable(
         onTap: widget.onConnect,
         child: Container(
           height: 48,
@@ -285,7 +286,7 @@ class _TileIconButton extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    return GestureDetector(
+    return Clickable(
       onTap: onTap,
       child: Tooltip(
         message: tooltip,

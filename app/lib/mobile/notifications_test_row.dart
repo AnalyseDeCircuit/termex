@@ -18,6 +18,7 @@ import 'package:termex_shared/design/colors.dart';
 import 'package:termex_shared/design/spacing.dart';
 import 'package:termex_shared/design/typography.dart';
 import 'package:termex_shared/l10n/app_localizations.dart';
+import 'package:termex_shared/widgets/clickable.dart';
 
 import 'task_event_bus.dart';
 import 'task_notifier.dart';
@@ -120,7 +121,7 @@ class _NotificationsTestRowState extends State<NotificationsTestRow> {
                   ),
                 ),
               ),
-              GestureDetector(
+              Clickable(
                 behavior: HitTestBehavior.opaque,
                 onTap: _firing ? null : _onTest,
                 child: Padding(
@@ -144,7 +145,7 @@ class _NotificationsTestRowState extends State<NotificationsTestRow> {
           const SizedBox(height: TermexSpacing.xs),
           Align(
             alignment: Alignment.centerRight,
-            child: GestureDetector(
+            child: Clickable(
               behavior: HitTestBehavior.opaque,
               onTap: _firing ? null : _onDemoTaskEvent,
               child: Padding(
