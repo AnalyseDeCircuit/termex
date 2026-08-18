@@ -177,8 +177,64 @@ pub async fn open_ssh_session(
 
     session_registry::insert(session_id.clone(), cmd_tx, session);
     mark_last_connected(&server_id);
+    maybe_auto_record(&session_id, &server_id, cols, rows).await;
 
     Ok(session_id)
+}
+
+/// Starts a recording immediately when the server is flagged for it.
+///
+/// Per-server rather than a global preference, matching the Tauri build
+/// (src-tauri/src/commands/ssh.rs): `servers.auto_record` arms it and
+/// `servers.max_recording_mb` caps the file. Best-effort — a server that
+/// connects but cannot be recorded is still a usable session, so failures
+/// here never fail the connect.
+async fn maybe_auto_record(session_id: &str, server_id: &str, cols: u32, rows: u32) {
+    if !crate::db_state::is_unlocked() {
+        return;
+    }
+
+    let info: Option<(bool, u32, String)> = crate::db_state::with_db(|db| {
+        db.with_conn(|conn| {
+            conn.query_row(
+                "SELECT COALESCE(auto_record, 0),
+                        COALESCE(max_recording_mb, 50),
+                        COALESCE(name, '')
+                   FROM servers WHERE id = ?1",
+                rusqlite::params![server_id],
+                |r| {
+                    Ok((
+                        r.get::<_, i32>(0)? != 0,
+                        r.get::<_, u32>(1)?,
+                        r.get::<_, String>(2)?,
+                    ))
+                },
+            )
+        })
+        .map_err(|e| e.to_string())
+    })
+    .ok();
+
+    let Some((true, max_mb, name)) = info else {
+        return;
+    };
+    let server_name = if name.is_empty() {
+        server_id.to_string()
+    } else {
+        name
+    };
+
+    let _ = crate::api::recording::recording_start(
+        session_id.to_string(),
+        server_id.to_string(),
+        server_name.clone(),
+        cols,
+        rows,
+        Some(format!("Auto: {server_name}")),
+        max_mb,
+        true,
+    )
+    .await;
 }
 
 /// Drains pending events for a session. Called by the Dart polling task.

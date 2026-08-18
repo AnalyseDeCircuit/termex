@@ -93,6 +93,8 @@ class _ServerFormDialogState extends ConsumerState<ServerFormDialog> {
   ({bool ok, String message})? _testResult;
 
   _FormTab _tab = _FormTab.auth;
+
+
   String? _bastionId;
   String? _proxyId;
 
@@ -102,6 +104,10 @@ class _ServerFormDialogState extends ConsumerState<ServerFormDialog> {
   String _tmuxMode = 'disabled';
   String _tmuxCloseAction = 'detach';
   bool _gitSyncEnabled = false;
+  // Auto-record lives on its own bridge accessors rather than ServerDto —
+  // no list view surfaces it, so it is loaded and saved separately.
+  bool _autoRecord = false;
+  final _maxRecordingMbCtrl = TextEditingController(text: '50');
   String _gitSyncMode = 'notify';
   bool _shared = false;
   bool _initialShared = false;
@@ -120,6 +126,7 @@ class _ServerFormDialogState extends ConsumerState<ServerFormDialog> {
 
   @override
   void dispose() {
+    _maxRecordingMbCtrl.dispose();
     _nameCtrl.dispose();
     _hostCtrl.dispose();
     _portCtrl.dispose();
@@ -151,6 +158,7 @@ class _ServerFormDialogState extends ConsumerState<ServerFormDialog> {
         _tmuxMode = server.tmuxMode;
         _tmuxCloseAction = server.tmuxCloseAction;
         _gitSyncEnabled = server.gitSyncEnabled;
+        _loadAutoRecord(server.id);
         _gitSyncMode = server.gitSyncMode;
         _shared = server.shared;
         _initialShared = server.shared;
@@ -314,6 +322,20 @@ class _ServerFormDialogState extends ConsumerState<ServerFormDialog> {
     return hops;
   }
 
+  /// Reads the per-server auto-record settings, which live outside ServerDto.
+  Future<void> _loadAutoRecord(String serverId) async {
+    try {
+      final cfg = await frb.getAutoRecord(serverId: serverId);
+      if (!mounted) return;
+      setState(() {
+        _autoRecord = cfg.enabled;
+        _maxRecordingMbCtrl.text = cfg.maxRecordingMb.toString();
+      });
+    } catch (_) {
+      // Legacy row or locked DB — leave the defaults.
+    }
+  }
+
   Future<void> _save() async {
     if (!_validate()) return;
     setState(() => _saving = true);
@@ -377,6 +399,18 @@ class _ServerFormDialogState extends ConsumerState<ServerFormDialog> {
       } else {
         serverId = widget.editId!;
         await notifier.updateServer(serverId, input);
+      }
+      // Auto-record settings, persisted after the row exists so a newly
+      // created server has an id to attach them to.
+      try {
+        await frb.setAutoRecord(
+          serverId: serverId,
+          enabled: _autoRecord,
+          maxRecordingMb:
+              int.tryParse(_maxRecordingMbCtrl.text.trim()) ?? 50,
+        );
+      } catch (_) {
+        // Non-fatal: the server itself is saved.
       }
       // Persist chain on top of the saved server — empty list clears.
       try {
@@ -957,6 +991,36 @@ class _SyncTabBody extends ConsumerWidget {
         ],
 
         const SizedBox(height: TermexSpacing.lg),
+        const TermexDivider(),
+        const SizedBox(height: TermexSpacing.md),
+
+        // ── Session recording ──────────────────────────────────────────────
+        // Per-server, matching the Tauri build: `servers.auto_record` arms it
+        // and `max_recording_mb` caps the file. api::ssh checks the flag right
+        // after the shell opens.
+        TermexCheckbox(
+          value: state._autoRecord,
+          label: l10n.connectionAutoRecord,
+          onChanged: (v) => state.setState(() => state._autoRecord = v ?? false),
+        ),
+        Padding(
+          padding: const EdgeInsets.only(left: 24, top: 2),
+          child: Text(
+            l10n.connectionAutoRecordDesc,
+            style: TextStyle(
+                fontSize: 11, color: context.colors.textMuted),
+          ),
+        ),
+        if (state._autoRecord) ...[
+          const SizedBox(height: TermexSpacing.md),
+          TermexTextField(
+            controller: state._maxRecordingMbCtrl,
+            label: l10n.connectionMaxRecordingMb,
+            placeholder: '50',
+            keyboardType: TextInputType.number,
+          ),
+        ],
+        const SizedBox(height: TermexSpacing.md),
         const TermexDivider(),
         const SizedBox(height: TermexSpacing.md),
 

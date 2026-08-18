@@ -25,6 +25,9 @@ Future<String> recordingRenderPartFilename(
 /// Starts recording `session_id`, capturing terminal output to an asciicast
 /// file.
 ///
+/// `auto_recorded` marks the row so the list can badge it AUTO, matching the
+/// Tauri list.
+///
 /// Mirrors the Tauri command's shape (session + server identity + geometry)
 /// rather than the id-only stub this replaces — the recorder keys everything
 /// by session, and the header needs the real terminal size to replay
@@ -36,7 +39,8 @@ Future<String> recordingStart(
         required int cols,
         required int rows,
         String? title,
-        required int maxRecordingMb}) =>
+        required int maxRecordingMb,
+        required bool autoRecorded}) =>
     TermexBridge.instance.api.crateApiRecordingRecordingStart(
         sessionId: sessionId,
         serverId: serverId,
@@ -44,7 +48,8 @@ Future<String> recordingStart(
         cols: cols,
         rows: rows,
         title: title,
-        maxRecordingMb: maxRecordingMb);
+        maxRecordingMb: maxRecordingMb,
+        autoRecorded: autoRecorded);
 
 /// Whether `session_id` is currently being recorded. Used by the UI to render
 /// the correct control after a rebuild or a tab switch.

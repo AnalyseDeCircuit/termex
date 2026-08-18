@@ -154,6 +154,9 @@ abstract class TermexBridgeApiImplPlatform
   AuthType dco_decode_auth_type(dynamic raw);
 
   @protected
+  AutoRecordConfig dco_decode_auto_record_config(dynamic raw);
+
+  @protected
   BackupHistory dco_decode_backup_history(dynamic raw);
 
   @protected
@@ -794,6 +797,9 @@ abstract class TermexBridgeApiImplPlatform
 
   @protected
   AuthType sse_decode_auth_type(SseDeserializer deserializer);
+
+  @protected
+  AutoRecordConfig sse_decode_auto_record_config(SseDeserializer deserializer);
 
   @protected
   BackupHistory sse_decode_backup_history(SseDeserializer deserializer);
@@ -1487,6 +1493,10 @@ abstract class TermexBridgeApiImplPlatform
 
   @protected
   void sse_encode_auth_type(AuthType self, SseSerializer serializer);
+
+  @protected
+  void sse_encode_auto_record_config(
+      AutoRecordConfig self, SseSerializer serializer);
 
   @protected
   void sse_encode_backup_history(BackupHistory self, SseSerializer serializer);

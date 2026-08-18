@@ -120,6 +120,9 @@ pub fn recording_render_part_filename(basename: &str, part_n: u32) -> String {
 /// Starts recording `session_id`, capturing terminal output to an asciicast
 /// file.
 ///
+/// `auto_recorded` marks the row so the list can badge it AUTO, matching the
+/// Tauri list.
+///
 /// Mirrors the Tauri command's shape (session + server identity + geometry)
 /// rather than the id-only stub this replaces — the recorder keys everything
 /// by session, and the header needs the real terminal size to replay
@@ -132,6 +135,7 @@ pub async fn recording_start(
     rows: u32,
     title: Option<String>,
     max_recording_mb: u32,
+    auto_recorded: bool,
 ) -> Result<String, String> {
     crate::frb_ssh_emitter::ACTIVE_RECORDINGS.insert(session_id.clone());
     let (id, file_path) = RECORDER
@@ -142,7 +146,7 @@ pub async fn recording_start(
             cols,
             rows,
             title.clone(),
-            false,
+            auto_recorded,
             max_recording_mb,
         )
         .await
@@ -152,6 +156,7 @@ pub async fn recording_start(
     let now = chrono::Utc::now().to_rfc3339();
 
     if db_state::is_unlocked() {
+        let auto = auto_recorded;
         let (id2, sid, name, path, started) = (
             id.clone(),
             session_id.clone(),
@@ -166,9 +171,10 @@ pub async fn recording_start(
                        (id, session_id, server_id, server_name, file_path, file_size,
                         duration_ms, cols, rows, event_count, summary, auto_recorded,
                         started_at, ended_at, created_at, parent_id, is_encrypted)
-                     VALUES (?1, ?2, ?3, ?4, ?5, 0, 0, ?6, ?7, 0, NULL, 0, ?8, NULL, ?8, NULL, 0)",
+                     VALUES (?1, ?2, ?3, ?4, ?5, 0, 0, ?6, ?7, 0, NULL, ?9, ?8, NULL, ?8, NULL, 0)",
                     rusqlite::params![
                         id2, sid, server_id, name, path, cols, rows, started,
+                        if auto { 1 } else { 0 },
                     ],
                 )?;
                 Ok(())

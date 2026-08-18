@@ -1469,6 +1469,15 @@ class AppLocalizationsZh extends AppLocalizations {
   String get connectionTmuxMode => 'tmux 模式';
 
   @override
+  String get connectionAutoRecord => '自动录制会话';
+
+  @override
+  String get connectionAutoRecordDesc => '连接此服务器后立即开始录制';
+
+  @override
+  String get connectionMaxRecordingMb => '录制大小上限 (MB)';
+
+  @override
   String get connectionTmuxDisabled => '禁用 — 普通 shell';
 
   @override

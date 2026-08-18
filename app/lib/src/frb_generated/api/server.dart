@@ -7,7 +7,7 @@ import '../frb_generated.dart';
 import 'package:flutter_rust_bridge/flutter_rust_bridge_for_generated.dart';
 
 // These functions are ignored because they are not marked as `pub`: `as_str`, `from_core`, `from_str`, `row_to_dto`, `to_core`
-// These function are ignored because they are on traits that is not defined in current crate (put an empty `#[frb]` on it to unignore): `clone`, `clone`, `clone`, `clone`, `eq`, `fmt`, `fmt`, `fmt`, `fmt`
+// These function are ignored because they are on traits that is not defined in current crate (put an empty `#[frb]` on it to unignore): `clone`, `clone`, `clone`, `clone`, `clone`, `eq`, `fmt`, `fmt`, `fmt`, `fmt`, `fmt`
 
 /// List all servers ordered by sort_order then name.
 Future<List<ServerDto>> listServers() =>
@@ -30,6 +30,24 @@ Future<ServerDto> updateServer(
 /// Delete a server by ID.
 Future<void> deleteServer({required String id}) =>
     TermexBridge.instance.api.crateApiServerDeleteServer(id: id);
+
+/// Reads the auto-record settings for `server_id`.
+///
+/// Kept off `ServerDto` deliberately: no list view shows these, so widening
+/// the DTO would mean touching every SELECT that builds one for no gain.
+/// The columns have existed since the Tauri build (migration adds
+/// `auto_record` / `max_recording_mb`), but nothing in the Flutter stack read
+/// or wrote them, so the flag could never be turned on.
+Future<AutoRecordConfig> getAutoRecord({required String serverId}) =>
+    TermexBridge.instance.api.crateApiServerGetAutoRecord(serverId: serverId);
+
+/// Updates the auto-record settings for `server_id`.
+Future<void> setAutoRecord(
+        {required String serverId,
+        required bool enabled,
+        required int maxRecordingMb}) =>
+    TermexBridge.instance.api.crateApiServerSetAutoRecord(
+        serverId: serverId, enabled: enabled, maxRecordingMb: maxRecordingMb);
 
 /// Reads the stored credentials for `id`.
 ///
@@ -76,6 +94,30 @@ enum AuthType {
 
   static Future<AuthType> default_() =>
       TermexBridge.instance.api.crateApiServerAuthTypeDefault();
+}
+
+/// Per-server auto-record settings.
+class AutoRecordConfig {
+  final bool enabled;
+
+  /// Size cap in MiB for recordings started automatically.
+  final int maxRecordingMb;
+
+  const AutoRecordConfig({
+    required this.enabled,
+    required this.maxRecordingMb,
+  });
+
+  @override
+  int get hashCode => enabled.hashCode ^ maxRecordingMb.hashCode;
+
+  @override
+  bool operator ==(Object other) =>
+      identical(this, other) ||
+      other is AutoRecordConfig &&
+          runtimeType == other.runtimeType &&
+          enabled == other.enabled &&
+          maxRecordingMb == other.maxRecordingMb;
 }
 
 /// Quick connect history entry.

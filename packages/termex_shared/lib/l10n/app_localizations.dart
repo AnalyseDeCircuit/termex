@@ -2782,6 +2782,24 @@ abstract class AppLocalizations {
   /// **'tmux Mode'**
   String get connectionTmuxMode;
 
+  /// No description provided for @connectionAutoRecord.
+  ///
+  /// In en, this message translates to:
+  /// **'Record sessions automatically'**
+  String get connectionAutoRecord;
+
+  /// No description provided for @connectionAutoRecordDesc.
+  ///
+  /// In en, this message translates to:
+  /// **'Start a recording as soon as this server connects'**
+  String get connectionAutoRecordDesc;
+
+  /// No description provided for @connectionMaxRecordingMb.
+  ///
+  /// In en, this message translates to:
+  /// **'Recording size limit (MB)'**
+  String get connectionMaxRecordingMb;
+
   /// No description provided for @connectionTmuxDisabled.
   ///
   /// In en, this message translates to:

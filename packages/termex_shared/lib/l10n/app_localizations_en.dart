@@ -1487,6 +1487,16 @@ class AppLocalizationsEn extends AppLocalizations {
   String get connectionTmuxMode => 'tmux Mode';
 
   @override
+  String get connectionAutoRecord => 'Record sessions automatically';
+
+  @override
+  String get connectionAutoRecordDesc =>
+      'Start a recording as soon as this server connects';
+
+  @override
+  String get connectionMaxRecordingMb => 'Recording size limit (MB)';
+
+  @override
   String get connectionTmuxDisabled => 'Disabled — Normal shell';
 
   @override

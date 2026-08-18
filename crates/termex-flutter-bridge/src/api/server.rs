@@ -503,6 +503,66 @@ pub fn delete_server(id: String) -> Result<(), String> {
     })
 }
 
+/// Per-server auto-record settings.
+#[derive(Debug, Clone, serde::Serialize, serde::Deserialize)]
+#[serde(rename_all = "camelCase")]
+pub struct AutoRecordConfig {
+    pub enabled: bool,
+    /// Size cap in MiB for recordings started automatically.
+    pub max_recording_mb: u32,
+}
+
+/// Reads the auto-record settings for `server_id`.
+///
+/// Kept off `ServerDto` deliberately: no list view shows these, so widening
+/// the DTO would mean touching every SELECT that builds one for no gain.
+/// The columns have existed since the Tauri build (migration adds
+/// `auto_record` / `max_recording_mb`), but nothing in the Flutter stack read
+/// or wrote them, so the flag could never be turned on.
+pub fn get_auto_record(server_id: String) -> Result<AutoRecordConfig, String> {
+    db_state::with_db(|db| {
+        db.with_conn(|conn| {
+            let (enabled, mb): (i32, u32) = conn.query_row(
+                "SELECT COALESCE(auto_record, 0), COALESCE(max_recording_mb, 50)
+                   FROM servers WHERE id = ?1",
+                rusqlite::params![server_id],
+                |r| Ok((r.get(0)?, r.get(1)?)),
+            )?;
+            Ok(AutoRecordConfig {
+                enabled: enabled != 0,
+                max_recording_mb: mb,
+            })
+        })
+        .map_err(|e| e.to_string())
+    })
+}
+
+/// Updates the auto-record settings for `server_id`.
+pub fn set_auto_record(
+    server_id: String,
+    enabled: bool,
+    max_recording_mb: u32,
+) -> Result<(), String> {
+    let now = Utc::now().to_rfc3339();
+    db_state::with_db(|db| {
+        db.with_conn(|conn| {
+            conn.execute(
+                "UPDATE servers
+                    SET auto_record = ?1, max_recording_mb = ?2, updated_at = ?3
+                  WHERE id = ?4",
+                rusqlite::params![
+                    if enabled { 1 } else { 0 },
+                    max_recording_mb,
+                    now,
+                    server_id
+                ],
+            )?;
+            Ok(())
+        })
+        .map_err(|e| e.to_string())
+    })
+}
+
 /// Secrets belonging to one server, read back out of the OS keychain.
 ///
 /// Absent entries come back as `None` rather than an error: a key-auth server

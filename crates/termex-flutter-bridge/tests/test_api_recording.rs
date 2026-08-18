@@ -15,22 +15,22 @@ fn setup() -> MutexGuard<'static, ()> {
 #[tokio::test]
 async fn test_recording_start_returns_id() {
     let _guard = setup();
-    let id = recording_start("session-1".into(), "srv".into(), "prod".into(), 80, 24, None, 0).await.unwrap();
+    let id = recording_start("session-1".into(), "srv".into(), "prod".into(), 80, 24, None, 0, false).await.unwrap();
     assert!(!id.is_empty(), "recording id should not be empty");
 }
 
 #[tokio::test]
 async fn test_recording_start_with_title() {
     let _guard = setup();
-    let id = recording_start("session-2".into(), "srv".into(), "prod".into(), 80, 24, Some("My Recording".into()), 0).await.unwrap();
+    let id = recording_start("session-2".into(), "srv".into(), "prod".into(), 80, 24, Some("My Recording".into()), 0, false).await.unwrap();
     assert!(!id.is_empty());
 }
 
 #[tokio::test]
 async fn test_recording_start_unique_ids() {
     let _guard = setup();
-    let id1 = recording_start("session-3".into(), "srv".into(), "prod".into(), 80, 24, None, 0).await.unwrap();
-    let id2 = recording_start("session-3".into(), "srv".into(), "prod".into(), 80, 24, None, 0).await.unwrap();
+    let id1 = recording_start("session-3".into(), "srv".into(), "prod".into(), 80, 24, None, 0, false).await.unwrap();
+    let id2 = recording_start("session-3".into(), "srv".into(), "prod".into(), 80, 24, None, 0, false).await.unwrap();
     assert_ne!(id1, id2, "each recording should get a unique id");
 }
 
@@ -39,7 +39,7 @@ async fn test_recording_start_unique_ids() {
 #[tokio::test]
 async fn test_recording_stop_returns_entry() {
     let _guard = setup();
-    let id = recording_start("session-stop".into(), "srv".into(), "prod".into(), 80, 24, Some("Test".into()), 0).await.unwrap();
+    let id = recording_start("session-stop".into(), "srv".into(), "prod".into(), 80, 24, Some("Test".into()), 0, false).await.unwrap();
     let entry = recording_stop(id.clone()).await.unwrap();
     assert_eq!(entry.id, id);
     // v0.47 filename is {server}_{timestamp}_{rand6}.cast — no UUID.
@@ -50,7 +50,7 @@ async fn test_recording_stop_returns_entry() {
 #[tokio::test]
 async fn test_recording_stop_file_path_format() {
     let _guard = setup();
-    let id = recording_start("session-path".into(), "srv".into(), "prod".into(), 80, 24, None, 0).await.unwrap();
+    let id = recording_start("session-path".into(), "srv".into(), "prod".into(), 80, 24, None, 0, false).await.unwrap();
     let entry = recording_stop(id.clone()).await.unwrap();
     assert!(entry.file_path.ends_with(".cast"), "file should be .cast");
 }
@@ -68,7 +68,7 @@ async fn test_recording_list_empty() {
 #[tokio::test]
 async fn test_recording_delete_ok() {
     let _guard = setup();
-    let id = recording_start("session-del".into(), "srv".into(), "prod".into(), 80, 24, None, 0).await.unwrap();
+    let id = recording_start("session-del".into(), "srv".into(), "prod".into(), 80, 24, None, 0, false).await.unwrap();
     recording_delete(id.clone()).unwrap();
     // Idempotent: deleting a non-existent id should also succeed.
     recording_delete(id).unwrap();

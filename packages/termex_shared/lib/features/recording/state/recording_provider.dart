@@ -42,6 +42,9 @@ class RecordingNotifier extends FamilyNotifier<RecordingStatus, String> {
     int rows = 24,
     String? title,
     int maxRecordingMb = 0,
+    /// Set by the connect path when the server is flagged for auto-record;
+    /// the list badges those entries AUTO.
+    bool autoRecorded = false,
   }) async {
     if (state.active) return;
     try {
@@ -53,6 +56,7 @@ class RecordingNotifier extends FamilyNotifier<RecordingStatus, String> {
         rows: rows,
         title: title,
         maxRecordingMb: maxRecordingMb,
+        autoRecorded: autoRecorded,
       );
       state = RecordingStatus(
         active: true,

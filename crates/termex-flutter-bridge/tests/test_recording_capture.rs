@@ -12,7 +12,7 @@ async fn start_marks_the_session_active_and_stop_clears_it() {
     assert!(!recording::recording_is_active(sid.clone()).await);
 
     recording::recording_start(
-        sid.clone(), "srv".into(), "prod".into(), 80, 24, None, 0,
+        sid.clone(), "srv".into(), "prod".into(), 80, 24, None, 0, false,
     )
     .await
     .expect("start");
@@ -32,7 +32,7 @@ async fn start_marks_the_session_active_and_stop_clears_it() {
 async fn stop_writes_the_captured_output_to_an_asciicast_file() {
     let sid = format!("sess-{}", uuid::Uuid::new_v4());
     recording::recording_start(
-        sid.clone(), "srv".into(), "prod".into(), 80, 24, None, 0,
+        sid.clone(), "srv".into(), "prod".into(), 80, 24, None, 0, false,
     )
     .await
     .expect("start");
@@ -55,4 +55,23 @@ async fn stop_writes_the_captured_output_to_an_asciicast_file() {
 async fn stopping_a_session_that_was_never_started_is_an_error() {
     let r = recording::recording_stop("never-started".into()).await;
     assert!(r.is_err());
+}
+
+#[tokio::test]
+async fn auto_recorded_flag_is_carried_through_start() {
+    // The flag drives the AUTO badge in the list; it used to be hardcoded
+    // false, so an auto-started recording was indistinguishable from a manual
+    // one.
+    let sid = format!("sess-{}", uuid::Uuid::new_v4());
+    recording::recording_start(
+        sid.clone(), "srv".into(), "prod".into(), 80, 24,
+        Some("Auto: prod".into()), 0, true,
+    )
+    .await
+    .expect("start");
+
+    assert!(recording::recording_is_active(sid.clone()).await);
+    let entry = recording::recording_stop(sid).await.expect("stop");
+    assert_eq!(entry.title.as_deref(), Some("Auto: prod"));
+    let _ = std::fs::remove_file(&entry.file_path);
 }
