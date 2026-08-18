@@ -1,6 +1,17 @@
+import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:flutter_test/flutter_test.dart';
 import 'package:termex_shared/features/tabs/state/tab_controller.dart';
+import 'package:termex_shared/features/recording/widgets/recording_player.dart';
+import 'package:termex_shared/l10n/app_localizations.dart';
+
+Widget _host(Widget child) => ProviderScope(
+      child: MaterialApp(
+        localizationsDelegates: AppLocalizations.localizationsDelegates,
+        supportedLocales: AppLocalizations.supportedLocales,
+        home: Scaffold(body: child),
+      ),
+    );
 
 void main() {
   group('openRecordingTab', () {
@@ -64,6 +75,48 @@ void main() {
       addTearDown(c.dispose);
       c.read(tabListProvider.notifier).openLocalTab();
       expect(c.read(tabListProvider).single.isRecording, isFalse);
+    });
+  });
+
+  group('RecordingPlayer sizing', () {
+    // In a tab the player kept the height it was given for the modal it first
+    // shipped in, leaving the rest of the pane blank below the controls.
+    testWidgets('fills its host when no height is given', (tester) async {
+      // The test surface is 800x600, so a player that fills its pane measures
+      // 600. The fixed 460 it used to carry would fail this.
+      await tester.pumpWidget(
+          _host(const RecordingPlayer(filePath: '/nope.cast')));
+      await tester.pump();
+
+      expect(tester.getSize(find.byType(RecordingPlayer)).height, 600,
+          reason: 'player kept a fixed height instead of filling the pane');
+    });
+
+    testWidgets('honours an explicit height for dialog hosts', (tester) async {
+      await tester.pumpWidget(_host(
+        const Column(
+          children: [RecordingPlayer(filePath: '/nope.cast', height: 460)],
+        ),
+      ));
+      await tester.pump();
+
+      expect(tester.getSize(find.byType(RecordingPlayer)).height, 460);
+    });
+
+    // A replay was seen painting a row of output over the tab strip above the
+    // pane. Whatever the player renders has to stay inside its own box.
+    testWidgets('clips its content to its own box', (tester) async {
+      await tester.pumpWidget(
+          _host(const RecordingPlayer(filePath: '/nope.cast')));
+      await tester.pump();
+
+      expect(
+        find.descendant(
+          of: find.byType(RecordingPlayer),
+          matching: find.byType(ClipRect),
+        ),
+        findsWidgets,
+      );
     });
   });
 }

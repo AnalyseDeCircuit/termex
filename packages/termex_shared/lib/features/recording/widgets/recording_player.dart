@@ -26,13 +26,19 @@ Future<void> showRecordingPlayer(
     context: context,
     title: title,
     size: DialogSize.large,
-    body: RecordingPlayer(filePath: filePath),
+    body: RecordingPlayer(filePath: filePath, height: 460),
   );
 }
 
 class RecordingPlayer extends StatefulWidget {
   final String filePath;
-  const RecordingPlayer({super.key, required this.filePath});
+
+  /// Fixed height for dialog hosting. A tab leaves this null so the player
+  /// fills the pane — hosted in a tab with a fixed height it left the rest of
+  /// the pane blank below the controls.
+  final double? height;
+
+  const RecordingPlayer({super.key, required this.filePath, this.height});
 
   @override
   State<RecordingPlayer> createState() => _RecordingPlayerState();
@@ -76,7 +82,11 @@ class _RecordingPlayerState extends State<RecordingPlayer> {
       if (cast.events.isEmpty) return;
       _play();
     } catch (e) {
-      if (mounted) setState(() { _error = e.toString(); _loading = false; });
+      if (mounted)
+        setState(() {
+          _error = e.toString();
+          _loading = false;
+        });
     }
   }
 
@@ -147,90 +157,88 @@ class _RecordingPlayerState extends State<RecordingPlayer> {
     return d.inHours > 0 ? '${d.inHours}:$m:$s' : '$m:$s';
   }
 
+  /// [height] is null in a tab, where the player fills the pane, and set by
+  /// the dialog host. The clip sits here rather than around the terminal
+  /// alone because the replay was seen painting a row of output over the tab
+  /// strip above the pane: the player's own box measures correctly, so the
+  /// spill comes from compositing, and only a clip actually bounds it.
   @override
   Widget build(BuildContext context) {
+    return ClipRect(
+      child: SizedBox(height: widget.height, child: _body(context)),
+    );
+  }
+
+  Widget _body(BuildContext context) {
     final l10n = AppLocalizations.of(context);
 
     if (_loading) {
-      return const SizedBox(
-        height: 420,
-        child: Center(child: CircularProgressIndicator(strokeWidth: 2)),
-      );
+      return const Center(child: CircularProgressIndicator(strokeWidth: 2));
     }
     if (_error != null) {
-      return SizedBox(
-        height: 420,
-        child: Center(
-          child: Text(_error!,
-              style: TextStyle(color: context.colors.danger, fontSize: 12)),
-        ),
+      return Center(
+        child: Text(_error!,
+            style: TextStyle(color: context.colors.danger, fontSize: 12)),
       );
     }
 
     final cast = _cast!;
     if (cast.events.isEmpty) {
-      return SizedBox(
-        height: 420,
-        child: Center(
-          child: Text(l10n.recordingEmptyCast,
-              style: TextStyle(color: context.colors.textMuted, fontSize: 12)),
-        ),
+      return Center(
+        child: Text(l10n.recordingEmptyCast,
+            style: TextStyle(color: context.colors.textMuted, fontSize: 12)),
       );
     }
 
     final total = cast.duration;
-    return SizedBox(
-      height: 460,
-      child: Column(
-        children: [
-          Expanded(
-            child: ColoredBox(
-              color: context.colors.backgroundPrimary,
-              child: xt.TerminalView(_terminal, autofocus: false, readOnly: true),
+    return Column(
+      children: [
+        Expanded(
+          child: ColoredBox(
+            color: context.colors.backgroundPrimary,
+            child: xt.TerminalView(_terminal, autofocus: false, readOnly: true),
+          ),
+        ),
+        const SizedBox(height: TermexSpacing.sm),
+        Row(
+          children: [
+            IconButton(
+              iconSize: 18,
+              icon: Icon(_playing ? Icons.pause : Icons.play_arrow,
+                  color: context.colors.textPrimary),
+              tooltip: _playing ? l10n.recordingPause : l10n.recordingPlay,
+              onPressed: _playing ? _pause : _play,
             ),
-          ),
-          const SizedBox(height: TermexSpacing.sm),
-          Row(
-            children: [
-              IconButton(
-                iconSize: 18,
-                icon: Icon(_playing ? Icons.pause : Icons.play_arrow,
-                    color: context.colors.textPrimary),
-                tooltip: _playing ? l10n.recordingPause : l10n.recordingPlay,
-                onPressed: _playing ? _pause : _play,
+            Text(_fmt(_position),
+                style:
+                    TextStyle(fontSize: 11, color: context.colors.textMuted)),
+            Expanded(
+              child: Slider(
+                value: _position.inMilliseconds
+                    .clamp(0, total.inMilliseconds)
+                    .toDouble(),
+                max: total.inMilliseconds.toDouble().clamp(1, double.infinity),
+                onChanged: (v) => _seek(Duration(milliseconds: v.round())),
               ),
-              Text(_fmt(_position),
-                  style: TextStyle(
-                      fontSize: 11, color: context.colors.textMuted)),
-              Expanded(
-                child: Slider(
-                  value: _position.inMilliseconds
-                      .clamp(0, total.inMilliseconds)
-                      .toDouble(),
-                  max: total.inMilliseconds.toDouble().clamp(1, double.infinity),
-                  onChanged: (v) =>
-                      _seek(Duration(milliseconds: v.round())),
-                ),
-              ),
-              Text(_fmt(total),
-                  style: TextStyle(
-                      fontSize: 11, color: context.colors.textMuted)),
-              const SizedBox(width: TermexSpacing.sm),
-              DropdownButton<double>(
-                value: _speed,
-                underline: const SizedBox.shrink(),
-                style: TextStyle(
-                    fontSize: 11, color: context.colors.textSecondary),
-                items: const [0.5, 1, 2, 4]
-                    .map((s) => DropdownMenuItem(
-                        value: s.toDouble(), child: Text('${s}x')))
-                    .toList(),
-                onChanged: (v) => setState(() => _speed = v ?? 1),
-              ),
-            ],
-          ),
-        ],
-      ),
+            ),
+            Text(_fmt(total),
+                style:
+                    TextStyle(fontSize: 11, color: context.colors.textMuted)),
+            const SizedBox(width: TermexSpacing.sm),
+            DropdownButton<double>(
+              value: _speed,
+              underline: const SizedBox.shrink(),
+              style:
+                  TextStyle(fontSize: 11, color: context.colors.textSecondary),
+              items: const [0.5, 1, 2, 4]
+                  .map((s) => DropdownMenuItem(
+                      value: s.toDouble(), child: Text('${s}x')))
+                  .toList(),
+              onChanged: (v) => setState(() => _speed = v ?? 1),
+            ),
+          ],
+        ),
+      ],
     );
   }
 }

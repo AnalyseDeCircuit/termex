@@ -189,13 +189,15 @@ class _DesktopShellState extends ConsumerState<DesktopShell> {
       return KeyEventResult.handled;
     }
     // Cmd+Alt+← → move active tab left
-    if (mod && HardwareKeyboard.instance.isAltPressed &&
+    if (mod &&
+        HardwareKeyboard.instance.isAltPressed &&
         event.logicalKey == LogicalKeyboardKey.arrowLeft) {
       _moveActiveTab(-1);
       return KeyEventResult.handled;
     }
     // Cmd+Alt+→ → move active tab right
-    if (mod && HardwareKeyboard.instance.isAltPressed &&
+    if (mod &&
+        HardwareKeyboard.instance.isAltPressed &&
         event.logicalKey == LogicalKeyboardKey.arrowRight) {
       _moveActiveTab(1);
       return KeyEventResult.handled;
@@ -314,25 +316,29 @@ class _DesktopShellState extends ConsumerState<DesktopShell> {
                         child: Row(
                           children: [
                             Expanded(
+                              // Clipped so no tab's content can paint
+                              // outside the pane and into the top bar.
                               child: tabs.isEmpty
                                   ? const DesktopWelcomePane()
-                                  : IndexedStack(
-                                      index: tabs.indexWhere(
-                                          (t) => t.id == activeId),
-                                      children: tabs
-                                          .map((tab) => TabContent(
-                                                key: ValueKey(tab.id),
-                                                tabId: tab.id,
-                                                terminalBuilder:
-                                                    (ctx, sessionId) =>
-                                                        TabWorkspace(
-                                                          sessionId: sessionId,
-                                                          isLocal: tab.isLocal,
-                                                          serverId: tab.serverId,
-                                                          serverName: tab.title,
-                                                        ),
-                                              ))
-                                          .toList(),
+                                  : ClipRect(
+                                      child: IndexedStack(
+                                        index: tabs.indexWhere(
+                                            (t) => t.id == activeId),
+                                        children: tabs
+                                            .map((tab) => TabContent(
+                                                  key: ValueKey(tab.id),
+                                                  tabId: tab.id,
+                                                  terminalBuilder:
+                                                      (ctx, sessionId) =>
+                                                          TabWorkspace(
+                                                    sessionId: sessionId,
+                                                    isLocal: tab.isLocal,
+                                                    serverId: tab.serverId,
+                                                    serverName: tab.title,
+                                                  ),
+                                                ))
+                                            .toList(),
+                                      ),
                                     ),
                             ),
                             if (sidePanel != DesktopSidePanel.none)
@@ -452,8 +458,8 @@ class _DesktopTopBar extends ConsumerWidget {
             tooltip: 'Settings',
             active: false,
             onTap: () {
-              final state = context
-                  .findAncestorStateOfType<_DesktopShellState>();
+              final state =
+                  context.findAncestorStateOfType<_DesktopShellState>();
               state?._openSettingsDialog();
             },
           ),
@@ -488,8 +494,7 @@ class _TopBarIconButtonState extends State<_TopBarIconButton> {
 
   @override
   Widget build(BuildContext context) {
-    final activeColor =
-        widget.highlightWhenActive ?? context.colors.primary;
+    final activeColor = widget.highlightWhenActive ?? context.colors.primary;
     return Tooltip(
       message: widget.tooltip,
       child: MouseRegion(
@@ -507,17 +512,13 @@ class _TopBarIconButtonState extends State<_TopBarIconButton> {
             decoration: BoxDecoration(
               color: widget.active
                   ? activeColor.withOpacity(0.12)
-                  : (_hovered
-                      ? context.colors.backgroundTertiary
-                      : null),
+                  : (_hovered ? context.colors.backgroundTertiary : null),
               borderRadius: BorderRadius.circular(6),
             ),
             child: TermexIconWidget(
               widget.icon,
               size: 16,
-              color: widget.active
-                  ? activeColor
-                  : context.colors.textSecondary,
+              color: widget.active ? activeColor : context.colors.textSecondary,
             ),
           ),
         ),
@@ -623,7 +624,8 @@ class _NoSessionPane extends StatelessWidget {
       child: Center(
         child: Text(
           'Connect to a server first',
-          style: TermexTypography.body.copyWith(color: context.colors.textMuted),
+          style:
+              TermexTypography.body.copyWith(color: context.colors.textMuted),
         ),
       ),
     );
