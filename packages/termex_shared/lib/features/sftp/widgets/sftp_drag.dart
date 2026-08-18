@@ -39,11 +39,49 @@ class SftpDragPayload {
   });
 }
 
-// ── Draggable row ─────────────────────────────────────────────────────────────
+// ── Row wrapper ───────────────────────────────────────────────────────────────
+
+/// Wraps an already-built file row in a [Draggable] carrying
+/// [SftpDragPayload], for use as [FileList.rowWrapper].
+///
+/// Takes the finished `row` widget rather than rebuilding a [FileRow]
+/// from scratch: `FileList` resolves column widths once for the whole
+/// list and threads selection / tap / context-menu callbacks into each
+/// row, all of which would be lost by reconstructing it here. (That is
+/// exactly why the older [DraggableFileRow] never got adopted — it
+/// dropped `columns`, so panes kept using the plain non-draggable
+/// `FileList` and drag-and-drop silently did nothing.)
+Widget wrapRowDraggable({
+  required FileRowData entry,
+  required Widget row,
+  required DragSide side,
+  required String absolutePath,
+}) {
+  final payload = SftpDragPayload(
+    side: side,
+    file: entry,
+    absolutePath: absolutePath,
+  );
+  return Draggable<SftpDragPayload>(
+    data: payload,
+    // Anchored away from the cursor so the drop target underneath stays
+    // visible while dragging.
+    dragAnchorStrategy: pointerDragAnchorStrategy,
+    feedback: _DragFeedback(name: entry.name, side: side),
+    childWhenDragging: Opacity(opacity: 0.35, child: row),
+    child: row,
+  );
+}
+
+// ── Draggable row (legacy) ────────────────────────────────────────────────────
 
 /// A [FileRow] wrapped in a [Draggable] that carries [SftpDragPayload].
 ///
 /// During dragging a semi-transparent clone of the row follows the pointer.
+///
+/// Prefer [wrapRowDraggable] with [FileList.rowWrapper]: this widget
+/// rebuilds its own [FileRow] and therefore cannot carry the column
+/// layout the list resolves.
 class DraggableFileRow extends StatelessWidget {
   final FileRowData data;
   final bool isSelected;

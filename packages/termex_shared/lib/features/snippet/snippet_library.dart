@@ -14,11 +14,15 @@ class SnippetLibrary extends ConsumerStatefulWidget {
   final void Function(String command)? onExecute;
   const SnippetLibrary({super.key, this.onExecute});
 
-  /// v0.79.59: open the snippet editor in "new" mode. Public so a host
-  /// shell's nav-bar "+" button can trigger snippet creation without
-  /// having to keep an inline button inside the library toolbar.
-  static void startNew(WidgetRef ref) {
-    ref.read(snippetProvider.notifier).setEditing('__new__');
+  /// Opens the snippet editor in "new" mode. Public so a host shell's
+  /// nav-bar "+" button can trigger snippet creation without keeping an
+  /// inline button inside the library toolbar.
+  ///
+  /// Presents a modal rather than swapping the panel's contents: the desktop
+  /// sidebar is ~300px wide and the editor's action row does not fit there,
+  /// and servers/proxies already add through dialogs.
+  static void startNew(BuildContext context) {
+    SnippetEditor.show(context);
   }
 
   @override
@@ -47,11 +51,16 @@ class _SnippetLibraryState extends ConsumerState<SnippetLibrary> {
     final state = ref.watch(snippetProvider);
     final editingId = state.editingId;
 
-    if (editingId != null) {
-      final existing = editingId == '__new__'
-          ? null
-          : state.snippets.firstWhere((s) => s.id == editingId, orElse: () => state.snippets.first);
-      return SnippetEditor(existing: editingId == '__new__' ? null : existing);
+    if (editingId != null && editingId != '__new__') {
+      // firstWhere's orElse used to fall back to `snippets.first`, which
+      // throws on an empty list — reachable whenever an edit id outlives the
+      // entry it points at.
+      final existing =
+          state.snippets.where((s) => s.id == editingId).firstOrNull;
+      if (existing != null) return SnippetEditor(existing: existing);
+      // Stale id: drop it and fall through to the list.
+      WidgetsBinding.instance.addPostFrameCallback(
+          (_) => ref.read(snippetProvider.notifier).setEditing(null));
     }
 
     ref.listen<bool>(

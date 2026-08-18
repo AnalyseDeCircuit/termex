@@ -232,6 +232,14 @@ class FileList extends StatefulWidget {
   final ValueChanged<FileRowData> onOpen; // navigate or download
   final void Function(FileRowData entry, FileAction action) onAction;
 
+  /// Optional per-row wrapper, used by the SFTP panes to make each row
+  /// draggable across to the other pane. Kept as a hook rather than
+  /// baking `Draggable` in here so plain listings (and tests) stay free
+  /// of drag machinery. `FileList` still owns loading/error/empty
+  /// states, keyboard navigation, column layout and the context menu —
+  /// the wrapper only decorates the finished row widget.
+  final Widget Function(FileRowData entry, Widget row)? rowWrapper;
+
   const FileList({
     super.key,
     required this.entries,
@@ -241,6 +249,7 @@ class FileList extends StatefulWidget {
     required this.onToggleSelect,
     required this.onOpen,
     required this.onAction,
+    this.rowWrapper,
   });
 
   @override
@@ -295,7 +304,7 @@ class _FileListState extends State<FileList> {
             itemExtent: 28,
             itemBuilder: (context, i) {
               final entry = widget.entries[i];
-              return FileRow(
+              final row = FileRow(
                 key: ValueKey(entry.name),
                 columns: cols,
                 data: entry,
@@ -307,6 +316,7 @@ class _FileListState extends State<FileList> {
                 onDoubleTap: () => widget.onOpen(entry),
                 onSecondaryTap: () => _showContextMenu(context, entry, i),
               );
+              return widget.rowWrapper?.call(entry, row) ?? row;
             },
           );
         },

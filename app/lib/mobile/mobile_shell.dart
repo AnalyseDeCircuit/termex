@@ -313,7 +313,7 @@ class _TerminalTabState extends ConsumerState<_TerminalTab> {
     final onAdd = switch (_category) {
       _MobileSidebarCategory.servers => () => ServerFormDialog.show(context),
       _MobileSidebarCategory.proxies => () => AddProxyDialog.show(context),
-      _MobileSidebarCategory.snippets => () => SnippetLibrary.startNew(ref),
+      _MobileSidebarCategory.snippets => () => SnippetLibrary.startNew(context),
     };
 
     final leftPaneBody = switch (_category) {
@@ -594,7 +594,7 @@ class _ServerListScreenState extends ConsumerState<_ServerListScreen> {
     final onAdd = switch (_category) {
       _MobileSidebarCategory.servers => () => ServerFormDialog.show(context),
       _MobileSidebarCategory.proxies => () => AddProxyDialog.show(context),
-      _MobileSidebarCategory.snippets => () => SnippetLibrary.startNew(ref),
+      _MobileSidebarCategory.snippets => () => SnippetLibrary.startNew(context),
     };
     return Column(
       children: [

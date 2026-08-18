@@ -287,7 +287,7 @@ void _runCategoryAdd(
       AddProxyDialog.show(context);
       break;
     case SidebarCategory.snippets:
-      SnippetLibrary.startNew(ref);
+      SnippetLibrary.startNew(context);
       break;
     case SidebarCategory.recordings:
     case SidebarCategory.cloud:

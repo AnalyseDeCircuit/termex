@@ -1,13 +1,36 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 
+import '../../widgets/dialog.dart';
+
 import '../../design/tokens.dart';
 import '../../l10n/app_localizations.dart';
 import 'state/snippet_provider.dart';
 
 class SnippetEditor extends ConsumerStatefulWidget {
   final Snippet? existing;
-  const SnippetEditor({super.key, this.existing});
+
+  /// Set when hosted by [show]. The dialog paints its own title bar, and
+  /// closing means popping the route rather than clearing the editing id.
+  final bool inDialog;
+
+  const SnippetEditor({super.key, this.existing, this.inDialog = false});
+
+  /// Opens the editor as a modal, matching how servers and proxies add.
+  ///
+  /// It used to render inline, replacing the whole library panel. In the
+  /// desktop sidebar that panel is ~300px wide, and the editor's title row
+  /// (title + Cancel + Save, none of it flexible) could not fit, so creating
+  /// a snippet painted a RenderFlex overflow instead of a form.
+  static Future<void> show(BuildContext context, {Snippet? existing}) {
+    final l10n = AppLocalizations.of(context);
+    return showTermexDialog<void>(
+      context: context,
+      title: existing == null ? l10n.snippetNewTitle : l10n.snippetEditSnippet,
+      size: DialogSize.medium,
+      body: SnippetEditor(existing: existing, inDialog: true),
+    );
+  }
 
   @override
   ConsumerState<SnippetEditor> createState() => _SnippetEditorState();
@@ -53,111 +76,155 @@ class _SnippetEditorState extends ConsumerState<SnippetEditor> {
     if (widget.existing == null) {
       await notifier.create(_titleCtrl.text.trim(), _contentCtrl.text, _tags);
     } else {
-      await notifier.update(widget.existing!.id, _titleCtrl.text.trim(), _contentCtrl.text, _tags);
+      await notifier.update(widget.existing!.id, _titleCtrl.text.trim(),
+          _contentCtrl.text, _tags);
     }
-    notifier.setEditing(null);
+    _close();
+  }
+
+  /// Inline hosting clears the editing id; the modal pops itself.
+  void _close() {
+    if (widget.inDialog) {
+      Navigator.of(context).pop();
+    } else {
+      ref.read(snippetProvider.notifier).setEditing(null);
+    }
   }
 
   @override
   Widget build(BuildContext context) {
     final l10n = AppLocalizations.of(context);
-    return Container(
+    // The editor is built from Material widgets (TextField, TextButton,
+    // ElevatedButton) but neither host guarantees a Material ancestor: the
+    // sidebar paints on plain widgets, and showTermexDialog builds its own
+    // chrome. Without this the form threw "No Material widget found" and
+    // rendered a red error box instead — which is what clicking "+" showed.
+    return Material(
       color: TermexColors.backgroundPrimary,
-      padding: const EdgeInsets.all(20),
-      child: Column(
-        crossAxisAlignment: CrossAxisAlignment.start,
-        children: [
-          // Title bar
-          Row(
+      child: SizedBox(
+        // The content field is Expanded, which needs a bounded height. Inline
+        // the panel supplies one; the dialog does not, so state it here.
+        height: widget.inDialog ? 460 : null,
+        child: Container(
+          padding: const EdgeInsets.all(20),
+          child: Column(
+            crossAxisAlignment: CrossAxisAlignment.start,
             children: [
-              Text(
-                widget.existing == null ? l10n.snippetNewTitle : l10n.snippetEditSnippet,
-                style: const TextStyle(fontSize: 14, fontWeight: FontWeight.w600, color: TermexColors.textPrimary),
+              // Title bar
+              Row(
+                children: [
+                  if (!widget.inDialog)
+                    Flexible(
+                      child: Text(
+                        widget.existing == null
+                            ? l10n.snippetNewTitle
+                            : l10n.snippetEditSnippet,
+                        overflow: TextOverflow.ellipsis,
+                        style: const TextStyle(
+                            fontSize: 14,
+                            fontWeight: FontWeight.w600,
+                            color: TermexColors.textPrimary),
+                      ),
+                    ),
+                  const Spacer(),
+                  TextButton(
+                    onPressed: _close,
+                    child: Text(l10n.commonCancel,
+                        style: const TextStyle(
+                            fontSize: 12, color: TermexColors.textSecondary)),
+                  ),
+                  const SizedBox(width: 8),
+                  ElevatedButton(
+                    onPressed: _save,
+                    style: ElevatedButton.styleFrom(
+                      backgroundColor: TermexColors.primary,
+                      foregroundColor: Colors.white,
+                      minimumSize: const Size(72, 32),
+                      textStyle: const TextStyle(fontSize: 12),
+                    ),
+                    child: Text(l10n.commonSave),
+                  ),
+                ],
               ),
-              const Spacer(),
-              TextButton(
-                onPressed: () => ref.read(snippetProvider.notifier).setEditing(null),
-                child: Text(l10n.commonCancel, style: const TextStyle(fontSize: 12, color: TermexColors.textSecondary)),
+              const SizedBox(height: 16),
+              // Title
+              _Label(l10n.snippetTitleLabel),
+              const SizedBox(height: 4),
+              TextField(
+                controller: _titleCtrl,
+                decoration: _dec(l10n.snippetNamePlaceholder),
+                style: const TextStyle(
+                    fontSize: 13, color: TermexColors.textPrimary),
               ),
-              const SizedBox(width: 8),
-              ElevatedButton(
-                onPressed: _save,
-                style: ElevatedButton.styleFrom(
-                  backgroundColor: TermexColors.primary,
-                  foregroundColor: Colors.white,
-                  minimumSize: const Size(72, 32),
-                  textStyle: const TextStyle(fontSize: 12),
+              const SizedBox(height: 12),
+              // Tags
+              _Label(l10n.snippetTagsCommaLabel),
+              const SizedBox(height: 4),
+              TextField(
+                controller: _tagsCtrl,
+                decoration: _dec(l10n.snippetTagsPlaceholderExample),
+                style: const TextStyle(
+                    fontSize: 13, color: TermexColors.textPrimary),
+              ),
+              const SizedBox(height: 12),
+              // Content
+              _Label(l10n.snippetContentLabel),
+              const SizedBox(height: 4),
+              Expanded(
+                child: TextField(
+                  controller: _contentCtrl,
+                  onChanged: _onContentChanged,
+                  maxLines: null,
+                  expands: true,
+                  decoration:
+                      _dec('ssh -J {{bastion}} {{user}}@{{host}}').copyWith(
+                    alignLabelWithHint: true,
+                  ),
+                  style: const TextStyle(
+                    fontSize: 13,
+                    color: TermexColors.textPrimary,
+                    fontFamily: 'monospace',
+                  ),
                 ),
-                child: Text(l10n.commonSave),
               ),
+              // Variables preview
+              if (_vars.isNotEmpty) ...[
+                const SizedBox(height: 8),
+                Wrap(
+                  spacing: 6,
+                  runSpacing: 4,
+                  children: _vars
+                      .map((v) => Container(
+                            padding: const EdgeInsets.symmetric(
+                                horizontal: 8, vertical: 3),
+                            decoration: BoxDecoration(
+                              color: TermexColors.primary.withOpacity(0.1),
+                              borderRadius: BorderRadius.circular(4),
+                              border: Border.all(
+                                  color: TermexColors.primary.withOpacity(0.3)),
+                            ),
+                            child: Text(
+                              '{{${v.name}${v.defaultValue != null ? ":${v.defaultValue}" : ""}}}',
+                              style: const TextStyle(
+                                  fontSize: 11,
+                                  color: TermexColors.primary,
+                                  fontFamily: 'monospace'),
+                            ),
+                          ))
+                      .toList(),
+                ),
+              ],
             ],
           ),
-          const SizedBox(height: 16),
-          // Title
-          _Label(l10n.snippetTitleLabel),
-          const SizedBox(height: 4),
-          TextField(
-            controller: _titleCtrl,
-            decoration: _dec(l10n.snippetNamePlaceholder),
-            style: const TextStyle(fontSize: 13, color: TermexColors.textPrimary),
-          ),
-          const SizedBox(height: 12),
-          // Tags
-          _Label(l10n.snippetTagsCommaLabel),
-          const SizedBox(height: 4),
-          TextField(
-            controller: _tagsCtrl,
-            decoration: _dec(l10n.snippetTagsPlaceholderExample),
-            style: const TextStyle(fontSize: 13, color: TermexColors.textPrimary),
-          ),
-          const SizedBox(height: 12),
-          // Content
-          _Label(l10n.snippetContentLabel),
-          const SizedBox(height: 4),
-          Expanded(
-            child: TextField(
-              controller: _contentCtrl,
-              onChanged: _onContentChanged,
-              maxLines: null,
-              expands: true,
-              decoration: _dec('ssh -J {{bastion}} {{user}}@{{host}}').copyWith(
-                alignLabelWithHint: true,
-              ),
-              style: const TextStyle(
-                fontSize: 13,
-                color: TermexColors.textPrimary,
-                fontFamily: 'monospace',
-              ),
-            ),
-          ),
-          // Variables preview
-          if (_vars.isNotEmpty) ...[
-            const SizedBox(height: 8),
-            Wrap(
-              spacing: 6,
-              runSpacing: 4,
-              children: _vars.map((v) => Container(
-                padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 3),
-                decoration: BoxDecoration(
-                  color: TermexColors.primary.withOpacity(0.1),
-                  borderRadius: BorderRadius.circular(4),
-                  border: Border.all(color: TermexColors.primary.withOpacity(0.3)),
-                ),
-                child: Text(
-                  '{{${v.name}${v.defaultValue != null ? ":${v.defaultValue}" : ""}}}',
-                  style: const TextStyle(fontSize: 11, color: TermexColors.primary, fontFamily: 'monospace'),
-                ),
-              )).toList(),
-            ),
-          ],
-        ],
+        ),
       ),
     );
   }
 
   InputDecoration _dec(String hint) => InputDecoration(
         hintText: hint,
-        hintStyle: const TextStyle(fontSize: 12, color: TermexColors.textSecondary),
+        hintStyle:
+            const TextStyle(fontSize: 12, color: TermexColors.textSecondary),
         border: OutlineInputBorder(
           borderRadius: BorderRadius.circular(6),
           borderSide: const BorderSide(color: TermexColors.border),
