@@ -7,6 +7,50 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ---
 
+## [0.80.0] — 2026-08-18 — Session recording, sidebar search, context menus
+
+First feature release on the Flutter desktop stack after the v0.79.0 cutover.
+
+### Added
+
+- **Session recording, migrated in full from the Tauri build**: the record
+  control is back in the terminal pane, output is captured off the SSH stream
+  into asciicast v2, and a per-server auto-record setting starts capture on
+  connect. Auto-started recordings are badged as such in the list.
+- **Playback**: recordings replay in a tab of their own — styled apart from
+  live sessions so a replay is never mistaken for a shell — with play/pause,
+  seek and 0.5×–4× speed. The opening screen is seeded into the recording so a
+  replay no longer starts on a black terminal waiting for the first keystroke.
+- **Collapsible sidebar search**: the search field now sits behind a toggle
+  next to `+` across every category panel, rather than permanently occupying a
+  row.
+- **Sidebar context menus restored**: right-clicking a server node offers the
+  legacy actions (edit, duplicate, delete, connect variants); the blank area
+  below the list has its own menu again.
+- **SFTP context menu**: rename, delete, new folder, copy path and refresh,
+  drawn with the shared menu widget.
+
+### Fixed
+
+- **SFTP could not connect** — `ensure_sftp` held a DashMap shard lock across
+  an `.await`, deadlocking the channel open. Both panes sat on a spinner
+  indefinitely.
+- **SFTP panes**: refresh after a transfer completes, single-click selects one
+  row instead of accumulating a multi-selection, and metadata columns are
+  dropped by the pane's own width so a docked panel no longer overflows.
+- **Recording metadata**: duration and event count were never written back, so
+  every row read "0s · 0 events"; deleting a recording left its `.cast` file
+  on disk forever.
+- **Playback layout**: the player kept the fixed height it was given for the
+  dialog it first shipped in, and its content could paint over the tab strip.
+- **Snippets**: creating one opens a dialog instead of erroring inside the
+  panel.
+- **Settings**: shorter title bar, and the redundant search box removed.
+- **CI**: iOS and Android release builds repaired (core library desugaring,
+  FRB codegen on the iOS runner, store credentials resolved through job env).
+
+---
+
 ## [0.79.0] — 2026-06-08 — Desktop release candidate (parity + cutover consolidated)
 
 > Consolidates the v0.77.0 parity close-out and v0.78.0 cutover work below

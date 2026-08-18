@@ -1,6 +1,6 @@
 name: termex
 description: AI-native SSH client — Always-on cloud AI workspace powered by SSH
-version: 0.79.0+1
+version: 0.80.0+1
 
 # This is an application, never a pub.dev package. Without this, the analyzer
 # treats it as publishable and reports the termex_bridge / termex_shared path
