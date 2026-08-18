@@ -144,6 +144,7 @@ class _TermexTabBarState extends ConsumerState<TermexTabBar> {
         status: tab.status,
         isActive: tab.id == activeId,
         isBroadcasting: isBroadcasting,
+        isPlayback: tab.isRecording,
         onTap: () => activeNotifier.state = tab.id,
         onClose: () {
           notifier.closeTab(tab.id);

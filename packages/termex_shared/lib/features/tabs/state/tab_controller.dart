@@ -15,12 +15,20 @@ class TabEntry {
   final TabStatus status;
   final bool isLocal;
 
+  /// Path to a `.cast` file when this tab plays a recording back rather than
+  /// hosting a live session. Playback opens as a tab so it can be left
+  /// running alongside the terminals it came from, which a modal could not.
+  final String? recordingPath;
+
+  bool get isRecording => recordingPath != null;
+
   const TabEntry({
     required this.id,
     required this.serverId,
     required this.title,
     required this.status,
     this.isLocal = false,
+    this.recordingPath,
   });
 
   TabEntry copyWith({String? id, String? serverId, String? title, TabStatus? status, bool? isLocal}) {
@@ -30,6 +38,9 @@ class TabEntry {
       title: title ?? this.title,
       status: status ?? this.status,
       isLocal: isLocal ?? this.isLocal,
+      // Carried through unconditionally: copyWith is used for status updates,
+      // and dropping it would silently turn a playback tab into a live one.
+      recordingPath: recordingPath,
     );
   }
 }
@@ -41,6 +52,32 @@ class TabListNotifier extends Notifier<List<TabEntry>> {
   String openTab(String serverId, String serverName) {
     final id = _nextTabId();
     state = [...state, TabEntry(id: id, serverId: serverId, title: serverName, status: TabStatus.connecting)];
+    ref.read(activeTabIdProvider.notifier).state = id;
+    return id;
+  }
+
+  /// Opens a playback tab for [filePath].
+  ///
+  /// Reuses an existing tab for the same recording rather than stacking
+  /// duplicates — reopening from the list is a common way to restart a replay.
+  String openRecordingTab(String filePath, String title) {
+    final existing =
+        state.where((t) => t.recordingPath == filePath).firstOrNull;
+    if (existing != null) {
+      ref.read(activeTabIdProvider.notifier).state = existing.id;
+      return existing.id;
+    }
+    final id = _nextTabId();
+    state = [
+      ...state,
+      TabEntry(
+        id: id,
+        serverId: '',
+        title: title,
+        status: TabStatus.connected,
+        recordingPath: filePath,
+      ),
+    ];
     ref.read(activeTabIdProvider.notifier).state = id;
     return id;
   }

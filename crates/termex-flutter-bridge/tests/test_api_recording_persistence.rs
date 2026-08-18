@@ -44,7 +44,7 @@ async fn test_recording_start_persists_row() {
     let _lock = TEST_LOCK.lock().unwrap();
     let _dir = setup();
 
-    let id = recording_start("session-x".into(), "srv".into(), "prod".into(), 80, 24, Some("web-01".into()), 0, false).await.unwrap();
+    let id = recording_start("session-x".into(), "srv".into(), "prod".into(), 80, 24, Some("web-01".into()), 0, false, None).await.unwrap();
     let all = recording_list_full().unwrap();
     assert_eq!(all.len(), 1);
     assert_eq!(all[0].id, id);
@@ -58,7 +58,7 @@ async fn test_recording_stop_sets_ended_at() {
     let _lock = TEST_LOCK.lock().unwrap();
     let _dir = setup();
 
-    let id = recording_start("s".into(), "srv".into(), "prod".into(), 80, 24, None, 0, false).await.unwrap();
+    let id = recording_start("s".into(), "srv".into(), "prod".into(), 80, 24, None, 0, false, None).await.unwrap();
     recording_stop("s".into()).await.unwrap();
 
     let all = recording_list_full().unwrap();
@@ -72,7 +72,7 @@ async fn test_recording_register_part_links_to_parent() {
     let _dir = setup();
 
     let parent_id =
-        recording_start("s1".into(), "srv".into(), "prod".into(), 80, 24, Some("web".into()), 0, false).await.unwrap();
+        recording_start("s1".into(), "srv".into(), "prod".into(), 80, 24, Some("web".into()), 0, false, None).await.unwrap();
     let part_id = recording_register_part(
         parent_id.clone(),
         "s1".into(),
@@ -91,7 +91,7 @@ async fn test_recording_delete_group_cascades() {
     let _lock = TEST_LOCK.lock().unwrap();
     let _dir = setup();
 
-    let parent = recording_start("s".into(), "srv".into(), "prod".into(), 80, 24, Some("a".into()), 0, false).await.unwrap();
+    let parent = recording_start("s".into(), "srv".into(), "prod".into(), 80, 24, Some("a".into()), 0, false, None).await.unwrap();
     let _ = recording_register_part(parent.clone(), "s".into(), "/tmp/p2.cast".into()).unwrap();
     let _ = recording_register_part(parent.clone(), "s".into(), "/tmp/p3.cast".into()).unwrap();
     assert_eq!(recording_list_full().unwrap().len(), 3);
@@ -106,7 +106,7 @@ async fn test_recording_mark_encrypted_flips_flag() {
     let _lock = TEST_LOCK.lock().unwrap();
     let _dir = setup();
 
-    let id = recording_start("s".into(), "srv".into(), "prod".into(), 80, 24, None, 0, false).await.unwrap();
+    let id = recording_start("s".into(), "srv".into(), "prod".into(), 80, 24, None, 0, false, None).await.unwrap();
     assert!(!recording_list_full().unwrap()[0].is_encrypted);
 
     recording_mark_encrypted(id).unwrap();
@@ -119,7 +119,7 @@ async fn test_recording_cleanup_expired_deletes_old_rows() {
     let _dir = setup();
 
     // Insert a recording with a backdated created_at.
-    let _ = recording_start("s".into(), "srv".into(), "prod".into(), 80, 24, Some("old".into()), 0, false).await.unwrap();
+    let _ = recording_start("s".into(), "srv".into(), "prod".into(), 80, 24, Some("old".into()), 0, false, None).await.unwrap();
     let backdated = (chrono::Utc::now() - chrono::Duration::days(60)).to_rfc3339();
     db_state::with_db(|db| {
         db.with_conn(|conn| {
@@ -139,7 +139,7 @@ async fn test_recording_cleanup_expired_deletes_old_rows() {
 async fn test_recording_cleanup_zero_days_is_noop() {
     let _lock = TEST_LOCK.lock().unwrap();
     let _dir = setup();
-    let _ = recording_start("s".into(), "srv".into(), "prod".into(), 80, 24, None, 0, false).await.unwrap();
+    let _ = recording_start("s".into(), "srv".into(), "prod".into(), 80, 24, None, 0, false, None).await.unwrap();
     let deleted = recording_cleanup_expired(0).unwrap();
     assert_eq!(deleted, 0);
     assert_eq!(recording_list_full().unwrap().len(), 1);

@@ -233,6 +233,8 @@ async fn maybe_auto_record(session_id: &str, server_id: &str, cols: u32, rows: u
         Some(format!("Auto: {server_name}")),
         max_mb,
         true,
+        // Auto-record starts with the shell, so there is nothing on screen yet.
+        None,
     )
     .await;
 }

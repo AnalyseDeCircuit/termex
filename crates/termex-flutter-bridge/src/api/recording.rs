@@ -121,7 +121,8 @@ pub fn recording_render_part_filename(basename: &str, part_n: u32) -> String {
 /// file.
 ///
 /// `auto_recorded` marks the row so the list can badge it AUTO, matching the
-/// Tauri list.
+/// Tauri list. `initial_screen` is the terminal's current contents, written as
+/// the first frame so playback does not begin blank.
 ///
 /// Mirrors the Tauri command's shape (session + server identity + geometry)
 /// rather than the id-only stub this replaces — the recorder keys everything
@@ -136,6 +137,7 @@ pub async fn recording_start(
     title: Option<String>,
     max_recording_mb: u32,
     auto_recorded: bool,
+    initial_screen: Option<String>,
 ) -> Result<String, String> {
     crate::frb_ssh_emitter::ACTIVE_RECORDINGS.insert(session_id.clone());
     let (id, file_path) = RECORDER
@@ -151,6 +153,13 @@ pub async fn recording_start(
         )
         .await
         .map_err(|e| e.to_string())?;
+
+    // Seed the recording with whatever is already on screen. An asciicast
+    // holds only what arrives after capture starts, so a replay would open on
+    // a black screen and stay blank until the session next produced output.
+    if let Some(screen) = initial_screen.filter(|s| !s.is_empty()) {
+        RECORDER.record_output(&session_id, &screen).await;
+    }
 
     let path_str = file_path.to_string_lossy().to_string();
     let now = chrono::Utc::now().to_rfc3339();

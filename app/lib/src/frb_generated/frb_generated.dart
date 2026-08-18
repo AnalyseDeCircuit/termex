@@ -877,7 +877,8 @@ abstract class TermexBridgeApi extends BaseApi {
       required int rows,
       String? title,
       required int maxRecordingMb,
-      required bool autoRecorded});
+      required bool autoRecorded,
+      String? initialScreen});
 
   Future<RecordingEntry> crateApiRecordingRecordingStop(
       {required String sessionId});
@@ -8113,7 +8114,8 @@ class TermexBridgeApiImpl extends TermexBridgeApiImplPlatform
       required int rows,
       String? title,
       required int maxRecordingMb,
-      required bool autoRecorded}) {
+      required bool autoRecorded,
+      String? initialScreen}) {
     return handler.executeNormal(NormalTask(
       callFfi: (port_) {
         final serializer = SseSerializer(generalizedFrbRustBinding);
@@ -8125,6 +8127,7 @@ class TermexBridgeApiImpl extends TermexBridgeApiImplPlatform
         sse_encode_opt_String(title, serializer);
         sse_encode_u_32(maxRecordingMb, serializer);
         sse_encode_bool(autoRecorded, serializer);
+        sse_encode_opt_String(initialScreen, serializer);
         pdeCallFfi(generalizedFrbRustBinding, serializer,
             funcId: 260, port: port_);
       },
@@ -8141,7 +8144,8 @@ class TermexBridgeApiImpl extends TermexBridgeApiImplPlatform
         rows,
         title,
         maxRecordingMb,
-        autoRecorded
+        autoRecorded,
+        initialScreen
       ],
       apiImpl: this,
     ));
@@ -8158,7 +8162,8 @@ class TermexBridgeApiImpl extends TermexBridgeApiImplPlatform
           "rows",
           "title",
           "maxRecordingMb",
-          "autoRecorded"
+          "autoRecorded",
+          "initialScreen"
         ],
       );
 

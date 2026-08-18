@@ -9240,6 +9240,7 @@ fn wire__crate__api__recording__recording_start_impl(
             let api_title = <Option<String>>::sse_decode(&mut deserializer);
             let api_max_recording_mb = <u32>::sse_decode(&mut deserializer);
             let api_auto_recorded = <bool>::sse_decode(&mut deserializer);
+            let api_initial_screen = <Option<String>>::sse_decode(&mut deserializer);
             deserializer.end();
             move |context| async move {
                 transform_result_sse::<_, String>(
@@ -9253,6 +9254,7 @@ fn wire__crate__api__recording__recording_start_impl(
                             api_title,
                             api_max_recording_mb,
                             api_auto_recorded,
+                            api_initial_screen,
                         )
                         .await?;
                         Ok(output_ok)

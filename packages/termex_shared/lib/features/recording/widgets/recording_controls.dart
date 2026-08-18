@@ -10,6 +10,10 @@ import 'dart:ui' show FontFeature;
 
 import 'package:flutter/widgets.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
+import 'package:xterm/xterm.dart' show BufferRangeLine, CellOffset;
+
+import '../../../terminal/pane/terminal_pane.dart'
+    show terminalInstanceProvider;
 
 import '../../../design/colors.dart';
 import '../../../l10n/app_localizations.dart';
@@ -72,6 +76,35 @@ class _RecordingControlsState extends ConsumerState<RecordingControls> {
     }
   }
 
+  /// The terminal's visible contents, as the recording's opening frame.
+  ///
+  /// Only the viewport, not the scrollback: a replay reproduces a screen, and
+  /// prepending thousands of scrolled-off lines would push the actual starting
+  /// state out of view. Cleared and homed first so the frame lands on a known
+  /// canvas.
+  String? _currentScreen() {
+    try {
+      final term = ref.read(terminalInstanceProvider(widget.sessionId));
+      final buffer = term.buffer;
+      final height = term.viewHeight;
+      final first = (buffer.height - height).clamp(0, buffer.height);
+      final text = buffer
+          .getText(BufferRangeLine(
+            CellOffset(0, first),
+            CellOffset(term.viewWidth - 1, buffer.height - 1),
+          ))
+          .trimRight();
+      if (text.isEmpty) return null;
+      // CRLF: the recording replays into a terminal, where a bare \n moves
+      // down without returning to column 0.
+      return '\x1b[2J\x1b[H${text.replaceAll('\n', '\r\n')}\r\n';
+    } catch (_) {
+      // No terminal for this session (tests, a pane that never mounted) —
+      // recording without an opening frame is still correct, just blank.
+      return null;
+    }
+  }
+
   static String _format(Duration d) {
     final h = d.inHours;
     final m = d.inMinutes.remainder(60).toString().padLeft(2, '0');
@@ -99,6 +132,7 @@ class _RecordingControlsState extends ConsumerState<RecordingControls> {
           cols: widget.cols,
           rows: widget.rows,
           title: widget.serverName,
+          initialScreen: _currentScreen(),
         ),
         child: _Dot(color: context.colors.textMuted, size: 8),
       );

@@ -13,6 +13,10 @@ class TabItem extends StatefulWidget {
   final TabStatus status;
   final bool isActive;
   final bool isBroadcasting;
+
+  /// Marks a recording-playback tab. Styled apart from live sessions — same
+  /// tab strip, but nothing here is connected to a host.
+  final bool isPlayback;
   final VoidCallback? onTap;
   final VoidCallback? onClose;
   final VoidCallback? onClone;
@@ -23,6 +27,7 @@ class TabItem extends StatefulWidget {
     required this.status,
     required this.isActive,
     this.isBroadcasting = false,
+    this.isPlayback = false,
     this.onTap,
     this.onClose,
     this.onClone,
@@ -35,8 +40,18 @@ class TabItem extends StatefulWidget {
 class _TabItemState extends State<TabItem> {
   bool _hovered = false;
 
+  /// Accent for the active underline. Playback tabs take the warning hue so
+  /// a replay is never mistaken for a live shell at a glance.
+  Color _accent() => widget.isPlayback
+      ? context.colors.warning
+      : context.colors.primary;
+
   Color _bgColor() {
-    if (widget.isActive) return context.colors.backgroundTertiary;
+    if (widget.isActive) {
+      return widget.isPlayback
+          ? context.colors.warning.withValues(alpha: 0.12)
+          : context.colors.backgroundTertiary;
+    }
     if (_hovered) return context.colors.backgroundSecondary.withOpacity(0.8);
     return const Color(0x00000000);
   }
@@ -61,10 +76,7 @@ class _TabItemState extends State<TabItem> {
             color: _bgColor(),
             border: widget.isActive
                 ? Border(
-                    bottom: BorderSide(
-                      color: context.colors.primary,
-                      width: 2,
-                    ),
+                    bottom: BorderSide(color: _accent(), width: 2),
                   )
                 : null,
           ),
@@ -72,7 +84,13 @@ class _TabItemState extends State<TabItem> {
           child: Row(
             mainAxisSize: MainAxisSize.min,
             children: [
-              _TabStatusIndicator(status: widget.status),
+              // A connection dot would be meaningless for a file being
+              // replayed, so playback shows what it is instead.
+              if (widget.isPlayback)
+                TermexIconWidget(TermexIcons.play,
+                    size: 11, color: context.colors.warning)
+              else
+                _TabStatusIndicator(status: widget.status),
               const SizedBox(width: TermexSpacing.xs),
               Flexible(
                 child: Text(

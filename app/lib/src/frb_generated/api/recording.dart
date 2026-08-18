@@ -26,7 +26,8 @@ Future<String> recordingRenderPartFilename(
 /// file.
 ///
 /// `auto_recorded` marks the row so the list can badge it AUTO, matching the
-/// Tauri list.
+/// Tauri list. `initial_screen` is the terminal's current contents, written as
+/// the first frame so playback does not begin blank.
 ///
 /// Mirrors the Tauri command's shape (session + server identity + geometry)
 /// rather than the id-only stub this replaces — the recorder keys everything
@@ -40,7 +41,8 @@ Future<String> recordingStart(
         required int rows,
         String? title,
         required int maxRecordingMb,
-        required bool autoRecorded}) =>
+        required bool autoRecorded,
+        String? initialScreen}) =>
     TermexBridge.instance.api.crateApiRecordingRecordingStart(
         sessionId: sessionId,
         serverId: serverId,
@@ -49,7 +51,8 @@ Future<String> recordingStart(
         rows: rows,
         title: title,
         maxRecordingMb: maxRecordingMb,
-        autoRecorded: autoRecorded);
+        autoRecorded: autoRecorded,
+        initialScreen: initialScreen);
 
 /// Whether `session_id` is currently being recorded. Used by the UI to render
 /// the correct control after a rebuild or a tab switch.

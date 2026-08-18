@@ -13,7 +13,7 @@ import 'package:flutter/services.dart';
 import 'package:flutter/widgets.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 
-import 'widgets/recording_player.dart';
+import '../tabs/state/tab_controller.dart' show tabListProvider;
 
 import '../server_list/widgets/server_search_bar.dart';
 import '../sidebar_search.dart';
@@ -161,16 +161,19 @@ class _RecordingListPanelState extends ConsumerState<RecordingListPanel> {
                     // Defaults to the bundled player. The desktop sidebar
                     // constructs this panel without an onOpen, which left the
                     // open action — and the row's menu entry — inert.
+                    // Opens in a tab rather than a modal: a replay is
+                    // something to keep open beside the terminals it came
+                    // from, and the tab strip marks it as playback.
                     onOpen: widget.onOpen ??
-                        (id, filePath) => showRecordingPlayer(
-                              context,
-                              filePath: filePath,
-                              title: g.value
-                                      .where((r) => r.id == id)
-                                      .map((r) => r.serverName)
-                                      .firstOrNull ??
-                                  l10n.recordingTitle,
-                            ),
+                        (id, filePath) =>
+                            ref.read(tabListProvider.notifier).openRecordingTab(
+                                  filePath,
+                                  g.value
+                                          .where((r) => r.id == id)
+                                          .map((r) => r.serverName)
+                                          .firstOrNull ??
+                                      l10n.recordingTitle,
+                                ),
                     onDelete: _delete,
                   );
                 },

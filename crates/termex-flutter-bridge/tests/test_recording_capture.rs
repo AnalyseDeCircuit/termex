@@ -12,7 +12,7 @@ async fn start_marks_the_session_active_and_stop_clears_it() {
     assert!(!recording::recording_is_active(sid.clone()).await);
 
     recording::recording_start(
-        sid.clone(), "srv".into(), "prod".into(), 80, 24, None, 0, false,
+        sid.clone(), "srv".into(), "prod".into(), 80, 24, None, 0, false, None,
     )
     .await
     .expect("start");
@@ -32,7 +32,7 @@ async fn start_marks_the_session_active_and_stop_clears_it() {
 async fn stop_writes_the_captured_output_to_an_asciicast_file() {
     let sid = format!("sess-{}", uuid::Uuid::new_v4());
     recording::recording_start(
-        sid.clone(), "srv".into(), "prod".into(), 80, 24, None, 0, false,
+        sid.clone(), "srv".into(), "prod".into(), 80, 24, None, 0, false, None,
     )
     .await
     .expect("start");
@@ -65,7 +65,7 @@ async fn auto_recorded_flag_is_carried_through_start() {
     let sid = format!("sess-{}", uuid::Uuid::new_v4());
     recording::recording_start(
         sid.clone(), "srv".into(), "prod".into(), 80, 24,
-        Some("Auto: prod".into()), 0, true,
+        Some("Auto: prod".into()), 0, true, None,
     )
     .await
     .expect("start");

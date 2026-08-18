@@ -1,6 +1,8 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 
+import '../../recording/widgets/recording_player.dart';
+
 import '../../../design/colors.dart';
 import '../../../design/spacing.dart';
 import '../../../design/typography.dart';
@@ -54,6 +56,12 @@ class TabContent extends ConsumerWidget {
     final connection = ref.watch(connectionProvider(tabId));
     // For local PTY tabs session.sessionId is not used — the session ID is
     // stored directly in connection.sessionId from connectLocal().
+    // Playback tabs host a file, not a session — no connection state applies.
+    final recordingPath = tab.recordingPath;
+    if (recordingPath != null) {
+      return RecordingPlayer(filePath: recordingPath);
+    }
+
     final session = tab.isLocal ? null : ref.watch(sessionProvider(tab.serverId));
 
     Widget wrap(Widget child) {

@@ -45,6 +45,9 @@ class RecordingNotifier extends FamilyNotifier<RecordingStatus, String> {
     /// Set by the connect path when the server is flagged for auto-record;
     /// the list badges those entries AUTO.
     bool autoRecorded = false,
+    /// The terminal's current contents, written as the recording's first
+    /// frame so playback does not open on a black screen.
+    String? initialScreen,
   }) async {
     if (state.active) return;
     try {
@@ -57,6 +60,7 @@ class RecordingNotifier extends FamilyNotifier<RecordingStatus, String> {
         title: title,
         maxRecordingMb: maxRecordingMb,
         autoRecorded: autoRecorded,
+        initialScreen: initialScreen,
       );
       state = RecordingStatus(
         active: true,
