@@ -15,7 +15,7 @@ import '../models/group_dto.dart';
 import '../state/server_provider.dart';
 import '../state/group_provider.dart';
 import 'server_tree_node.dart';
-import 'server_tree_context_menu.dart';
+import '../../../widgets/context_menu.dart';
 import 'server_form_dialog.dart';
 import 'import_ssh_config_dialog.dart';
 import '../../sidebar_search.dart';
@@ -72,15 +72,15 @@ class _ServerTreeState extends ConsumerState<ServerTree> {
     final isOwned = server.teamId == null;
 
     final groups = ref.read(groupListProvider).valueOrNull ?? const <GroupDto>[];
-    final moveTargets = <ServerTreeMenuItem>[
+    final moveTargets = <TermexMenuItem>[
       for (final g in groups.where((g) => g.id != server.groupId))
-        ServerTreeMenuItem(
+        TermexMenuItem(
           icon: TermexIcons.folder,
           label: g.name,
           onSelect: () => _moveToGroup(server, g.id),
         ),
       if (server.groupId != null)
-        ServerTreeMenuItem(
+        TermexMenuItem(
           divided: groups.any((g) => g.id != server.groupId),
           icon: TermexIcons.folderOpen,
           label: l10n.contextUngroup,
@@ -88,45 +88,45 @@ class _ServerTreeState extends ConsumerState<ServerTree> {
         ),
     ];
 
-    final items = <ServerTreeMenuItem>[
-      ServerTreeMenuItem(
+    final items = <TermexMenuItem>[
+      TermexMenuItem(
         icon: TermexIcons.connect,
         label: l10n.contextConnect,
         onSelect: () => widget.onServerConnect?.call(server.id),
       ),
       if (widget.onServerOpenSftp != null)
-        ServerTreeMenuItem(
+        TermexMenuItem(
           icon: TermexIcons.sftp,
           label: l10n.sftpOpenSftp,
           onSelect: () => widget.onServerOpenSftp!(server.id),
         ),
       if (isOwned)
-        ServerTreeMenuItem(
+        TermexMenuItem(
           divided: true,
           icon: TermexIcons.edit,
           label: l10n.contextEdit,
           onSelect: () => ServerFormDialog.show(context, editId: server.id),
         ),
-      ServerTreeMenuItem(
+      TermexMenuItem(
         divided: !isOwned,
         icon: TermexIcons.copy,
         label: l10n.contextDuplicate,
         onSelect: () => _duplicate(server),
       ),
       if (isOwned)
-        ServerTreeMenuItem(
+        TermexMenuItem(
           icon: TermexIcons.edit,
           label: l10n.contextRename,
           onSelect: () => _promptRename(server),
         ),
       if (isOwned && moveTargets.isNotEmpty)
-        ServerTreeMenuItem(
+        TermexMenuItem(
           divided: true,
           icon: TermexIcons.folder,
           label: l10n.contextMoveTo,
           children: moveTargets,
         ),
-      ServerTreeMenuItem(
+      TermexMenuItem(
         divided: true,
         // Lucide-style: a "plug" glyph as the active state, "unplug"
         // as the inverse. TermexIcons exposes them as connect/disconnect.
@@ -134,7 +134,7 @@ class _ServerTreeState extends ConsumerState<ServerTree> {
         label: server.shared ? l10n.serverUnshareFromTeam : l10n.serverShareToTeam,
         onSelect: () => _toggleShare(server),
       ),
-      ServerTreeMenuItem(
+      TermexMenuItem(
         divided: true,
         danger: true,
         icon: TermexIcons.delete,
@@ -144,7 +144,7 @@ class _ServerTreeState extends ConsumerState<ServerTree> {
     ];
     final size = MediaQuery.sizeOf(context);
     _ctxMenuEntry = OverlayEntry(
-      builder: (_) => ServerTreeContextMenu(
+      builder: (_) => TermexContextMenu(
         position: globalPos,
         screenSize: size,
         items: items,
@@ -161,24 +161,24 @@ class _ServerTreeState extends ConsumerState<ServerTree> {
   void _openRootContextMenu(Offset globalPos) {
     _closeCtxMenu();
     final l10n = AppLocalizations.of(context);
-    final items = <ServerTreeMenuItem>[
-      ServerTreeMenuItem(
+    final items = <TermexMenuItem>[
+      TermexMenuItem(
         icon: TermexIcons.add,
         label: l10n.sidebarNewConnection,
         onSelect: () => ServerFormDialog.show(context),
       ),
-      ServerTreeMenuItem(
+      TermexMenuItem(
         icon: TermexIcons.folder,
         label: l10n.sidebarNewGroup,
         onSelect: _promptNewGroup,
       ),
-      ServerTreeMenuItem(
+      TermexMenuItem(
         divided: true,
         icon: TermexIcons.download,
         label: l10n.sidebarImportSshConfig,
         onSelect: () => ImportSshConfigDialog.show(context),
       ),
-      ServerTreeMenuItem(
+      TermexMenuItem(
         icon: TermexIcons.upload,
         label: l10n.backupExport,
         onSelect: _exportConfig,
@@ -186,7 +186,7 @@ class _ServerTreeState extends ConsumerState<ServerTree> {
     ];
     final size = MediaQuery.sizeOf(context);
     _ctxMenuEntry = OverlayEntry(
-      builder: (_) => ServerTreeContextMenu(
+      builder: (_) => TermexContextMenu(
         position: globalPos,
         screenSize: size,
         items: items,

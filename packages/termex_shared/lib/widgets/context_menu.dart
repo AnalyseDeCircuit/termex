@@ -1,35 +1,43 @@
 import 'package:flutter/widgets.dart';
 
-import '../../../design/colors.dart';
-import '../../../design/spacing.dart';
-import '../../../design/typography.dart';
-import '../../../design/radius.dart';
-import '../../../icons/termex_icons.dart';
+import '../design/colors.dart';
+import '../design/spacing.dart';
+import '../design/typography.dart';
+import '../design/radius.dart';
+import '../icons/termex_icons.dart';
 
-/// Generic right-click menu used by [ServerTree] for both server rows,
-/// group headers and the empty-area root context.
+/// Generic right-click menu, shared by the sidebar tree and the SFTP file
+/// browser.
+///
+/// Dense by desktop convention: 32px rows against Material's 48px minimum,
+/// which made the SFTP menu look padded and cramped at the same time.
 ///
 /// Rendered as a transient [OverlayEntry] anchored to a global click position,
 /// matching `src/components/sidebar/ContextMenu.vue` from the Tauri build.
-class ServerTreeContextMenu extends StatefulWidget {
+class TermexContextMenu extends StatefulWidget {
   final Offset position;
   final Size screenSize;
-  final List<ServerTreeMenuItem> items;
+  final List<TermexMenuItem> items;
   final VoidCallback onDismiss;
 
-  const ServerTreeContextMenu({
+  /// Widened by callers whose labels need it — SFTP actions are longer than
+  /// the sidebar's.
+  final double width;
+
+  const TermexContextMenu({
     super.key,
     required this.position,
     required this.screenSize,
     required this.items,
     required this.onDismiss,
+    this.width = 180,
   });
 
   @override
-  State<ServerTreeContextMenu> createState() => _ServerTreeContextMenuState();
+  State<TermexContextMenu> createState() => _TermexContextMenuState();
 }
 
-class _ServerTreeContextMenuState extends State<ServerTreeContextMenu>
+class _TermexContextMenuState extends State<TermexContextMenu>
     with SingleTickerProviderStateMixin {
   late final AnimationController _ctrl;
   late final Animation<double> _fade;
@@ -61,7 +69,7 @@ class _ServerTreeContextMenuState extends State<ServerTreeContextMenu>
 
   LayerLink _linkFor(int index) => _links.putIfAbsent(index, LayerLink.new);
 
-  Widget _buildRow(int index, ServerTreeMenuItem item) {
+  Widget _buildRow(int index, TermexMenuItem item) {
     final row = _ContextRow(
       item: item,
       onTap: () {
@@ -86,7 +94,7 @@ class _ServerTreeContextMenuState extends State<ServerTreeContextMenu>
 
   @override
   Widget build(BuildContext context) {
-    const menuWidth = 180.0;
+    final menuWidth = widget.width;
     final dx = widget.position.dx + menuWidth > widget.screenSize.width
         ? widget.position.dx - menuWidth
         : widget.position.dx;
@@ -235,7 +243,7 @@ class _ServerTreeContextMenuState extends State<ServerTreeContextMenu>
   }
 }
 
-class ServerTreeMenuItem {
+class TermexMenuItem {
   final IconData icon;
   final String label;
   final bool danger;
@@ -247,9 +255,9 @@ class ServerTreeMenuItem {
   /// set as a flyout rather than flattening it into the parent menu.
   ///
   /// An item with children is not itself selectable; [onSelect] is ignored.
-  final List<ServerTreeMenuItem>? children;
+  final List<TermexMenuItem>? children;
 
-  const ServerTreeMenuItem({
+  const TermexMenuItem({
     required this.icon,
     required this.label,
     this.danger = false,
@@ -262,7 +270,7 @@ class ServerTreeMenuItem {
 }
 
 class _ContextRow extends StatefulWidget {
-  final ServerTreeMenuItem item;
+  final TermexMenuItem item;
   final VoidCallback onTap;
 
   /// Called with the row's hover state so the parent menu can open or close

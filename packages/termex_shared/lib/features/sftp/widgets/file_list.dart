@@ -6,6 +6,8 @@ import 'package:flutter/services.dart';
 
 import '../../../design/colors.dart';
 import '../../../l10n/app_localizations.dart';
+import '../../../icons/termex_icons.dart';
+import '../../../widgets/context_menu.dart';
 import 'file_row.dart';
 
 export 'file_row.dart';
@@ -279,6 +281,14 @@ class _FileListState extends State<FileList> {
   int _cursorIndex = 0;
 
   @override
+  void dispose() {
+    // The menu lives in the Overlay, not this subtree, so it outlives the
+    // list unless removed explicitly.
+    _closeMenu();
+    super.dispose();
+  }
+
+  @override
   Widget build(BuildContext context) {
     if (widget.isLoading) {
       return Center(
@@ -369,7 +379,15 @@ class _FileListState extends State<FileList> {
     }
   }
 
-  void _showContextMenu(FileRowData entry, int idx, Offset globalPos) async {
+  OverlayEntry? _menuEntry;
+
+  void _closeMenu() {
+    _menuEntry?.remove();
+    _menuEntry = null;
+  }
+
+  void _showContextMenu(FileRowData entry, int idx, Offset globalPos) {
+    _closeMenu();
     setState(() => _cursorIndex = idx);
 
     // Right-clicking an unselected row selects it first, so the action always
@@ -378,62 +396,90 @@ class _FileListState extends State<FileList> {
       widget.onSelectOnly(entry.name);
     }
 
-    // Anchored to the pointer. The position used to be derived from the
-    // list's own origin plus `idx * 28`, which ignored scroll offset — after
-    // scrolling the menu opened far from the cursor, or off-screen entirely,
-    // which read as "there is no context menu".
     final l10n = AppLocalizations.of(context);
-    final overlay =
-        Overlay.of(context).context.findRenderObject()! as RenderBox;
-    final result = await showMenu<FileAction>(
-      context: context,
-      color: context.colors.backgroundSecondary,
-      position: RelativeRect.fromRect(
-        Rect.fromPoints(globalPos, globalPos),
-        Offset.zero & overlay.size,
-      ),
-      // Ordering and grouping follow the Tauri pane's menu
-      // (src/components/sftp/RemoteFilePane.vue).
-      items: [
-        if (!entry.isDirectory)
-          PopupMenuItem(
-              value: FileAction.download,
-              child: Text(l10n.sftpActionDownload)),
-        if (!entry.isDirectory)
-          PopupMenuItem(
-              value: FileAction.edit, child: Text(l10n.sftpActionEdit)),
-        if (!entry.isDirectory) const PopupMenuDivider(),
-        PopupMenuItem(
-            value: FileAction.rename, child: Text(l10n.sftpActionRename)),
-        PopupMenuItem(
-            value: FileAction.delete, child: Text(l10n.sftpActionDelete)),
-        PopupMenuItem(
-            value: FileAction.copyPath,
-            child: Text(l10n.sftpActionCopyPath)),
-        if (!entry.isDirectory)
-          PopupMenuItem(
-              value: FileAction.chmod, child: Text(l10n.sftpActionChmod)),
-        const PopupMenuDivider(),
-        PopupMenuItem(
-            value: FileAction.newFile, child: Text(l10n.sftpActionNewFile)),
-        PopupMenuItem(
-            value: FileAction.newFolder,
-            child: Text(l10n.sftpActionNewFolder)),
-        const PopupMenuDivider(),
-        // Handled here rather than through onAction — they are list-level
-        // concerns the pane already exposes as callbacks.
-        PopupMenuItem(
-            onTap: widget.onSelectAll,
-            child: Text(l10n.sftpActionSelectAll)),
-        PopupMenuItem(
-            onTap: widget.onRefresh, child: Text(l10n.commonRefresh)),
-        const PopupMenuDivider(),
-        PopupMenuItem(
-            value: FileAction.properties,
-            child: Text(l10n.sftpActionProperties)),
-      ],
-    );
+    void act(FileAction a) => widget.onAction(entry, a);
 
-    if (result != null) widget.onAction(entry, result);
+    // Same component the sidebar uses. Material's showMenu enforces a 48px
+    // minimum row, which looked padded next to the dense file rows while its
+    // intrinsic width still clipped the longer labels.
+    // Ordering follows the Tauri pane (src/components/sftp/RemoteFilePane.vue).
+    final items = <TermexMenuItem>[
+      if (!entry.isDirectory)
+        TermexMenuItem(
+          icon: TermexIcons.download,
+          label: l10n.sftpActionDownload,
+          onSelect: () => act(FileAction.download),
+        ),
+      if (!entry.isDirectory)
+        TermexMenuItem(
+          icon: TermexIcons.edit,
+          label: l10n.sftpActionEdit,
+          onSelect: () => act(FileAction.edit),
+        ),
+      TermexMenuItem(
+        divided: !entry.isDirectory,
+        icon: TermexIcons.edit,
+        label: l10n.sftpActionRename,
+        onSelect: () => act(FileAction.rename),
+      ),
+      TermexMenuItem(
+        icon: TermexIcons.copy,
+        label: l10n.sftpActionCopyPath,
+        onSelect: () => act(FileAction.copyPath),
+      ),
+      if (!entry.isDirectory)
+        TermexMenuItem(
+          icon: TermexIcons.lock,
+          label: l10n.sftpActionChmod,
+          onSelect: () => act(FileAction.chmod),
+        ),
+      TermexMenuItem(
+        divided: true,
+        icon: TermexIcons.file,
+        label: l10n.sftpActionNewFile,
+        onSelect: () => act(FileAction.newFile),
+      ),
+      TermexMenuItem(
+        icon: TermexIcons.folder,
+        label: l10n.sftpActionNewFolder,
+        onSelect: () => act(FileAction.newFolder),
+      ),
+      // List-level concerns the pane exposes directly rather than via onAction.
+      TermexMenuItem(
+        divided: true,
+        icon: TermexIcons.check,
+        label: l10n.sftpActionSelectAll,
+        onSelect: widget.onSelectAll,
+      ),
+      TermexMenuItem(
+        icon: TermexIcons.refresh,
+        label: l10n.commonRefresh,
+        onSelect: widget.onRefresh,
+      ),
+      TermexMenuItem(
+        divided: true,
+        icon: TermexIcons.info,
+        label: l10n.sftpActionProperties,
+        onSelect: () => act(FileAction.properties),
+      ),
+      TermexMenuItem(
+        divided: true,
+        danger: true,
+        icon: TermexIcons.delete,
+        label: l10n.sftpActionDelete,
+        onSelect: () => act(FileAction.delete),
+      ),
+    ];
+
+    _menuEntry = OverlayEntry(
+      builder: (_) => TermexContextMenu(
+        position: globalPos,
+        screenSize: MediaQuery.sizeOf(context),
+        items: items,
+        width: 200,
+        onDismiss: _closeMenu,
+      ),
+    );
+    Overlay.of(context).insert(_menuEntry!);
   }
 }
