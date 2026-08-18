@@ -511,7 +511,7 @@ class _TopBarIconButtonState extends State<_TopBarIconButton> {
             alignment: Alignment.center,
             decoration: BoxDecoration(
               color: widget.active
-                  ? activeColor.withOpacity(0.12)
+                  ? activeColor.withValues(alpha: 0.12)
                   : (_hovered ? context.colors.backgroundTertiary : null),
               borderRadius: BorderRadius.circular(6),
             ),

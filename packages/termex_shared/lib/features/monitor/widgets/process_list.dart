@@ -8,7 +8,7 @@
 library;
 
 import 'package:flutter/widgets.dart';
-import 'package:termex_bridge/src/api.dart' as bridge;
+import 'package:termex_bridge/api.dart' as bridge;
 
 import '../../../design/colors.dart';
 import '../../../design/spacing.dart';

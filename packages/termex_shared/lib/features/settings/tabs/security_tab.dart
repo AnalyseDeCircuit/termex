@@ -2,7 +2,7 @@ import 'dart:io' show Platform;
 
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
-import 'package:termex_bridge/src/api.dart' as bridge;
+import 'package:termex_bridge/api.dart' as bridge;
 
 import '../../../design/tokens.dart';
 import '../../../l10n/app_localizations.dart';

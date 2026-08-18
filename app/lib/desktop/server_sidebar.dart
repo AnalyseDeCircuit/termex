@@ -215,7 +215,7 @@ class _ServerTileState extends State<_ServerTile> {
           height: 48,
           padding: const EdgeInsets.symmetric(horizontal: TermexSpacing.md),
           color: _hovered
-              ? context.colors.backgroundPrimary.withOpacity(0.6)
+              ? context.colors.backgroundPrimary.withValues(alpha: 0.6)
               : null,
           child: Row(
             children: [
@@ -305,7 +305,7 @@ class _SidebarDivider extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) =>
-      ColoredBox(color: context.colors.border, child: SizedBox(height: 1));
+      ColoredBox(color: context.colors.border, child: const SizedBox(height: 1));
 }
 
 class _Spinner extends StatelessWidget {

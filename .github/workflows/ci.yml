@@ -57,7 +57,7 @@ jobs:
       - name: Install Linux dependencies for rusqlite / sqlcipher
         run: |
           sudo apt-get update
-          sudo apt-get install -y libsqlcipher-dev pkg-config
+          sudo apt-get install -y libsqlcipher-dev pkg-config libdbus-1-dev
 
       - uses: dtolnay/rust-toolchain@stable
 
@@ -79,7 +79,7 @@ jobs:
 
       - uses: subosito/flutter-action@v2
         with:
-          flutter-version: '3.24.x'
+          flutter-version: '3.35.x'
           channel: stable
           cache: true
 
@@ -110,7 +110,7 @@ jobs:
 
       - uses: subosito/flutter-action@v2
         with:
-          flutter-version: '3.24.x'
+          flutter-version: '3.35.x'
           channel: stable
           cache: true
 
@@ -156,7 +156,7 @@ jobs:
 
       - uses: subosito/flutter-action@v2
         with:
-          flutter-version: '3.24.x'
+          flutter-version: '3.35.x'
           channel: stable
           cache: true
 
@@ -202,7 +202,7 @@ jobs:
 
       - uses: subosito/flutter-action@v2
         with:
-          flutter-version: '3.24.x'
+          flutter-version: '3.35.x'
           channel: stable
           cache: true
 

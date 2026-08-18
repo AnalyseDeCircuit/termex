@@ -20,7 +20,7 @@ import 'dart:async';
 
 import 'package:flutter/foundation.dart';
 // ignore: implementation_imports
-import 'package:termex_bridge/src/api.dart' as frb;
+import 'package:termex_bridge/api.dart' as frb;
 
 import 'mobile_localizer.dart';
 import 'task_event_bus.dart';

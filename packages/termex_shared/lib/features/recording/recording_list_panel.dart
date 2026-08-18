@@ -17,7 +17,7 @@ import '../tabs/state/tab_controller.dart' show tabListProvider;
 
 import '../server_list/widgets/server_search_bar.dart';
 import '../sidebar_search.dart';
-import 'package:termex_bridge/src/api.dart' as bridge;
+import 'package:termex_bridge/api.dart' as bridge;
 
 import '../../design/colors.dart';
 import '../../design/spacing.dart';

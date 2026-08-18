@@ -11,7 +11,7 @@ library;
 import 'dart:convert';
 
 import 'package:flutter/material.dart';
-import 'package:termex_bridge/src/api.dart' as bridge;
+import 'package:termex_bridge/api.dart' as bridge;
 
 import '../../../design/colors.dart';
 import '../../../l10n/app_localizations.dart';

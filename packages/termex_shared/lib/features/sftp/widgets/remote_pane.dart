@@ -8,7 +8,7 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 
 import '../../../system/clipboard_service.dart';
 import '../dialogs/file_editor_dialog.dart';
-import 'package:termex_bridge/src/api.dart' as bridge;
+import 'package:termex_bridge/api.dart' as bridge;
 
 import '../../../l10n/app_localizations.dart';
 import '../../../widgets/toast.dart';

@@ -3,7 +3,7 @@ import 'dart:convert';
 
 import 'package:flutter/widgets.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
-import 'package:termex_bridge/src/api.dart' as bridge;
+import 'package:termex_bridge/api.dart' as bridge;
 import 'package:termex_shared/design/colors.dart';
 import 'package:termex_shared/design/mobile_tokens.dart';
 import 'package:termex_shared/design/typography.dart';

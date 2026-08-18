@@ -77,7 +77,7 @@ void main() {
       expect(src.contains('onSecondaryTapUp'), isTrue,
           reason: '$rel lost its right-click handler, so refresh is now '
               'unreachable — the header button it replaced is gone.');
-      expect(src.contains('showContextMenu'), isTrue, reason: '$rel');
+      expect(src.contains('showContextMenu'), isTrue, reason: rel);
       // Blank space below the last row must respond too, which is what
       // opaque hit-testing on the wrapping detector provides.
       expect(src.contains('HitTestBehavior.opaque'), isTrue, reason: rel);

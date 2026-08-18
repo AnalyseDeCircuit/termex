@@ -7,7 +7,7 @@ library;
 import 'dart:async';
 
 import 'package:flutter/material.dart';
-import 'package:termex_bridge/src/api.dart' as bridge;
+import 'package:termex_bridge/api.dart' as bridge;
 import 'package:xterm/xterm.dart' as xt;
 
 import '../../../design/colors.dart';

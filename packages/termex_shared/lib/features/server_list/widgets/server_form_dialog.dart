@@ -5,7 +5,7 @@ import 'package:flutter/widgets.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:path_provider/path_provider.dart';
 // ignore: implementation_imports
-import 'package:termex_bridge/src/api.dart' as frb;
+import 'package:termex_bridge/api.dart' as frb;
 
 import '../../../design/colors.dart';
 import '../../../design/typography.dart';

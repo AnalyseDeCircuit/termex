@@ -190,10 +190,10 @@ class _MenuDivider extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     return Padding(
-      padding: EdgeInsets.symmetric(vertical: TermexSpacing.xs),
+      padding: const EdgeInsets.symmetric(vertical: TermexSpacing.xs),
       child: ColoredBox(
         color: context.colors.border,
-        child: SizedBox(height: 1, width: double.infinity),
+        child: const SizedBox(height: 1, width: double.infinity),
       ),
     );
   }

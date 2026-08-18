@@ -79,7 +79,7 @@ void main() {
 
     test('download succeeded uses same rule', () {
       expect(
-        shouldNotifyForPayload(TaskCompletionPayload(
+        shouldNotifyForPayload(const TaskCompletionPayload(
           taskId: 't',
           title: 'fallback',
           summary: 'fallback',
@@ -99,7 +99,7 @@ void main() {
   group('shouldNotifyForPayload — failures + cancels always notify', () {
     test('failed transfer always notifies regardless of size', () {
       expect(
-        shouldNotifyForPayload(TaskCompletionPayload(
+        shouldNotifyForPayload(const TaskCompletionPayload(
           taskId: 't',
           title: 'fallback',
           summary: 'fallback',
@@ -113,7 +113,7 @@ void main() {
 
     test('cancelled transfer always notifies', () {
       expect(
-        shouldNotifyForPayload(TaskCompletionPayload(
+        shouldNotifyForPayload(const TaskCompletionPayload(
           taskId: 't',
           title: 'fallback',
           summary: 'fallback',
@@ -129,7 +129,7 @@ void main() {
   group('shouldNotifyForPayload — AI always notifies', () {
     test('AI succeeded with tiny response still notifies', () {
       expect(
-        shouldNotifyForPayload(TaskCompletionPayload(
+        shouldNotifyForPayload(const TaskCompletionPayload(
           taskId: 'ai-1',
           title: 'fallback',
           summary: 'fallback',
@@ -143,7 +143,7 @@ void main() {
 
     test('AI failed always notifies', () {
       expect(
-        shouldNotifyForPayload(TaskCompletionPayload(
+        shouldNotifyForPayload(const TaskCompletionPayload(
           taskId: 'ai-1',
           title: 'fallback',
           summary: 'fallback',
@@ -157,7 +157,7 @@ void main() {
 
     test('AI cancelled always notifies', () {
       expect(
-        shouldNotifyForPayload(TaskCompletionPayload(
+        shouldNotifyForPayload(const TaskCompletionPayload(
           taskId: 'ai-1',
           title: 'fallback',
           summary: 'fallback',
@@ -192,7 +192,7 @@ void main() {
         sftpSuccessEnabled: false,
       ));
       expect(
-        shouldNotifyForPayload(TaskCompletionPayload(
+        shouldNotifyForPayload(const TaskCompletionPayload(
           taskId: 't',
           title: 'fallback',
           summary: 'fallback',
