@@ -332,18 +332,30 @@ class _RowState extends State<_Row> {
                 child: Column(
                   crossAxisAlignment: CrossAxisAlignment.start,
                   children: [
-                    Text(
-                      _shortDate(r.startedAt),
-                      maxLines: 1,
-                      overflow: TextOverflow.ellipsis,
-                      style: TermexTypography.bodySmall.copyWith(
-                        color: context.colors.textPrimary,
-                      ),
+                    Row(
+                      children: [
+                        Flexible(
+                          child: Text(
+                            _shortDate(r.startedAt),
+                            maxLines: 1,
+                            overflow: TextOverflow.ellipsis,
+                            style: TermexTypography.bodySmall.copyWith(
+                              color: context.colors.textPrimary,
+                            ),
+                          ),
+                        ),
+                        // Auto-started recordings were marked by an easily
+                        // missed "· auto" in the metadata line; the Tauri list
+                        // gave them a badge, which reads at a glance.
+                        if (r.autoRecorded) ...[
+                          const SizedBox(width: 6),
+                          const _AutoBadge(),
+                        ],
+                      ],
                     ),
                     const SizedBox(height: 2),
                     Text(
                       '${_humanDuration(r.durationMs)} · ${r.eventCount} events'
-                      '${r.autoRecorded ? " · auto" : ""}'
                       '${r.isEncrypted ? " · 🔒" : ""}',
                       maxLines: 1,
                       overflow: TextOverflow.ellipsis,
@@ -439,4 +451,30 @@ class _IconBtn extends StatelessWidget {
           ),
         ),
       );
+}
+
+
+/// Marks a recording that started automatically on connect, rather than from
+/// the terminal's REC control. Amber, matching the Tauri list's badge.
+class _AutoBadge extends StatelessWidget {
+  const _AutoBadge();
+
+  @override
+  Widget build(BuildContext context) {
+    return Container(
+      padding: const EdgeInsets.symmetric(horizontal: 4, vertical: 1),
+      decoration: BoxDecoration(
+        color: context.colors.warning.withValues(alpha: 0.1),
+        borderRadius: BorderRadius.circular(2),
+      ),
+      child: Text(
+        'AUTO',
+        style: TextStyle(
+          fontSize: 9,
+          fontWeight: FontWeight.w600,
+          color: context.colors.warning,
+        ),
+      ),
+    );
+  }
 }
