@@ -129,9 +129,9 @@ class _AccordionPanelState extends State<_AccordionPanel>
   @override
   Widget build(BuildContext context) {
     return Container(
-      decoration: const BoxDecoration(
+      decoration: BoxDecoration(
         border: Border(
-          bottom: BorderSide(color: TermexColors.border, width: 1),
+          bottom: BorderSide(color: context.colors.border, width: 1),
         ),
       ),
       child: Column(
@@ -158,7 +158,7 @@ class _AccordionPanelState extends State<_AccordionPanel>
                       child: Text(
                         widget.item.title,
                         style: TermexTypography.body.copyWith(
-                          color: TermexColors.textPrimary,
+                          color: context.colors.textPrimary,
                           fontWeight: FontWeight.w500,
                         ),
                       ),
@@ -198,16 +198,20 @@ class _ChevronIcon extends StatelessWidget {
   Widget build(BuildContext context) {
     return CustomPaint(
       size: const Size(12, 12),
-      painter: _ChevronPainter(),
+      painter: _ChevronPainter(colors: context.colors),
     );
   }
 }
 
 class _ChevronPainter extends CustomPainter {
+  final TermexColorScheme colors;
+
+  const _ChevronPainter({required this.colors});
+
   @override
   void paint(Canvas canvas, Size size) {
     final paint = Paint()
-      ..color = TermexColors.textSecondary
+      ..color = colors.textSecondary
       ..strokeWidth = 1.5
       ..strokeCap = StrokeCap.round
       ..style = PaintingStyle.stroke;
@@ -219,5 +223,6 @@ class _ChevronPainter extends CustomPainter {
   }
 
   @override
-  bool shouldRepaint(covariant CustomPainter oldDelegate) => false;
+  bool shouldRepaint(covariant _ChevronPainter oldDelegate) =>
+      oldDelegate.colors != colors;
 }

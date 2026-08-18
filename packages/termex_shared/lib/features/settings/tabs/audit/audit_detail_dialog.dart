@@ -28,7 +28,7 @@ class _AuditDetailDialog extends StatelessWidget {
   Widget build(BuildContext context) {
     final l10n = AppLocalizations.of(context);
     return Dialog(
-      backgroundColor: TermexColors.backgroundSecondary,
+      backgroundColor: context.colors.backgroundSecondary,
       shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(8)),
       child: SizedBox(
         width: 560,
@@ -37,7 +37,7 @@ class _AuditDetailDialog extends StatelessWidget {
           crossAxisAlignment: CrossAxisAlignment.stretch,
           children: [
             _TitleBar(entry: entry),
-            const Divider(height: 1, color: TermexColors.border),
+            Divider(height: 1, color: context.colors.border),
             Padding(
               padding: const EdgeInsets.all(16),
               child: Column(
@@ -56,7 +56,7 @@ class _AuditDetailDialog extends StatelessWidget {
                 ],
               ),
             ),
-            const Divider(height: 1, color: TermexColors.border),
+            Divider(height: 1, color: context.colors.border),
             Padding(
               padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 8),
               child: Row(
@@ -67,14 +67,14 @@ class _AuditDetailDialog extends StatelessWidget {
                       await Clipboard.setData(ClipboardData(text: entry.detail));
                     },
                     child: Text(l10n.auditCopyDetail,
-                        style: const TextStyle(
-                            color: TermexColors.textSecondary, fontSize: 12)),
+                        style: TextStyle(
+                            color: context.colors.textSecondary, fontSize: 12)),
                   ),
                   const SizedBox(width: 8),
                   TextButton(
                     onPressed: () => Navigator.pop(context),
                     child: Text(l10n.commonClose,
-                        style: const TextStyle(color: TermexColors.primary, fontSize: 12)),
+                        style: TextStyle(color: context.colors.primary, fontSize: 12)),
                   ),
                 ],
               ),
@@ -103,23 +103,23 @@ class _TitleBar extends StatelessWidget {
       padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 12),
       child: Row(
         children: [
-          const Icon(Icons.receipt_long_outlined,
-              size: 16, color: TermexColors.primary),
+          Icon(Icons.receipt_long_outlined,
+              size: 16, color: context.colors.primary),
           const SizedBox(width: 8),
           Expanded(
             child: Text(
               l10n.auditDetailTitle,
-              style: const TextStyle(
+              style: TextStyle(
                 fontSize: 14,
                 fontWeight: FontWeight.w600,
-                color: TermexColors.textPrimary,
+                color: context.colors.textPrimary,
               ),
             ),
           ),
           Clickable(
             onTap: () => Navigator.pop(context),
-            child: const Icon(Icons.close,
-                size: 16, color: TermexColors.textMuted),
+            child: Icon(Icons.close,
+                size: 16, color: context.colors.textMuted),
           ),
         ],
       ),
@@ -142,17 +142,17 @@ class _Field extends StatelessWidget {
           width: 80,
           child: Text(
             label,
-            style: const TextStyle(
+            style: TextStyle(
                 fontSize: 11,
-                color: TermexColors.textMuted,
+                color: context.colors.textMuted,
                 fontWeight: FontWeight.w600),
           ),
         ),
         Expanded(
           child: Text(
             value,
-            style: const TextStyle(
-                fontSize: 12, color: TermexColors.textPrimary),
+            style: TextStyle(
+                fontSize: 12, color: context.colors.textPrimary),
           ),
         ),
       ],
@@ -172,9 +172,9 @@ class _DetailField extends StatelessWidget {
       children: [
         Text(
           l10n.auditFieldDetail,
-          style: const TextStyle(
+          style: TextStyle(
               fontSize: 11,
-              color: TermexColors.textMuted,
+              color: context.colors.textMuted,
               fontWeight: FontWeight.w600),
         ),
         const SizedBox(height: 6),
@@ -182,16 +182,16 @@ class _DetailField extends StatelessWidget {
           width: double.infinity,
           padding: const EdgeInsets.all(10),
           decoration: BoxDecoration(
-            color: TermexColors.backgroundPrimary,
+            color: context.colors.backgroundPrimary,
             borderRadius: BorderRadius.circular(4),
-            border: Border.all(color: TermexColors.border),
+            border: Border.all(color: context.colors.border),
           ),
           child: SelectableText(
             detail,
-            style: const TextStyle(
+            style: TextStyle(
               fontFamily: 'monospace',
               fontSize: 12,
-              color: TermexColors.textPrimary,
+              color: context.colors.textPrimary,
               height: 1.5,
             ),
           ),

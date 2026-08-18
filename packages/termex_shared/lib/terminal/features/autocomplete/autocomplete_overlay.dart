@@ -84,8 +84,8 @@ class _SuggestionList extends StatelessWidget {
         color: Colors.transparent,
         child: Container(
           decoration: BoxDecoration(
-            color: TermexColors.backgroundSecondary,
-            border: Border.all(color: TermexColors.border),
+            color: context.colors.backgroundSecondary,
+            border: Border.all(color: context.colors.border),
             borderRadius: BorderRadius.circular(6),
             boxShadow: const [
               BoxShadow(
@@ -134,7 +134,7 @@ class _SuggestionRow extends StatelessWidget {
         height: 28,
         padding: const EdgeInsets.symmetric(horizontal: 10),
         color: isSelected
-            ? TermexColors.primary.withOpacity(0.2)
+            ? context.colors.primary.withOpacity(0.2)
             : Colors.transparent,
         child: Row(
           children: [
@@ -146,8 +146,8 @@ class _SuggestionRow extends StatelessWidget {
                 style: TermexTypography.monospace.copyWith(
                   fontSize: 13,
                   color: isSelected
-                      ? TermexColors.textPrimary
-                      : TermexColors.textSecondary,
+                      ? context.colors.textPrimary
+                      : context.colors.textSecondary,
                 ),
                 overflow: TextOverflow.ellipsis,
               ),
@@ -157,9 +157,9 @@ class _SuggestionRow extends StatelessWidget {
                 flex: 0,
                 child: Text(
                   suggestion.description!,
-                  style: const TextStyle(
+                  style: TextStyle(
                     fontSize: 11,
-                    color: TermexColors.textMuted,
+                    color: context.colors.textMuted,
                   ),
                   overflow: TextOverflow.ellipsis,
                 ),
@@ -178,13 +178,19 @@ class _KindIcon extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    final (icon, color) = switch (kind) {
-      SuggestionKind.command => (Icons.terminal, TermexColors.primary),
-      SuggestionKind.flag => (Icons.flag_outlined, TermexColors.warning),
-      SuggestionKind.path => (Icons.folder_outlined, TermexColors.neutral),
-      SuggestionKind.variable => (Icons.data_object, TermexColors.success),
-      SuggestionKind.history => (Icons.history, TermexColors.textMuted),
-    };
+    final (icon, color) = _styleFor(kind, context.colors);
     return Icon(icon, size: 14, color: color);
   }
+
+  static (IconData, Color) _styleFor(
+    SuggestionKind kind,
+    TermexColorScheme colors,
+  ) =>
+      switch (kind) {
+        SuggestionKind.command => (Icons.terminal, colors.primary),
+        SuggestionKind.flag => (Icons.flag_outlined, colors.warning),
+        SuggestionKind.path => (Icons.folder_outlined, colors.neutral),
+        SuggestionKind.variable => (Icons.data_object, colors.success),
+        SuggestionKind.history => (Icons.history, colors.textMuted),
+      };
 }

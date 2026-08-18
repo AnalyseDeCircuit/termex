@@ -26,7 +26,7 @@ class CompactSwitch extends StatelessWidget {
       child: Switch(
         value: value,
         onChanged: onChanged,
-        activeThumbColor: TermexColors.primary,
+        activeThumbColor: context.colors.primary,
         materialTapTargetSize: MaterialTapTargetSize.shrinkWrap,
       ),
     );
@@ -60,12 +60,12 @@ class CompactDropdown<T> extends StatelessWidget {
           isDense: true,
           isExpanded: true,
           itemHeight: kMinInteractiveDimension, // Material minimum.
-          icon: const Icon(Icons.expand_more,
-              size: 14, color: TermexColors.textMuted),
-          dropdownColor: TermexColors.backgroundSecondary,
-          style: const TextStyle(
+          icon: Icon(Icons.expand_more,
+              size: 14, color: context.colors.textMuted),
+          dropdownColor: context.colors.backgroundSecondary,
+          style: TextStyle(
             fontSize: 12,
-            color: TermexColors.textPrimary,
+            color: context.colors.textPrimary,
           ),
           padding: const EdgeInsets.symmetric(horizontal: 8),
           items: items,
@@ -81,8 +81,10 @@ class CompactDropdown<T> extends StatelessWidget {
 DropdownMenuItem<T> compactDropdownItem<T>(T value, String label) =>
     DropdownMenuItem<T>(
       value: value,
-      child: Text(
-        label,
-        style: const TextStyle(fontSize: 12, color: TermexColors.textPrimary),
+      child: Builder(
+        builder: (context) => Text(
+          label,
+          style: TextStyle(fontSize: 12, color: context.colors.textPrimary),
+        ),
       ),
     );

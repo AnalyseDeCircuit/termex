@@ -115,7 +115,7 @@ class _AiTabState extends ConsumerState<AiTab> {
           hint: l10n.settingsAiContextLinesHint,
           child: DropdownButton<int>(
             value: _coerceContextLines(settings.aiContextLines),
-            dropdownColor: TermexColors.backgroundSecondary,
+            dropdownColor: context.colors.backgroundSecondary,
             items: [
               DropdownMenuItem(
                   value: 50,
@@ -132,8 +132,8 @@ class _AiTabState extends ConsumerState<AiTab> {
             ],
             onChanged: (v) =>
                 notifier.update(settings.copyWith(aiContextLines: v!)),
-            style: const TextStyle(
-                fontSize: 12, color: TermexColors.textPrimary),
+            style: TextStyle(
+                fontSize: 12, color: context.colors.textPrimary),
           ),
         ),
         SettingRow(
@@ -206,14 +206,14 @@ class _AiTabState extends ConsumerState<AiTab> {
     final ok = await showDialog<bool>(
       context: context,
       builder: (ctx) => AlertDialog(
-        backgroundColor: TermexColors.backgroundSecondary,
+        backgroundColor: ctx.colors.backgroundSecondary,
         title: Text(l10n.settingsAiRemoveProviderTitle(meta.label),
-            style: const TextStyle(
-                fontSize: 14, color: TermexColors.textPrimary)),
+            style: TextStyle(
+                fontSize: 14, color: ctx.colors.textPrimary)),
         content: Text(
           l10n.settingsAiRemoveProviderHint(meta.label),
-          style: const TextStyle(
-              fontSize: 12, color: TermexColors.textSecondary),
+          style: TextStyle(
+              fontSize: 12, color: ctx.colors.textSecondary),
         ),
         actions: [
           TextButton(
@@ -223,7 +223,7 @@ class _AiTabState extends ConsumerState<AiTab> {
           TextButton(
             onPressed: () => Navigator.pop(ctx, true),
             style:
-                TextButton.styleFrom(foregroundColor: TermexColors.danger),
+                TextButton.styleFrom(foregroundColor: ctx.colors.danger),
             child: Text(l10n.settingsAiRemove),
           ),
         ],
@@ -251,7 +251,7 @@ Future<AiProvider?> _showAddProviderMenu(
   final btnTopRight = box.localToGlobal(Offset(box.size.width, 0));
   final result = await showMenu<AiProvider>(
     context: context,
-    color: TermexColors.backgroundSecondary,
+    color: context.colors.backgroundSecondary,
     position: RelativeRect.fromLTRB(
       btnTopRight.dx - 280,
       btnTopRight.dy + 24,
@@ -265,8 +265,8 @@ Future<AiProvider?> _showAddProviderMenu(
                 width: 260,
                 child: Row(
                   children: [
-                    const Icon(Icons.smart_toy_outlined,
-                        size: 14, color: TermexColors.textSecondary),
+                    Icon(Icons.smart_toy_outlined,
+                        size: 14, color: context.colors.textSecondary),
                     const SizedBox(width: 8),
                     Expanded(
                       child: Column(
@@ -276,15 +276,15 @@ Future<AiProvider?> _showAddProviderMenu(
                           Text(meta.label,
                               maxLines: 1,
                               overflow: TextOverflow.ellipsis,
-                              style: const TextStyle(
+                              style: TextStyle(
                                   fontSize: 12,
-                                  color: TermexColors.textPrimary)),
+                                  color: context.colors.textPrimary)),
                           Text(meta.description,
                               maxLines: 1,
                               overflow: TextOverflow.ellipsis,
-                              style: const TextStyle(
+                              style: TextStyle(
                                   fontSize: 10,
-                                  color: TermexColors.textSecondary)),
+                                  color: context.colors.textSecondary)),
                         ],
                       ),
                     ),
@@ -322,37 +322,37 @@ class _AddProviderButtonState extends State<_AddProviderButton> {
           padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 5),
           decoration: BoxDecoration(
             color: _hovered
-                ? TermexColors.primary.withOpacity(0.15)
-                : TermexColors.backgroundTertiary,
+                ? context.colors.primary.withOpacity(0.15)
+                : context.colors.backgroundTertiary,
             border: Border.all(
               color: _hovered
-                  ? TermexColors.primary
-                  : TermexColors.border,
+                  ? context.colors.primary
+                  : context.colors.border,
             ),
             borderRadius: BorderRadius.circular(4),
           ),
           child: Row(
             mainAxisSize: MainAxisSize.min,
-            children: const [
+            children: [
               TermexIconWidget(
                 TermexIcons.add,
                 size: 11,
-                color: TermexColors.textPrimary,
+                color: context.colors.textPrimary,
               ),
-              SizedBox(width: 4),
+              const SizedBox(width: 4),
               Text(
                 'Add Provider',
                 style: TextStyle(
                   fontSize: 11,
                   fontWeight: FontWeight.w500,
-                  color: TermexColors.textPrimary,
+                  color: context.colors.textPrimary,
                 ),
               ),
-              SizedBox(width: 2),
+              const SizedBox(width: 2),
               TermexIconWidget(
                 TermexIcons.chevronDown,
                 size: 10,
-                color: TermexColors.textMuted,
+                color: context.colors.textMuted,
               ),
             ],
           ),
@@ -374,25 +374,25 @@ class _EmptyProvidersHint extends StatelessWidget {
     return Container(
       padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 20),
       decoration: BoxDecoration(
-        color: TermexColors.backgroundSecondary,
-        border: Border.all(color: TermexColors.border),
+        color: context.colors.backgroundSecondary,
+        border: Border.all(color: context.colors.border),
         borderRadius: BorderRadius.circular(6),
       ),
       child: Column(
         children: [
-          const Icon(Icons.smart_toy_outlined,
-              size: 32, color: TermexColors.textMuted),
+          Icon(Icons.smart_toy_outlined,
+              size: 32, color: context.colors.textMuted),
           const SizedBox(height: 8),
           Text(
             l10n.settingsAiEmptyTitle,
-            style: const TextStyle(
-                fontSize: 13, color: TermexColors.textPrimary),
+            style: TextStyle(
+                fontSize: 13, color: context.colors.textPrimary),
           ),
           const SizedBox(height: 4),
           Text(
             l10n.settingsAiEmptyHint,
-            style: const TextStyle(
-                fontSize: 11, color: TermexColors.textSecondary),
+            style: TextStyle(
+                fontSize: 11, color: context.colors.textSecondary),
           ),
           const SizedBox(height: 12),
           _AddProviderButton(onPressed: onAdd),
@@ -411,10 +411,10 @@ class _SectionHeader extends StatelessWidget {
   @override
   Widget build(BuildContext context) => Text(
         label,
-        style: const TextStyle(
+        style: TextStyle(
           fontSize: 11,
           fontWeight: FontWeight.w600,
-          color: TermexColors.textSecondary,
+          color: context.colors.textSecondary,
           letterSpacing: 0.5,
         ),
       );
@@ -465,19 +465,19 @@ class _ProviderRowState extends State<_ProviderRow> {
         padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 10),
         decoration: BoxDecoration(
           color: _hovered
-              ? TermexColors.backgroundTertiary
-              : TermexColors.backgroundSecondary,
+              ? context.colors.backgroundTertiary
+              : context.colors.backgroundSecondary,
           border: Border.all(
             color: widget.isActive
-                ? TermexColors.primary.withOpacity(0.5)
-                : TermexColors.border,
+                ? context.colors.primary.withOpacity(0.5)
+                : context.colors.border,
           ),
           borderRadius: radius,
         ),
         child: Row(
           children: [
-            const Icon(Icons.smart_toy_outlined,
-                size: 16, color: TermexColors.textSecondary),
+            Icon(Icons.smart_toy_outlined,
+                size: 16, color: context.colors.textSecondary),
             const SizedBox(width: 10),
             Expanded(
               child: Column(
@@ -490,10 +490,10 @@ class _ProviderRowState extends State<_ProviderRow> {
                           widget.meta.label,
                           maxLines: 1,
                           overflow: TextOverflow.ellipsis,
-                          style: const TextStyle(
+                          style: TextStyle(
                             fontSize: 13,
                             fontWeight: FontWeight.w500,
-                            color: TermexColors.textPrimary,
+                            color: context.colors.textPrimary,
                           ),
                         ),
                       ),
@@ -509,9 +509,9 @@ class _ProviderRowState extends State<_ProviderRow> {
                     widget.meta.description,
                     maxLines: 1,
                     overflow: TextOverflow.ellipsis,
-                    style: const TextStyle(
+                    style: TextStyle(
                       fontSize: 11,
-                      color: TermexColors.textSecondary,
+                      color: context.colors.textSecondary,
                     ),
                   ),
                 ],
@@ -553,7 +553,7 @@ class _Badge extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     final color =
-        primary ? TermexColors.primary : TermexColors.success;
+        primary ? context.colors.primary : context.colors.success;
     return Container(
       padding: const EdgeInsets.symmetric(horizontal: 6, vertical: 1),
       decoration: BoxDecoration(
@@ -591,12 +591,12 @@ class _MiniBtn extends StatelessWidget {
           padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 5),
           decoration: BoxDecoration(
             color: primary
-                ? TermexColors.primary
-                : TermexColors.backgroundTertiary,
+                ? context.colors.primary
+                : context.colors.backgroundTertiary,
             border: Border.all(
               color: primary
-                  ? TermexColors.primary
-                  : TermexColors.border,
+                  ? context.colors.primary
+                  : context.colors.border,
             ),
             borderRadius: BorderRadius.circular(4),
           ),
@@ -605,7 +605,7 @@ class _MiniBtn extends StatelessWidget {
             style: TextStyle(
               fontSize: 11,
               fontWeight: FontWeight.w500,
-              color: primary ? Colors.white : TermexColors.textPrimary,
+              color: primary ? Colors.white : context.colors.textPrimary,
             ),
           ),
         ),
@@ -632,14 +632,14 @@ class _IconBtn extends StatelessWidget {
             padding:
                 const EdgeInsets.symmetric(horizontal: 6, vertical: 5),
             decoration: BoxDecoration(
-              color: TermexColors.backgroundTertiary,
-              border: Border.all(color: TermexColors.border),
+              color: context.colors.backgroundTertiary,
+              border: Border.all(color: context.colors.border),
               borderRadius: BorderRadius.circular(4),
             ),
             child: TermexIconWidget(
               icon,
               size: 11,
-              color: TermexColors.textSecondary,
+              color: context.colors.textSecondary,
             ),
           ),
         ),
@@ -667,11 +667,11 @@ class _PricingSnapshotFooter extends StatelessWidget {
     return Container(
       padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 10),
       decoration: BoxDecoration(
-        color: TermexColors.backgroundSecondary,
+        color: context.colors.backgroundSecondary,
         border: Border.all(
           color: stale
-              ? TermexColors.warning.withOpacity(0.5)
-              : TermexColors.border,
+              ? context.colors.warning.withOpacity(0.5)
+              : context.colors.border,
         ),
         borderRadius: BorderRadius.circular(6),
       ),
@@ -681,7 +681,7 @@ class _PricingSnapshotFooter extends StatelessWidget {
             stale ? Icons.warning_amber_rounded : Icons.info_outline,
             size: 14,
             color:
-                stale ? TermexColors.warning : TermexColors.textSecondary,
+                stale ? context.colors.warning : context.colors.textSecondary,
           ),
           const SizedBox(width: 8),
           Expanded(
@@ -690,10 +690,10 @@ class _PricingSnapshotFooter extends StatelessWidget {
               children: [
                 Text(
                   l10n.settingsAiPricingTitle,
-                  style: const TextStyle(
+                  style: TextStyle(
                     fontSize: 12,
                     fontWeight: FontWeight.w500,
-                    color: TermexColors.textPrimary,
+                    color: context.colors.textPrimary,
                   ),
                 ),
                 const SizedBox(height: 2),
@@ -703,9 +703,9 @@ class _PricingSnapshotFooter extends StatelessWidget {
                         ageLabel,
                       ) +
                       (stale ? l10n.settingsAiPricingStale : ''),
-                  style: const TextStyle(
+                  style: TextStyle(
                     fontSize: 11,
-                    color: TermexColors.textSecondary,
+                    color: context.colors.textSecondary,
                   ),
                 ),
               ],
@@ -715,15 +715,15 @@ class _PricingSnapshotFooter extends StatelessWidget {
             Container(
               padding: const EdgeInsets.symmetric(horizontal: 6, vertical: 1),
               decoration: BoxDecoration(
-                color: TermexColors.warning.withOpacity(0.15),
-                border: Border.all(color: TermexColors.warning.withOpacity(0.5)),
+                color: context.colors.warning.withOpacity(0.15),
+                border: Border.all(color: context.colors.warning.withOpacity(0.5)),
                 borderRadius: BorderRadius.circular(3),
               ),
               child: Text(
                 'Stale',
                 style: TextStyle(
                   fontSize: 9,
-                  color: TermexColors.warning,
+                  color: context.colors.warning,
                   fontWeight: FontWeight.w500,
                 ),
               ),

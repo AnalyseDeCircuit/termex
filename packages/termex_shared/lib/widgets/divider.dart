@@ -19,7 +19,7 @@ class TermexDivider extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    final effectiveColor = color ?? TermexColors.border;
+    final effectiveColor = color ?? context.colors.border;
 
     if (direction == Axis.horizontal) {
       return Padding(

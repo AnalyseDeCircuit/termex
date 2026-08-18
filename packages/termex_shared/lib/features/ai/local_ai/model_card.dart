@@ -23,10 +23,10 @@ class ModelCard extends ConsumerWidget {
     return Container(
       padding: const EdgeInsets.all(12),
       decoration: BoxDecoration(
-        color: TermexColors.backgroundSecondary,
+        color: context.colors.backgroundSecondary,
         borderRadius: BorderRadius.circular(8),
         border: Border.all(
-          color: isLoaded ? TermexColors.primary : TermexColors.border,
+          color: isLoaded ? context.colors.primary : context.colors.border,
           width: isLoaded ? 1.5 : 1,
         ),
       ),
@@ -41,16 +41,16 @@ class ModelCard extends ConsumerWidget {
                   children: [
                     Text(
                       model.name,
-                      style: const TextStyle(
+                      style: TextStyle(
                         fontSize: 13,
                         fontWeight: FontWeight.w600,
-                        color: TermexColors.textPrimary,
+                        color: context.colors.textPrimary,
                       ),
                     ),
                     Text(
                       model.quantization,
-                      style: const TextStyle(
-                          fontSize: 10, color: TermexColors.textSecondary),
+                      style: TextStyle(
+                          fontSize: 10, color: context.colors.textSecondary),
                     ),
                   ],
                 ),
@@ -62,13 +62,13 @@ class ModelCard extends ConsumerWidget {
                   padding: const EdgeInsets.symmetric(
                       horizontal: 6, vertical: 2),
                   decoration: BoxDecoration(
-                    color: TermexColors.primary.withOpacity(0.1),
+                    color: context.colors.primary.withOpacity(0.1),
                     borderRadius: BorderRadius.circular(4),
                   ),
                   child: Text(
                     l10n.localAiRunning,
-                    style: const TextStyle(
-                        fontSize: 10, color: TermexColors.primary),
+                    style: TextStyle(
+                        fontSize: 10, color: context.colors.primary),
                   ),
                 ),
             ],
@@ -77,7 +77,7 @@ class ModelCard extends ConsumerWidget {
           Text(
             model.description,
             style:
-                const TextStyle(fontSize: 11, color: TermexColors.textSecondary),
+                TextStyle(fontSize: 11, color: context.colors.textSecondary),
           ),
           const SizedBox(height: 8),
 
@@ -126,21 +126,23 @@ class ModelCard extends ConsumerWidget {
     return await showDialog<bool>(
           context: context,
           builder: (_) => AlertDialog(
-            backgroundColor: TermexColors.backgroundSecondary,
+            backgroundColor: context.colors.backgroundSecondary,
             title: Text(l10n.aiDeleteModelTitle,
-                style: const TextStyle(color: TermexColors.textPrimary, fontSize: 14)),
+                style: TextStyle(
+                    color: context.colors.textPrimary, fontSize: 14)),
             content: Text(l10n.aiDeleteModelConfirm(name),
-                style: const TextStyle(color: TermexColors.textSecondary, fontSize: 13)),
+                style: TextStyle(
+                    color: context.colors.textSecondary, fontSize: 13)),
             actions: [
               TextButton(
                 onPressed: () => Navigator.pop(context, false),
                 child: Text(l10n.commonCancel,
-                    style: const TextStyle(color: TermexColors.textSecondary)),
+                    style: TextStyle(color: context.colors.textSecondary)),
               ),
               TextButton(
                 onPressed: () => Navigator.pop(context, true),
                 child: Text(l10n.commonDelete,
-                    style: const TextStyle(color: TermexColors.danger)),
+                    style: TextStyle(color: context.colors.danger)),
               ),
             ],
           ),
@@ -158,11 +160,12 @@ class _SizeChip extends StatelessWidget {
     return Container(
       padding: const EdgeInsets.symmetric(horizontal: 6, vertical: 2),
       decoration: BoxDecoration(
-        color: TermexColors.backgroundTertiary,
+        color: context.colors.backgroundTertiary,
         borderRadius: BorderRadius.circular(4),
       ),
       child: Text(label,
-          style: const TextStyle(fontSize: 10, color: TermexColors.textSecondary)),
+          style: TextStyle(
+              fontSize: 10, color: context.colors.textSecondary)),
     );
   }
 }
@@ -182,7 +185,7 @@ class _Action extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    final color = danger ? TermexColors.danger : TermexColors.primary;
+    final color = danger ? context.colors.danger : context.colors.primary;
     return Clickable(
       onTap: onTap,
       child: Row(

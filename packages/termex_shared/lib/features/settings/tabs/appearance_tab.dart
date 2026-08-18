@@ -54,11 +54,11 @@ class AppearanceTab extends ConsumerWidget {
                   padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 5),
                   decoration: BoxDecoration(
                     color: isSelected
-                        ? TermexColors.primary.withOpacity(0.15)
-                        : TermexColors.backgroundTertiary,
+                        ? context.colors.primary.withOpacity(0.15)
+                        : context.colors.backgroundTertiary,
                     borderRadius: BorderRadius.circular(5),
                     border: Border.all(
-                      color: isSelected ? TermexColors.primary : TermexColors.border,
+                      color: isSelected ? context.colors.primary : context.colors.border,
                     ),
                   ),
                   child: Text(
@@ -66,8 +66,8 @@ class AppearanceTab extends ConsumerWidget {
                     style: TextStyle(
                       fontSize: 12,
                       color: isSelected
-                          ? TermexColors.primary
-                          : TermexColors.textPrimary,
+                          ? context.colors.primary
+                          : context.colors.textPrimary,
                     ),
                   ),
                 ),
@@ -80,7 +80,7 @@ class AppearanceTab extends ConsumerWidget {
             label: l10n.settingsAppearanceFontSize,
             child: Row(
               children: [
-                Text('${settings.fontSize.round()}', style: const TextStyle(fontSize: 12, color: TermexColors.textPrimary)),
+                Text('${settings.fontSize.round()}', style: TextStyle(fontSize: 12, color: context.colors.textPrimary)),
                 const SizedBox(width: 8),
                 Expanded(
                   child: Slider(
@@ -88,7 +88,7 @@ class AppearanceTab extends ConsumerWidget {
                     min: 10,
                     max: 22,
                     divisions: 12,
-                    activeColor: TermexColors.primary,
+                    activeColor: context.colors.primary,
                     onChanged: (v) => notifier.update(settings.copyWith(fontSize: v)),
                   ),
                 ),
@@ -154,10 +154,10 @@ class _Section extends StatelessWidget {
         children: [
           Text(
             title,
-            style: const TextStyle(
+            style: TextStyle(
               fontSize: 11,
               fontWeight: FontWeight.w700,
-              color: TermexColors.textSecondary,
+              color: context.colors.textSecondary,
               letterSpacing: 0.5,
             ),
           ),
@@ -193,12 +193,12 @@ class _RadioRow<T> extends StatelessWidget {
               value: value,
               groupValue: groupValue,
               onChanged: (v) => onChanged(v as T),
-              activeColor: TermexColors.primary,
+              activeColor: context.colors.primary,
               materialTapTargetSize: MaterialTapTargetSize.shrinkWrap,
               visualDensity: VisualDensity.compact,
             ),
             const SizedBox(width: 4),
-            Text(label, style: const TextStyle(fontSize: 13, color: TermexColors.textPrimary)),
+            Text(label, style: TextStyle(fontSize: 13, color: context.colors.textPrimary)),
           ],
         ),
       ),
@@ -218,8 +218,8 @@ class _ToggleRow extends StatelessWidget {
       padding: const EdgeInsets.symmetric(vertical: 3),
       child: Row(
         children: [
-          Expanded(child: Text(label, style: const TextStyle(fontSize: 13, color: TermexColors.textPrimary))),
-          Switch(value: value, onChanged: onChanged, activeThumbColor: TermexColors.primary),
+          Expanded(child: Text(label, style: TextStyle(fontSize: 13, color: context.colors.textPrimary))),
+          Switch(value: value, onChanged: onChanged, activeThumbColor: context.colors.primary),
         ],
       ),
     );
@@ -238,7 +238,7 @@ class _LabeledRow extends StatelessWidget {
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
-          Text(label, style: const TextStyle(fontSize: 12, color: TermexColors.textSecondary)),
+          Text(label, style: TextStyle(fontSize: 12, color: context.colors.textSecondary)),
           const SizedBox(height: 4),
           child,
         ],

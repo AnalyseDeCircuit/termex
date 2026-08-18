@@ -74,7 +74,7 @@ class _MonitorPanelState extends ConsumerState<MonitorPanel> {
     }
 
     return Container(
-      color: TermexColors.backgroundPrimary,
+      color: context.colors.backgroundPrimary,
       padding: const EdgeInsets.all(TermexSpacing.md),
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.stretch,
@@ -158,7 +158,7 @@ class _InfoBar extends StatelessWidget {
         Text(
           '系统监控',
           style: TermexTypography.body.copyWith(
-            color: TermexColors.textPrimary,
+            color: context.colors.textPrimary,
             fontWeight: FontWeight.w600,
           ),
         ),
@@ -167,13 +167,13 @@ class _InfoBar extends StatelessWidget {
           Container(
             padding: const EdgeInsets.symmetric(horizontal: 6, vertical: 1),
             decoration: BoxDecoration(
-              color: TermexColors.warning.withValues(alpha: 0.15),
+              color: context.colors.warning.withValues(alpha: 0.15),
               borderRadius: BorderRadius.circular(3),
             ),
             child: Text(
               'PAUSED',
               style: TermexTypography.caption.copyWith(
-                color: TermexColors.warning,
+                color: context.colors.warning,
                 fontSize: 9,
                 fontWeight: FontWeight.w600,
               ),
@@ -189,13 +189,13 @@ class _InfoBar extends StatelessWidget {
             ),
             decoration: BoxDecoration(
               color: isCollecting
-                  ? TermexColors.danger.withValues(alpha: 0.12)
-                  : TermexColors.success.withValues(alpha: 0.12),
+                  ? context.colors.danger.withValues(alpha: 0.12)
+                  : context.colors.success.withValues(alpha: 0.12),
               borderRadius: BorderRadius.circular(4),
               border: Border.all(
                 color: isCollecting
-                    ? TermexColors.danger.withValues(alpha: 0.4)
-                    : TermexColors.success.withValues(alpha: 0.4),
+                    ? context.colors.danger.withValues(alpha: 0.4)
+                    : context.colors.success.withValues(alpha: 0.4),
               ),
             ),
             child: Row(
@@ -205,15 +205,15 @@ class _InfoBar extends StatelessWidget {
                   isCollecting ? TermexIcons.disconnect : TermexIcons.connect,
                   size: 11,
                   color:
-                      isCollecting ? TermexColors.danger : TermexColors.success,
+                      isCollecting ? context.colors.danger : context.colors.success,
                 ),
                 const SizedBox(width: 4),
                 Text(
                   isCollecting ? '停止' : '开始',
                   style: TermexTypography.caption.copyWith(
                     color: isCollecting
-                        ? TermexColors.danger
-                        : TermexColors.success,
+                        ? context.colors.danger
+                        : context.colors.success,
                     fontWeight: FontWeight.w500,
                   ),
                 ),
@@ -236,18 +236,18 @@ class _StubBanner extends StatelessWidget {
     return Container(
       padding: const EdgeInsets.all(TermexSpacing.sm),
       decoration: BoxDecoration(
-        color: TermexColors.warning.withValues(alpha: 0.08),
+        color: context.colors.warning.withValues(alpha: 0.08),
         border: Border.all(
-          color: TermexColors.warning.withValues(alpha: 0.3),
+          color: context.colors.warning.withValues(alpha: 0.3),
         ),
         borderRadius: BorderRadius.circular(4),
       ),
       child: Row(
         children: [
-          const TermexIconWidget(
+          TermexIconWidget(
             TermexIcons.help,
             size: 12,
-            color: TermexColors.warning,
+            color: context.colors.warning,
           ),
           const SizedBox(width: TermexSpacing.sm),
           Expanded(
@@ -255,7 +255,7 @@ class _StubBanner extends StatelessWidget {
               '当前以 OSS 桥接 stub 运行（全 0 数据）。远程系统指标真实采集由商业版 '
               '`termex-core-private` 提供，与旧 Tauri OSS 行为一致。',
               style: TermexTypography.caption.copyWith(
-                color: TermexColors.textSecondary,
+                color: context.colors.textSecondary,
               ),
             ),
           ),
@@ -354,21 +354,21 @@ class _LoadingView extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     return Container(
-      color: TermexColors.backgroundPrimary,
+      color: context.colors.backgroundPrimary,
       child: Center(
         child: Column(
           mainAxisSize: MainAxisSize.min,
           children: [
-            const TermexIconWidget(
+            TermexIconWidget(
               TermexIcons.server,
               size: 40,
-              color: TermexColors.textMuted,
+              color: context.colors.textMuted,
             ),
             const SizedBox(height: TermexSpacing.md),
             Text(
               isCollecting ? '采集指标中…' : '监控未启动',
               style: TermexTypography.body.copyWith(
-                color: TermexColors.textSecondary,
+                color: context.colors.textSecondary,
               ),
             ),
             const SizedBox(height: TermexSpacing.sm),
@@ -383,7 +383,7 @@ class _LoadingView extends StatelessWidget {
                   error!,
                   textAlign: TextAlign.center,
                   style: TermexTypography.caption.copyWith(
-                    color: TermexColors.danger,
+                    color: context.colors.danger,
                   ),
                 ),
               ),
@@ -396,7 +396,7 @@ class _LoadingView extends StatelessWidget {
                     vertical: TermexSpacing.sm,
                   ),
                   decoration: BoxDecoration(
-                    color: TermexColors.primary,
+                    color: context.colors.primary,
                     borderRadius: BorderRadius.circular(4),
                   ),
                   child: const Text(

@@ -152,9 +152,9 @@ class _MasterPasswordDialogState extends ConsumerState<MasterPasswordDialog> {
             constraints: const BoxConstraints(maxWidth: 380),
             child: Container(
               decoration: BoxDecoration(
-                color: TermexColors.backgroundSecondary,
+                color: context.colors.backgroundSecondary,
                 borderRadius: TermexRadius.lg,
-                border: Border.all(color: TermexColors.border),
+                border: Border.all(color: context.colors.border),
                 boxShadow: const [
                   BoxShadow(
                     color: Color(0x66000000),
@@ -177,14 +177,14 @@ class _MasterPasswordDialogState extends ConsumerState<MasterPasswordDialog> {
                         width: 56,
                         height: 56,
                         decoration: BoxDecoration(
-                          color: TermexColors.primary.withOpacity(0.12),
+                          color: context.colors.primary.withOpacity(0.12),
                           borderRadius: TermexRadius.lg,
                         ),
-                        child: const Center(
+                        child: Center(
                           child: TermexIconWidget(
                             TermexIcons.lock,
                             size: 28,
-                            color: TermexColors.primary,
+                            color: context.colors.primary,
                           ),
                         ),
                       ),
@@ -192,14 +192,14 @@ class _MasterPasswordDialogState extends ConsumerState<MasterPasswordDialog> {
                       Text(
                         'Termex',
                         style: TermexTypography.heading2.copyWith(
-                          color: TermexColors.textPrimary,
+                          color: context.colors.textPrimary,
                         ),
                       ),
                       const SizedBox(height: TermexSpacing.xs),
                       Text(
                         'Enter your master password to unlock the database.',
                         style: TermexTypography.bodySmall.copyWith(
-                          color: TermexColors.textSecondary,
+                          color: context.colors.textSecondary,
                         ),
                         textAlign: TextAlign.center,
                       ),
@@ -254,7 +254,7 @@ class _MasterPasswordDialogState extends ConsumerState<MasterPasswordDialog> {
                       child: Text(
                         'Forgot password?',
                         style: TermexTypography.bodySmall.copyWith(
-                          color: TermexColors.textMuted,
+                          color: context.colors.textMuted,
                           decoration: TextDecoration.underline,
                         ),
                       ),
@@ -291,13 +291,13 @@ class _LockoutBanner extends StatelessWidget {
     return Container(
       padding: const EdgeInsets.all(TermexSpacing.sm),
       decoration: BoxDecoration(
-        color: TermexColors.danger.withOpacity(0.08),
+        color: context.colors.danger.withOpacity(0.08),
         borderRadius: TermexRadius.sm,
-        border: Border.all(color: TermexColors.danger.withOpacity(0.3)),
+        border: Border.all(color: context.colors.danger.withOpacity(0.3)),
       ),
       child: Text(
         'Too many failed attempts. Please wait $timeLeft before trying again.',
-        style: TermexTypography.bodySmall.copyWith(color: TermexColors.danger),
+        style: TermexTypography.bodySmall.copyWith(color: context.colors.danger),
         textAlign: TextAlign.center,
       ),
     );
@@ -312,7 +312,7 @@ class _AttemptsWarning extends StatelessWidget {
   Widget build(BuildContext context) {
     return Text(
       '$attemptsLeft attempt${attemptsLeft == 1 ? '' : 's'} remaining before lockout.',
-      style: TermexTypography.bodySmall.copyWith(color: TermexColors.warning),
+      style: TermexTypography.bodySmall.copyWith(color: context.colors.warning),
       textAlign: TextAlign.center,
     );
   }
@@ -331,9 +331,9 @@ class _ForgotPasswordInfoDialog extends StatelessWidget {
           margin: const EdgeInsets.all(TermexSpacing.xl),
           padding: const EdgeInsets.all(TermexSpacing.xl),
           decoration: BoxDecoration(
-            color: TermexColors.backgroundSecondary,
+            color: context.colors.backgroundSecondary,
             borderRadius: TermexRadius.lg,
-            border: Border.all(color: TermexColors.border),
+            border: Border.all(color: context.colors.border),
           ),
           child: Column(
             mainAxisSize: MainAxisSize.min,
@@ -342,7 +342,7 @@ class _ForgotPasswordInfoDialog extends StatelessWidget {
               Text(
                 'Forgot Master Password',
                 style: TermexTypography.heading3.copyWith(
-                  color: TermexColors.textPrimary,
+                  color: context.colors.textPrimary,
                 ),
               ),
               const SizedBox(height: TermexSpacing.md),
@@ -352,7 +352,7 @@ class _ForgotPasswordInfoDialog extends StatelessWidget {
                 'To reset, you must delete the database file and re-enter all servers. '
                 'A "Wipe & Reset" option will be available in Settings (v0.46).',
                 style: TermexTypography.body.copyWith(
-                  color: TermexColors.textSecondary,
+                  color: context.colors.textSecondary,
                 ),
               ),
               const SizedBox(height: TermexSpacing.xl),

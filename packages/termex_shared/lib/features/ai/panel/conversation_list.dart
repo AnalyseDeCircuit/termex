@@ -76,14 +76,15 @@ class ConversationList extends ConsumerWidget {
     final newTitle = await showDialog<String>(
       context: context,
       builder: (ctx) => AlertDialog(
-        backgroundColor: TermexColors.backgroundSecondary,
+        backgroundColor: ctx.colors.backgroundSecondary,
         title: Text(l10n.aiRenameConversation,
-            style: const TextStyle(color: TermexColors.textPrimary, fontSize: 14)),
+            style:
+                TextStyle(color: ctx.colors.textPrimary, fontSize: 14)),
         content: TextField(
           controller: controller,
           autofocus: true,
           maxLength: 80,
-          style: const TextStyle(color: TermexColors.textPrimary, fontSize: 13),
+          style: TextStyle(color: ctx.colors.textPrimary, fontSize: 13),
           decoration: InputDecoration(
             hintText: l10n.aiRenameHint,
             counterText: '',
@@ -120,23 +121,24 @@ class _Header extends StatelessWidget {
     return Container(
       height: 36,
       padding: const EdgeInsets.symmetric(horizontal: 10),
-      decoration: const BoxDecoration(
-        border: Border(bottom: BorderSide(color: TermexColors.border)),
+      decoration: BoxDecoration(
+        border: Border(bottom: BorderSide(color: context.colors.border)),
       ),
       child: Row(
         children: [
           Text(
             l10n.aiConversationsTitle,
-            style: const TextStyle(
+            style: TextStyle(
               fontSize: 12,
               fontWeight: FontWeight.w600,
-              color: TermexColors.textSecondary,
+              color: context.colors.textSecondary,
             ),
           ),
           const Spacer(),
           Clickable(
             onTap: onNew,
-            child: const Icon(Icons.add, size: 16, color: TermexColors.textSecondary),
+            child: Icon(Icons.add,
+                size: 16, color: context.colors.textSecondary),
           ),
         ],
       ),
@@ -169,10 +171,10 @@ class _ConversationRow extends StatelessWidget {
         height: 40,
         padding: const EdgeInsets.symmetric(horizontal: 10),
         decoration: BoxDecoration(
-          color: isActive ? TermexColors.primary.withOpacity(0.08) : null,
+          color: isActive ? context.colors.primary.withOpacity(0.08) : null,
           border: Border(
             left: BorderSide(
-              color: isActive ? TermexColors.primary : Colors.transparent,
+              color: isActive ? context.colors.primary : Colors.transparent,
               width: 2,
             ),
           ),
@@ -182,7 +184,9 @@ class _ConversationRow extends StatelessWidget {
             Icon(
               Icons.chat_bubble_outline_rounded,
               size: 13,
-              color: isActive ? TermexColors.primary : TermexColors.textSecondary,
+              color: isActive
+                  ? context.colors.primary
+                  : context.colors.textSecondary,
             ),
             const SizedBox(width: 7),
             Expanded(
@@ -193,8 +197,8 @@ class _ConversationRow extends StatelessWidget {
                 style: TextStyle(
                   fontSize: 12,
                   color: isActive
-                      ? TermexColors.textPrimary
-                      : TermexColors.textSecondary,
+                      ? context.colors.textPrimary
+                      : context.colors.textSecondary,
                   fontWeight:
                       isActive ? FontWeight.w500 : FontWeight.normal,
                 ),
@@ -202,10 +206,10 @@ class _ConversationRow extends StatelessWidget {
             ),
             Clickable(
               onTap: onDelete,
-              child: const Opacity(
+              child: Opacity(
                 opacity: 0.5,
-                child:
-                    Icon(Icons.close, size: 13, color: TermexColors.textPrimary),
+                child: Icon(Icons.close,
+                    size: 13, color: context.colors.textPrimary),
               ),
             ),
           ],
@@ -242,7 +246,8 @@ class _EmptyState extends StatelessWidget {
     return Center(
       child: Text(
         l10n.aiConversationEmpty,
-        style: const TextStyle(fontSize: 12, color: TermexColors.textSecondary),
+        style:
+            TextStyle(fontSize: 12, color: context.colors.textSecondary),
       ),
     );
   }

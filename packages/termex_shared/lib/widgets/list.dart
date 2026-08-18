@@ -32,7 +32,7 @@ class TermexList<T> extends StatelessWidget {
         separatorBuilder: (_, __) => divided
             ? Container(
                 height: 1,
-                color: TermexColors.border,
+                color: context.colors.border,
               )
             : const SizedBox.shrink(),
         itemBuilder: (ctx, i) => itemBuilder(ctx, items[i], i),
@@ -43,7 +43,7 @@ class TermexList<T> extends StatelessWidget {
     for (var i = 0; i < items.length; i++) {
       children.add(itemBuilder(context, items[i], i));
       if (divided && i < items.length - 1) {
-        children.add(Container(height: 1, color: TermexColors.border));
+        children.add(Container(height: 1, color: context.colors.border));
       }
     }
     return SingleChildScrollView(
@@ -91,9 +91,9 @@ class _TermexListTileState extends State<TermexListTile> {
 
     Color bgColor = const Color(0x00000000);
     if (widget.selected) {
-      bgColor = TermexColors.backgroundTertiary;
+      bgColor = context.colors.backgroundTertiary;
     } else if (_hovered) {
-      bgColor = TermexColors.backgroundTertiary;
+      bgColor = context.colors.backgroundTertiary;
     }
 
     Widget content = Container(
@@ -117,7 +117,7 @@ class _TermexListTileState extends State<TermexListTile> {
                 Text(
                   widget.title,
                   style: TermexTypography.body.copyWith(
-                    color: TermexColors.textPrimary,
+                    color: context.colors.textPrimary,
                   ),
                   maxLines: 1,
                   overflow: TextOverflow.ellipsis,
@@ -127,7 +127,7 @@ class _TermexListTileState extends State<TermexListTile> {
                   Text(
                     widget.subtitle!,
                     style: TermexTypography.bodySmall.copyWith(
-                      color: TermexColors.textSecondary,
+                      color: context.colors.textSecondary,
                     ),
                     maxLines: 1,
                     overflow: TextOverflow.ellipsis,
@@ -154,7 +154,7 @@ class _TermexListTileState extends State<TermexListTile> {
             bottom: 0,
             child: Container(
               width: 2,
-              color: TermexColors.primary,
+              color: context.colors.primary,
             ),
           ),
         ],

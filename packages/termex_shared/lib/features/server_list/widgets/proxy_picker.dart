@@ -303,10 +303,10 @@ class _NewProxyFormState extends State<_NewProxyForm> {
 class _ChevronIcon extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
-    return const Icon(
-      IconData(0xe5cc, fontFamily: 'MaterialIcons'),
+    return Icon(
+      const IconData(0xe5cc, fontFamily: 'MaterialIcons'),
       size: 18,
-      color: TermexColors.textMuted,
+      color: context.colors.textMuted,
     );
   }
 }

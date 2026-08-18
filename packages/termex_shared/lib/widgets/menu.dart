@@ -15,6 +15,13 @@ class MenuItem {
   final VoidCallback? onSelected;
   final bool isSeparator;
   final bool disabled;
+
+  /// Renders the label in the danger colour. For destructive entries
+  /// (Delete, Remove) so they read as such before being clicked — the
+  /// server tree's bespoke menu already did this and the shared one must
+  /// match, or the same action looks different tab to tab.
+  final bool danger;
+
   final List<MenuItem>? subMenu;
 
   const MenuItem({
@@ -24,6 +31,7 @@ class MenuItem {
     this.onSelected,
     this.isSeparator = false,
     this.disabled = false,
+    this.danger = false,
     this.subMenu,
   });
 
@@ -34,6 +42,7 @@ class MenuItem {
         onSelected = null,
         isSeparator = true,
         disabled = false,
+        danger = false,
         subMenu = null;
 }
 
@@ -46,9 +55,9 @@ class TermexMenu extends StatelessWidget {
   Widget build(BuildContext context) {
     return Container(
       decoration: BoxDecoration(
-        color: TermexColors.backgroundSecondary,
+        color: context.colors.backgroundSecondary,
         borderRadius: TermexRadius.md,
-        border: Border.all(color: TermexColors.border),
+        border: Border.all(color: context.colors.border),
         boxShadow: TermexElevation.e2,
       ),
       padding: const EdgeInsets.symmetric(vertical: TermexSpacing.xs),
@@ -74,7 +83,7 @@ class _MenuSeparator extends StatelessWidget {
     return Container(
       height: 1,
       margin: const EdgeInsets.symmetric(vertical: TermexSpacing.xs),
-      color: TermexColors.border,
+      color: context.colors.border,
     );
   }
 }
@@ -150,7 +159,7 @@ class _MenuItemTileState extends State<_MenuItemTile> {
             padding: const EdgeInsets.symmetric(
                 horizontal: TermexSpacing.md),
             color: _hovered && !item.disabled
-                ? TermexColors.backgroundTertiary
+                ? context.colors.backgroundTertiary
                 : const Color(0x00000000),
             child: Row(
               children: [
@@ -166,7 +175,9 @@ class _MenuItemTileState extends State<_MenuItemTile> {
                   child: Text(
                     item.label ?? '',
                     style: TermexTypography.body.copyWith(
-                      color: TermexColors.textPrimary,
+                      color: item.danger
+                          ? context.colors.danger
+                          : context.colors.textPrimary,
                     ),
                   ),
                 ),
@@ -175,7 +186,7 @@ class _MenuItemTileState extends State<_MenuItemTile> {
                   Text(
                     item.shortcut!,
                     style: TermexTypography.caption.copyWith(
-                      color: TermexColors.textMuted,
+                      color: context.colors.textMuted,
                     ),
                   ),
                 ],
@@ -199,16 +210,20 @@ class _SubMenuArrow extends StatelessWidget {
   Widget build(BuildContext context) {
     return CustomPaint(
       size: const Size(6, 10),
-      painter: _ArrowPainter(),
+      painter: _ArrowPainter(colors: context.colors),
     );
   }
 }
 
 class _ArrowPainter extends CustomPainter {
+  final TermexColorScheme colors;
+
+  const _ArrowPainter({required this.colors});
+
   @override
   void paint(Canvas canvas, Size size) {
     final paint = Paint()
-      ..color = TermexColors.textSecondary
+      ..color = colors.textSecondary
       ..style = PaintingStyle.stroke
       ..strokeWidth = 1.5
       ..strokeCap = StrokeCap.round
@@ -221,7 +236,7 @@ class _ArrowPainter extends CustomPainter {
   }
 
   @override
-  bool shouldRepaint(_ArrowPainter _) => false;
+  bool shouldRepaint(_ArrowPainter old) => old.colors != colors;
 }
 
 class _SubMenuOverlay extends StatelessWidget {
@@ -264,18 +279,54 @@ Future<void> showContextMenu({
   final size = MediaQuery.sizeOf(context);
   OverlayEntry? entry;
 
+  void dismiss() {
+    entry?.remove();
+    entry = null;
+  }
+
   entry = OverlayEntry(
     builder: (ctx) => _ContextMenuEntry(
       position: position,
       screenSize: size,
-      items: items,
-      onDismiss: () {
-        entry?.remove();
-        entry = null;
-      },
+      items: _dismissOnSelect(items, dismiss),
+      onDismiss: dismiss,
     ),
   );
   overlay.insert(entry!);
+}
+
+/// Rebuilds [items] so choosing one closes the menu.
+///
+/// `_MenuItemTile` only invoked `onSelected`; nothing tore the overlay down,
+/// so the menu stayed on screen after a click and the next right-click
+/// stacked another one on top. Wrapping here rather than inside the tile
+/// keeps `TermexMenu` usable as an inline (non-overlay) menu, where
+/// self-dismissal would be wrong.
+///
+/// Submenus are wrapped recursively; a parent that only opens a submenu has
+/// no `onSelected` and is left alone so it does not close on hover-through.
+List<MenuItem> _dismissOnSelect(List<MenuItem> items, VoidCallback dismiss) {
+  return items.map((item) {
+    if (item.isSeparator) return item;
+    final nested = item.subMenu == null
+        ? null
+        : _dismissOnSelect(item.subMenu!, dismiss);
+    final onSelected = item.onSelected;
+    return MenuItem(
+      label: item.label,
+      icon: item.icon,
+      shortcut: item.shortcut,
+      disabled: item.disabled,
+      danger: item.danger,
+      subMenu: nested,
+      onSelected: onSelected == null
+          ? null
+          : () {
+              dismiss();
+              onSelected();
+            },
+    );
+  }).toList(growable: false);
 }
 
 class _ContextMenuEntry extends StatefulWidget {
@@ -320,10 +371,29 @@ class _ContextMenuEntryState extends State<_ContextMenuEntry>
   @override
   Widget build(BuildContext context) {
     const menuWidth = 200.0;
+    const itemHeight = 32.0;
+    const separatorHeight = 9.0;
+    const verticalPadding = 8.0;
+
     final dx = widget.position.dx + menuWidth > widget.screenSize.width
         ? widget.position.dx - menuWidth
         : widget.position.dx;
-    final dy = widget.position.dy;
+
+    // Flip above the pointer when the menu would overflow the bottom edge.
+    // Only dx was clamped before, so a right-click near the bottom of the
+    // sidebar rendered a menu whose lower entries were unreachable — and the
+    // longer per-node menus added for proxies / snippets / recordings make
+    // that the common case rather than an edge case.
+    final estimatedHeight = verticalPadding +
+        widget.items.fold<double>(
+          0,
+          (h, i) => h + (i.isSeparator ? separatorHeight : itemHeight),
+        );
+    final overflowsBottom =
+        widget.position.dy + estimatedHeight > widget.screenSize.height;
+    final dy = overflowsBottom
+        ? (widget.position.dy - estimatedHeight).clamp(0.0, widget.screenSize.height)
+        : widget.position.dy;
 
     return Stack(
       children: [

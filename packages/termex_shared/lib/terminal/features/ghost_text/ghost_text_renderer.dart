@@ -47,7 +47,7 @@ class GhostTextOverlay extends StatelessWidget {
         sug.ghostSuffix,
         style: TermexTypography.monospace.copyWith(
           fontSize: fontSize,
-          color: TermexColors.textMuted.withOpacity(0.55),
+          color: context.colors.textMuted.withOpacity(0.55),
           // Do not inherit any selection or decoration from parent.
           decoration: TextDecoration.none,
         ),

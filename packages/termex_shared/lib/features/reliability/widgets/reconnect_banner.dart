@@ -32,7 +32,7 @@ class ReconnectBanner extends StatelessWidget {
 
     final anyFailed =
         visible.any((a) => a.status == ReconnectStatusVM.failed);
-    final color = anyFailed ? TermexColors.danger : TermexColors.warning;
+    final color = anyFailed ? context.colors.danger : context.colors.warning;
 
     return Container(
       width: double.infinity,
@@ -52,7 +52,7 @@ class ReconnectBanner extends StatelessWidget {
         children: visible
             .map((a) => _AttemptRow(
                   attempt: a,
-                  color: _statusColor(a.status),
+                  color: _statusColor(a.status, context.colors),
                   onRetry: onRetry,
                 ))
             .toList(),
@@ -60,10 +60,11 @@ class ReconnectBanner extends StatelessWidget {
     );
   }
 
-  Color _statusColor(ReconnectStatusVM s) => switch (s) {
-        ReconnectStatusVM.connected => TermexColors.success,
-        ReconnectStatusVM.reconnecting => TermexColors.warning,
-        ReconnectStatusVM.failed => TermexColors.danger,
+  Color _statusColor(ReconnectStatusVM s, TermexColorScheme colors) =>
+      switch (s) {
+        ReconnectStatusVM.connected => colors.success,
+        ReconnectStatusVM.reconnecting => colors.warning,
+        ReconnectStatusVM.failed => colors.danger,
       };
 }
 
@@ -103,7 +104,7 @@ class _AttemptRow extends StatelessWidget {
                 Text(
                   label,
                   style: TermexTypography.body.copyWith(
-                    color: TermexColors.textPrimary,
+                    color: context.colors.textPrimary,
                   ),
                   maxLines: 1,
                   overflow: TextOverflow.ellipsis,
@@ -112,7 +113,7 @@ class _AttemptRow extends StatelessWidget {
                   Text(
                     attempt.note!,
                     style: TermexTypography.caption.copyWith(
-                      color: TermexColors.textSecondary,
+                      color: context.colors.textSecondary,
                     ),
                     maxLines: 1,
                     overflow: TextOverflow.ellipsis,

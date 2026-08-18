@@ -56,8 +56,8 @@ class _SecurityTabState extends ConsumerState<SecurityTab> {
             padding: const EdgeInsets.symmetric(vertical: 24),
             child: Center(
               child: Text(l10n.settingsSecurityLoading,
-                  style: const TextStyle(
-                      fontSize: 12, color: TermexColors.textMuted)),
+                  style: TextStyle(
+                      fontSize: 12, color: context.colors.textMuted)),
             ),
           )
         else if (_status != null) ...[
@@ -74,8 +74,8 @@ class _SecurityTabState extends ConsumerState<SecurityTab> {
             padding: const EdgeInsets.symmetric(vertical: 24),
             child: Center(
               child: Text(l10n.settingsSecurityLoadError,
-                  style: const TextStyle(
-                      fontSize: 12, color: TermexColors.textMuted)),
+                  style: TextStyle(
+                      fontSize: 12, color: context.colors.textMuted)),
             ),
           ),
       ],
@@ -94,7 +94,7 @@ class _ProtectionCard extends StatelessWidget {
     return Container(
       padding: const EdgeInsets.all(14),
       decoration: BoxDecoration(
-        border: Border.all(color: TermexColors.border),
+        border: Border.all(color: context.colors.border),
         borderRadius: BorderRadius.circular(6),
       ),
       child: Column(
@@ -115,10 +115,10 @@ class _ProtectionCard extends StatelessWidget {
               const SizedBox(width: 8),
               Text(
                 l10n.settingsSecurityProtectionTitle,
-                style: const TextStyle(
+                style: TextStyle(
                   fontSize: 13,
                   fontWeight: FontWeight.w600,
-                  color: TermexColors.textPrimary,
+                  color: context.colors.textPrimary,
                 ),
               ),
             ],
@@ -128,9 +128,9 @@ class _ProtectionCard extends StatelessWidget {
             available
                 ? l10n.settingsSecurityProtectionActive(platform)
                 : l10n.settingsSecurityProtectionFallback,
-            style: const TextStyle(
+            style: TextStyle(
               fontSize: 12,
-              color: TermexColors.textSecondary,
+              color: context.colors.textSecondary,
               height: 1.5,
             ),
           ),
@@ -150,7 +150,7 @@ class _CredentialCountCard extends StatelessWidget {
     return Container(
       padding: const EdgeInsets.all(14),
       decoration: BoxDecoration(
-        border: Border.all(color: TermexColors.border),
+        border: Border.all(color: context.colors.border),
         borderRadius: BorderRadius.circular(6),
       ),
       child: Column(
@@ -158,25 +158,25 @@ class _CredentialCountCard extends StatelessWidget {
         children: [
           Text(
             l10n.settingsSecuritySavedCredentials,
-            style: const TextStyle(
+            style: TextStyle(
               fontSize: 12,
               fontWeight: FontWeight.w600,
-              color: TermexColors.textPrimary,
+              color: context.colors.textPrimary,
             ),
           ),
           const SizedBox(height: 4),
           Text(
             '$count',
-            style: const TextStyle(
+            style: TextStyle(
               fontSize: 28,
               fontWeight: FontWeight.w700,
-              color: TermexColors.textPrimary,
+              color: context.colors.textPrimary,
             ),
           ),
           const SizedBox(height: 2),
           Text(
             l10n.settingsSecurityCredentialTypes,
-            style: const TextStyle(fontSize: 11, color: TermexColors.textMuted),
+            style: TextStyle(fontSize: 11, color: context.colors.textMuted),
           ),
         ],
       ),
@@ -198,10 +198,10 @@ class _HowItWorksCard extends StatelessWidget {
       children: [
         Text(
           l10n.settingsSecurityHowItWorks,
-          style: const TextStyle(
+          style: TextStyle(
             fontSize: 12,
             fontWeight: FontWeight.w600,
-            color: TermexColors.textSecondary,
+            color: context.colors.textSecondary,
           ),
         ),
         const SizedBox(height: 6),
@@ -216,8 +216,8 @@ class _HowItWorksCard extends StatelessWidget {
                   child: Container(
                     width: 3,
                     height: 3,
-                    decoration: const BoxDecoration(
-                      color: TermexColors.textMuted,
+                    decoration: BoxDecoration(
+                      color: context.colors.textMuted,
                       shape: BoxShape.circle,
                     ),
                   ),
@@ -225,9 +225,9 @@ class _HowItWorksCard extends StatelessWidget {
                 Expanded(
                   child: Text(
                     h,
-                    style: const TextStyle(
+                    style: TextStyle(
                       fontSize: 11,
-                      color: TermexColors.textMuted,
+                      color: context.colors.textMuted,
                       height: 1.5,
                     ),
                   ),

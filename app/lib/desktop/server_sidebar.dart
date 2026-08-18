@@ -49,9 +49,9 @@ class _ServerSidebarState extends ConsumerState<ServerSidebar> {
 
     return Container(
       width: 240,
-      decoration: const BoxDecoration(
-        color: TermexColors.backgroundSecondary,
-        border: Border(right: BorderSide(color: TermexColors.border)),
+      decoration: BoxDecoration(
+        color: context.colors.backgroundSecondary,
+        border: Border(right: BorderSide(color: context.colors.border)),
       ),
       child: Column(
         children: [
@@ -103,7 +103,7 @@ class _ServerSidebarState extends ConsumerState<ServerSidebar> {
                     child: Text(
                       _query.isEmpty ? 'No servers' : 'No results',
                       style: TermexTypography.bodySmall.copyWith(
-                        color: TermexColors.textMuted,
+                        color: context.colors.textMuted,
                       ),
                     ),
                   );
@@ -171,7 +171,7 @@ class _ServerSidebarState extends ConsumerState<ServerSidebar> {
                 child: Text(
                   e.toString(),
                   style: TermexTypography.bodySmall
-                      .copyWith(color: TermexColors.danger),
+                      .copyWith(color: context.colors.danger),
                 ),
               ),
             ),
@@ -215,14 +215,14 @@ class _ServerTileState extends State<_ServerTile> {
           height: 48,
           padding: const EdgeInsets.symmetric(horizontal: TermexSpacing.md),
           color: _hovered
-              ? TermexColors.backgroundPrimary.withOpacity(0.6)
+              ? context.colors.backgroundPrimary.withOpacity(0.6)
               : null,
           child: Row(
             children: [
-              const TermexIconWidget(
+              TermexIconWidget(
                 TermexIcons.server,
                 size: 15,
-                color: TermexColors.textSecondary,
+                color: context.colors.textSecondary,
               ),
               const SizedBox(width: TermexSpacing.sm),
               Expanded(
@@ -235,7 +235,7 @@ class _ServerTileState extends State<_ServerTile> {
                       maxLines: 1,
                       overflow: TextOverflow.ellipsis,
                       style: TermexTypography.body.copyWith(
-                        color: TermexColors.textPrimary,
+                        color: context.colors.textPrimary,
                       ),
                     ),
                     Text(
@@ -243,7 +243,7 @@ class _ServerTileState extends State<_ServerTile> {
                       maxLines: 1,
                       overflow: TextOverflow.ellipsis,
                       style: TermexTypography.caption.copyWith(
-                        color: TermexColors.textMuted,
+                        color: context.colors.textMuted,
                       ),
                     ),
                   ],
@@ -293,7 +293,7 @@ class _TileIconButton extends StatelessWidget {
         child: TermexIconWidget(
           icon,
           size: 14,
-          color: danger ? TermexColors.danger : TermexColors.textMuted,
+          color: danger ? context.colors.danger : context.colors.textMuted,
         ),
       ),
     );
@@ -305,7 +305,7 @@ class _SidebarDivider extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) =>
-      const ColoredBox(color: TermexColors.border, child: SizedBox(height: 1));
+      ColoredBox(color: context.colors.border, child: SizedBox(height: 1));
 }
 
 class _Spinner extends StatelessWidget {

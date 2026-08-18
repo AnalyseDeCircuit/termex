@@ -293,7 +293,7 @@ class _DesktopShellState extends ConsumerState<DesktopShell> {
       child: Stack(
         children: [
           ColoredBox(
-            color: TermexColors.backgroundPrimary,
+            color: context.colors.backgroundPrimary,
             child: Column(
               children: [
                 _DesktopTopBar(
@@ -419,8 +419,8 @@ class _DesktopTopBar extends ConsumerWidget {
       // 2px primary underline (see tab_item.dart). This matches the
       // user's spec — "默认底部 border 透明，激活 tab 卡片才显示卡片底部
       // border".
-      decoration: const BoxDecoration(
-        color: TermexColors.backgroundPrimary,
+      decoration: BoxDecoration(
+        color: context.colors.backgroundPrimary,
       ),
       child: Row(
         crossAxisAlignment: CrossAxisAlignment.end,
@@ -442,7 +442,7 @@ class _DesktopTopBar extends ConsumerWidget {
             icon: TermexIcons.ai,
             tooltip: 'AI Assistant',
             active: activePanel == DesktopSidePanel.ai,
-            highlightWhenActive: TermexColors.primary,
+            highlightWhenActive: context.colors.primary,
             onTap: () => onPanelToggle(DesktopSidePanel.ai),
           ),
           _TopBarIconButton(
@@ -487,7 +487,7 @@ class _TopBarIconButtonState extends State<_TopBarIconButton> {
   @override
   Widget build(BuildContext context) {
     final activeColor =
-        widget.highlightWhenActive ?? TermexColors.primary;
+        widget.highlightWhenActive ?? context.colors.primary;
     return Tooltip(
       message: widget.tooltip,
       child: MouseRegion(
@@ -506,7 +506,7 @@ class _TopBarIconButtonState extends State<_TopBarIconButton> {
               color: widget.active
                   ? activeColor.withOpacity(0.12)
                   : (_hovered
-                      ? TermexColors.backgroundTertiary
+                      ? context.colors.backgroundTertiary
                       : null),
               borderRadius: BorderRadius.circular(6),
             ),
@@ -515,7 +515,7 @@ class _TopBarIconButtonState extends State<_TopBarIconButton> {
               size: 16,
               color: widget.active
                   ? activeColor
-                  : TermexColors.textSecondary,
+                  : context.colors.textSecondary,
             ),
           ),
         ),
@@ -543,9 +543,9 @@ class _SidePanelContainer extends StatelessWidget {
   Widget build(BuildContext context) {
     return Container(
       width: 380,
-      decoration: const BoxDecoration(
-        color: TermexColors.backgroundSecondary,
-        border: Border(left: BorderSide(color: TermexColors.border)),
+      decoration: BoxDecoration(
+        color: context.colors.backgroundSecondary,
+        border: Border(left: BorderSide(color: context.colors.border)),
       ),
       child: switch (panel) {
         DesktopSidePanel.sftp => sessionId != null
@@ -570,7 +570,7 @@ class DesktopWelcomePane extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     return ColoredBox(
-      color: TermexColors.backgroundPrimary,
+      color: context.colors.backgroundPrimary,
       child: Center(
         child: Column(
           mainAxisSize: MainAxisSize.min,
@@ -578,7 +578,7 @@ class DesktopWelcomePane extends StatelessWidget {
             Text(
               'Termex',
               style: TermexTypography.heading1.copyWith(
-                color: TermexColors.textPrimary,
+                color: context.colors.textPrimary,
                 fontWeight: FontWeight.w700,
                 fontSize: 44,
               ),
@@ -587,21 +587,21 @@ class DesktopWelcomePane extends StatelessWidget {
             Text(
               '一款开源 AI 驱动的本地 SSH 客户端',
               style: TermexTypography.body.copyWith(
-                color: TermexColors.textSecondary,
+                color: context.colors.textSecondary,
               ),
             ),
             const SizedBox(height: TermexSpacing.xxl),
             Text(
               '⌘T new tab · ⌘W close · ⌘1–9 switch · ⌘⇧K Quick Connect',
               style: TermexTypography.caption.copyWith(
-                color: TermexColors.textMuted,
+                color: context.colors.textMuted,
               ),
             ),
             const SizedBox(height: 4),
             Text(
               '⌘⇧F Find across tabs · ⌘⇧S Snippets · ⌘⇧I AI · ⌘⇧B Broadcast · ⌘, Settings',
               style: TermexTypography.caption.copyWith(
-                color: TermexColors.textMuted,
+                color: context.colors.textMuted,
               ),
             ),
           ],
@@ -617,11 +617,11 @@ class _NoSessionPane extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     return ColoredBox(
-      color: TermexColors.backgroundSecondary,
+      color: context.colors.backgroundSecondary,
       child: Center(
         child: Text(
           'Connect to a server first',
-          style: TermexTypography.body.copyWith(color: TermexColors.textMuted),
+          style: TermexTypography.body.copyWith(color: context.colors.textMuted),
         ),
       ),
     );

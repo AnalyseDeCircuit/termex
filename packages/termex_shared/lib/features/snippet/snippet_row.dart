@@ -4,7 +4,11 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 
 import '../../design/tokens.dart';
 import '../../l10n/app_localizations.dart';
+import '../../icons/termex_icons.dart';
 import '../../widgets/clickable.dart';
+import '../../widgets/menu.dart';
+import '../../widgets/panel_context_menu.dart';
+import '../../widgets/toast.dart';
 import 'snippet_variable_resolver.dart';
 import 'state/snippet_provider.dart';
 
@@ -17,10 +21,16 @@ class SnippetRow extends ConsumerWidget {
   @override
   Widget build(BuildContext context, WidgetRef ref) {
     final l10n = AppLocalizations.of(context);
-    return Container(
+    return GestureDetector(
+      behavior: HitTestBehavior.opaque,
+      // Consumes the gesture so the panel's blank-area menu does not also
+      // fire for a click that landed on a row.
+      onSecondaryTapUp: (d) => _showRowMenu(context, ref, d.globalPosition),
+      child: Container(
       padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 10),
-      decoration: const BoxDecoration(
-        border: Border(bottom: BorderSide(color: TermexColors.border, width: 0.5)),
+      decoration: BoxDecoration(
+        border: Border(
+            bottom: BorderSide(color: context.colors.border, width: 0.5)),
       ),
       child: Row(
         crossAxisAlignment: CrossAxisAlignment.start,
@@ -38,10 +48,10 @@ class SnippetRow extends ConsumerWidget {
                         snippet.title,
                         maxLines: 1,
                         overflow: TextOverflow.ellipsis,
-                        style: const TextStyle(
+                        style: TextStyle(
                           fontSize: 13,
                           fontWeight: FontWeight.w500,
-                          color: TermexColors.textPrimary,
+                          color: context.colors.textPrimary,
                         ),
                       ),
                     ),
@@ -49,9 +59,9 @@ class SnippetRow extends ConsumerWidget {
                       const SizedBox(width: 6),
                       Text(
                         l10n.snippetUsageTimes(snippet.usageCount),
-                        style: const TextStyle(
+                        style: TextStyle(
                           fontSize: 10,
-                          color: TermexColors.textSecondary,
+                          color: context.colors.textSecondary,
                         ),
                       ),
                     ],
@@ -73,9 +83,9 @@ class SnippetRow extends ConsumerWidget {
                 const SizedBox(height: 4),
                 Text(
                   snippet.content,
-                  style: const TextStyle(
+                  style: TextStyle(
                     fontSize: 11,
-                    color: TermexColors.textSecondary,
+                    color: context.colors.textSecondary,
                     fontFamily: 'monospace',
                   ),
                   maxLines: 2,
@@ -105,7 +115,7 @@ class SnippetRow extends ConsumerWidget {
               _ActionBtn(
                 icon: Icons.play_arrow_outlined,
                 tooltip: l10n.snippetExecute,
-                color: TermexColors.success,
+                color: context.colors.success,
                 onTap: () async {
                   final cmd = await resolveSnippetVariables(context, snippet);
                   if (cmd != null) {
@@ -126,14 +136,62 @@ class SnippetRow extends ConsumerWidget {
               _ActionBtn(
                 icon: Icons.delete_outline,
                 tooltip: l10n.commonDelete,
-                color: TermexColors.danger,
+                color: context.colors.danger,
                 onTap: () => _confirmDelete(context, ref),
               ),
             ],
           ),
         ],
       ),
+      ),
     );
+  }
+
+  /// Row menu — the same four actions the inline buttons offer, plus a
+  /// dedicated copy entry. The buttons are 4 icons crammed into a 240pt
+  /// sidebar; the menu labels them.
+  void _showRowMenu(BuildContext context, WidgetRef ref, Offset position) {
+    final l10n = AppLocalizations.of(context);
+    showContextMenu(
+      context: context,
+      position: position,
+      items: [
+        MenuItem(
+          label: l10n.snippetExecute,
+          icon: menuIcon(context, TermexIcons.play),
+          onSelected: () => _execute(context, ref),
+        ),
+        MenuItem(
+          label: l10n.ctxSnippetCopyContent,
+          icon: menuIcon(context, TermexIcons.copy),
+          onSelected: () {
+            Clipboard.setData(ClipboardData(text: snippet.content));
+            ToastController.success(l10n.snippetCopiedToClipboard);
+          },
+        ),
+        const MenuItem.separator(),
+        MenuItem(
+          label: l10n.snippetEdit,
+          icon: menuIcon(context, TermexIcons.edit),
+          onSelected: () =>
+              ref.read(snippetProvider.notifier).setEditing(snippet.id),
+        ),
+        const MenuItem.separator(),
+        deleteMenuItem(
+          context,
+          label: l10n.snippetDelete,
+          onSelected: () => _confirmDelete(context, ref),
+        ),
+      ],
+    );
+  }
+
+  Future<void> _execute(BuildContext context, WidgetRef ref) async {
+    final cmd = await resolveSnippetVariables(context, snippet);
+    if (cmd != null) {
+      ref.read(snippetProvider.notifier).incrementUsage(snippet.id);
+      onExecute?.call(cmd);
+    }
   }
 
   Future<void> _confirmDelete(BuildContext context, WidgetRef ref) async {
@@ -141,14 +199,14 @@ class SnippetRow extends ConsumerWidget {
     final ok = await showDialog<bool>(
       context: context,
       builder: (_) => AlertDialog(
-        backgroundColor: TermexColors.backgroundSecondary,
-        title: Text(l10n.snippetDeleteTitle, style: const TextStyle(fontSize: 14, color: TermexColors.danger)),
-        content: Text(l10n.snippetDeleteConfirmNamed(snippet.title), style: const TextStyle(fontSize: 12, color: TermexColors.textSecondary)),
+        backgroundColor: context.colors.backgroundSecondary,
+        title: Text(l10n.snippetDeleteTitle, style: TextStyle(fontSize: 14, color: context.colors.danger)),
+        content: Text(l10n.snippetDeleteConfirmNamed(snippet.title), style: TextStyle(fontSize: 12, color: context.colors.textSecondary)),
         actions: [
           TextButton(onPressed: () => Navigator.pop(context, false), child: Text(l10n.commonCancel)),
           TextButton(
             onPressed: () => Navigator.pop(context, true),
-            style: TextButton.styleFrom(foregroundColor: TermexColors.danger),
+            style: TextButton.styleFrom(foregroundColor: context.colors.danger),
             child: Text(l10n.commonDelete),
           ),
         ],
@@ -169,10 +227,10 @@ class _TagChip extends StatelessWidget {
         margin: const EdgeInsets.only(right: 4),
         padding: const EdgeInsets.symmetric(horizontal: 6, vertical: 1),
         decoration: BoxDecoration(
-          color: TermexColors.primary.withOpacity(0.08),
+          color: context.colors.primary.withOpacity(0.08),
           borderRadius: BorderRadius.circular(4),
         ),
-        child: Text(tag, style: const TextStyle(fontSize: 10, color: TermexColors.primary)),
+        child: Text(tag, style: TextStyle(fontSize: 10, color: context.colors.primary)),
       );
 }
 
@@ -198,11 +256,11 @@ class _ActionBtn extends StatelessWidget {
             width: 28,
             height: 28,
             decoration: BoxDecoration(
-              color: TermexColors.backgroundSecondary,
+              color: context.colors.backgroundSecondary,
               borderRadius: BorderRadius.circular(4),
-              border: Border.all(color: TermexColors.border),
+              border: Border.all(color: context.colors.border),
             ),
-            child: Icon(icon, size: 14, color: color ?? TermexColors.textSecondary),
+            child: Icon(icon, size: 14, color: color ?? context.colors.textSecondary),
           ),
         ),
       );

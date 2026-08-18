@@ -96,10 +96,10 @@ class _TermexListItemState extends State<TermexListItem>
 
   Widget _buildContent() {
     final bg = widget.selected
-        ? TermexColors.primary.withAlpha(30)
+        ? context.colors.primary.withAlpha(30)
         : _pressed
-            ? TermexColors.backgroundTertiary
-            : TermexColors.backgroundSecondary;
+            ? context.colors.backgroundTertiary
+            : context.colors.backgroundSecondary;
 
     return AnimatedBuilder(
       animation: _scaleAnim,
@@ -134,8 +134,8 @@ class _TermexListItemState extends State<TermexListItem>
                     widget.title,
                     style: TermexTypography.body.copyWith(
                       color: widget.disabled
-                          ? TermexColors.textMuted
-                          : TermexColors.textPrimary,
+                          ? context.colors.textMuted
+                          : context.colors.textPrimary,
                     ),
                     maxLines: 1,
                     overflow: TextOverflow.ellipsis,
@@ -145,7 +145,7 @@ class _TermexListItemState extends State<TermexListItem>
                     Text(
                       widget.subtitle!,
                       style: TermexTypography.bodySmall.copyWith(
-                        color: TermexColors.textSecondary,
+                        color: context.colors.textSecondary,
                       ),
                       maxLines: 1,
                       overflow: TextOverflow.ellipsis,
@@ -204,7 +204,7 @@ class _DismissBackground extends StatelessWidget {
     return Container(
       alignment: Alignment.centerRight,
       padding: const EdgeInsets.only(right: TermexSpacing.lg),
-      color: TermexColors.danger,
+      color: context.colors.danger,
       child: Text(
         label ?? '删除',
         style: TermexTypography.body.copyWith(

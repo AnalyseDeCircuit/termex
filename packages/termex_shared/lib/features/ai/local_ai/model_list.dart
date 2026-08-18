@@ -14,10 +14,11 @@ class ModelList extends ConsumerWidget {
     final models = ref.watch(localAiProvider).models;
 
     if (models.isEmpty) {
-      return const Center(
+      return Center(
         child: Text(
           '正在加载模型列表…',
-          style: TextStyle(fontSize: 13, color: TermexColors.textSecondary),
+          style:
+              TextStyle(fontSize: 13, color: context.colors.textSecondary),
         ),
       );
     }

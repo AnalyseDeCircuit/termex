@@ -126,10 +126,10 @@ class _SegmentChipState extends State<_SegmentChip> {
           padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 5),
           decoration: BoxDecoration(
             color: selected
-                ? TermexColors.primary.withOpacity(0.15)
-                : (_hovered ? TermexColors.backgroundTertiary : null),
+                ? context.colors.primary.withOpacity(0.15)
+                : (_hovered ? context.colors.backgroundTertiary : null),
             border: Border.all(
-              color: selected ? TermexColors.primary : TermexColors.border,
+              color: selected ? context.colors.primary : context.colors.border,
             ),
             borderRadius: BorderRadius.circular(4),
           ),
@@ -138,8 +138,8 @@ class _SegmentChipState extends State<_SegmentChip> {
             style: TextStyle(
               fontSize: 12,
               color: selected
-                  ? TermexColors.primary
-                  : TermexColors.textSecondary,
+                  ? context.colors.primary
+                  : context.colors.textSecondary,
               fontWeight: selected ? FontWeight.w600 : FontWeight.w400,
             ),
           ),
@@ -211,13 +211,13 @@ class _Check extends StatelessWidget {
                   : Icons.check_box_outline_blank,
               size: 16,
               color:
-                  value ? TermexColors.primary : TermexColors.textMuted,
+                  value ? context.colors.primary : context.colors.textMuted,
             ),
             const SizedBox(width: 6),
             Text(
               label,
               style:
-                  const TextStyle(fontSize: 12, color: TermexColors.textPrimary),
+                  TextStyle(fontSize: 12, color: context.colors.textPrimary),
             ),
           ],
         ),

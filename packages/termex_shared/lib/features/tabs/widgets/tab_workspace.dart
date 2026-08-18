@@ -149,7 +149,7 @@ class _TabWorkspaceState extends ConsumerState<TabWorkspace> {
           Positioned.fill(
             top: topGap,
             child: ColoredBox(
-              color: TermexColors.backgroundSecondary,
+              color: context.colors.backgroundSecondary,
               child: _panelContent(_subTab),
             ),
           ),
@@ -253,7 +253,7 @@ class _TabWorkspaceState extends ConsumerState<TabWorkspace> {
             child: Container(
               width: axis == Axis.horizontal ? 4 : double.infinity,
               height: axis == Axis.vertical ? 4 : double.infinity,
-              color: TermexColors.border,
+              color: context.colors.border,
             ),
           ),
         );
@@ -329,9 +329,9 @@ class _SubTabBar extends ConsumerWidget {
     final l10n = AppLocalizations.of(context);
     return Container(
       height: 24,
-      decoration: const BoxDecoration(
-        color: TermexColors.backgroundSecondary,
-        border: Border(bottom: BorderSide(color: TermexColors.border)),
+      decoration: BoxDecoration(
+        color: context.colors.backgroundSecondary,
+        border: Border(bottom: BorderSide(color: context.colors.border)),
       ),
       child: Row(
         children: [
@@ -397,9 +397,9 @@ class _PanelTabBar extends StatelessWidget {
     final l10n = AppLocalizations.of(context);
     return Container(
       height: 24,
-      decoration: const BoxDecoration(
-        color: TermexColors.backgroundSecondary,
-        border: Border(bottom: BorderSide(color: TermexColors.border)),
+      decoration: BoxDecoration(
+        color: context.colors.backgroundSecondary,
+        border: Border(bottom: BorderSide(color: context.colors.border)),
       ),
       child: Row(
         children: [
@@ -468,7 +468,7 @@ class _WorkspaceTabState extends State<_WorkspaceTab> {
             border: Border(
               bottom: BorderSide(
                 color: widget.active
-                    ? TermexColors.primary
+                    ? context.colors.primary
                     : Colors.transparent,
                 width: 2,
               ),
@@ -482,10 +482,10 @@ class _WorkspaceTabState extends State<_WorkspaceTab> {
                 style: TextStyle(
                   fontSize: 10,
                   color: widget.active
-                      ? TermexColors.textPrimary
+                      ? context.colors.textPrimary
                       : _hovered
-                          ? TermexColors.textSecondary
-                          : TermexColors.textMuted,
+                          ? context.colors.textSecondary
+                          : context.colors.textMuted,
                 ),
               ),
               if (widget.badge > 0) ...[
@@ -583,7 +583,7 @@ class _DraggableWorkspaceTabState extends State<_DraggableWorkspaceTab> {
               border: Border(
                 bottom: BorderSide(
                   color: widget.active && !disabled
-                      ? TermexColors.primary
+                      ? context.colors.primary
                       : Colors.transparent,
                   width: 2,
                 ),
@@ -597,12 +597,12 @@ class _DraggableWorkspaceTabState extends State<_DraggableWorkspaceTab> {
                   style: TextStyle(
                     fontSize: 10,
                     color: disabled
-                        ? TermexColors.textMuted
+                        ? context.colors.textMuted
                         : widget.active
-                            ? TermexColors.textPrimary
+                            ? context.colors.textPrimary
                             : _hovered
-                                ? TermexColors.textSecondary
-                                : TermexColors.textMuted,
+                                ? context.colors.textSecondary
+                                : context.colors.textMuted,
                   ),
                 ),
                 if (widget.badge > 0) ...[
@@ -667,7 +667,7 @@ class _CloseBtnState extends State<_CloseBtn> {
               fontSize: 11,
               color: _hovered
                   ? const Color(0xFFF87171)
-                  : TermexColors.textSecondary,
+                  : context.colors.textSecondary,
             ),
           ),
         ),
@@ -689,7 +689,7 @@ class _TransfersPanel extends ConsumerWidget {
       return Center(
         child: Text(
           AppLocalizations.of(context).tabWorkspaceNoTransfers,
-          style: const TextStyle(fontSize: 12, color: TermexColors.textMuted),
+          style: TextStyle(fontSize: 12, color: context.colors.textMuted),
         ),
       );
     }
@@ -713,32 +713,32 @@ class _TransfersPanel extends ConsumerWidget {
                     style: TextStyle(
                       fontSize: 11,
                       color: t.direction == TransferDirection.upload
-                          ? TermexColors.primary
-                          : TermexColors.success,
+                          ? context.colors.primary
+                          : context.colors.success,
                     ),
                   ),
                   const SizedBox(width: 4),
                   Expanded(
                     child: Text(
                       t.fileName,
-                      style: const TextStyle(
-                          fontSize: 11, color: TermexColors.textPrimary),
+                      style: TextStyle(
+                          fontSize: 11, color: context.colors.textPrimary),
                       overflow: TextOverflow.ellipsis,
                     ),
                   ),
                   Text(
                     '${(pct * 100).toStringAsFixed(0)}%',
-                    style: const TextStyle(
-                        fontSize: 10, color: TermexColors.textSecondary),
+                    style: TextStyle(
+                        fontSize: 10, color: context.colors.textSecondary),
                   ),
                 ],
               ),
               const SizedBox(height: 3),
               LinearProgressIndicator(
                 value: pct.toDouble(),
-                backgroundColor: TermexColors.backgroundTertiary,
+                backgroundColor: context.colors.backgroundTertiary,
                 valueColor:
-                    const AlwaysStoppedAnimation<Color>(TermexColors.primary),
+                    AlwaysStoppedAnimation<Color>(context.colors.primary),
                 minHeight: 2,
               ),
             ],

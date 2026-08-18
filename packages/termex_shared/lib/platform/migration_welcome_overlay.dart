@@ -94,7 +94,7 @@ class _WelcomeCard extends StatelessWidget {
           Text(
             'Your data is intact.',
             style: TermexTypography.body.copyWith(
-              color: TermexColors.textPrimary,
+              color: context.colors.textPrimary,
               fontWeight: FontWeight.w600,
             ),
           ),
@@ -104,14 +104,14 @@ class _WelcomeCard extends StatelessWidget {
             'have been carried over from the previous version. The '
             'encrypted database is unchanged.',
             style: TermexTypography.bodySmall.copyWith(
-              color: TermexColors.textSecondary,
+              color: context.colors.textSecondary,
             ),
           ),
           const SizedBox(height: TermexSpacing.lg),
           Text(
             "What's new in this build:",
             style: TermexTypography.body.copyWith(
-              color: TermexColors.textPrimary,
+              color: context.colors.textPrimary,
               fontWeight: FontWeight.w600,
             ),
           ),
@@ -139,12 +139,12 @@ class _Bullet extends StatelessWidget {
       child: Row(
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
-          const Padding(
-            padding: EdgeInsets.only(top: 7),
+          Padding(
+            padding: const EdgeInsets.only(top: 7),
             child: SizedBox(
               width: 4,
               height: 4,
-              child: ColoredBox(color: TermexColors.primary),
+              child: ColoredBox(color: context.colors.primary),
             ),
           ),
           const SizedBox(width: 10),
@@ -152,7 +152,7 @@ class _Bullet extends StatelessWidget {
             child: Text(
               text,
               style: TermexTypography.bodySmall.copyWith(
-                color: TermexColors.textSecondary,
+                color: context.colors.textSecondary,
               ),
             ),
           ),

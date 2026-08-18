@@ -83,9 +83,9 @@ class _TermexBottomBarState extends State<TermexBottomBar>
       label: 'Bottom navigation bar',
       child: Container(
         height: MobileTokens.bottomBarHeight,
-        decoration: const BoxDecoration(
-          color: TermexColors.backgroundSecondary,
-          border: Border(top: BorderSide(color: TermexColors.border)),
+        decoration: BoxDecoration(
+          color: context.colors.backgroundSecondary,
+          border: Border(top: BorderSide(color: context.colors.border)),
         ),
         child: Row(
           children: [
@@ -121,7 +121,7 @@ class _BottomBarTab extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     final color =
-        selected ? TermexColors.primary : TermexColors.textSecondary;
+        selected ? context.colors.primary : context.colors.textSecondary;
     final icon = selected ? item.activeIcon : item.icon;
 
     Widget iconWidget = ColorFiltered(

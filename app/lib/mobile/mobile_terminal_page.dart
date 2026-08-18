@@ -192,7 +192,7 @@ class _MobileTerminalPageState extends ConsumerState<MobileTerminalPage> {
     // soft-keyboard toolbar — see iPhone 17 Pro screenshot in the
     // iteration doc.
     return Container(
-      color: TermexColors.backgroundPrimary,
+      color: context.colors.backgroundPrimary,
       child: Column(
         children: [
           _HeaderBar(
@@ -209,11 +209,11 @@ class _MobileTerminalPageState extends ConsumerState<MobileTerminalPage> {
   Widget _body() {
     switch (_status) {
       case _SessionStatus.connecting:
-        return const Center(
+        return Center(
           child: Text(
             'Connecting…',
             style: TextStyle(
-              color: TermexColors.textSecondary,
+              color: context.colors.textSecondary,
               decoration: TextDecoration.none,
               fontSize: 15,
             ),
@@ -349,9 +349,9 @@ class _HeaderBar extends StatelessWidget {
     return Container(
       height: MobileTokens.navBarHeight,
       padding: const EdgeInsets.symmetric(horizontal: 12),
-      decoration: const BoxDecoration(
-        color: TermexColors.backgroundSecondary,
-        border: Border(bottom: BorderSide(color: TermexColors.border)),
+      decoration: BoxDecoration(
+        color: context.colors.backgroundSecondary,
+        border: Border(bottom: BorderSide(color: context.colors.border)),
       ),
       child: Row(
         children: [
@@ -362,10 +362,10 @@ class _HeaderBar extends StatelessWidget {
               width: MobileTokens.minTouchTarget,
               height: MobileTokens.minTouchTarget,
               alignment: Alignment.center,
-              child: const Icon(
+              child: Icon(
                 TermexIcons.close,
                 size: 22,
-                color: TermexColors.textSecondary,
+                color: context.colors.textSecondary,
               ),
             ),
           ),
@@ -377,7 +377,7 @@ class _HeaderBar extends StatelessWidget {
                 Text(
                   title,
                   style: TermexTypography.body.copyWith(
-                    color: TermexColors.textPrimary,
+                    color: context.colors.textPrimary,
                     fontWeight: FontWeight.w600,
                   ),
                   maxLines: 1,
@@ -386,7 +386,7 @@ class _HeaderBar extends StatelessWidget {
                 Text(
                   subtitle,
                   style: TermexTypography.caption.copyWith(
-                    color: TermexColors.textSecondary,
+                    color: context.colors.textSecondary,
                   ),
                   maxLines: 1,
                   overflow: TextOverflow.ellipsis,
@@ -437,9 +437,9 @@ class _SoftKeyboardToolbar extends StatelessWidget {
   Widget build(BuildContext context) {
     return Container(
       height: 40,
-      decoration: const BoxDecoration(
-        color: TermexColors.backgroundSecondary,
-        border: Border(top: BorderSide(color: TermexColors.border)),
+      decoration: BoxDecoration(
+        color: context.colors.backgroundSecondary,
+        border: Border(top: BorderSide(color: context.colors.border)),
       ),
       child: ListView(
         scrollDirection: Axis.horizontal,
@@ -494,13 +494,13 @@ class _ToolbarButton extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     final Color fg = active
-        ? TermexColors.primary
+        ? context.colors.primary
         : danger
             ? const Color(0xFFF38BA8)
-            : TermexColors.textPrimary;
+            : context.colors.textPrimary;
     final Color bg = active
-        ? TermexColors.primary.withValues(alpha: 0.18)
-        : TermexColors.backgroundTertiary;
+        ? context.colors.primary.withValues(alpha: 0.18)
+        : context.colors.backgroundTertiary;
     return Padding(
       padding: const EdgeInsets.symmetric(horizontal: 4),
       child: Clickable(
@@ -514,7 +514,7 @@ class _ToolbarButton extends StatelessWidget {
             color: bg,
             borderRadius: BorderRadius.circular(6),
             border: Border.all(
-              color: active ? TermexColors.primary : TermexColors.border,
+              color: active ? context.colors.primary : context.colors.border,
             ),
           ),
           child: Text(

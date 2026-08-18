@@ -38,8 +38,8 @@ class ProcessListView extends StatelessWidget {
       });
     return Container(
       decoration: BoxDecoration(
-        color: TermexColors.backgroundSecondary,
-        border: Border.all(color: TermexColors.border, width: 0.5),
+        color: context.colors.backgroundSecondary,
+        border: Border.all(color: context.colors.border, width: 0.5),
         borderRadius: BorderRadius.circular(6),
       ),
       child: Column(
@@ -86,7 +86,7 @@ class _Header extends StatelessWidget {
             Text(
               '进程',
               style: TermexTypography.caption.copyWith(
-                color: TermexColors.textSecondary,
+                color: context.colors.textSecondary,
                 fontWeight: FontWeight.w500,
               ),
             ),
@@ -119,17 +119,19 @@ class _Row extends StatelessWidget {
         ),
         child: Row(
           children: [
-            _col('${p.pid}', 50),
-            _col(p.user, 70),
-            _col('${p.cpuPercent.toStringAsFixed(1)}%', 50, mono: true),
-            _col('${p.memoryPercent.toStringAsFixed(1)}%', 50, mono: true),
+            _col(context, '${p.pid}', 50),
+            _col(context, p.user, 70),
+            _col(context, '${p.cpuPercent.toStringAsFixed(1)}%', 50,
+                mono: true),
+            _col(context, '${p.memoryPercent.toStringAsFixed(1)}%', 50,
+                mono: true),
             Expanded(
               child: Text(
                 p.command,
                 maxLines: 1,
                 overflow: TextOverflow.ellipsis,
                 style: TermexTypography.caption.copyWith(
-                  color: TermexColors.textPrimary,
+                  color: context.colors.textPrimary,
                   fontFamily: 'monospace',
                 ),
               ),
@@ -138,12 +140,14 @@ class _Row extends StatelessWidget {
         ),
       );
 
-  Widget _col(String s, double w, {bool mono = false}) => SizedBox(
+  Widget _col(BuildContext context, String s, double w,
+          {bool mono = false}) =>
+      SizedBox(
         width: w,
         child: Text(
           s,
           style: TermexTypography.caption.copyWith(
-            color: TermexColors.textSecondary,
+            color: context.colors.textSecondary,
             fontFamily: mono ? 'monospace' : null,
           ),
         ),
@@ -168,11 +172,11 @@ class _SortChip extends StatelessWidget {
           padding: const EdgeInsets.symmetric(horizontal: 6, vertical: 2),
           decoration: BoxDecoration(
             color: active
-                ? TermexColors.primary.withValues(alpha: 0.12)
+                ? context.colors.primary.withValues(alpha: 0.12)
                 : const Color(0x00000000),
             borderRadius: BorderRadius.circular(3),
             border: Border.all(
-              color: active ? TermexColors.primary : TermexColors.border,
+              color: active ? context.colors.primary : context.colors.border,
               width: 0.5,
             ),
           ),
@@ -180,7 +184,7 @@ class _SortChip extends StatelessWidget {
             label,
             style: TermexTypography.caption.copyWith(
               fontSize: 10,
-              color: active ? TermexColors.primary : TermexColors.textMuted,
+              color: active ? context.colors.primary : context.colors.textMuted,
               fontWeight: active ? FontWeight.w600 : FontWeight.normal,
             ),
           ),
@@ -194,6 +198,6 @@ class Divider extends StatelessWidget {
   @override
   Widget build(BuildContext context) => Container(
         height: 0.5,
-        color: TermexColors.border,
+        color: context.colors.border,
       );
 }

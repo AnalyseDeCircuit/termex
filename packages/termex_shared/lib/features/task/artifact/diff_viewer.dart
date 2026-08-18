@@ -21,7 +21,7 @@ class DiffViewer extends StatelessWidget {
         child: Text(
           'No diff content',
           style: TermexTypography.body.copyWith(
-            color: TermexColors.textSecondary,
+            color: context.colors.textSecondary,
           ),
         ),
       );
@@ -53,18 +53,18 @@ class _SummaryHeader extends StatelessWidget {
           Text(
             '${diff.filesChanged} files changed',
             style: TermexTypography.body.copyWith(
-              color: TermexColors.textPrimary,
+              color: context.colors.textPrimary,
               fontWeight: FontWeight.w600,
             ),
           ),
           const Spacer(),
           Text(
             '+${diff.totalAdditions} ',
-            style: TermexTypography.body.copyWith(color: TermexColors.success),
+            style: TermexTypography.body.copyWith(color: context.colors.success),
           ),
           Text(
             '−${diff.totalDeletions}',
-            style: TermexTypography.body.copyWith(color: TermexColors.danger),
+            style: TermexTypography.body.copyWith(color: context.colors.danger),
           ),
         ],
       ),
@@ -92,9 +92,9 @@ class _HunkTileState extends State<_HunkTile> {
         vertical: TermexSpacing.xs,
       ),
       decoration: BoxDecoration(
-        color: TermexColors.backgroundSecondary,
+        color: context.colors.backgroundSecondary,
         borderRadius: BorderRadius.circular(6),
-        border: Border.all(color: TermexColors.border),
+        border: Border.all(color: context.colors.border),
       ),
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.stretch,
@@ -111,7 +111,7 @@ class _HunkTileState extends State<_HunkTile> {
                   Text(
                     _expanded ? '▾' : '▸',
                     style: TermexTypography.body.copyWith(
-                      color: TermexColors.textSecondary,
+                      color: context.colors.textSecondary,
                     ),
                   ),
                   const SizedBox(width: TermexSpacing.sm),
@@ -119,7 +119,7 @@ class _HunkTileState extends State<_HunkTile> {
                     child: Text(
                       widget.hunk.filePath,
                       style: TermexTypography.monospace.copyWith(
-                        color: TermexColors.textPrimary,
+                        color: context.colors.textPrimary,
                       ),
                       overflow: TextOverflow.ellipsis,
                     ),
@@ -127,12 +127,12 @@ class _HunkTileState extends State<_HunkTile> {
                   Text(
                     '+${widget.hunk.additions} ',
                     style: TermexTypography.caption
-                        .copyWith(color: TermexColors.success),
+                        .copyWith(color: context.colors.success),
                   ),
                   Text(
                     '−${widget.hunk.deletions}',
                     style: TermexTypography.caption
-                        .copyWith(color: TermexColors.danger),
+                        .copyWith(color: context.colors.danger),
                   ),
                 ],
               ),
@@ -161,8 +161,8 @@ class _DiffLineRow extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     final bg = switch (line.kind) {
-      DiffLineKind.add => TermexColors.success.withValues(alpha: 0.10),
-      DiffLineKind.del => TermexColors.danger.withValues(alpha: 0.10),
+      DiffLineKind.add => context.colors.success.withValues(alpha: 0.10),
+      DiffLineKind.del => context.colors.danger.withValues(alpha: 0.10),
       _ => null,
     };
     final prefix = switch (line.kind) {
@@ -185,7 +185,7 @@ class _DiffLineRow extends StatelessWidget {
               line.oldNum?.toString() ?? '',
               textAlign: TextAlign.right,
               style: TermexTypography.monospace.copyWith(
-                color: TermexColors.textMuted,
+                color: context.colors.textMuted,
                 fontSize: 11,
               ),
             ),
@@ -197,7 +197,7 @@ class _DiffLineRow extends StatelessWidget {
               line.newNum?.toString() ?? '',
               textAlign: TextAlign.right,
               style: TermexTypography.monospace.copyWith(
-                color: TermexColors.textMuted,
+                color: context.colors.textMuted,
                 fontSize: 11,
               ),
             ),
@@ -206,7 +206,7 @@ class _DiffLineRow extends StatelessWidget {
           Text(
             prefix,
             style: TermexTypography.monospace.copyWith(
-              color: TermexColors.textSecondary,
+              color: context.colors.textSecondary,
               fontSize: 12,
             ),
           ),
@@ -215,7 +215,7 @@ class _DiffLineRow extends StatelessWidget {
             child: Text(
               line.content,
               style: TermexTypography.monospace.copyWith(
-                color: TermexColors.textPrimary,
+                color: context.colors.textPrimary,
                 fontSize: 12,
               ),
             ),

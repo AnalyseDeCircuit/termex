@@ -73,22 +73,32 @@ String resolveSnippet(String content, Map<String, String> values) {
 class SnippetState {
   final List<Snippet> snippets;
   final String searchQuery;
-  final String? selectedTag;
+
+  /// Categories the user has ticked in the header dropdown. Empty means
+  /// "no filter" — every snippet shows.
+  final Set<String> selectedTags;
+
   final String? editingId;
   final bool isLoading;
 
   const SnippetState({
     this.snippets = const [],
     this.searchQuery = '',
-    this.selectedTag,
+    this.selectedTags = const {},
     this.editingId,
     this.isLoading = false,
   });
 
   List<Snippet> get filtered {
     var list = snippets;
-    if (selectedTag != null) {
-      list = list.where((s) => s.tags.contains(selectedTag)).toList();
+    if (selectedTags.isNotEmpty) {
+      // Union, not intersection: ticking 部署 and 数据库 reads as "show me
+      // both categories", which is what a multi-select category filter means.
+      // Requiring a snippet to carry every ticked tag would make each extra
+      // tick shrink the list towards empty.
+      list = list
+          .where((s) => s.tags.any(selectedTags.contains))
+          .toList();
     }
     if (searchQuery.isNotEmpty) {
       final q = searchQuery.toLowerCase();
@@ -108,17 +118,24 @@ class SnippetState {
     return tags.toList()..sort();
   }
 
+  /// `editingId` is nullable and must be clearable, so it cannot use the
+  /// usual `?? this.editingId` — callers pass [clearEditing] to null it.
+  /// Previously it was assigned unconditionally, which meant any unrelated
+  /// `copyWith` silently dropped it: typing one character in the search box
+  /// called `copyWith(searchQuery: …)` and closed the open editor (and wiped
+  /// the tag filter along with it).
   SnippetState copyWith({
     List<Snippet>? snippets,
     String? searchQuery,
-    String? selectedTag,
+    Set<String>? selectedTags,
     String? editingId,
+    bool clearEditing = false,
     bool? isLoading,
   }) => SnippetState(
         snippets: snippets ?? this.snippets,
         searchQuery: searchQuery ?? this.searchQuery,
-        selectedTag: selectedTag,
-        editingId: editingId,
+        selectedTags: selectedTags ?? this.selectedTags,
+        editingId: clearEditing ? null : (editingId ?? this.editingId),
         isLoading: isLoading ?? this.isLoading,
       );
 }
@@ -207,8 +224,20 @@ class SnippetNotifier extends Notifier<SnippetState> {
   }
 
   void setSearch(String q) => state = state.copyWith(searchQuery: q);
-  void setTag(String? tag) => state = state.copyWith(selectedTag: tag);
-  void setEditing(String? id) => state = state.copyWith(editingId: id);
+
+  /// Ticks or unticks one category in the header dropdown.
+  void toggleTag(String tag) {
+    final next = Set<String>.from(state.selectedTags);
+    if (!next.remove(tag)) next.add(tag);
+    state = state.copyWith(selectedTags: next);
+  }
+
+  /// Clears the category filter — the dropdown's "全部" entry.
+  void clearTags() => state = state.copyWith(selectedTags: const {});
+
+  void setEditing(String? id) => state = id == null
+      ? state.copyWith(clearEditing: true)
+      : state.copyWith(editingId: id);
 }
 
 final snippetProvider = NotifierProvider<SnippetNotifier, SnippetState>(SnippetNotifier.new);

@@ -37,9 +37,9 @@ class SendToDeviceDialog extends StatelessWidget {
       padding: const EdgeInsets.all(TermexSpacing.lg),
       constraints: const BoxConstraints(maxWidth: 360),
       decoration: BoxDecoration(
-        color: TermexColors.backgroundPrimary,
+        color: context.colors.backgroundPrimary,
         borderRadius: BorderRadius.circular(10),
-        border: Border.all(color: TermexColors.border),
+        border: Border.all(color: context.colors.border),
       ),
       child: Column(
         mainAxisSize: MainAxisSize.min,
@@ -48,7 +48,7 @@ class SendToDeviceDialog extends StatelessWidget {
           Text(
             'Send task to device',
             style: TermexTypography.heading3.copyWith(
-              color: TermexColors.textPrimary,
+              color: context.colors.textPrimary,
             ),
           ),
           const SizedBox(height: TermexSpacing.sm),
@@ -58,7 +58,7 @@ class SendToDeviceDialog extends StatelessWidget {
               child: Text(
                 'No other devices registered.',
                 style: TermexTypography.body.copyWith(
-                  color: TermexColors.textSecondary,
+                  color: context.colors.textSecondary,
                 ),
               ),
             )
@@ -77,7 +77,7 @@ class SendToDeviceDialog extends StatelessWidget {
                 child: Text(
                   'Cancel',
                   style: TermexTypography.body.copyWith(
-                    color: TermexColors.textSecondary,
+                    color: context.colors.textSecondary,
                   ),
                 ),
               ),
@@ -98,8 +98,8 @@ class _DeviceRow extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     final color = device.isOnline
-        ? TermexColors.success
-        : TermexColors.textMuted;
+        ? context.colors.success
+        : context.colors.textMuted;
     return Clickable(
       onTap: onTap,
       child: Container(
@@ -109,7 +109,7 @@ class _DeviceRow extends StatelessWidget {
         ),
         margin: const EdgeInsets.symmetric(vertical: 2),
         decoration: BoxDecoration(
-          color: TermexColors.backgroundSecondary,
+          color: context.colors.backgroundSecondary,
           borderRadius: BorderRadius.circular(6),
         ),
         child: Row(
@@ -130,7 +130,7 @@ class _DeviceRow extends StatelessWidget {
                   Text(
                     device.name,
                     style: TermexTypography.body.copyWith(
-                      color: TermexColors.textPrimary,
+                      color: context.colors.textPrimary,
                     ),
                     maxLines: 1,
                     overflow: TextOverflow.ellipsis,
@@ -141,7 +141,7 @@ class _DeviceRow extends StatelessWidget {
                         : '${device.platform.displayName} · '
                             '${device.lastSeenHuman(now: now)}',
                     style: TermexTypography.caption.copyWith(
-                      color: TermexColors.textSecondary,
+                      color: context.colors.textSecondary,
                     ),
                   ),
                 ],

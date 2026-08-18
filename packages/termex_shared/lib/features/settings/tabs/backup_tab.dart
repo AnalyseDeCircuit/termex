@@ -30,7 +30,7 @@ class BackupTab extends ConsumerWidget {
           hint: l10n.backupAutoFreqHint,
           child: DropdownButton<BackupFrequency>(
             value: settings.backupFrequency,
-            dropdownColor: TermexColors.backgroundSecondary,
+            dropdownColor: context.colors.backgroundSecondary,
             items: [
               DropdownMenuItem(
                   value: BackupFrequency.off, child: Text(l10n.backupFreqOff)),
@@ -43,14 +43,14 @@ class BackupTab extends ConsumerWidget {
             ],
             onChanged: (v) =>
                 notifier.update(settings.copyWith(backupFrequency: v!)),
-            style: const TextStyle(fontSize: 12, color: TermexColors.textPrimary),
+            style: TextStyle(fontSize: 12, color: context.colors.textPrimary),
           ),
         ),
         const SizedBox(height: 20),
         Text(
           l10n.backupEncryptionNote,
-          style: const TextStyle(
-              fontSize: 11, color: TermexColors.textSecondary),
+          style: TextStyle(
+              fontSize: 11, color: context.colors.textSecondary),
         ),
         const SizedBox(height: 16),
         ElevatedButton.icon(
@@ -58,7 +58,7 @@ class BackupTab extends ConsumerWidget {
           icon: const Icon(Icons.save_alt, size: 14),
           label: Text(l10n.backupNow, style: const TextStyle(fontSize: 12)),
           style: ElevatedButton.styleFrom(
-            backgroundColor: TermexColors.primary,
+            backgroundColor: context.colors.primary,
             foregroundColor: Colors.white,
           ),
         ),
@@ -69,7 +69,7 @@ class BackupTab extends ConsumerWidget {
           label: Text(l10n.backupImportConfig,
               style: const TextStyle(fontSize: 12)),
           style: OutlinedButton.styleFrom(
-            foregroundColor: TermexColors.textPrimary,
+            foregroundColor: context.colors.textPrimary,
           ),
         ),
         const SizedBox(height: 24),
@@ -176,10 +176,10 @@ class _HistorySection extends ConsumerWidget {
           children: [
             Text(
               l10n.backupHistoryTitle,
-              style: const TextStyle(
+              style: TextStyle(
                 fontSize: 13,
                 fontWeight: FontWeight.w600,
-                color: TermexColors.textPrimary,
+                color: context.colors.textPrimary,
               ),
             ),
             const Spacer(),
@@ -190,7 +190,7 @@ class _HistorySection extends ConsumerWidget {
               label: Text(l10n.backupHistoryClear,
                   style: const TextStyle(fontSize: 11)),
               style: TextButton.styleFrom(
-                foregroundColor: TermexColors.textSecondary,
+                foregroundColor: context.colors.textSecondary,
               ),
             ),
           ],
@@ -199,8 +199,8 @@ class _HistorySection extends ConsumerWidget {
         Text(
           l10n.backupHistoryMaxNote(
               BackupHistoryNotifier.maxEntries.toString()),
-          style: const TextStyle(
-              fontSize: 11, color: TermexColors.textMuted),
+          style: TextStyle(
+              fontSize: 11, color: context.colors.textMuted),
         ),
         const SizedBox(height: 8),
         history.when(
@@ -217,7 +217,7 @@ class _HistorySection extends ConsumerWidget {
           error: (e, _) => Text(
             l10n.commonLoadFailed(e.toString()),
             style:
-                const TextStyle(fontSize: 11, color: TermexColors.danger),
+                TextStyle(fontSize: 11, color: context.colors.danger),
           ),
           data: (entries) {
             if (entries.isEmpty) {
@@ -225,8 +225,8 @@ class _HistorySection extends ConsumerWidget {
                 padding: const EdgeInsets.symmetric(vertical: 12),
                 child: Text(
                   l10n.backupHistoryEmpty,
-                  style: const TextStyle(
-                      fontSize: 12, color: TermexColors.textMuted),
+                  style: TextStyle(
+                      fontSize: 12, color: context.colors.textMuted),
                 ),
               );
             }
@@ -265,12 +265,12 @@ class _HistoryRow extends StatelessWidget {
       margin: const EdgeInsets.only(bottom: 6),
       padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 8),
       decoration: BoxDecoration(
-        color: TermexColors.backgroundSecondary,
+        color: context.colors.backgroundSecondary,
         borderRadius: BorderRadius.circular(4),
         border: Border.all(
           color: isOk
-              ? TermexColors.success.withOpacity(0.3)
-              : TermexColors.danger.withOpacity(0.4),
+              ? context.colors.success.withOpacity(0.3)
+              : context.colors.danger.withOpacity(0.4),
         ),
       ),
       child: Row(
@@ -278,7 +278,7 @@ class _HistoryRow extends StatelessWidget {
           Icon(
             isOk ? Icons.check_circle_outline : Icons.error_outline,
             size: 14,
-            color: isOk ? TermexColors.success : TermexColors.danger,
+            color: isOk ? context.colors.success : context.colors.danger,
           ),
           const SizedBox(width: 8),
           Expanded(
@@ -287,9 +287,9 @@ class _HistoryRow extends StatelessWidget {
               children: [
                 Text(
                   record.path,
-                  style: const TextStyle(
+                  style: TextStyle(
                     fontSize: 12,
-                    color: TermexColors.textPrimary,
+                    color: context.colors.textPrimary,
                     fontFamily: 'monospace',
                   ),
                   overflow: TextOverflow.ellipsis,
@@ -299,17 +299,17 @@ class _HistoryRow extends StatelessWidget {
                   children: [
                     Text(
                       _formatTime(record.timestamp),
-                      style: const TextStyle(
+                      style: TextStyle(
                         fontSize: 11,
-                        color: TermexColors.textSecondary,
+                        color: context.colors.textSecondary,
                       ),
                     ),
                     const SizedBox(width: 10),
                     Text(
                       _formatSize(record.sizeBytes),
-                      style: const TextStyle(
+                      style: TextStyle(
                         fontSize: 11,
-                        color: TermexColors.textMuted,
+                        color: context.colors.textMuted,
                       ),
                     ),
                   ],
@@ -318,9 +318,9 @@ class _HistoryRow extends StatelessWidget {
                   const SizedBox(height: 2),
                   Text(
                     record.error!,
-                    style: const TextStyle(
+                    style: TextStyle(
                       fontSize: 11,
-                      color: TermexColors.danger,
+                      color: context.colors.danger,
                     ),
                     maxLines: 2,
                     overflow: TextOverflow.ellipsis,

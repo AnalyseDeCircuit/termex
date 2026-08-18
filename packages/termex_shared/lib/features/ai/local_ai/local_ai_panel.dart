@@ -17,7 +17,7 @@ class LocalAiPanel extends ConsumerWidget {
     final state = ref.watch(localAiProvider);
 
     return Container(
-      color: TermexColors.backgroundPrimary,
+      color: context.colors.backgroundPrimary,
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.stretch,
         children: [
@@ -25,22 +25,22 @@ class LocalAiPanel extends ConsumerWidget {
           Container(
             height: 36,
             padding: const EdgeInsets.symmetric(horizontal: 12),
-            decoration: const BoxDecoration(
-              color: TermexColors.backgroundSecondary,
+            decoration: BoxDecoration(
+              color: context.colors.backgroundSecondary,
               border:
-                  Border(bottom: BorderSide(color: TermexColors.border)),
+                  Border(bottom: BorderSide(color: context.colors.border)),
             ),
-            child: const Row(
+            child: Row(
               children: [
                 Icon(Icons.psychology_outlined,
-                    size: 14, color: TermexColors.textSecondary),
-                SizedBox(width: 6),
+                    size: 14, color: context.colors.textSecondary),
+                const SizedBox(width: 6),
                 Text(
                   'Local AI 模型',
                   style: TextStyle(
                     fontSize: 13,
                     fontWeight: FontWeight.w600,
-                    color: TermexColors.textPrimary,
+                    color: context.colors.textPrimary,
                   ),
                 ),
               ],
@@ -55,17 +55,17 @@ class LocalAiPanel extends ConsumerWidget {
             Container(
               padding:
                   const EdgeInsets.symmetric(horizontal: 12, vertical: 6),
-              color: TermexColors.danger.withOpacity(0.08),
+              color: context.colors.danger.withOpacity(0.08),
               child: Row(
                 children: [
-                  const Icon(Icons.error_outline,
-                      size: 13, color: TermexColors.danger),
+                  Icon(Icons.error_outline,
+                      size: 13, color: context.colors.danger),
                   const SizedBox(width: 6),
                   Expanded(
                     child: Text(
                       state.errorMessage!,
-                      style: const TextStyle(
-                          fontSize: 11, color: TermexColors.danger),
+                      style: TextStyle(
+                          fontSize: 11, color: context.colors.danger),
                     ),
                   ),
                 ],

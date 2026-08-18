@@ -127,7 +127,7 @@ class _EmptyPane extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    return const ColoredBox(color: TermexColors.backgroundPrimary);
+    return ColoredBox(color: context.colors.backgroundPrimary);
   }
 }
 
@@ -143,7 +143,7 @@ class _ConnectingView extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     return ColoredBox(
-      color: TermexColors.backgroundPrimary,
+      color: context.colors.backgroundPrimary,
       child: Center(
         child: Column(
           mainAxisSize: MainAxisSize.min,
@@ -155,7 +155,7 @@ class _ConnectingView extends StatelessWidget {
                   ? 'Reconnecting… (attempt $reconnectAttempt)'
                   : 'Connecting…',
               style: TermexTypography.body.copyWith(
-                color: TermexColors.textSecondary,
+                color: context.colors.textSecondary,
               ),
             ),
           ],
@@ -174,23 +174,23 @@ class _ErrorView extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     return ColoredBox(
-      color: TermexColors.backgroundPrimary,
+      color: context.colors.backgroundPrimary,
       child: Center(
         child: Padding(
           padding: const EdgeInsets.all(TermexSpacing.xl),
           child: Column(
             mainAxisSize: MainAxisSize.min,
             children: [
-              const TermexIconWidget(
+              TermexIconWidget(
                 TermexIcons.warning,
                 size: 32,
-                color: TermexColors.danger,
+                color: context.colors.danger,
               ),
               const SizedBox(height: TermexSpacing.md),
               Text(
                 'Connection failed',
                 style: TermexTypography.body.copyWith(
-                  color: TermexColors.textPrimary,
+                  color: context.colors.textPrimary,
                   fontWeight: FontWeight.w600,
                 ),
               ),
@@ -198,7 +198,7 @@ class _ErrorView extends StatelessWidget {
               Text(
                 error,
                 style: TermexTypography.bodySmall.copyWith(
-                  color: TermexColors.textMuted,
+                  color: context.colors.textMuted,
                 ),
                 textAlign: TextAlign.center,
               ),
@@ -230,21 +230,21 @@ class _DisconnectedView extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     return ColoredBox(
-      color: TermexColors.backgroundPrimary,
+      color: context.colors.backgroundPrimary,
       child: Center(
         child: Column(
           mainAxisSize: MainAxisSize.min,
           children: [
-            const TermexIconWidget(
+            TermexIconWidget(
               TermexIcons.server,
               size: 32,
-              color: TermexColors.textMuted,
+              color: context.colors.textMuted,
             ),
             const SizedBox(height: TermexSpacing.md),
             Text(
               isLocal ? '本地终端已关闭' : 'Disconnected from $serverName',
               style: TermexTypography.body.copyWith(
-                color: TermexColors.textSecondary,
+                color: context.colors.textSecondary,
               ),
             ),
             const SizedBox(height: TermexSpacing.xl),
@@ -289,12 +289,12 @@ class _Spinner extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    return const SizedBox(
+    return SizedBox(
       width: 28,
       height: 28,
       child: CircularProgressIndicator(
         strokeWidth: 2.5,
-        valueColor: AlwaysStoppedAnimation<Color>(TermexColors.primary),
+        valueColor: AlwaysStoppedAnimation<Color>(context.colors.primary),
       ),
     );
   }

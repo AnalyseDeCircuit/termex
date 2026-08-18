@@ -1526,6 +1526,33 @@ class AppLocalizationsZh extends AppLocalizations {
   String get connectionForwardNone => '暂无转发规则。';
 
   @override
+  String get ctxProxySetDefault => '设为默认';
+
+  @override
+  String get ctxProxyTest => '测试连接';
+
+  @override
+  String get ctxProxyCopyAddress => '复制地址';
+
+  @override
+  String get ctxProxyDelete => '删除代理';
+
+  @override
+  String get ctxSnippetCopyContent => '复制内容';
+
+  @override
+  String get ctxRecordingCopyPath => '复制文件路径';
+
+  @override
+  String get ctxCloudCopyLabel => '复制名称';
+
+  @override
+  String get ctxCopied => '已复制到剪贴板';
+
+  @override
+  String get ctxCloudCopyDetail => '复制详情';
+
+  @override
   String get contextConnect => '连接';
 
   @override
@@ -2361,6 +2388,20 @@ class AppLocalizationsZh extends AppLocalizations {
 
   @override
   String get snippetAllFolders => '全部';
+
+  @override
+  String get snippetCategoryFilter => '分类';
+
+  @override
+  String get snippetCategoryAll => '全部分类';
+
+  @override
+  String snippetCategoryCount(int count) {
+    return '$count 个分类';
+  }
+
+  @override
+  String get snippetCategoryNone => '暂无分类';
 
   @override
   String get snippetAllFolder => '全部';
@@ -3471,6 +3512,15 @@ class AppLocalizationsZh extends AppLocalizations {
 
   @override
   String get sftpActionRename => '重命名';
+
+  @override
+  String get sftpActionEdit => '编辑';
+
+  @override
+  String get sftpActionCopyPath => '复制路径';
+
+  @override
+  String get sftpActionSelectAll => '全选';
 
   @override
   String get sftpActionDelete => '删除';

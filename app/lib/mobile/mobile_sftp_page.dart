@@ -90,7 +90,7 @@ class _MobileSftpPageState extends ConsumerState<MobileSftpPage> {
     // as MobileTerminalPage — MobileShell consumes safe-area insets
     // once at the shell level, so doubling here just paints dead bands.
     return Container(
-      color: TermexColors.backgroundPrimary,
+      color: context.colors.backgroundPrimary,
       child: Column(
         children: [
           _HeaderBar(
@@ -107,11 +107,11 @@ class _MobileSftpPageState extends ConsumerState<MobileSftpPage> {
   Widget _body() {
     switch (_status) {
       case _SftpStatus.connecting:
-        return const Center(
+        return Center(
           child: Text(
             'Opening SFTP channel…',
             style: TextStyle(
-              color: TermexColors.textSecondary,
+              color: context.colors.textSecondary,
               decoration: TextDecoration.none,
               fontSize: 15,
             ),
@@ -164,9 +164,9 @@ class _HeaderBar extends StatelessWidget {
     return Container(
       height: MobileTokens.navBarHeight,
       padding: const EdgeInsets.symmetric(horizontal: 12),
-      decoration: const BoxDecoration(
-        color: TermexColors.backgroundSecondary,
-        border: Border(bottom: BorderSide(color: TermexColors.border)),
+      decoration: BoxDecoration(
+        color: context.colors.backgroundSecondary,
+        border: Border(bottom: BorderSide(color: context.colors.border)),
       ),
       child: Row(
         children: [
@@ -177,10 +177,10 @@ class _HeaderBar extends StatelessWidget {
               width: MobileTokens.minTouchTarget,
               height: MobileTokens.minTouchTarget,
               alignment: Alignment.center,
-              child: const Icon(
+              child: Icon(
                 TermexIcons.close,
                 size: 22,
-                color: TermexColors.textSecondary,
+                color: context.colors.textSecondary,
               ),
             ),
           ),
@@ -192,7 +192,7 @@ class _HeaderBar extends StatelessWidget {
                 Text(
                   title,
                   style: TermexTypography.body.copyWith(
-                    color: TermexColors.textPrimary,
+                    color: context.colors.textPrimary,
                     fontWeight: FontWeight.w600,
                   ),
                   maxLines: 1,
@@ -201,7 +201,7 @@ class _HeaderBar extends StatelessWidget {
                 Text(
                   subtitle,
                   style: TermexTypography.caption.copyWith(
-                    color: TermexColors.textSecondary,
+                    color: context.colors.textSecondary,
                   ),
                   maxLines: 1,
                   overflow: TextOverflow.ellipsis,

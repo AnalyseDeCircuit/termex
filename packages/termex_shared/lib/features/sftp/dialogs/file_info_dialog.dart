@@ -37,22 +37,22 @@ class FileInfoDialog extends StatelessWidget {
   Widget build(BuildContext context) {
     final l10n = AppLocalizations.of(context);
     return AlertDialog(
-      backgroundColor: TermexColors.backgroundSecondary,
+      backgroundColor: context.colors.backgroundSecondary,
       title: Row(
         children: [
           Icon(
             file.isDirectory ? Icons.folder : Icons.insert_drive_file_outlined,
             color: file.isDirectory
-                ? TermexColors.warning
-                : TermexColors.textSecondary,
+                ? context.colors.warning
+                : context.colors.textSecondary,
             size: 20,
           ),
           const SizedBox(width: 8),
           Expanded(
             child: Text(
               file.name,
-              style: const TextStyle(
-                  color: TermexColors.textPrimary, fontSize: 15),
+              style: TextStyle(
+                  color: context.colors.textPrimary, fontSize: 15),
               overflow: TextOverflow.ellipsis,
             ),
           ),
@@ -130,8 +130,8 @@ class _InfoRow extends StatelessWidget {
             width: 64,
             child: Text(
               label,
-              style: const TextStyle(
-                  fontSize: 12, color: TermexColors.textMuted),
+              style: TextStyle(
+                  fontSize: 12, color: context.colors.textMuted),
             ),
           ),
           const SizedBox(width: 8),
@@ -140,15 +140,15 @@ class _InfoRow extends StatelessWidget {
               value,
               style: TermexTypography.monospace.copyWith(
                 fontSize: 12,
-                color: TermexColors.textPrimary,
+                color: context.colors.textPrimary,
               ),
             ),
           ),
           if (copyable)
             Clickable(
               onTap: () => Clipboard.setData(ClipboardData(text: value)),
-              child: const Icon(Icons.copy_outlined,
-                  size: 13, color: TermexColors.textMuted),
+              child: Icon(Icons.copy_outlined,
+                  size: 13, color: context.colors.textMuted),
             ),
         ],
       ),

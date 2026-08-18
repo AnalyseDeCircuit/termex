@@ -507,24 +507,25 @@ class _FormTabBar extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     return Container(
-      decoration: const BoxDecoration(
+      decoration: BoxDecoration(
         border: Border(
-          bottom: BorderSide(color: TermexColors.border),
+          bottom: BorderSide(color: context.colors.border),
         ),
       ),
       child: Row(
         children: [
-          _tab(authLabel, _FormTab.auth),
-          _tab(chainLabel, _FormTab.chain),
-          _tab(syncLabel, _FormTab.sync),
-          _tab(forwardingLabel, _FormTab.forwarding,
+          _tab(context, authLabel, _FormTab.auth),
+          _tab(context, chainLabel, _FormTab.chain),
+          _tab(context, syncLabel, _FormTab.sync),
+          _tab(context, forwardingLabel, _FormTab.forwarding,
               disabled: forwardingDisabled),
         ],
       ),
     );
   }
 
-  Widget _tab(String label, _FormTab tab, {bool disabled = false}) {
+  Widget _tab(BuildContext context, String label, _FormTab tab,
+      {bool disabled = false}) {
     final active = value == tab;
     return Clickable(
       behavior: HitTestBehavior.opaque,
@@ -537,7 +538,7 @@ class _FormTabBar extends StatelessWidget {
             border: Border(
               bottom: BorderSide(
                 color: active && !disabled
-                    ? TermexColors.primary
+                    ? context.colors.primary
                     : Colors_transparent,
                 width: 2,
               ),
@@ -547,10 +548,10 @@ class _FormTabBar extends StatelessWidget {
             label,
             style: TermexTypography.body.copyWith(
               color: disabled
-                  ? TermexColors.textMuted
+                  ? context.colors.textMuted
                   : active
-                      ? TermexColors.primary
-                      : TermexColors.textSecondary,
+                      ? context.colors.primary
+                      : context.colors.textSecondary,
               fontWeight: active ? FontWeight.w600 : FontWeight.w400,
             ),
           ),
@@ -672,7 +673,7 @@ class _AuthTabBody extends ConsumerWidget {
                   child: Text(
                     l10n.connectionBrowseKey,
                     style: TermexTypography.bodySmall.copyWith(
-                      color: TermexColors.primary,
+                      color: context.colors.primary,
                       fontWeight: FontWeight.w600,
                     ),
                   ),
@@ -770,7 +771,7 @@ class _ChainTabBody extends ConsumerWidget {
         Text(
           l10n.connectionBastionHint,
           style: TermexTypography.caption.copyWith(
-            color: TermexColors.textMuted,
+            color: context.colors.textMuted,
           ),
         ),
         const SizedBox(height: TermexSpacing.lg),
@@ -787,7 +788,7 @@ class _ChainTabBody extends ConsumerWidget {
         Text(
           l10n.connectionNetworkProxyHint,
           style: TermexTypography.caption.copyWith(
-            color: TermexColors.textMuted,
+            color: context.colors.textMuted,
           ),
         ),
         // Connection-path preview — only renders when the chain actually
@@ -851,7 +852,7 @@ class _ConnectionPathBar extends StatelessWidget {
         vertical: TermexSpacing.sm,
       ),
       decoration: BoxDecoration(
-        color: TermexColors.backgroundSecondary,
+        color: context.colors.backgroundSecondary,
         borderRadius: BorderRadius.circular(6),
       ),
       child: Column(
@@ -860,7 +861,7 @@ class _ConnectionPathBar extends StatelessWidget {
           Text(
             '$label:',
             style: TermexTypography.caption.copyWith(
-              color: TermexColors.textSecondary,
+              color: context.colors.textSecondary,
               fontWeight: FontWeight.w600,
             ),
           ),
@@ -875,7 +876,7 @@ class _ConnectionPathBar extends StatelessWidget {
                   Text(
                     '→',
                     style: TermexTypography.body.copyWith(
-                      color: TermexColors.textMuted,
+                      color: context.colors.textMuted,
                     ),
                   ),
                 Container(
@@ -884,13 +885,13 @@ class _ConnectionPathBar extends StatelessWidget {
                     vertical: 2,
                   ),
                   decoration: BoxDecoration(
-                    color: TermexColors.backgroundTertiary,
+                    color: context.colors.backgroundTertiary,
                     borderRadius: BorderRadius.circular(4),
                   ),
                   child: Text(
                     hops[i],
                     style: TermexTypography.caption.copyWith(
-                      color: TermexColors.textPrimary,
+                      color: context.colors.textPrimary,
                     ),
                   ),
                 ),
@@ -993,7 +994,7 @@ class _SyncTabBody extends ConsumerWidget {
           Text(
             l10n.connectionGitSyncHint,
             style: TermexTypography.caption.copyWith(
-              color: TermexColors.textMuted,
+              color: context.colors.textMuted,
             ),
           ),
         ],
@@ -1016,7 +1017,7 @@ class _SyncTabBody extends ConsumerWidget {
         Text(
           l10n.teamShareServerHint,
           style: TermexTypography.caption.copyWith(
-            color: TermexColors.textMuted,
+            color: context.colors.textMuted,
           ),
         ),
       ],
@@ -1049,7 +1050,7 @@ class _ForwardingTabBody extends ConsumerWidget {
           child: Text(
             l10n.connectionForwardNone,
             style: TermexTypography.body.copyWith(
-              color: TermexColors.textMuted,
+              color: context.colors.textMuted,
             ),
           ),
         ),
@@ -1081,14 +1082,14 @@ class _KeySourceTabs extends StatelessWidget {
   Widget build(BuildContext context) {
     return Row(
       children: [
-        _tab(pathLabel, _KeySource.path),
+        _tab(context, pathLabel, _KeySource.path),
         const SizedBox(width: TermexSpacing.xs),
-        _tab(pasteLabel, _KeySource.paste),
+        _tab(context, pasteLabel, _KeySource.paste),
       ],
     );
   }
 
-  Widget _tab(String label, _KeySource source) {
+  Widget _tab(BuildContext context, String label, _KeySource source) {
     final active = value == source;
     return Clickable(
       behavior: HitTestBehavior.opaque,
@@ -1096,13 +1097,15 @@ class _KeySourceTabs extends StatelessWidget {
       child: Container(
         padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 6),
         decoration: BoxDecoration(
-          color: active ? TermexColors.primary : TermexColors.backgroundTertiary,
+          color:
+              active ? context.colors.primary : context.colors.backgroundTertiary,
           borderRadius: BorderRadius.circular(4),
         ),
         child: Text(
           label,
           style: TermexTypography.bodySmall.copyWith(
-            color: active ? const Color(0xFFFFFFFF) : TermexColors.textSecondary,
+            color:
+                active ? const Color(0xFFFFFFFF) : context.colors.textSecondary,
           ),
         ),
       ),
@@ -1126,10 +1129,10 @@ class _TestStatus extends StatelessWidget {
     Color color;
     String text;
     if (testing) {
-      color = TermexColors.textSecondary;
+      color = context.colors.textSecondary;
       text = testingText;
     } else if (result != null) {
-      color = result!.ok ? TermexColors.success : TermexColors.danger;
+      color = result!.ok ? context.colors.success : context.colors.danger;
       text = result!.message;
     } else {
       return const SizedBox.shrink();
@@ -1137,7 +1140,7 @@ class _TestStatus extends StatelessWidget {
     return Container(
       padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 8),
       decoration: BoxDecoration(
-        color: TermexColors.backgroundSecondary,
+        color: context.colors.backgroundSecondary,
         border: Border.all(color: color.withValues(alpha: 0.4)),
         borderRadius: BorderRadius.circular(4),
       ),
@@ -1164,7 +1167,7 @@ class _LabeledField extends StatelessWidget {
         Text(
           label,
           style: TermexTypography.bodySmall.copyWith(
-            color: TermexColors.textSecondary,
+            color: context.colors.textSecondary,
           ),
         ),
         const SizedBox(height: TermexSpacing.xs),

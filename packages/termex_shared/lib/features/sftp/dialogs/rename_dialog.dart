@@ -70,19 +70,19 @@ class _RenameDialogState extends State<RenameDialog> {
   Widget build(BuildContext context) {
     final l10n = AppLocalizations.of(context);
     return AlertDialog(
-      backgroundColor: TermexColors.backgroundSecondary,
+      backgroundColor: context.colors.backgroundSecondary,
       title: Text(l10n.sftpRename,
-          style: const TextStyle(
-              color: TermexColors.textPrimary, fontSize: 15)),
+          style: TextStyle(
+              color: context.colors.textPrimary, fontSize: 15)),
       content: SizedBox(
         width: 300,
         child: TextField(
           controller: _ctrl,
           autofocus: true,
-          style: const TextStyle(color: TermexColors.textPrimary),
+          style: TextStyle(color: context.colors.textPrimary),
           decoration: InputDecoration(
             hintText: l10n.sftpRenameNewName,
-            hintStyle: const TextStyle(color: TermexColors.textMuted),
+            hintStyle: TextStyle(color: context.colors.textMuted),
             errorText: _error,
             border: const OutlineInputBorder(),
           ),

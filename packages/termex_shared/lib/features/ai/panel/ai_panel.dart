@@ -104,7 +104,7 @@ class _AiPanelState extends ConsumerState<AiPanel> {
     return CompositedTransformTarget(
       link: _historyAnchor,
       child: Container(
-        color: TermexColors.backgroundPrimary,
+        color: context.colors.backgroundPrimary,
         child: Column(
           children: [
             _Toolbar(
@@ -153,29 +153,29 @@ class _AiOnboardingGate extends StatelessWidget {
             mainAxisSize: MainAxisSize.min,
             crossAxisAlignment: CrossAxisAlignment.stretch,
             children: [
-              const Icon(
+              Icon(
                 Icons.psychology_outlined,
                 size: 48,
-                color: TermexColors.textMuted,
+                color: context.colors.textMuted,
               ),
               const SizedBox(height: 16),
               Text(
                 l10n.aiOnboardingHeadline,
                 textAlign: TextAlign.center,
-                style: const TextStyle(
+                style: TextStyle(
                   fontSize: 15,
                   fontWeight: FontWeight.w600,
-                  color: TermexColors.textPrimary,
+                  color: context.colors.textPrimary,
                 ),
               ),
               const SizedBox(height: 8),
               Text(
                 l10n.aiOnboardingBody,
                 textAlign: TextAlign.center,
-                style: const TextStyle(
+                style: TextStyle(
                   fontSize: 12,
                   height: 1.5,
-                  color: TermexColors.textSecondary,
+                  color: context.colors.textSecondary,
                 ),
               ),
               const SizedBox(height: 20),
@@ -189,7 +189,7 @@ class _AiOnboardingGate extends StatelessWidget {
                       vertical: 10,
                     ),
                     decoration: BoxDecoration(
-                      color: TermexColors.primary,
+                      color: context.colors.primary,
                       borderRadius: BorderRadius.circular(6),
                     ),
                     child: Text(
@@ -210,16 +210,16 @@ class _AiOnboardingGate extends StatelessWidget {
                     vertical: 10,
                   ),
                   decoration: BoxDecoration(
-                    color: TermexColors.backgroundSecondary,
-                    border: Border.all(color: TermexColors.border),
+                    color: context.colors.backgroundSecondary,
+                    border: Border.all(color: context.colors.border),
                     borderRadius: BorderRadius.circular(6),
                   ),
                   child: Text(
                     l10n.aiOnboardingFallbackHint,
                     textAlign: TextAlign.center,
-                    style: const TextStyle(
+                    style: TextStyle(
                       fontSize: 12,
-                      color: TermexColors.textSecondary,
+                      color: context.colors.textSecondary,
                     ),
                   ),
                 ),
@@ -265,8 +265,8 @@ class _HistoryPopover extends StatelessWidget {
               width: 220,
               height: 360,
               decoration: BoxDecoration(
-                color: TermexColors.backgroundSecondary,
-                border: Border.all(color: TermexColors.border),
+                color: context.colors.backgroundSecondary,
+                border: Border.all(color: context.colors.border),
                 borderRadius: BorderRadius.circular(6),
                 boxShadow: const [
                   BoxShadow(
@@ -302,9 +302,9 @@ class _Toolbar extends StatelessWidget {
     return Container(
       height: 36,
       padding: const EdgeInsets.symmetric(horizontal: 10),
-      decoration: const BoxDecoration(
-        color: TermexColors.backgroundSecondary,
-        border: Border(bottom: BorderSide(color: TermexColors.border)),
+      decoration: BoxDecoration(
+        color: context.colors.backgroundSecondary,
+        border: Border(bottom: BorderSide(color: context.colors.border)),
       ),
       child: Row(
         children: [
@@ -321,18 +321,18 @@ class _Toolbar extends StatelessWidget {
                     : Icons.format_list_bulleted,
                 size: 16,
                 color: historyOpen
-                    ? TermexColors.primary
-                    : TermexColors.textSecondary,
+                    ? context.colors.primary
+                    : context.colors.textSecondary,
               ),
             ),
           ),
           const SizedBox(width: 8),
-          const Text(
+          Text(
             'AI 助手',
             style: TextStyle(
               fontSize: 13,
               fontWeight: FontWeight.w600,
-              color: TermexColors.textPrimary,
+              color: context.colors.textPrimary,
             ),
           ),
           const Spacer(),

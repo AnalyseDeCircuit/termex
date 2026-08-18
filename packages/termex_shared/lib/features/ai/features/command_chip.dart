@@ -35,14 +35,14 @@ class _CommandChipState extends State<CommandChip> {
   Widget build(BuildContext context) {
     final risk = widget.command.risk;
     final borderColor = switch (risk) {
-      CommandRisk.dangerous => TermexColors.danger,
-      CommandRisk.caution => TermexColors.warning,
-      CommandRisk.safe => TermexColors.border,
+      CommandRisk.dangerous => context.colors.danger,
+      CommandRisk.caution => context.colors.warning,
+      CommandRisk.safe => context.colors.border,
     };
     final bgColor = switch (risk) {
-      CommandRisk.dangerous => TermexColors.danger.withOpacity(0.06),
-      CommandRisk.caution => TermexColors.warning.withOpacity(0.06),
-      CommandRisk.safe => TermexColors.backgroundTertiary,
+      CommandRisk.dangerous => context.colors.danger.withOpacity(0.06),
+      CommandRisk.caution => context.colors.warning.withOpacity(0.06),
+      CommandRisk.safe => context.colors.backgroundTertiary,
     };
 
     return Container(
@@ -64,17 +64,17 @@ class _CommandChipState extends State<CommandChip> {
                     : Icons.warning_amber_rounded,
                 size: 14,
                 color: risk == CommandRisk.dangerous
-                    ? TermexColors.danger
-                    : TermexColors.warning,
+                    ? context.colors.danger
+                    : context.colors.warning,
               ),
             ),
           Expanded(
             child: Text(
               widget.command.command,
-              style: const TextStyle(
+              style: TextStyle(
                 fontFamily: 'monospace',
                 fontSize: 12,
-                color: TermexColors.textPrimary,
+                color: context.colors.textPrimary,
               ),
             ),
           ),
@@ -88,7 +88,9 @@ class _CommandChipState extends State<CommandChip> {
             _ActionBtn(
               icon: Icons.play_arrow_rounded,
               onTap: risk == CommandRisk.dangerous ? null : widget.onRun,
-              color: risk == CommandRisk.dangerous ? null : TermexColors.success,
+              color: risk == CommandRisk.dangerous
+                  ? null
+                  : context.colors.success,
             ),
           ],
         ],
@@ -113,7 +115,7 @@ class _ActionBtn extends StatelessWidget {
         child: Icon(
           icon,
           size: 15,
-          color: color ?? TermexColors.textSecondary,
+          color: color ?? context.colors.textSecondary,
         ),
       ),
     );

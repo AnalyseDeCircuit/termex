@@ -14,7 +14,7 @@ class TaskStatusBadge extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    final (color, label) = _styling(status);
+    final (color, label) = _styling(status, context.colors);
     return Container(
       padding: const EdgeInsets.symmetric(
         horizontal: TermexSpacing.sm,
@@ -35,20 +35,20 @@ class TaskStatusBadge extends StatelessWidget {
     );
   }
 
-  (Color, String) _styling(TaskStatus s) {
+  (Color, String) _styling(TaskStatus s, TermexColorScheme colors) {
     switch (s) {
       case TaskStatus.pending:
-        return (TermexColors.textMuted, 'Pending');
+        return (colors.textMuted, 'Pending');
       case TaskStatus.pendingConfirmation:
-        return (TermexColors.warning, 'Awaiting confirm');
+        return (colors.warning, 'Awaiting confirm');
       case TaskStatus.running:
-        return (TermexColors.primary, 'Running');
+        return (colors.primary, 'Running');
       case TaskStatus.succeeded:
-        return (TermexColors.success, 'Succeeded');
+        return (colors.success, 'Succeeded');
       case TaskStatus.failed:
-        return (TermexColors.danger, 'Failed');
+        return (colors.danger, 'Failed');
       case TaskStatus.cancelled:
-        return (TermexColors.textMuted, 'Cancelled');
+        return (colors.textMuted, 'Cancelled');
     }
   }
 }

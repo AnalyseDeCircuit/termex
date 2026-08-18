@@ -167,15 +167,15 @@ class _BottomSheetShellState<T> extends State<_BottomSheetShell<T>>
                   )),
                   child: Container(
                     height: height,
-                    decoration: const BoxDecoration(
-                      color: TermexColors.backgroundSecondary,
-                      borderRadius: BorderRadius.vertical(
+                    decoration: BoxDecoration(
+                      color: ctx.colors.backgroundSecondary,
+                      borderRadius: const BorderRadius.vertical(
                         top: Radius.circular(16),
                       ),
                       border: Border(
-                        top: BorderSide(color: TermexColors.border),
-                        left: BorderSide(color: TermexColors.border),
-                        right: BorderSide(color: TermexColors.border),
+                        top: BorderSide(color: ctx.colors.border),
+                        left: BorderSide(color: ctx.colors.border),
+                        right: BorderSide(color: ctx.colors.border),
                       ),
                     ),
                     child: Column(
@@ -207,8 +207,8 @@ class _DragHandle extends StatelessWidget {
         child: Container(
           width: MobileTokens.dragHandleWidth,
           height: MobileTokens.dragHandleHeight,
-          decoration: const BoxDecoration(
-            color: TermexColors.border,
+          decoration: BoxDecoration(
+            color: context.colors.border,
             borderRadius: TermexRadius.full,
           ),
         ),

@@ -106,9 +106,75 @@ void main() {
       addTearDown(container.dispose);
       await container.read(snippetProvider.notifier).create('A', 'cmd', ['tagA']);
       await container.read(snippetProvider.notifier).create('B', 'cmd', ['tagB']);
-      container.read(snippetProvider.notifier).setTag('tagA');
+      container.read(snippetProvider.notifier).toggleTag('tagA');
       final filtered = container.read(snippetProvider).filtered;
       expect(filtered.every((s) => s.tags.contains('tagA')), isTrue);
+    });
+
+    // The header dropdown is multi-select, so ticking a second category
+    // widens the result set. Intersection semantics would shrink it towards
+    // empty on every extra tick, which is not what "choose categories" means.
+    test('ticking two categories shows both', () async {
+      final container = ProviderContainer();
+      addTearDown(container.dispose);
+      final n = container.read(snippetProvider.notifier);
+      await n.create('A', 'cmd', ['tagA']);
+      await n.create('B', 'cmd', ['tagB']);
+      await n.create('C', 'cmd', ['tagC']);
+      n.toggleTag('tagA');
+      n.toggleTag('tagB');
+      final titles =
+          container.read(snippetProvider).filtered.map((s) => s.title).toSet();
+      expect(titles, equals({'A', 'B'}));
+    });
+
+    test('untoggling the last category clears the filter', () async {
+      final container = ProviderContainer();
+      addTearDown(container.dispose);
+      final n = container.read(snippetProvider.notifier);
+      await n.create('A', 'cmd', ['tagA']);
+      await n.create('B', 'cmd', ['tagB']);
+      n.toggleTag('tagA');
+      expect(container.read(snippetProvider).filtered.length, 1);
+      n.toggleTag('tagA');
+      expect(container.read(snippetProvider).filtered.length, 2);
+    });
+
+    test('clearTags resets to every snippet', () async {
+      final container = ProviderContainer();
+      addTearDown(container.dispose);
+      final n = container.read(snippetProvider.notifier);
+      await n.create('A', 'cmd', ['tagA']);
+      await n.create('B', 'cmd', ['tagB']);
+      n.toggleTag('tagA');
+      n.clearTags();
+      expect(container.read(snippetProvider).selectedTags, isEmpty);
+      expect(container.read(snippetProvider).filtered.length, 2);
+    });
+
+    // `copyWith` assigned selectedTag/editingId unconditionally, so any
+    // unrelated update wiped them: one keystroke in the search box dropped
+    // the category filter and closed an open editor.
+    test('searching keeps the category filter and the open editor', () async {
+      final container = ProviderContainer();
+      addTearDown(container.dispose);
+      final n = container.read(snippetProvider.notifier);
+      await n.create('alpha', 'cmd', ['tagA']);
+      n.toggleTag('tagA');
+      n.setEditing('some-id');
+      n.setSearch('al');
+      final state = container.read(snippetProvider);
+      expect(state.selectedTags, equals({'tagA'}));
+      expect(state.editingId, 'some-id');
+    });
+
+    test('setEditing(null) still clears the editor', () async {
+      final container = ProviderContainer();
+      addTearDown(container.dispose);
+      final n = container.read(snippetProvider.notifier);
+      n.setEditing('some-id');
+      n.setEditing(null);
+      expect(container.read(snippetProvider).editingId, isNull);
     });
 
     test('allTags aggregates unique tags', () async {

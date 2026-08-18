@@ -148,7 +148,7 @@ class _SnippetPaletteState extends ConsumerState<SnippetPalette> {
                         child: Text(
                           'No snippets match.',
                           style: TermexTypography.body.copyWith(
-                            color: TermexColors.textMuted,
+                            color: context.colors.textMuted,
                           ),
                         ),
                       )
@@ -166,7 +166,7 @@ class _SnippetPaletteState extends ConsumerState<SnippetPalette> {
               Text(
                 '↑/↓ to move · Enter to insert · Esc to close',
                 style: TermexTypography.caption.copyWith(
-                  color: TermexColors.textMuted,
+                  color: context.colors.textMuted,
                 ),
               ),
             ],
@@ -204,7 +204,7 @@ class _SnippetRow extends StatelessWidget {
           ),
           decoration: BoxDecoration(
             color: highlighted
-                ? TermexColors.primary.withOpacity(0.10)
+                ? context.colors.primary.withOpacity(0.10)
                 : null,
             borderRadius: BorderRadius.circular(4),
           ),
@@ -214,7 +214,7 @@ class _SnippetRow extends StatelessWidget {
               Text(
                 snippet.title,
                 style: TermexTypography.body.copyWith(
-                  color: TermexColors.textPrimary,
+                  color: context.colors.textPrimary,
                   fontWeight: FontWeight.w500,
                 ),
               ),
@@ -224,7 +224,7 @@ class _SnippetRow extends StatelessWidget {
                 maxLines: 1,
                 overflow: TextOverflow.ellipsis,
                 style: TermexTypography.monospace.copyWith(
-                  color: TermexColors.textSecondary,
+                  color: context.colors.textSecondary,
                   fontSize: 12,
                 ),
               ),

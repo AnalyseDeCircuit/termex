@@ -16,6 +16,7 @@ import 'package:termex_shared/features/server_list/models/group_dto.dart';
 import 'package:termex_shared/features/server_list/state/group_provider.dart';
 import 'package:termex_shared/features/settings/settings_page.dart';
 import 'package:termex_shared/features/snippet/snippet_library.dart';
+import 'package:termex_shared/features/snippet/widgets/snippet_category_filter.dart';
 import 'package:termex_shared/icons/termex_icons.dart';
 import 'package:termex_shared/widgets/button.dart';
 import 'package:termex_shared/widgets/dialog.dart';
@@ -60,9 +61,9 @@ class DesktopSidebar extends ConsumerWidget {
     final cat = ref.watch(sidebarCategoryProvider);
     return Container(
       width: 240,
-      decoration: const BoxDecoration(
-        color: TermexColors.backgroundSecondary,
-        border: Border(right: BorderSide(color: TermexColors.border)),
+      decoration: BoxDecoration(
+        color: context.colors.backgroundSecondary,
+        border: Border(right: BorderSide(color: context.colors.border)),
       ),
       child: Column(
         children: [
@@ -178,7 +179,7 @@ class _SidebarHeaderState extends ConsumerState<_SidebarHeader> {
             Text(
               '请输入分组名称',
               style: TermexTypography.body.copyWith(
-                color: TermexColors.textSecondary,
+                color: context.colors.textSecondary,
               ),
             ),
             const SizedBox(height: TermexSpacing.sm),
@@ -222,8 +223,8 @@ class _SidebarHeaderState extends ConsumerState<_SidebarHeader> {
   Widget build(BuildContext context) {
     return Container(
       height: 36,
-      decoration: const BoxDecoration(
-        border: Border(bottom: BorderSide(color: TermexColors.border)),
+      decoration: BoxDecoration(
+        border: Border(bottom: BorderSide(color: context.colors.border)),
       ),
       padding: const EdgeInsets.symmetric(horizontal: TermexSpacing.xs),
       child: Row(
@@ -343,8 +344,8 @@ class _CategorySectionHeader extends ConsumerWidget {
     return Container(
       height: 28,
       padding: const EdgeInsets.symmetric(horizontal: 12),
-      decoration: const BoxDecoration(
-        border: Border(bottom: BorderSide(color: TermexColors.border)),
+      decoration: BoxDecoration(
+        border: Border(bottom: BorderSide(color: context.colors.border)),
       ),
       child: Row(
         children: [
@@ -353,10 +354,17 @@ class _CategorySectionHeader extends ConsumerWidget {
             style: TermexTypography.caption.copyWith(
               fontSize: 11,
               fontWeight: FontWeight.w600,
-              color: TermexColors.textSecondary,
+              color: context.colors.textSecondary,
               letterSpacing: 0.5,
             ),
           ),
+          // Snippet categories sit right after the title instead of on a
+          // dedicated chip row inside the panel. Renders nothing until at
+          // least one snippet is tagged.
+          if (category == SidebarCategory.snippets) ...[
+            const SizedBox(width: 8),
+            const Flexible(child: SnippetCategoryFilter()),
+          ],
           const Spacer(),
           if (panel != null)
             _SectionIconButton(
@@ -424,7 +432,7 @@ class _SectionIconButtonState extends State<_SectionIconButton> {
             alignment: Alignment.center,
             decoration: BoxDecoration(
               color: highlighted
-                  ? TermexColors.primary.withValues(alpha: 0.15)
+                  ? context.colors.primary.withValues(alpha: 0.15)
                   : const Color(0x00000000),
               borderRadius: BorderRadius.circular(3),
             ),
@@ -432,8 +440,8 @@ class _SectionIconButtonState extends State<_SectionIconButton> {
               widget.icon,
               size: 12,
               color: highlighted
-                  ? TermexColors.primary
-                  : TermexColors.textSecondary,
+                  ? context.colors.primary
+                  : context.colors.textSecondary,
             ),
           ),
         ),
@@ -480,7 +488,7 @@ class _TermexPillButtonState extends State<_TermexPillButton> {
           duration: const Duration(milliseconds: 80),
           padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 4),
           decoration: BoxDecoration(
-            color: _hovered ? TermexColors.backgroundTertiary : null,
+            color: _hovered ? context.colors.backgroundTertiary : null,
             borderRadius: BorderRadius.circular(4),
           ),
           child: Row(
@@ -489,15 +497,15 @@ class _TermexPillButtonState extends State<_TermexPillButton> {
               Text(
                 'Termex',
                 style: TermexTypography.bodySmall.copyWith(
-                  color: TermexColors.textPrimary,
+                  color: context.colors.textPrimary,
                   fontWeight: FontWeight.w500,
                 ),
               ),
               const SizedBox(width: 4),
-              const TermexIconWidget(
+              TermexIconWidget(
                 TermexIcons.chevronDown,
                 size: 10,
-                color: TermexColors.textMuted,
+                color: context.colors.textMuted,
               ),
             ],
           ),
@@ -532,8 +540,8 @@ class _ViewTabButtonState extends State<_ViewTabButton> {
   @override
   Widget build(BuildContext context) {
     final color = widget.active
-        ? TermexColors.primary
-        : (_hovered ? TermexColors.textPrimary : TermexColors.textMuted);
+        ? context.colors.primary
+        : (_hovered ? context.colors.textPrimary : context.colors.textMuted);
     return Tooltip(
       message: widget.tooltip,
       child: MouseRegion(
@@ -561,7 +569,7 @@ class _ViewTabButtonState extends State<_ViewTabButton> {
                     left: 4,
                     right: 4,
                     bottom: 0,
-                    child: Container(height: 2, color: TermexColors.primary),
+                    child: Container(height: 2, color: context.colors.primary),
                   ),
               ],
             ),

@@ -123,8 +123,8 @@ class _AuditFilterBarState extends ConsumerState<AuditFilterBar> {
   Widget build(BuildContext context) {
     final l10n = AppLocalizations.of(context);
     return Container(
-      decoration: const BoxDecoration(
-        border: Border(bottom: BorderSide(color: TermexColors.border)),
+      decoration: BoxDecoration(
+        border: Border(bottom: BorderSide(color: context.colors.border)),
       ),
       child: Column(
         mainAxisSize: MainAxisSize.min,
@@ -145,30 +145,30 @@ class _AuditFilterBarState extends ConsumerState<AuditFilterBar> {
                 const Spacer(),
                 if (_exportMessage != null) ...[
                   Text(_exportMessage!,
-                      style: const TextStyle(
-                          fontSize: 10, color: TermexColors.textMuted)),
+                      style: TextStyle(
+                          fontSize: 10, color: context.colors.textMuted)),
                   const SizedBox(width: 8),
                 ],
                 PopupMenuButton<String>(
                   tooltip: l10n.auditExport,
-                  color: TermexColors.backgroundSecondary,
+                  color: context.colors.backgroundSecondary,
                   child: Container(
                     padding: const EdgeInsets.symmetric(
                         horizontal: 8, vertical: 4),
                     decoration: BoxDecoration(
-                      border: Border.all(color: TermexColors.border),
+                      border: Border.all(color: context.colors.border),
                       borderRadius: BorderRadius.circular(4),
                     ),
                     child: Row(
                       mainAxisSize: MainAxisSize.min,
                       children: [
-                        const Icon(Icons.download_outlined,
-                            size: 13, color: TermexColors.textSecondary),
+                        Icon(Icons.download_outlined,
+                            size: 13, color: context.colors.textSecondary),
                         const SizedBox(width: 4),
                         Text(l10n.auditExport,
-                            style: const TextStyle(
+                            style: TextStyle(
                                 fontSize: 11,
-                                color: TermexColors.textSecondary)),
+                                color: context.colors.textSecondary)),
                       ],
                     ),
                   ),
@@ -176,14 +176,14 @@ class _AuditFilterBarState extends ConsumerState<AuditFilterBar> {
                     PopupMenuItem(
                       value: 'csv',
                       child: Text(l10n.auditExportCsv,
-                          style: const TextStyle(
-                              fontSize: 12, color: TermexColors.textPrimary)),
+                          style: TextStyle(
+                              fontSize: 12, color: context.colors.textPrimary)),
                     ),
                     PopupMenuItem(
                       value: 'json',
                       child: Text(l10n.auditExportJson,
-                          style: const TextStyle(
-                              fontSize: 12, color: TermexColors.textPrimary)),
+                          style: TextStyle(
+                              fontSize: 12, color: context.colors.textPrimary)),
                     ),
                   ],
                   onSelected: (v) => v == 'csv' ? _exportCsv() : _exportJson(),
@@ -218,8 +218,8 @@ class _AuditFilterBarState extends ConsumerState<AuditFilterBar> {
   Widget _label(String text) => Padding(
         padding: const EdgeInsets.only(right: 6),
         child: Text(text,
-            style: const TextStyle(
-                fontSize: 11, color: TermexColors.textSecondary)),
+            style: TextStyle(
+                fontSize: 11, color: context.colors.textSecondary)),
       );
 
   Widget _dateChip(String label, AuditDateRange range) {
@@ -265,18 +265,18 @@ class _Chip extends StatelessWidget {
         padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 3),
         decoration: BoxDecoration(
           color: isSelected
-              ? TermexColors.primary.withOpacity(0.15)
-              : TermexColors.backgroundTertiary,
+              ? context.colors.primary.withOpacity(0.15)
+              : context.colors.backgroundTertiary,
           borderRadius: BorderRadius.circular(4),
           border: Border.all(
-            color: isSelected ? TermexColors.primary : TermexColors.border,
+            color: isSelected ? context.colors.primary : context.colors.border,
           ),
         ),
         child: Text(
           label,
           style: TextStyle(
             fontSize: 11,
-            color: isSelected ? TermexColors.primary : TermexColors.textSecondary,
+            color: isSelected ? context.colors.primary : context.colors.textSecondary,
           ),
         ),
       ),

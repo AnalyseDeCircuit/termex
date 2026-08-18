@@ -109,9 +109,9 @@ class _MenuCard extends StatelessWidget {
       width: 180,
       padding: const EdgeInsets.symmetric(vertical: TermexSpacing.xs),
       decoration: BoxDecoration(
-        color: TermexColors.backgroundPrimary,
+        color: context.colors.backgroundPrimary,
         borderRadius: TermexRadius.md,
-        border: Border.all(color: TermexColors.border),
+        border: Border.all(color: context.colors.border),
         boxShadow: const [
           BoxShadow(
             color: Color(0x14000000),
@@ -160,20 +160,20 @@ class _MenuItemState extends State<_MenuItem> {
           height: 32,
           padding: const EdgeInsets.symmetric(horizontal: TermexSpacing.md),
           color: _hovered
-              ? TermexColors.backgroundTertiary
+              ? context.colors.backgroundTertiary
               : const Color(0x00000000),
           child: Row(
             children: [
               TermexIconWidget(
                 widget.icon,
                 size: 13,
-                color: TermexColors.textSecondary,
+                color: context.colors.textSecondary,
               ),
               const SizedBox(width: TermexSpacing.sm),
               Text(
                 widget.label,
                 style: TermexTypography.bodySmall.copyWith(
-                  color: TermexColors.textPrimary,
+                  color: context.colors.textPrimary,
                 ),
               ),
             ],
@@ -189,10 +189,10 @@ class _MenuDivider extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    return const Padding(
+    return Padding(
       padding: EdgeInsets.symmetric(vertical: TermexSpacing.xs),
       child: ColoredBox(
-        color: TermexColors.border,
+        color: context.colors.border,
         child: SizedBox(height: 1, width: double.infinity),
       ),
     );

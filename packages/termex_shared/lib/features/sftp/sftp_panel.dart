@@ -116,20 +116,20 @@ class _Toolbar extends ConsumerWidget {
     return Container(
       height: 36,
       padding: const EdgeInsets.symmetric(horizontal: 12),
-      decoration: const BoxDecoration(
-        color: TermexColors.backgroundTertiary,
-        border: Border(bottom: BorderSide(color: TermexColors.border)),
+      decoration: BoxDecoration(
+        color: context.colors.backgroundTertiary,
+        border: Border(bottom: BorderSide(color: context.colors.border)),
       ),
-      child: const Row(
+      child: Row(
         children: [
           Icon(Icons.folder_copy_outlined,
-              size: 16, color: TermexColors.textSecondary),
-          SizedBox(width: 8),
+              size: 16, color: context.colors.textSecondary),
+          const SizedBox(width: 8),
           Text(
             'SFTP 文件传输',
             style: TextStyle(
               fontSize: 13,
-              color: TermexColors.textSecondary,
+              color: context.colors.textSecondary,
               fontWeight: FontWeight.w500,
             ),
           ),
@@ -190,7 +190,7 @@ class _ResizableDualPaneState extends State<_ResizableDualPane> {
               },
               child: Container(
                 width: 5,
-                color: TermexColors.border,
+                color: context.colors.border,
               ),
             ),
           ),
@@ -212,18 +212,18 @@ class _LoadingView extends StatelessWidget {
       child: Column(
         mainAxisSize: MainAxisSize.min,
         children: [
-          const SizedBox(
+          SizedBox(
             width: 28,
             height: 28,
             child: CircularProgressIndicator(
               strokeWidth: 2,
-              color: TermexColors.primary,
+              color: context.colors.primary,
             ),
           ),
           const SizedBox(height: 12),
           Text(message,
-              style: const TextStyle(
-                  color: TermexColors.textMuted, fontSize: 13)),
+              style: TextStyle(
+                  color: context.colors.textMuted, fontSize: 13)),
         ],
       ),
     );
@@ -241,20 +241,20 @@ class _ErrorView extends StatelessWidget {
       child: Column(
         mainAxisSize: MainAxisSize.min,
         children: [
-          const Icon(Icons.error_outline,
-              color: TermexColors.danger, size: 36),
+          Icon(Icons.error_outline,
+              color: context.colors.danger, size: 36),
           const SizedBox(height: 8),
-          const Text(
+          Text(
             'SFTP 通道打开失败',
             style: TextStyle(
-                color: TermexColors.textPrimary,
+                color: context.colors.textPrimary,
                 fontSize: 14,
                 fontWeight: FontWeight.w500),
           ),
           const SizedBox(height: 4),
           Text(message,
-              style: const TextStyle(
-                  color: TermexColors.textMuted, fontSize: 12)),
+              style: TextStyle(
+                  color: context.colors.textMuted, fontSize: 12)),
         ],
       ),
     );

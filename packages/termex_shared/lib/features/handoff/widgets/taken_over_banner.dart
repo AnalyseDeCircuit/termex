@@ -32,10 +32,10 @@ class TakenOverBanner extends StatelessWidget {
         vertical: TermexSpacing.sm,
       ),
       decoration: BoxDecoration(
-        color: TermexColors.warning.withValues(alpha: 0.12),
+        color: context.colors.warning.withValues(alpha: 0.12),
         border: Border(
           bottom: BorderSide(
-            color: TermexColors.warning.withValues(alpha: 0.4),
+            color: context.colors.warning.withValues(alpha: 0.4),
           ),
         ),
       ),
@@ -44,8 +44,8 @@ class TakenOverBanner extends StatelessWidget {
           Container(
             width: 8,
             height: 8,
-            decoration: const BoxDecoration(
-              color: TermexColors.warning,
+            decoration: BoxDecoration(
+              color: context.colors.warning,
               shape: BoxShape.circle,
             ),
           ),
@@ -54,7 +54,7 @@ class TakenOverBanner extends StatelessWidget {
             child: Text(
               'Taken over by $newOwnerName',
               style: TermexTypography.body.copyWith(
-                color: TermexColors.textPrimary,
+                color: context.colors.textPrimary,
               ),
               maxLines: 1,
               overflow: TextOverflow.ellipsis,
@@ -67,7 +67,7 @@ class TakenOverBanner extends StatelessWidget {
               child: Text(
                 'Take back',
                 style: TermexTypography.body.copyWith(
-                  color: TermexColors.warning,
+                  color: context.colors.warning,
                   fontWeight: FontWeight.w600,
                 ),
               ),

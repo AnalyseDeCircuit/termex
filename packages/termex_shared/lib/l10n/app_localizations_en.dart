@@ -1549,6 +1549,33 @@ class AppLocalizationsEn extends AppLocalizations {
   String get connectionForwardNone => 'No forwarding rules configured.';
 
   @override
+  String get ctxProxySetDefault => 'Set as default';
+
+  @override
+  String get ctxProxyTest => 'Test connection';
+
+  @override
+  String get ctxProxyCopyAddress => 'Copy address';
+
+  @override
+  String get ctxProxyDelete => 'Delete proxy';
+
+  @override
+  String get ctxSnippetCopyContent => 'Copy content';
+
+  @override
+  String get ctxRecordingCopyPath => 'Copy file path';
+
+  @override
+  String get ctxCloudCopyLabel => 'Copy name';
+
+  @override
+  String get ctxCopied => 'Copied to clipboard';
+
+  @override
+  String get ctxCloudCopyDetail => 'Copy details';
+
+  @override
   String get contextConnect => 'Connect';
 
   @override
@@ -2408,6 +2435,20 @@ class AppLocalizationsEn extends AppLocalizations {
 
   @override
   String get snippetAllFolders => 'All';
+
+  @override
+  String get snippetCategoryFilter => 'Category';
+
+  @override
+  String get snippetCategoryAll => 'All categories';
+
+  @override
+  String snippetCategoryCount(int count) {
+    return '$count categories';
+  }
+
+  @override
+  String get snippetCategoryNone => 'No categories';
 
   @override
   String get snippetAllFolder => 'All';
@@ -3535,6 +3576,15 @@ class AppLocalizationsEn extends AppLocalizations {
 
   @override
   String get sftpActionRename => 'Rename';
+
+  @override
+  String get sftpActionEdit => 'Edit';
+
+  @override
+  String get sftpActionCopyPath => 'Copy Path';
+
+  @override
+  String get sftpActionSelectAll => 'Select All';
 
   @override
   String get sftpActionDelete => 'Delete';

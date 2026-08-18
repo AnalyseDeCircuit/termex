@@ -68,10 +68,10 @@ class _PassphraseDialogState extends State<_PassphraseDialog> {
   @override
   Widget build(BuildContext context) {
     return AlertDialog(
-      backgroundColor: TermexColors.backgroundSecondary,
-      title: const Text(
+      backgroundColor: context.colors.backgroundSecondary,
+      title: Text(
         '私钥已加密',
-        style: TextStyle(color: TermexColors.textPrimary, fontSize: 14),
+        style: TextStyle(color: context.colors.textPrimary, fontSize: 14),
       ),
       content: SizedBox(
         width: 380,
@@ -81,8 +81,8 @@ class _PassphraseDialogState extends State<_PassphraseDialog> {
           children: [
             Text(
               '为「${widget.serverName}」输入私钥口令以完成连接。',
-              style: const TextStyle(
-                color: TermexColors.textSecondary,
+              style: TextStyle(
+                color: context.colors.textSecondary,
                 fontSize: 12,
               ),
             ),
@@ -90,8 +90,8 @@ class _PassphraseDialogState extends State<_PassphraseDialog> {
               const SizedBox(height: 6),
               Text(
                 widget.keyPath!,
-                style: const TextStyle(
-                  color: TermexColors.textMuted,
+                style: TextStyle(
+                  color: context.colors.textMuted,
                   fontSize: 11,
                   fontFamily: 'monospace',
                 ),
@@ -103,29 +103,29 @@ class _PassphraseDialogState extends State<_PassphraseDialog> {
               controller: _controller,
               autofocus: true,
               obscureText: _obscure,
-              style: const TextStyle(
-                color: TermexColors.textPrimary,
+              style: TextStyle(
+                color: context.colors.textPrimary,
                 fontSize: 13,
               ),
               decoration: InputDecoration(
                 hintText: '私钥口令',
-                hintStyle: const TextStyle(color: TermexColors.textMuted),
+                hintStyle: TextStyle(color: context.colors.textMuted),
                 suffixIcon: IconButton(
                   icon: Icon(
                     _obscure ? Icons.visibility_off : Icons.visibility,
                     size: 16,
-                    color: TermexColors.textMuted,
+                    color: context.colors.textMuted,
                   ),
                   onPressed: () => setState(() => _obscure = !_obscure),
                   splashRadius: 16,
                 ),
                 contentPadding:
                     const EdgeInsets.symmetric(horizontal: 10, vertical: 10),
-                enabledBorder: const OutlineInputBorder(
-                  borderSide: BorderSide(color: TermexColors.border),
+                enabledBorder: OutlineInputBorder(
+                  borderSide: BorderSide(color: context.colors.border),
                 ),
-                focusedBorder: const OutlineInputBorder(
-                  borderSide: BorderSide(color: TermexColors.primary),
+                focusedBorder: OutlineInputBorder(
+                  borderSide: BorderSide(color: context.colors.primary),
                 ),
               ),
               onSubmitted: (_) => _submit(),
@@ -140,10 +140,10 @@ class _PassphraseDialogState extends State<_PassphraseDialog> {
                   materialTapTargetSize: MaterialTapTargetSize.shrinkWrap,
                 ),
                 const SizedBox(width: 4),
-                const Text(
+                Text(
                   '记住此口令（存储到系统 Keychain）',
                   style: TextStyle(
-                    color: TermexColors.textSecondary,
+                    color: context.colors.textSecondary,
                     fontSize: 12,
                   ),
                 ),
@@ -155,16 +155,16 @@ class _PassphraseDialogState extends State<_PassphraseDialog> {
       actions: [
         TextButton(
           onPressed: () => Navigator.of(context).pop(),
-          child: const Text(
+          child: Text(
             '取消',
-            style: TextStyle(color: TermexColors.textSecondary),
+            style: TextStyle(color: context.colors.textSecondary),
           ),
         ),
         TextButton(
           onPressed: _submit,
-          child: const Text(
+          child: Text(
             '连接',
-            style: TextStyle(color: TermexColors.primary),
+            style: TextStyle(color: context.colors.primary),
           ),
         ),
       ],

@@ -101,6 +101,9 @@ class _SplashChrome extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
+    // Intentionally reads the constant, not `context.colors`: the splash
+    // paints before the first frame, above/outside any TermexThemeScope, and
+    // must match the native Android/iOS launch screen colour exactly.
     final bg = background ?? TermexColors.backgroundPrimary;
     final image = logo ??
         const AssetImage(

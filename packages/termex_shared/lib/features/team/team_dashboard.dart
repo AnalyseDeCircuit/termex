@@ -81,11 +81,11 @@ class _TeamDashboardState extends ConsumerState<TeamDashboard> {
       future: _future,
       builder: (ctx, snap) {
         if (snap.connectionState != ConnectionState.done) {
-          return const Center(
+          return Center(
             child: TermexIconWidget(
               TermexIcons.refresh,
               size: 18,
-              color: TermexColors.textMuted,
+              color: ctx.colors.textMuted,
             ),
           );
         }
@@ -194,14 +194,14 @@ class _Toolbar extends StatelessWidget {
         Text(
           l10n.teamWorkspace,
           style: TermexTypography.body.copyWith(
-            color: TermexColors.textPrimary,
+            color: context.colors.textPrimary,
             fontWeight: FontWeight.w600,
           ),
         ),
         const SizedBox(width: TermexSpacing.sm),
-        _Badge(label: l10n.teamMemberBadge(memberCount), color: TermexColors.primary),
+        _Badge(label: l10n.teamMemberBadge(memberCount), color: context.colors.primary),
         if (conflictCount > 0)
-          _Badge(label: l10n.teamConflictBadge(conflictCount), color: TermexColors.warning),
+          _Badge(label: l10n.teamConflictBadge(conflictCount), color: context.colors.warning),
         TermexButton(
           label: l10n.teamV2InviteMember,
           variant: ButtonVariant.primary,
@@ -260,8 +260,8 @@ class _MembersSection extends StatelessWidget {
     final l10n = AppLocalizations.of(context);
     return Container(
       decoration: BoxDecoration(
-        color: TermexColors.backgroundSecondary,
-        border: Border.all(color: TermexColors.border, width: 0.5),
+        color: context.colors.backgroundSecondary,
+        border: Border.all(color: context.colors.border, width: 0.5),
         borderRadius: BorderRadius.circular(6),
       ),
       child: Column(
@@ -275,12 +275,12 @@ class _MembersSection extends StatelessWidget {
             child: Text(
               l10n.teamStatMembers,
               style: TermexTypography.caption.copyWith(
-                color: TermexColors.textSecondary,
+                color: context.colors.textSecondary,
                 fontWeight: FontWeight.w500,
               ),
             ),
           ),
-          Container(height: 0.5, color: TermexColors.border),
+          Container(height: 0.5, color: context.colors.border),
           if (members.isEmpty)
             Padding(
               padding: const EdgeInsets.all(TermexSpacing.md),
@@ -333,7 +333,7 @@ class _MemberRowState extends State<_MemberRow> {
           vertical: TermexSpacing.sm,
         ),
         color: _hovered
-            ? TermexColors.backgroundTertiary
+            ? context.colors.backgroundTertiary
             : const Color(0x00000000),
         child: Row(
           children: [
@@ -347,7 +347,7 @@ class _MemberRowState extends State<_MemberRow> {
                     maxLines: 1,
                     overflow: TextOverflow.ellipsis,
                     style: TermexTypography.bodySmall.copyWith(
-                      color: TermexColors.textPrimary,
+                      color: context.colors.textPrimary,
                     ),
                   ),
                   if (m.email.isNotEmpty)
@@ -356,7 +356,7 @@ class _MemberRowState extends State<_MemberRow> {
                       maxLines: 1,
                       overflow: TextOverflow.ellipsis,
                       style: TermexTypography.caption.copyWith(
-                        color: TermexColors.textMuted,
+                        color: context.colors.textMuted,
                       ),
                     ),
                 ],
@@ -370,10 +370,10 @@ class _MemberRowState extends State<_MemberRow> {
             if (m.role != bridge.TeamRole.owner)
               Clickable(
                 onTap: widget.onRemove,
-                child: const TermexIconWidget(
+                child: TermexIconWidget(
                   TermexIcons.delete,
                   size: 14,
-                  color: TermexColors.danger,
+                  color: context.colors.danger,
                 ),
               ),
           ],
@@ -399,7 +399,7 @@ class _RolePicker extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     if (role == bridge.TeamRole.owner) {
-      return _Badge(label: 'Owner', color: TermexColors.primary);
+      return _Badge(label: 'Owner', color: context.colors.primary);
     }
     return Wrap(
       spacing: 4,
@@ -415,11 +415,13 @@ class _RolePicker extends StatelessWidget {
               padding: const EdgeInsets.symmetric(horizontal: 6, vertical: 2),
               decoration: BoxDecoration(
                 color: r == role
-                    ? TermexColors.primary.withValues(alpha: 0.12)
+                    ? context.colors.primary.withValues(alpha: 0.12)
                     : const Color(0x00000000),
                 borderRadius: BorderRadius.circular(3),
                 border: Border.all(
-                  color: r == role ? TermexColors.primary : TermexColors.border,
+                  color: r == role
+                      ? context.colors.primary
+                      : context.colors.border,
                   width: 0.5,
                 ),
               ),
@@ -428,8 +430,8 @@ class _RolePicker extends StatelessWidget {
                 style: TermexTypography.caption.copyWith(
                   fontSize: 10,
                   color: r == role
-                      ? TermexColors.primary
-                      : TermexColors.textMuted,
+                      ? context.colors.primary
+                      : context.colors.textMuted,
                 ),
               ),
             ),
@@ -455,8 +457,8 @@ class _ConflictsSection extends StatelessWidget {
     final l10n = AppLocalizations.of(context);
     return Container(
       decoration: BoxDecoration(
-        color: TermexColors.backgroundSecondary,
-        border: Border.all(color: TermexColors.warning, width: 0.5),
+        color: context.colors.backgroundSecondary,
+        border: Border.all(color: context.colors.warning, width: 0.5),
         borderRadius: BorderRadius.circular(6),
       ),
       child: Column(
@@ -469,23 +471,23 @@ class _ConflictsSection extends StatelessWidget {
             ),
             child: Row(
               children: [
-                const TermexIconWidget(
+                TermexIconWidget(
                   TermexIcons.help,
                   size: 12,
-                  color: TermexColors.warning,
+                  color: context.colors.warning,
                 ),
                 const SizedBox(width: TermexSpacing.sm),
                 Text(
                   l10n.teamPendingConflicts,
                   style: TermexTypography.caption.copyWith(
-                    color: TermexColors.warning,
+                    color: context.colors.warning,
                     fontWeight: FontWeight.w500,
                   ),
                 ),
               ],
             ),
           ),
-          Container(height: 0.5, color: TermexColors.border),
+          Container(height: 0.5, color: context.colors.border),
           ...conflicts.map(
             (c) => Padding(
               padding: const EdgeInsets.all(TermexSpacing.md),
@@ -495,7 +497,7 @@ class _ConflictsSection extends StatelessWidget {
                   Text(
                     l10n.teamConflictServerField(c.serverId, c.field),
                     style: TermexTypography.caption.copyWith(
-                      color: TermexColors.textPrimary,
+                      color: context.colors.textPrimary,
                       fontWeight: FontWeight.w500,
                     ),
                   ),
@@ -546,8 +548,8 @@ class _ValueCell extends StatelessWidget {
     return Container(
         padding: const EdgeInsets.all(TermexSpacing.sm),
         decoration: BoxDecoration(
-          color: TermexColors.backgroundTertiary,
-          border: Border.all(color: TermexColors.border, width: 0.5),
+          color: context.colors.backgroundTertiary,
+          border: Border.all(color: context.colors.border, width: 0.5),
           borderRadius: BorderRadius.circular(4),
         ),
         child: Column(
@@ -556,7 +558,7 @@ class _ValueCell extends StatelessWidget {
             Text(
               label,
               style: TermexTypography.caption.copyWith(
-                color: TermexColors.textMuted,
+                color: context.colors.textMuted,
               ),
             ),
             const SizedBox(height: 2),
@@ -565,7 +567,7 @@ class _ValueCell extends StatelessWidget {
               maxLines: 2,
               overflow: TextOverflow.ellipsis,
               style: TermexTypography.caption.copyWith(
-                color: TermexColors.textPrimary,
+                color: context.colors.textPrimary,
                 fontFamily: 'monospace',
               ),
             ),
@@ -575,7 +577,7 @@ class _ValueCell extends StatelessWidget {
               child: Text(
                 l10n.teamUseThisValue,
                 style: TermexTypography.caption.copyWith(
-                  color: TermexColors.primary,
+                  color: context.colors.primary,
                 ),
               ),
             ),
@@ -631,14 +633,14 @@ Future<void> _showInviteDialog(BuildContext context) async {
               Text(
                 l10n.teamInviteDesc,
                 style: TermexTypography.caption.copyWith(
-                  color: TermexColors.textSecondary,
+                  color: ctx.colors.textSecondary,
                 ),
               ),
               const SizedBox(height: TermexSpacing.md),
               Text(
                 l10n.teamRole,
                 style: TermexTypography.caption.copyWith(
-                  color: TermexColors.textSecondary,
+                  color: ctx.colors.textSecondary,
                 ),
               ),
               const SizedBox(height: TermexSpacing.xs),
@@ -659,21 +661,21 @@ Future<void> _showInviteDialog(BuildContext context) async {
                         ),
                         decoration: BoxDecoration(
                           color: r == role
-                              ? TermexColors.primary.withValues(alpha: 0.12)
+                              ? ctx.colors.primary.withValues(alpha: 0.12)
                               : const Color(0x00000000),
                           borderRadius: BorderRadius.circular(4),
                           border: Border.all(
                             color: r == role
-                                ? TermexColors.primary
-                                : TermexColors.border,
+                                ? ctx.colors.primary
+                                : ctx.colors.border,
                           ),
                         ),
                         child: Text(
                           _RolePicker._label(r),
                           style: TermexTypography.caption.copyWith(
                             color: r == role
-                                ? TermexColors.primary
-                                : TermexColors.textPrimary,
+                                ? ctx.colors.primary
+                                : ctx.colors.textPrimary,
                           ),
                         ),
                       ),
@@ -687,14 +689,14 @@ Future<void> _showInviteDialog(BuildContext context) async {
                 Text(
                   errorMessage!,
                   style: TermexTypography.caption.copyWith(
-                    color: TermexColors.danger,
+                    color: ctx.colors.danger,
                   ),
                 )
               else
                 Text(
                   l10n.teamGenerateHint,
                   style: TermexTypography.caption.copyWith(
-                    color: TermexColors.textMuted,
+                    color: ctx.colors.textMuted,
                   ),
                 ),
               const SizedBox(height: TermexSpacing.md),
@@ -734,8 +736,8 @@ class _InviteCodeBox extends StatelessWidget {
     return Container(
       padding: const EdgeInsets.all(TermexSpacing.md),
       decoration: BoxDecoration(
-        color: TermexColors.backgroundSecondary,
-        border: Border.all(color: TermexColors.border),
+        color: context.colors.backgroundSecondary,
+        border: Border.all(color: context.colors.border),
         borderRadius: BorderRadius.circular(6),
       ),
       child: Column(
@@ -747,7 +749,7 @@ class _InviteCodeBox extends StatelessWidget {
                 child: SelectableText(
                   invite.code,
                   style: TermexTypography.body.copyWith(
-                    color: TermexColors.textPrimary,
+                    color: context.colors.textPrimary,
                     fontFamily: 'monospace',
                     fontWeight: FontWeight.w600,
                     fontSize: 16,
@@ -760,10 +762,10 @@ class _InviteCodeBox extends StatelessWidget {
                       ClipboardData(text: invite.code));
                   ToastController.success(l10n.teamV2InviteCopied);
                 },
-                child: const TermexIconWidget(
+                child: TermexIconWidget(
                   TermexIcons.copy,
                   size: 14,
-                  color: TermexColors.primary,
+                  color: context.colors.primary,
                 ),
               ),
             ],
@@ -772,7 +774,7 @@ class _InviteCodeBox extends StatelessWidget {
           Text(
             l10n.teamExpiresAt(invite.expiresAt),
             style: TermexTypography.caption.copyWith(
-              color: TermexColors.textMuted,
+              color: context.colors.textMuted,
             ),
           ),
         ],
@@ -799,7 +801,7 @@ Future<void> _showPassphraseDialog(BuildContext context) async {
             Text(
               l10n.teamVerifyPassphraseDesc,
               style: TermexTypography.caption.copyWith(
-                color: TermexColors.textSecondary,
+                color: ctx.colors.textSecondary,
               ),
             ),
             const SizedBox(height: TermexSpacing.sm),
@@ -814,7 +816,7 @@ Future<void> _showPassphraseDialog(BuildContext context) async {
               Text(
                 errorMessage!,
                 style: TermexTypography.caption.copyWith(
-                  color: TermexColors.danger,
+                  color: ctx.colors.danger,
                 ),
               ),
             ],
@@ -878,7 +880,7 @@ class _ErrorView extends StatelessWidget {
             Text(
               l10n.teamLoadFailed,
               style: TermexTypography.body.copyWith(
-                color: TermexColors.danger,
+                color: context.colors.danger,
               ),
             ),
             const SizedBox(height: TermexSpacing.xs),
@@ -886,7 +888,7 @@ class _ErrorView extends StatelessWidget {
               error,
               textAlign: TextAlign.center,
               style: TermexTypography.caption.copyWith(
-                color: TermexColors.textMuted,
+                color: context.colors.textMuted,
               ),
             ),
             const SizedBox(height: TermexSpacing.sm),

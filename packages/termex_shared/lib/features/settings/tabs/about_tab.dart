@@ -53,7 +53,7 @@ class _Header extends StatelessWidget {
     return Row(
       crossAxisAlignment: CrossAxisAlignment.start,
       children: [
-        const Icon(Icons.terminal, size: 48, color: TermexColors.primary),
+        Icon(Icons.terminal, size: 48, color: context.colors.primary),
         const SizedBox(width: 16),
         // Expanded lets the title / version / tagline reflow within the
         // available width on narrow viewports instead of forcing a
@@ -62,28 +62,28 @@ class _Header extends StatelessWidget {
           child: Column(
             crossAxisAlignment: CrossAxisAlignment.start,
             children: [
-              const Text(
+              Text(
                 'Termex',
                 style: TextStyle(
                   fontSize: 22,
                   fontWeight: FontWeight.w700,
-                  color: TermexColors.textPrimary,
+                  color: context.colors.textPrimary,
                 ),
               ),
               const SizedBox(height: 2),
-              const Text(
+              Text(
                 'v$kAppVersion · $kAppChannel',
                 style: TextStyle(
                   fontSize: 12,
-                  color: TermexColors.textSecondary,
+                  color: context.colors.textSecondary,
                   fontFamily: 'monospace',
                 ),
               ),
               const SizedBox(height: 4),
               Text(
                 l10n.aboutTagline,
-                style: const TextStyle(
-                    fontSize: 11, color: TermexColors.textSecondary),
+                style: TextStyle(
+                    fontSize: 11, color: context.colors.textSecondary),
               ),
             ],
           ),
@@ -104,7 +104,7 @@ class _UpdateSection extends ConsumerWidget {
     return Container(
       padding: const EdgeInsets.all(16),
       decoration: BoxDecoration(
-        border: Border.all(color: TermexColors.border),
+        border: Border.all(color: context.colors.border),
         borderRadius: BorderRadius.circular(6),
       ),
       child: Column(
@@ -146,9 +146,9 @@ class _UpdateSection extends ConsumerWidget {
                     Flexible(
                       child: Text(l10n.aboutCheckFrequencyLabel,
                           overflow: TextOverflow.ellipsis,
-                          style: const TextStyle(
+                          style: TextStyle(
                               fontSize: 12,
-                              color: TermexColors.textSecondary)),
+                              color: context.colors.textSecondary)),
                     ),
                     const SizedBox(width: 8),
                     DropdownButton<int>(
@@ -187,31 +187,31 @@ class _UpdateSection extends ConsumerWidget {
       final v = status.newVersion ?? "?";
       final (icon, color, text) = switch (status.stage) {
         UpdateStage.idle =>
-          (Icons.check_circle, TermexColors.success, l10n.updateUpToDate),
+          (Icons.check_circle, context.colors.success, l10n.updateUpToDate),
         UpdateStage.checking => (
             Icons.hourglass_top,
-            TermexColors.textSecondary,
+            context.colors.textSecondary,
             l10n.updateChecking
           ),
         UpdateStage.available => (
             Icons.new_releases,
-            TermexColors.primary,
+            context.colors.primary,
             l10n.aboutUpdateAvailable(v),
           ),
         UpdateStage.downloading => (
             Icons.cloud_download,
-            TermexColors.primary,
+            context.colors.primary,
             l10n.aboutUpdateDownloadingPercent(
                 ((status.progress ?? 0) * 100).toStringAsFixed(0)),
           ),
         UpdateStage.ready => (
             Icons.download_done,
-            TermexColors.success,
+            context.colors.success,
             l10n.aboutUpdateReady(v),
           ),
         UpdateStage.failed => (
             Icons.error_outline,
-            TermexColors.danger,
+            context.colors.danger,
             l10n.aboutUpdateFailed(status.error ?? "unknown"),
           ),
       };
@@ -324,28 +324,28 @@ class _SessionPoolSection extends ConsumerWidget {
     return Container(
       padding: const EdgeInsets.all(16),
       decoration: BoxDecoration(
-        color: TermexColors.backgroundSecondary,
+        color: context.colors.backgroundSecondary,
         borderRadius: BorderRadius.circular(6),
-        border: Border.all(color: TermexColors.border),
+        border: Border.all(color: context.colors.border),
       ),
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
           Row(
             children: [
-              const Icon(Icons.account_tree_outlined,
-                  size: 14, color: TermexColors.textSecondary),
+              Icon(Icons.account_tree_outlined,
+                  size: 14, color: context.colors.textSecondary),
               const SizedBox(width: 6),
               Text(l10n.aboutSessionPoolTitle,
-                  style: const TextStyle(
+                  style: TextStyle(
                       fontSize: 12,
                       fontWeight: FontWeight.w600,
-                      color: TermexColors.textPrimary)),
+                      color: context.colors.textPrimary)),
               const Spacer(),
               IconButton(
                 tooltip: l10n.commonRefresh,
-                icon: const Icon(Icons.refresh,
-                    size: 14, color: TermexColors.textSecondary),
+                icon: Icon(Icons.refresh,
+                    size: 14, color: context.colors.textSecondary),
                 onPressed: () => ref.invalidate(_poolStatsProvider),
                 padding: EdgeInsets.zero,
                 constraints: const BoxConstraints(minWidth: 24, minHeight: 24),
@@ -355,8 +355,8 @@ class _SessionPoolSection extends ConsumerWidget {
           const SizedBox(height: 4),
           Text(
             l10n.aboutSessionPoolHelp,
-            style: const TextStyle(
-                fontSize: 10, color: TermexColors.textMuted),
+            style: TextStyle(
+                fontSize: 10, color: context.colors.textMuted),
           ),
           const SizedBox(height: 10),
           asyncStats.when(
@@ -368,14 +368,14 @@ class _SessionPoolSection extends ConsumerWidget {
                   child: CircularProgressIndicator(strokeWidth: 2)),
             ),
             error: (e, _) => Text(l10n.commonLoadFailed(e.toString()),
-                style: const TextStyle(
-                    fontSize: 11, color: TermexColors.danger)),
+                style: TextStyle(
+                    fontSize: 11, color: context.colors.danger)),
             data: (rows) => rows.isEmpty
                 ? Padding(
                     padding: const EdgeInsets.symmetric(vertical: 8),
                     child: Text(l10n.aboutSessionPoolEmpty,
-                        style: const TextStyle(
-                            fontSize: 11, color: TermexColors.textMuted)),
+                        style: TextStyle(
+                            fontSize: 11, color: context.colors.textMuted)),
                   )
                 : Column(
                     children: rows.map(_PoolStatRow.new).toList(),
@@ -416,22 +416,22 @@ class _PoolStatRow extends StatelessWidget {
       margin: const EdgeInsets.only(bottom: 6),
       padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 6),
       decoration: BoxDecoration(
-        color: TermexColors.backgroundPrimary,
+        color: context.colors.backgroundPrimary,
         borderRadius: BorderRadius.circular(4),
-        border: Border.all(color: TermexColors.border),
+        border: Border.all(color: context.colors.border),
       ),
       child: Row(
         children: [
           Container(
             padding: const EdgeInsets.symmetric(horizontal: 4, vertical: 1),
             decoration: BoxDecoration(
-              color: TermexColors.primary.withOpacity(0.15),
+              color: context.colors.primary.withOpacity(0.15),
               borderRadius: BorderRadius.circular(2),
             ),
             child: Text(stat.proxyType,
-                style: const TextStyle(
+                style: TextStyle(
                     fontSize: 9,
-                    color: TermexColors.primary,
+                    color: context.colors.primary,
                     fontWeight: FontWeight.w600)),
           ),
           const SizedBox(width: 8),
@@ -442,25 +442,25 @@ class _PoolStatRow extends StatelessWidget {
                 Text(
                   '${stat.host}:${stat.port}'
                   '${stat.username != null ? '  (${stat.username})' : ''}',
-                  style: const TextStyle(
+                  style: TextStyle(
                       fontSize: 11,
-                      color: TermexColors.textPrimary,
+                      color: context.colors.textPrimary,
                       fontFamily: 'monospace'),
                 ),
                 const SizedBox(height: 2),
                 Row(
                   children: [
                     Text('refs: ${stat.refCount}',
-                        style: const TextStyle(
-                            fontSize: 10, color: TermexColors.success)),
+                        style: TextStyle(
+                            fontSize: 10, color: context.colors.success)),
                     const SizedBox(width: 10),
                     Text('uptime: ${_uptime()}',
-                        style: const TextStyle(
-                            fontSize: 10, color: TermexColors.textSecondary)),
+                        style: TextStyle(
+                            fontSize: 10, color: context.colors.textSecondary)),
                     const SizedBox(width: 10),
                     Text(_formatBytes(stat.bytesTransferred.toInt()),
-                        style: const TextStyle(
-                            fontSize: 10, color: TermexColors.textMuted)),
+                        style: TextStyle(
+                            fontSize: 10, color: context.colors.textMuted)),
                   ],
                 ),
               ],

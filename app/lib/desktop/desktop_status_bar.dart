@@ -27,7 +27,8 @@ class DesktopStatusBar extends ConsumerWidget {
     final pfState = ref.watch(portForwardProvider);
     final updateAsync = ref.watch(updateStatusProvider);
 
-    final (statusText, statusColor) = _statusFor(ref, activeId);
+    final (statusText, statusColor) =
+        _statusFor(ref, activeId, context.colors);
     final activeForwards = pfState.rules.where((r) => r.isActive).length;
     final hasUpdate = updateAsync.valueOrNull?.stage == UpdateStage.available;
 
@@ -41,9 +42,9 @@ class DesktopStatusBar extends ConsumerWidget {
 
     return Container(
       height: 22,
-      decoration: const BoxDecoration(
-        color: TermexColors.backgroundSecondary,
-        border: Border(top: BorderSide(color: TermexColors.border)),
+      decoration: BoxDecoration(
+        color: context.colors.backgroundSecondary,
+        border: Border(top: BorderSide(color: context.colors.border)),
       ),
       padding: const EdgeInsets.symmetric(horizontal: TermexSpacing.md),
       child: Row(
@@ -54,7 +55,7 @@ class DesktopStatusBar extends ConsumerWidget {
           Text(
             statusText,
             style: TermexTypography.caption.copyWith(
-              color: TermexColors.textSecondary,
+              color: context.colors.textSecondary,
             ),
           ),
           const Spacer(),
@@ -67,7 +68,7 @@ class DesktopStatusBar extends ConsumerWidget {
                 child: _StatusChip(
                   icon: Icons.swap_horiz,
                   label: '$activeForwards',
-                  color: TermexColors.success,
+                  color: context.colors.success,
                 ),
               ),
             ),
@@ -75,20 +76,20 @@ class DesktopStatusBar extends ConsumerWidget {
           ],
           // Update available dot
           if (hasUpdate) ...[
-            const Tooltip(
+            Tooltip(
               message: '有新版本可用 · 点击设置检查更新',
-              child: _StatusDot(color: TermexColors.primary),
+              child: _StatusDot(color: context.colors.primary),
             ),
             const SizedBox(width: TermexSpacing.sm),
           ],
           // Tmux indicator
           if (isTmuxAttached) ...[
-            const Tooltip(
+            Tooltip(
               message: '检测到 tmux 多路复用',
               child: _StatusChip(
                 icon: Icons.dashboard_customize,
                 label: 'tmux',
-                color: TermexColors.primary,
+                color: context.colors.primary,
               ),
             ),
             const SizedBox(width: TermexSpacing.sm),
@@ -98,7 +99,7 @@ class DesktopStatusBar extends ConsumerWidget {
             Text(
               'Broadcast: ${broadcast.members.length}',
               style: TermexTypography.caption.copyWith(
-                color: TermexColors.warning,
+                color: context.colors.warning,
                 fontWeight: FontWeight.w600,
               ),
             ),
@@ -107,7 +108,7 @@ class DesktopStatusBar extends ConsumerWidget {
           Text(
             'UTF-8',
             style: TermexTypography.caption.copyWith(
-              color: TermexColors.textMuted,
+              color: context.colors.textMuted,
             ),
           ),
         ],
@@ -115,24 +116,28 @@ class DesktopStatusBar extends ConsumerWidget {
     );
   }
 
-  (String, Color) _statusFor(WidgetRef ref, String? tabId) {
+  /// Takes the palette rather than a [BuildContext]: this is a pure
+  /// status → (label, colour) mapping with no widget of its own, and the
+  /// caller already has the resolved scheme.
+  (String, Color) _statusFor(
+      WidgetRef ref, String? tabId, TermexColorScheme colors) {
     if (tabId == null) {
-      return ('Ready', TermexColors.textMuted);
+      return ('Ready', colors.textMuted);
     }
     final c = ref.watch(connectionProvider(tabId));
     return switch (c.status) {
-      ReconnectStatus.idle => ('Ready', TermexColors.textMuted),
-      ReconnectStatus.connecting => ('Connecting…', TermexColors.warning),
+      ReconnectStatus.idle => ('Ready', colors.textMuted),
+      ReconnectStatus.connecting => ('Connecting…', colors.warning),
       ReconnectStatus.reconnecting => (
           'Reconnecting (attempt ${c.reconnectAttempt})…',
-          TermexColors.warning
+          colors.warning
         ),
-      ReconnectStatus.connected => ('Connected', TermexColors.success),
+      ReconnectStatus.connected => ('Connected', colors.success),
       ReconnectStatus.failed => (
           'Failed: ${c.lastError ?? 'unknown'}',
-          TermexColors.danger
+          colors.danger
         ),
-      ReconnectStatus.closed => ('Disconnected', TermexColors.textMuted),
+      ReconnectStatus.closed => ('Disconnected', colors.textMuted),
     };
   }
 }

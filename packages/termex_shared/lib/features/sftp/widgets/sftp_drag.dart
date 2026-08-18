@@ -41,6 +41,11 @@ class SftpDragPayload {
 
 // ── Row wrapper ───────────────────────────────────────────────────────────────
 
+/// Joins a directory and an entry name into an absolute path, without
+/// doubling the separator when [dir] is the root `/`.
+String sftpJoin(String dir, String name) =>
+    dir.endsWith('/') ? '$dir$name' : '$dir/$name';
+
 /// Wraps an already-built file row in a [Draggable] carrying
 /// [SftpDragPayload], for use as [FileList.rowWrapper].
 ///
@@ -89,7 +94,10 @@ class DraggableFileRow extends StatelessWidget {
   final String absolutePath;
   final VoidCallback? onTap;
   final VoidCallback? onDoubleTap;
-  final VoidCallback? onSecondaryTap;
+
+  /// Matches [FileRow.onSecondaryTap], which now forwards the pointer's
+  /// global position so a context menu can be anchored to it.
+  final void Function(Offset globalPosition)? onSecondaryTap;
 
   const DraggableFileRow({
     super.key,
@@ -141,9 +149,9 @@ class _DragFeedback extends StatelessWidget {
       child: Container(
         padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 6),
         decoration: BoxDecoration(
-          color: TermexColors.backgroundSecondary.withOpacity(0.9),
+          color: context.colors.backgroundSecondary.withOpacity(0.9),
           borderRadius: BorderRadius.circular(6),
-          border: Border.all(color: TermexColors.primary.withOpacity(0.6)),
+          border: Border.all(color: context.colors.primary.withOpacity(0.6)),
           boxShadow: const [
             BoxShadow(color: Color(0x50000000), blurRadius: 8),
           ],
@@ -156,14 +164,14 @@ class _DragFeedback extends StatelessWidget {
                   ? Icons.upload_outlined
                   : Icons.download_outlined,
               size: 14,
-              color: TermexColors.primary,
+              color: context.colors.primary,
             ),
             const SizedBox(width: 6),
             Text(
               name,
-              style: const TextStyle(
+              style: TextStyle(
                 fontSize: 13,
-                color: TermexColors.textPrimary,
+                color: context.colors.textPrimary,
               ),
             ),
           ],
@@ -233,7 +241,7 @@ class _SftpDropTargetPaneState extends ConsumerState<SftpDropTargetPane> {
     if (payload.side == DragSide.local && widget.side == DragSide.remote) {
       // Upload: local → remote
       final remoteDir = paneState.remote.currentPath;
-      final remotePath = '$remoteDir/${payload.file.name}';
+      final remotePath = sftpJoin(remoteDir, payload.file.name);
       notifier.enqueue(
         direction: TransferDirection.upload,
         localPath: payload.absolutePath,
@@ -244,7 +252,7 @@ class _SftpDropTargetPaneState extends ConsumerState<SftpDropTargetPane> {
     } else if (payload.side == DragSide.remote && widget.side == DragSide.local) {
       // Download: remote → local
       final localDir = paneState.local.currentPath;
-      final localPath = '$localDir/${payload.file.name}';
+      final localPath = sftpJoin(localDir, payload.file.name);
       notifier.enqueue(
         direction: TransferDirection.download,
         localPath: localPath,
@@ -276,17 +284,17 @@ class _DropOverlay extends StatelessWidget {
             child: IgnorePointer(
               child: Container(
                 decoration: BoxDecoration(
-                  color: TermexColors.primary.withOpacity(0.12),
+                  color: context.colors.primary.withOpacity(0.12),
                   border: Border.all(
-                    color: TermexColors.primary.withOpacity(0.7),
+                    color: context.colors.primary.withOpacity(0.7),
                     width: 2,
                   ),
                 ),
-                child: const Center(
+                child: Center(
                   child: Text(
                     '松开以传输',
                     style: TextStyle(
-                      color: TermexColors.primary,
+                      color: context.colors.primary,
                       fontSize: 15,
                       fontWeight: FontWeight.w600,
                     ),

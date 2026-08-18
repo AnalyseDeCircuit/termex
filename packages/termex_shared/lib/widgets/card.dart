@@ -23,7 +23,7 @@ class TermexCard extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    final bg = backgroundColor ?? TermexColors.backgroundSecondary;
+    final bg = backgroundColor ?? context.colors.backgroundSecondary;
     final shadow = elevation ?? TermexElevation.e0;
 
     return Container(
@@ -31,7 +31,7 @@ class TermexCard extends StatelessWidget {
         color: bg,
         borderRadius: TermexRadius.lg,
         border: bordered
-            ? Border.all(color: TermexColors.border, width: 1)
+            ? Border.all(color: context.colors.border, width: 1)
             : null,
         boxShadow: shadow,
       ),
@@ -67,11 +67,11 @@ class _CardHeader extends StatelessWidget {
         horizontal: TermexSpacing.md,
         vertical: TermexSpacing.md,
       ),
-      decoration: const BoxDecoration(
+      decoration: BoxDecoration(
         border: Border(
-          bottom: BorderSide(color: TermexColors.border, width: 1),
+          bottom: BorderSide(color: context.colors.border, width: 1),
         ),
-        borderRadius: BorderRadius.vertical(
+        borderRadius: const BorderRadius.vertical(
           top: Radius.circular(10),
         ),
       ),
@@ -81,7 +81,7 @@ class _CardHeader extends StatelessWidget {
             child: Text(
               title,
               style: TermexTypography.body.copyWith(
-                color: TermexColors.textPrimary,
+                color: context.colors.textPrimary,
                 fontWeight: FontWeight.w600,
               ),
             ),

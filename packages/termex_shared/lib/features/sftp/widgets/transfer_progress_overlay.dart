@@ -32,8 +32,8 @@ class TransferProgressOverlay extends ConsumerWidget {
         constraints: const BoxConstraints(maxWidth: 320),
         child: Container(
           decoration: BoxDecoration(
-            color: TermexColors.backgroundSecondary,
-            border: Border.all(color: TermexColors.border),
+            color: context.colors.backgroundSecondary,
+            border: Border.all(color: context.colors.border),
             borderRadius: BorderRadius.circular(8),
             boxShadow: const [
               BoxShadow(color: Color(0x40000000), blurRadius: 10),
@@ -47,7 +47,7 @@ class TransferProgressOverlay extends ConsumerWidget {
                   onClear: () => ref
                       .read(sftpTransferProvider(sessionId).notifier)
                       .clearCompleted()),
-              const Divider(height: 1, color: TermexColors.border),
+              Divider(height: 1, color: context.colors.border),
               ConstrainedBox(
                 constraints: const BoxConstraints(maxHeight: 260),
                 child: ListView(
@@ -82,8 +82,8 @@ class _Header extends StatelessWidget {
       child: Row(
         children: [
           Text(l10n.sftpTransfers,
-              style: const TextStyle(
-                  color: TermexColors.textPrimary,
+              style: TextStyle(
+                  color: context.colors.textPrimary,
                   fontWeight: FontWeight.w600,
                   fontSize: 13)),
           const Spacer(),
@@ -91,8 +91,8 @@ class _Header extends StatelessWidget {
             Clickable(
               onTap: onClear,
               child: Text(l10n.sftpClearCompleted,
-                  style: const TextStyle(
-                      color: TermexColors.textMuted, fontSize: 11)),
+                  style: TextStyle(
+                      color: context.colors.textMuted, fontSize: 11)),
             ),
         ],
       ),
@@ -121,8 +121,8 @@ class _TransferRow extends ConsumerWidget {
           Icon(icon,
               size: 15,
               color: isActive
-                  ? TermexColors.primary
-                  : TermexColors.textMuted),
+                  ? context.colors.primary
+                  : context.colors.textMuted),
           const SizedBox(width: 8),
           Expanded(
             child: Column(
@@ -130,16 +130,16 @@ class _TransferRow extends ConsumerWidget {
               children: [
                 Text(
                   item.fileName,
-                  style: const TextStyle(
-                      fontSize: 12, color: TermexColors.textPrimary),
+                  style: TextStyle(
+                      fontSize: 12, color: context.colors.textPrimary),
                   overflow: TextOverflow.ellipsis,
                 ),
                 const SizedBox(height: 3),
                 if (isActive)
                   LinearProgressIndicator(
                     value: item.progress,
-                    backgroundColor: TermexColors.border,
-                    color: TermexColors.primary,
+                    backgroundColor: context.colors.border,
+                    color: context.colors.primary,
                     minHeight: 3,
                     borderRadius: BorderRadius.circular(2),
                   )
@@ -148,7 +148,7 @@ class _TransferRow extends ConsumerWidget {
                     _statusLabel(l10n, item.status, item.errorMessage),
                     style: TextStyle(
                         fontSize: 10,
-                        color: _statusColor(item.status)),
+                        color: _statusColor(item.status, context.colors)),
                   ),
               ],
             ),
@@ -159,7 +159,7 @@ class _TransferRow extends ConsumerWidget {
               _IconBtn(
                 icon: Icons.play_arrow,
                 tooltip: l10n.sftpTransferResume,
-                color: TermexColors.success,
+                color: context.colors.success,
                 onTap: () => ref
                     .read(sftpTransferProvider(sessionId).notifier)
                     .resume(item.id),
@@ -168,7 +168,7 @@ class _TransferRow extends ConsumerWidget {
               _IconBtn(
                 icon: Icons.pause,
                 tooltip: l10n.sftpTransferPause,
-                color: TermexColors.warning,
+                color: context.colors.warning,
                 onTap: () => ref
                     .read(sftpTransferProvider(sessionId).notifier)
                     .pause(item.id),
@@ -177,7 +177,7 @@ class _TransferRow extends ConsumerWidget {
             _IconBtn(
               icon: Icons.close,
               tooltip: l10n.sftpCancel,
-              color: TermexColors.textMuted,
+              color: context.colors.textMuted,
               onTap: () => ref
                   .read(sftpTransferProvider(sessionId).notifier)
                   .cancel(item.id),
@@ -199,13 +199,13 @@ class _TransferRow extends ConsumerWidget {
     };
   }
 
-  static Color _statusColor(TransferStatus s) {
+  static Color _statusColor(TransferStatus s, TermexColorScheme colors) {
     return switch (s) {
-      TransferStatus.completed => TermexColors.success,
-      TransferStatus.failed => TermexColors.danger,
-      TransferStatus.cancelled => TermexColors.textMuted,
-      TransferStatus.paused => TermexColors.warning,
-      _ => TermexColors.textSecondary,
+      TransferStatus.completed => colors.success,
+      TransferStatus.failed => colors.danger,
+      TransferStatus.cancelled => colors.textMuted,
+      TransferStatus.paused => colors.warning,
+      _ => colors.textSecondary,
     };
   }
 }

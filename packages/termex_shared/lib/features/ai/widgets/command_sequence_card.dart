@@ -32,9 +32,9 @@ class CommandSequenceCard extends StatelessWidget {
       margin: const EdgeInsets.symmetric(vertical: TermexSpacing.sm),
       padding: const EdgeInsets.all(TermexSpacing.md),
       decoration: BoxDecoration(
-        color: TermexColors.backgroundSecondary,
+        color: context.colors.backgroundSecondary,
         borderRadius: TermexRadius.md,
-        border: Border.all(color: TermexColors.border),
+        border: Border.all(color: context.colors.border),
       ),
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.stretch,
@@ -64,14 +64,14 @@ class _Header extends StatelessWidget {
   Widget build(BuildContext context) {
     return Row(
       children: [
-        const Icon(Icons.playlist_play, size: 16, color: TermexColors.primary),
+        Icon(Icons.playlist_play, size: 16, color: context.colors.primary),
         const SizedBox(width: 6),
         Expanded(
           child: Text(
             title,
             style: TermexTypography.body.copyWith(
               fontWeight: FontWeight.w600,
-              color: TermexColors.textPrimary,
+              color: context.colors.textPrimary,
             ),
           ),
         ),
@@ -82,8 +82,8 @@ class _Header extends StatelessWidget {
               horizontal: TermexSpacing.sm,
               vertical: 4,
             ),
-            decoration: const BoxDecoration(
-              color: TermexColors.primary,
+            decoration: BoxDecoration(
+              color: context.colors.primary,
               borderRadius: TermexRadius.sm,
             ),
             child: Row(
@@ -127,8 +127,8 @@ class _StepRow extends StatelessWidget {
     return Container(
       margin: const EdgeInsets.only(bottom: 6),
       padding: const EdgeInsets.all(8),
-      decoration: const BoxDecoration(
-        color: TermexColors.backgroundPrimary,
+      decoration: BoxDecoration(
+        color: context.colors.backgroundPrimary,
         borderRadius: TermexRadius.sm,
       ),
       child: Row(
@@ -145,7 +145,7 @@ class _StepRow extends StatelessWidget {
                     Text(
                       '$index/$total',
                       style: TermexTypography.caption.copyWith(
-                        color: TermexColors.textMuted,
+                        color: context.colors.textMuted,
                       ),
                     ),
                     const SizedBox(width: 6),
@@ -153,7 +153,7 @@ class _StepRow extends StatelessWidget {
                       child: Text(
                         step.title,
                         style: TermexTypography.bodySmall.copyWith(
-                          color: TermexColors.textPrimary,
+                          color: context.colors.textPrimary,
                           fontWeight: FontWeight.w600,
                         ),
                       ),
@@ -165,7 +165,7 @@ class _StepRow extends StatelessWidget {
                 Text(
                   step.command,
                   style: TermexTypography.caption.copyWith(
-                    color: TermexColors.textSecondary,
+                    color: context.colors.textSecondary,
                     fontFamily: 'monospace',
                   ),
                 ),
@@ -182,16 +182,16 @@ class _StepRow extends StatelessWidget {
               height: 28,
               decoration: BoxDecoration(
                 color: canRun
-                    ? TermexColors.primary.withOpacity(0.1)
-                    : TermexColors.backgroundTertiary,
+                    ? context.colors.primary.withOpacity(0.1)
+                    : context.colors.backgroundTertiary,
                 borderRadius: TermexRadius.sm,
               ),
               child: Icon(
                 Icons.play_arrow,
                 size: 14,
                 color: canRun
-                    ? TermexColors.primary
-                    : TermexColors.textMuted,
+                    ? context.colors.primary
+                    : context.colors.textMuted,
               ),
             ),
           ),
@@ -208,11 +208,11 @@ class _StatusDot extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     final color = switch (status) {
-      PlaybookStepStatus.pending => TermexColors.textMuted,
-      PlaybookStepStatus.running => TermexColors.warning,
-      PlaybookStepStatus.success => TermexColors.success,
-      PlaybookStepStatus.failed => TermexColors.danger,
-      PlaybookStepStatus.skipped => TermexColors.textSecondary,
+      PlaybookStepStatus.pending => context.colors.textMuted,
+      PlaybookStepStatus.running => context.colors.warning,
+      PlaybookStepStatus.success => context.colors.success,
+      PlaybookStepStatus.failed => context.colors.danger,
+      PlaybookStepStatus.skipped => context.colors.textSecondary,
     };
     return Container(
       width: 10,
@@ -230,9 +230,9 @@ class _RiskBadge extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     final (label, color) = switch (risk) {
-      PlaybookRisk.low => ('低', TermexColors.success),
-      PlaybookRisk.medium => ('中', TermexColors.warning),
-      PlaybookRisk.high => ('高', TermexColors.danger),
+      PlaybookRisk.low => ('低', context.colors.success),
+      PlaybookRisk.medium => ('中', context.colors.warning),
+      PlaybookRisk.high => ('高', context.colors.danger),
     };
     return Container(
       padding: const EdgeInsets.symmetric(horizontal: 6, vertical: 1),

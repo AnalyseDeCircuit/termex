@@ -133,15 +133,15 @@ class PrivacyTab extends ConsumerWidget {
           children: [
             Text(
               l10n.settingsPrivacyGdprDialogBody,
-              style: const TextStyle(
+              style: TextStyle(
                 fontSize: 12,
-                color: TermexColors.textSecondary,
+                color: context.colors.textSecondary,
               ),
             ),
             const SizedBox(height: 12),
             Text(l10n.settingsPrivacyMasterPassword,
-                style: const TextStyle(
-                    fontSize: 11, color: TermexColors.textSecondary)),
+                style: TextStyle(
+                    fontSize: 11, color: context.colors.textSecondary)),
             const SizedBox(height: 4),
             TermexTextField(
               controller: passwordCtrl,
@@ -150,8 +150,8 @@ class PrivacyTab extends ConsumerWidget {
             ),
             const SizedBox(height: 10),
             Text(l10n.settingsPrivacyConfirmTextLabel,
-                style: const TextStyle(
-                    fontSize: 11, color: TermexColors.textSecondary)),
+                style: TextStyle(
+                    fontSize: 11, color: context.colors.textSecondary)),
             const SizedBox(height: 4),
             TermexTextField(
               controller: confirmCtrl,
@@ -214,13 +214,13 @@ class _DangerSection extends StatelessWidget {
       padding: const EdgeInsets.all(16),
       decoration: BoxDecoration(
         color: danger
-            ? TermexColors.danger.withOpacity(0.05)
-            : TermexColors.backgroundSecondary,
+            ? context.colors.danger.withOpacity(0.05)
+            : context.colors.backgroundSecondary,
         borderRadius: BorderRadius.circular(8),
         border: Border.all(
           color: danger
-              ? TermexColors.danger.withOpacity(0.4)
-              : TermexColors.border,
+              ? context.colors.danger.withOpacity(0.4)
+              : context.colors.border,
         ),
       ),
       child: Column(
@@ -231,16 +231,16 @@ class _DangerSection extends StatelessWidget {
             style: TextStyle(
               fontSize: 13,
               fontWeight: FontWeight.w600,
-              color: danger ? TermexColors.danger : TermexColors.textPrimary,
+              color: danger ? context.colors.danger : context.colors.textPrimary,
             ),
           ),
           if (hint != null) ...[
             const SizedBox(height: 4),
             Text(
               hint!,
-              style: const TextStyle(
+              style: TextStyle(
                 fontSize: 11,
-                color: TermexColors.textSecondary,
+                color: context.colors.textSecondary,
               ),
             ),
           ],
@@ -287,9 +287,9 @@ class _ClearButtonState extends State<_ClearButton> {
                 const EdgeInsets.symmetric(horizontal: 12, vertical: 8),
             decoration: BoxDecoration(
               color: _hovered
-                  ? TermexColors.backgroundTertiary
+                  ? context.colors.backgroundTertiary
                   : const Color(0x00000000),
-              border: Border.all(color: TermexColors.border),
+              border: Border.all(color: context.colors.border),
               borderRadius: BorderRadius.circular(4),
             ),
             child: Row(
@@ -297,22 +297,22 @@ class _ClearButtonState extends State<_ClearButton> {
                 TermexIconWidget(
                   widget.icon,
                   size: 12,
-                  color: TermexColors.textSecondary,
+                  color: context.colors.textSecondary,
                 ),
                 const SizedBox(width: 8),
                 Expanded(
                   child: Text(
                     widget.label,
-                    style: const TextStyle(
+                    style: TextStyle(
                       fontSize: 12,
-                      color: TermexColors.textPrimary,
+                      color: context.colors.textPrimary,
                     ),
                   ),
                 ),
-                const TermexIconWidget(
+                TermexIconWidget(
                   TermexIcons.chevronRight,
                   size: 12,
-                  color: TermexColors.textMuted,
+                  color: context.colors.textMuted,
                 ),
               ],
             ),

@@ -114,11 +114,11 @@ class _ChmodDialogState extends State<ChmodDialog> {
   Widget build(BuildContext context) {
     final l10n = AppLocalizations.of(context);
     return AlertDialog(
-      backgroundColor: TermexColors.backgroundSecondary,
+      backgroundColor: context.colors.backgroundSecondary,
       title: Text(
         l10n.sftpChmodTitleNamed(widget.fileName),
-        style: const TextStyle(
-            color: TermexColors.textPrimary, fontSize: 15),
+        style: TextStyle(
+            color: context.colors.textPrimary, fontSize: 15),
       ),
       content: SizedBox(
         width: 320,
@@ -147,15 +147,15 @@ class _ChmodDialogState extends State<ChmodDialog> {
             Row(
               children: [
                 Text(l10n.sftpChmodOctalShort,
-                    style: const TextStyle(
-                        color: TermexColors.textSecondary)),
+                    style: TextStyle(
+                        color: context.colors.textSecondary)),
                 const SizedBox(width: 12),
                 SizedBox(
                   width: 80,
                   child: TextField(
                     controller: _octalCtrl,
-                    style: const TextStyle(
-                        color: TermexColors.textPrimary, fontSize: 16),
+                    style: TextStyle(
+                        color: context.colors.textPrimary, fontSize: 16),
                     decoration: const InputDecoration(
                       isDense: true,
                       contentPadding:
@@ -173,8 +173,8 @@ class _ChmodDialogState extends State<ChmodDialog> {
             Align(
               alignment: Alignment.centerLeft,
               child: Text(l10n.sftpChmodOwnershipSection,
-                  style: const TextStyle(
-                      fontSize: 11, color: TermexColors.textSecondary)),
+                  style: TextStyle(
+                      fontSize: 11, color: context.colors.textSecondary)),
             ),
             const SizedBox(height: 6),
             Row(
@@ -243,15 +243,15 @@ class _NumberField extends StatelessWidget {
       crossAxisAlignment: CrossAxisAlignment.start,
       children: [
         Text(label,
-            style: const TextStyle(
-                color: TermexColors.textSecondary, fontSize: 11)),
+            style: TextStyle(
+                color: context.colors.textSecondary, fontSize: 11)),
         const SizedBox(height: 4),
         TextField(
           controller: controller,
           keyboardType: TextInputType.number,
           inputFormatters: [FilteringTextInputFormatter.digitsOnly],
-          style: const TextStyle(
-              color: TermexColors.textPrimary, fontSize: 14),
+          style: TextStyle(
+              color: context.colors.textPrimary, fontSize: 14),
           decoration: const InputDecoration(
             isDense: true,
             contentPadding:
@@ -290,8 +290,8 @@ class _PermGroup extends StatelessWidget {
         SizedBox(
           width: 52,
           child: Text(label,
-              style: const TextStyle(
-                  color: TermexColors.textSecondary, fontSize: 13)),
+              style: TextStyle(
+                  color: context.colors.textSecondary, fontSize: 13)),
         ),
         for (int i = 0; i < 3; i++)
           Padding(
@@ -301,17 +301,17 @@ class _PermGroup extends StatelessWidget {
                   style: TextStyle(
                     fontSize: 12,
                     color: bits[offset + i]
-                        ? TermexColors.textPrimary
-                        : TermexColors.textMuted,
+                        ? context.colors.textPrimary
+                        : context.colors.textMuted,
                   )),
               selected: bits[offset + i],
               onSelected: (_) => onToggle(offset + i),
-              selectedColor: TermexColors.primary.withOpacity(0.3),
-              backgroundColor: TermexColors.backgroundTertiary,
+              selectedColor: context.colors.primary.withOpacity(0.3),
+              backgroundColor: context.colors.backgroundTertiary,
               side: BorderSide(
                 color: bits[offset + i]
-                    ? TermexColors.primary
-                    : TermexColors.border,
+                    ? context.colors.primary
+                    : context.colors.border,
               ),
             ),
           ),

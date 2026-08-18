@@ -99,11 +99,11 @@ class _AssignTaskSheetState extends State<AssignTaskSheet> {
   Widget build(BuildContext context) {
     return Container(
       padding: const EdgeInsets.all(TermexSpacing.lg),
-      decoration: const BoxDecoration(
-        color: TermexColors.backgroundSecondary,
-        borderRadius: BorderRadius.vertical(top: Radius.circular(16)),
+      decoration: BoxDecoration(
+        color: context.colors.backgroundSecondary,
+        borderRadius: const BorderRadius.vertical(top: Radius.circular(16)),
         border: Border(
-          top: BorderSide(color: TermexColors.border),
+          top: BorderSide(color: context.colors.border),
         ),
       ),
       child: Column(
@@ -113,7 +113,7 @@ class _AssignTaskSheetState extends State<AssignTaskSheet> {
           Text(
             'Assign task',
             style: TermexTypography.heading3.copyWith(
-              color: TermexColors.textPrimary,
+              color: context.colors.textPrimary,
             ),
           ),
           const SizedBox(height: TermexSpacing.md),
@@ -137,7 +137,7 @@ class _AssignTaskSheetState extends State<AssignTaskSheet> {
             Text(
               _error!,
               style: TermexTypography.caption.copyWith(
-                color: TermexColors.danger,
+                color: context.colors.danger,
               ),
             ),
           ],
@@ -155,7 +155,7 @@ class _AssignTaskSheetState extends State<AssignTaskSheet> {
                   child: Text(
                     'Cancel',
                     style: TermexTypography.body.copyWith(
-                      color: TermexColors.textSecondary,
+                      color: context.colors.textSecondary,
                     ),
                   ),
                 ),
@@ -170,14 +170,14 @@ class _AssignTaskSheetState extends State<AssignTaskSheet> {
                   ),
                   decoration: BoxDecoration(
                     color: _canSubmit
-                        ? TermexColors.primary
-                        : TermexColors.primary.withValues(alpha: 0.3),
+                        ? context.colors.primary
+                        : context.colors.primary.withValues(alpha: 0.3),
                     borderRadius: BorderRadius.circular(6),
                   ),
                   child: Text(
                     _busy ? 'Submitting…' : 'Assign ▶',
                     style: TermexTypography.body.copyWith(
-                      color: TermexColors.textPrimary,
+                      color: context.colors.textPrimary,
                       fontWeight: FontWeight.w600,
                     ),
                   ),
@@ -210,7 +210,7 @@ class _ServerPicker extends StatelessWidget {
         Text(
           'Server',
           style: TermexTypography.caption.copyWith(
-            color: TermexColors.textSecondary,
+            color: context.colors.textSecondary,
           ),
         ),
         const SizedBox(height: TermexSpacing.xs),
@@ -228,17 +228,17 @@ class _ServerPicker extends StatelessWidget {
                 ),
                 decoration: BoxDecoration(
                   color: active
-                      ? TermexColors.primary.withValues(alpha: 0.2)
-                      : TermexColors.backgroundTertiary,
+                      ? context.colors.primary.withValues(alpha: 0.2)
+                      : context.colors.backgroundTertiary,
                   border: Border.all(
-                    color: active ? TermexColors.primary : TermexColors.border,
+                    color: active ? context.colors.primary : context.colors.border,
                   ),
                   borderRadius: BorderRadius.circular(6),
                 ),
                 child: Text(
                   s.name,
                   style: TermexTypography.body.copyWith(
-                    color: TermexColors.textPrimary,
+                    color: context.colors.textPrimary,
                   ),
                 ),
               ),
@@ -264,7 +264,7 @@ class _AiCliPicker extends StatelessWidget {
         Text(
           'AI CLI',
           style: TermexTypography.caption.copyWith(
-            color: TermexColors.textSecondary,
+            color: context.colors.textSecondary,
           ),
         ),
         const SizedBox(height: TermexSpacing.xs),
@@ -282,17 +282,17 @@ class _AiCliPicker extends StatelessWidget {
                 ),
                 decoration: BoxDecoration(
                   color: active
-                      ? TermexColors.primary.withValues(alpha: 0.2)
-                      : TermexColors.backgroundTertiary,
+                      ? context.colors.primary.withValues(alpha: 0.2)
+                      : context.colors.backgroundTertiary,
                   border: Border.all(
-                    color: active ? TermexColors.primary : TermexColors.border,
+                    color: active ? context.colors.primary : context.colors.border,
                   ),
                   borderRadius: BorderRadius.circular(6),
                 ),
                 child: Text(
                   k.displayName,
                   style: TermexTypography.body.copyWith(
-                    color: TermexColors.textPrimary,
+                    color: context.colors.textPrimary,
                   ),
                 ),
               ),
@@ -318,15 +318,15 @@ class _PromptField extends StatelessWidget {
         Text(
           'Prompt',
           style: TermexTypography.caption.copyWith(
-            color: TermexColors.textSecondary,
+            color: context.colors.textSecondary,
           ),
         ),
         const SizedBox(height: TermexSpacing.xs),
         Container(
           padding: const EdgeInsets.all(TermexSpacing.sm),
           decoration: BoxDecoration(
-            color: TermexColors.backgroundTertiary,
-            border: Border.all(color: TermexColors.border),
+            color: context.colors.backgroundTertiary,
+            border: Border.all(color: context.colors.border),
             borderRadius: BorderRadius.circular(6),
           ),
           child: EditableText(
@@ -334,11 +334,11 @@ class _PromptField extends StatelessWidget {
             onChanged: onChanged,
             focusNode: FocusNode(),
             style: TermexTypography.monospace.copyWith(
-              color: TermexColors.textPrimary,
+              color: context.colors.textPrimary,
               fontSize: 14,
             ),
-            cursorColor: TermexColors.primary,
-            backgroundCursorColor: TermexColors.textMuted,
+            cursorColor: context.colors.primary,
+            backgroundCursorColor: context.colors.textMuted,
             maxLines: 6,
             minLines: 3,
           ),

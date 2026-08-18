@@ -60,10 +60,10 @@ class _AppBar extends StatelessWidget {
     return Container(
       height: 52,
       padding: const EdgeInsets.symmetric(horizontal: TermexSpacing.md),
-      decoration: const BoxDecoration(
-        color: TermexColors.backgroundSecondary,
+      decoration: BoxDecoration(
+        color: context.colors.backgroundSecondary,
         border: Border(
-          bottom: BorderSide(color: TermexColors.border),
+          bottom: BorderSide(color: context.colors.border),
         ),
       ),
       child: Row(
@@ -71,7 +71,7 @@ class _AppBar extends StatelessWidget {
           Text(
             'Tasks',
             style: TermexTypography.heading3.copyWith(
-              color: TermexColors.textPrimary,
+              color: context.colors.textPrimary,
             ),
           ),
         ],
@@ -100,11 +100,11 @@ class _AssignFab extends StatelessWidget {
         width: 56,
         height: 56,
         decoration: BoxDecoration(
-          color: TermexColors.primary,
+          color: context.colors.primary,
           shape: BoxShape.circle,
           boxShadow: [
             BoxShadow(
-              color: TermexColors.primary.withValues(alpha: 0.4),
+              color: context.colors.primary.withValues(alpha: 0.4),
               blurRadius: 12,
               offset: const Offset(0, 4),
             ),
@@ -114,7 +114,7 @@ class _AssignFab extends StatelessWidget {
           child: Text(
             '+',
             style: TermexTypography.heading1.copyWith(
-              color: TermexColors.textPrimary,
+              color: context.colors.textPrimary,
               fontWeight: FontWeight.w300,
             ),
           ),

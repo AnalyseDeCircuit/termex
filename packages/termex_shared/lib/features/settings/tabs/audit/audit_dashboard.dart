@@ -155,13 +155,13 @@ class _SummaryRow extends StatelessWidget {
   Widget build(BuildContext context) {
     final l10n = AppLocalizations.of(context);
     final items = <_Kpi>[
-      _Kpi(l10n.auditKpiTotal, summary.total, TermexColors.primary),
-      _Kpi(l10n.auditKpiConnections, summary.connections, TermexColors.success),
+      _Kpi(l10n.auditKpiTotal, summary.total, context.colors.primary),
+      _Kpi(l10n.auditKpiConnections, summary.connections, context.colors.success),
       _Kpi(l10n.auditKpiCredentialAccess, summary.credentialAccess,
-          TermexColors.warning),
+          context.colors.warning),
       _Kpi(l10n.auditKpiConfigChanges, summary.configChanges,
           const Color(0xFF8B5CF6)),
-      _Kpi(l10n.auditKpiMemberOps, summary.memberOps, TermexColors.danger),
+      _Kpi(l10n.auditKpiMemberOps, summary.memberOps, context.colors.danger),
     ];
     return LayoutBuilder(
       builder: (ctx, c) {
@@ -216,8 +216,8 @@ class _KpiCard extends StatelessWidget {
   Widget build(BuildContext context) => Container(
         padding: const EdgeInsets.all(TermexSpacing.md),
         decoration: BoxDecoration(
-          color: TermexColors.backgroundSecondary,
-          border: Border.all(color: TermexColors.border, width: 0.5),
+          color: context.colors.backgroundSecondary,
+          border: Border.all(color: context.colors.border, width: 0.5),
           borderRadius: BorderRadius.circular(6),
         ),
         child: Column(
@@ -240,7 +240,7 @@ class _KpiCard extends StatelessWidget {
                     maxLines: 1,
                     overflow: TextOverflow.ellipsis,
                     style: TermexTypography.caption.copyWith(
-                      color: TermexColors.textSecondary,
+                      color: context.colors.textSecondary,
                     ),
                   ),
                 ),
@@ -250,7 +250,7 @@ class _KpiCard extends StatelessWidget {
             Text(
               '${kpi.value}',
               style: TermexTypography.body.copyWith(
-                color: TermexColors.textPrimary,
+                color: context.colors.textPrimary,
                 fontWeight: FontWeight.w600,
                 fontSize: 20,
               ),
@@ -273,8 +273,8 @@ class _LogTable extends StatelessWidget {
     final l10n = AppLocalizations.of(context);
     return Container(
       decoration: BoxDecoration(
-        color: TermexColors.backgroundSecondary,
-        border: Border.all(color: TermexColors.border, width: 0.5),
+        color: context.colors.backgroundSecondary,
+        border: Border.all(color: context.colors.border, width: 0.5),
         borderRadius: BorderRadius.circular(6),
       ),
       child: Column(
@@ -285,9 +285,9 @@ class _LogTable extends StatelessWidget {
               horizontal: TermexSpacing.md,
               vertical: TermexSpacing.sm,
             ),
-            decoration: const BoxDecoration(
+            decoration: BoxDecoration(
               border: Border(
-                bottom: BorderSide(color: TermexColors.border, width: 0.5),
+                bottom: BorderSide(color: context.colors.border, width: 0.5),
               ),
             ),
             child: Row(
@@ -357,7 +357,7 @@ class _LogRowState extends State<_LogRow> {
               vertical: TermexSpacing.sm,
             ),
             color: _hovered
-                ? TermexColors.backgroundTertiary
+                ? context.colors.backgroundTertiary
                 : const Color(0x00000000),
             child: Row(
               children: [
@@ -368,7 +368,7 @@ class _LogRowState extends State<_LogRow> {
                     maxLines: 1,
                     overflow: TextOverflow.ellipsis,
                     style: TermexTypography.caption.copyWith(
-                      color: TermexColors.textSecondary,
+                      color: context.colors.textSecondary,
                       fontFamily: 'monospace',
                     ),
                   ),
@@ -380,7 +380,7 @@ class _LogRowState extends State<_LogRow> {
                     maxLines: 1,
                     overflow: TextOverflow.ellipsis,
                     style: TermexTypography.caption.copyWith(
-                      color: TermexColors.textPrimary,
+                      color: context.colors.textPrimary,
                       fontFamily: 'monospace',
                     ),
                   ),
@@ -391,7 +391,7 @@ class _LogRowState extends State<_LogRow> {
                     maxLines: 1,
                     overflow: TextOverflow.ellipsis,
                     style: TermexTypography.caption.copyWith(
-                      color: TermexColors.textMuted,
+                      color: context.colors.textMuted,
                     ),
                   ),
                 ),
@@ -434,7 +434,7 @@ class _Pager extends StatelessWidget {
         Text(
           '$page / $totalPages',
           style: TermexTypography.caption.copyWith(
-            color: TermexColors.textSecondary,
+            color: context.colors.textSecondary,
           ),
         ),
         const SizedBox(width: TermexSpacing.md),
@@ -461,18 +461,18 @@ class _PageBtn extends StatelessWidget {
         ),
         decoration: BoxDecoration(
           color: enabled
-              ? TermexColors.backgroundSecondary
+              ? context.colors.backgroundSecondary
               : const Color(0x00000000),
           borderRadius: BorderRadius.circular(4),
           border: Border.all(
-            color: enabled ? TermexColors.border : TermexColors.backgroundTertiary,
+            color: enabled ? context.colors.border : context.colors.backgroundTertiary,
             width: 0.5,
           ),
         ),
         child: Text(
           label,
           style: TermexTypography.caption.copyWith(
-            color: enabled ? TermexColors.textPrimary : TermexColors.textMuted,
+            color: enabled ? context.colors.textPrimary : context.colors.textMuted,
           ),
         ),
       ),
@@ -495,14 +495,14 @@ class _EmptyState extends StatelessWidget {
           Text(
             l10n.auditEmptyTitle,
             style: TermexTypography.body.copyWith(
-              color: TermexColors.textSecondary,
+              color: context.colors.textSecondary,
             ),
           ),
           const SizedBox(height: TermexSpacing.sm),
           Text(
             l10n.auditEmptyHint,
             style: TermexTypography.caption.copyWith(
-              color: TermexColors.textMuted,
+              color: context.colors.textMuted,
             ),
           ),
         ],

@@ -28,7 +28,7 @@ class _RecordingTabState extends ConsumerState<RecordingTab> {
         ScaffoldMessenger.of(context).showSnackBar(
           SnackBar(
             content: Text(AppLocalizations.of(context).recordingCleanupDone),
-            backgroundColor: TermexColors.success,
+            backgroundColor: context.colors.success,
           ),
         );
       }
@@ -37,7 +37,7 @@ class _RecordingTabState extends ConsumerState<RecordingTab> {
         ScaffoldMessenger.of(context).showSnackBar(
           SnackBar(
             content: Text(AppLocalizations.of(context).recordingCleanupFailed(e.toString())),
-            backgroundColor: TermexColors.danger,
+            backgroundColor: context.colors.danger,
           ),
         );
       }
@@ -103,7 +103,7 @@ class _SectionHeader extends StatelessWidget {
     return Text(
       label,
       style: TermexTypography.bodySmall.copyWith(
-        color: TermexColors.textMuted,
+        color: context.colors.textMuted,
         fontWeight: FontWeight.w600,
         letterSpacing: 0.4,
       ),
@@ -138,17 +138,17 @@ class _RetentionSlider extends StatelessWidget {
           children: [
             Text(AppLocalizations.of(context).recordingRetentionTitle,
                 style: TermexTypography.body
-                    .copyWith(color: TermexColors.textPrimary)),
+                    .copyWith(color: context.colors.textPrimary)),
             Container(
               padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 3),
               decoration: BoxDecoration(
-                color: TermexColors.primary.withValues(alpha: 0.12),
+                color: context.colors.primary.withValues(alpha: 0.12),
                 borderRadius: BorderRadius.circular(12),
               ),
               child: Text(
                 _label(value, l10n),
                 style: TermexTypography.caption.copyWith(
-                  color: TermexColors.primary,
+                  color: context.colors.primary,
                   fontWeight: FontWeight.w600,
                 ),
               ),
@@ -160,15 +160,15 @@ class _RetentionSlider extends StatelessWidget {
           min: 0,
           max: (steps.length - 1).toDouble(),
           divisions: steps.length - 1,
-          activeColor: TermexColors.primary,
-          inactiveColor: TermexColors.border,
+          activeColor: context.colors.primary,
+          inactiveColor: context.colors.border,
           onChanged: (v) => onChanged(steps[v.round()]),
         ),
         Row(
           mainAxisAlignment: MainAxisAlignment.spaceBetween,
           children: [
-            Text(AppLocalizations.of(context).recordingForever, style: TermexTypography.caption.copyWith(color: TermexColors.textMuted)),
-            Text(AppLocalizations.of(context).recordingOneYear, style: TermexTypography.caption.copyWith(color: TermexColors.textMuted)),
+            Text(AppLocalizations.of(context).recordingForever, style: TermexTypography.caption.copyWith(color: context.colors.textMuted)),
+            Text(AppLocalizations.of(context).recordingOneYear, style: TermexTypography.caption.copyWith(color: context.colors.textMuted)),
           ],
         ),
       ],
@@ -194,10 +194,10 @@ class _FormatCard extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     final borderColor =
-        selected ? TermexColors.primary : TermexColors.border;
+        selected ? context.colors.primary : context.colors.border;
     final bgColor = selected
-        ? TermexColors.primary.withValues(alpha: 0.08)
-        : TermexColors.backgroundTertiary;
+        ? context.colors.primary.withValues(alpha: 0.08)
+        : context.colors.backgroundTertiary;
 
     return Clickable(
       onTap: onTap,
@@ -214,7 +214,7 @@ class _FormatCard extends StatelessWidget {
             Icon(icon,
                 size: 18,
                 color:
-                    selected ? TermexColors.primary : TermexColors.textSecondary),
+                    selected ? context.colors.primary : context.colors.textSecondary),
             const SizedBox(width: TermexSpacing.md),
             Expanded(
               child: Column(
@@ -223,14 +223,14 @@ class _FormatCard extends StatelessWidget {
                   Text(title,
                       style: TermexTypography.body.copyWith(
                         color: selected
-                            ? TermexColors.primary
-                            : TermexColors.textPrimary,
+                            ? context.colors.primary
+                            : context.colors.textPrimary,
                         fontWeight: FontWeight.w500,
                       )),
                   const SizedBox(height: 2),
                   Text(subtitle,
                       style: TermexTypography.caption
-                          .copyWith(color: TermexColors.textMuted)),
+                          .copyWith(color: context.colors.textMuted)),
                 ],
               ),
             ),
@@ -238,7 +238,7 @@ class _FormatCard extends StatelessWidget {
               value: true,
               groupValue: selected,
               onChanged: (_) => onTap(),
-              activeColor: TermexColors.primary,
+              activeColor: context.colors.primary,
               materialTapTargetSize: MaterialTapTargetSize.shrinkWrap,
             ),
           ],
@@ -261,28 +261,28 @@ class _CleanupButton extends StatelessWidget {
       child: Container(
         padding: const EdgeInsets.symmetric(vertical: 10),
         decoration: BoxDecoration(
-          color: TermexColors.warning.withValues(alpha: 0.10),
+          color: context.colors.warning.withValues(alpha: 0.10),
           borderRadius: BorderRadius.circular(6),
-          border: Border.all(color: TermexColors.warning.withValues(alpha: 0.4)),
+          border: Border.all(color: context.colors.warning.withValues(alpha: 0.4)),
         ),
         child: Row(
           mainAxisAlignment: MainAxisAlignment.center,
           children: [
             if (loading)
-              const SizedBox(
+              SizedBox(
                 width: 14,
                 height: 14,
                 child: CircularProgressIndicator(
-                    strokeWidth: 2, color: TermexColors.warning),
+                    strokeWidth: 2, color: context.colors.warning),
               )
             else
-              const Icon(Icons.cleaning_services_outlined,
-                  size: 14, color: TermexColors.warning),
+              Icon(Icons.cleaning_services_outlined,
+                  size: 14, color: context.colors.warning),
             const SizedBox(width: 6),
             Text(
               loading ? AppLocalizations.of(context).recordingCleanupRunning : AppLocalizations.of(context).recordingCleanupNow,
               style: TermexTypography.body.copyWith(
-                color: TermexColors.warning,
+                color: context.colors.warning,
                 fontWeight: FontWeight.w500,
               ),
             ),
@@ -302,20 +302,20 @@ class _InfoBox extends StatelessWidget {
     return Container(
       padding: const EdgeInsets.all(TermexSpacing.md),
       decoration: BoxDecoration(
-        color: TermexColors.primary.withValues(alpha: 0.08),
+        color: context.colors.primary.withValues(alpha: 0.08),
         borderRadius: BorderRadius.circular(6),
-        border: Border.all(color: TermexColors.primary.withValues(alpha: 0.3)),
+        border: Border.all(color: context.colors.primary.withValues(alpha: 0.3)),
       ),
       child: Row(
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
-          const Icon(Icons.info_outline, size: 14, color: TermexColors.primary),
+          Icon(Icons.info_outline, size: 14, color: context.colors.primary),
           const SizedBox(width: TermexSpacing.sm),
           Expanded(
             child: Text(
               message,
               style: TermexTypography.caption
-                  .copyWith(color: TermexColors.textSecondary),
+                  .copyWith(color: context.colors.textSecondary),
             ),
           ),
         ],

@@ -14,9 +14,9 @@ class LocalAiServerStatus extends ConsumerWidget {
     final state = ref.watch(localAiProvider);
     return Container(
       padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 8),
-      decoration: const BoxDecoration(
-        color: TermexColors.backgroundTertiary,
-        border: Border(bottom: BorderSide(color: TermexColors.border)),
+      decoration: BoxDecoration(
+        color: context.colors.backgroundTertiary,
+        border: Border(bottom: BorderSide(color: context.colors.border)),
       ),
       child: Row(
         children: [
@@ -29,17 +29,17 @@ class LocalAiServerStatus extends ConsumerWidget {
               children: [
                 Text(
                   _statusLabel(state.status),
-                  style: const TextStyle(
+                  style: TextStyle(
                     fontSize: 12,
                     fontWeight: FontWeight.w600,
-                    color: TermexColors.textPrimary,
+                    color: context.colors.textPrimary,
                   ),
                 ),
                 if (state.loadedModelId != null)
                   Text(
                     state.loadedModelId!,
-                    style: const TextStyle(
-                        fontSize: 10, color: TermexColors.textSecondary),
+                    style: TextStyle(
+                        fontSize: 10, color: context.colors.textSecondary),
                   ),
               ],
             ),
@@ -47,7 +47,8 @@ class LocalAiServerStatus extends ConsumerWidget {
           if (state.memoryMb != null)
             Text(
               '${state.memoryMb} MB',
-              style: const TextStyle(fontSize: 10, color: TermexColors.textSecondary),
+              style: TextStyle(
+                  fontSize: 10, color: context.colors.textSecondary),
             ),
           const SizedBox(width: 8),
           if (state.isRunning)
@@ -74,10 +75,10 @@ class _StatusDot extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     final color = switch (status) {
-      LocalAiStatus.stopped => TermexColors.textSecondary,
-      LocalAiStatus.starting => TermexColors.warning,
-      LocalAiStatus.running => TermexColors.success,
-      LocalAiStatus.error => TermexColors.danger,
+      LocalAiStatus.stopped => context.colors.textSecondary,
+      LocalAiStatus.starting => context.colors.warning,
+      LocalAiStatus.running => context.colors.success,
+      LocalAiStatus.error => context.colors.danger,
     };
     final isAnimating = status == LocalAiStatus.starting;
 
@@ -146,12 +147,12 @@ class _StopButton extends StatelessWidget {
       child: Container(
         padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 3),
         decoration: BoxDecoration(
-          border: Border.all(color: TermexColors.danger.withOpacity(0.4)),
+          border: Border.all(color: context.colors.danger.withOpacity(0.4)),
           borderRadius: BorderRadius.circular(4),
         ),
-        child: const Text(
+        child: Text(
           '停止',
-          style: TextStyle(fontSize: 11, color: TermexColors.danger),
+          style: TextStyle(fontSize: 11, color: context.colors.danger),
         ),
       ),
     );

@@ -21,7 +21,7 @@ class MarkdownRenderer extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    final blocks = _parse(text);
+    final blocks = _parse(context, text);
     return Column(
       crossAxisAlignment: CrossAxisAlignment.start,
       mainAxisSize: MainAxisSize.min,
@@ -29,7 +29,7 @@ class MarkdownRenderer extends StatelessWidget {
     );
   }
 
-  List<Widget> _parse(String src) {
+  List<Widget> _parse(BuildContext context, String src) {
     final widgets = <Widget>[];
     final lines = src.split('\n');
     var i = 0;
@@ -65,24 +65,24 @@ class MarkdownRenderer extends StatelessWidget {
 
       // Heading
       if (line.startsWith('### ')) {
-        widgets.add(_heading(line.substring(4), 14));
+        widgets.add(_heading(context, line.substring(4), 14));
         i++;
         continue;
       }
       if (line.startsWith('## ')) {
-        widgets.add(_heading(line.substring(3), 16));
+        widgets.add(_heading(context, line.substring(3), 16));
         i++;
         continue;
       }
       if (line.startsWith('# ')) {
-        widgets.add(_heading(line.substring(2), 18));
+        widgets.add(_heading(context, line.substring(2), 18));
         i++;
         continue;
       }
 
       // Bullet list item
       if (line.startsWith('- ') || line.startsWith('* ') || line.startsWith('+ ')) {
-        widgets.add(_bullet(line.substring(2)));
+        widgets.add(_bullet(context, line.substring(2)));
         i++;
         continue;
       }
@@ -97,26 +97,26 @@ class MarkdownRenderer extends StatelessWidget {
       // Plain paragraph with inline formatting
       widgets.add(Padding(
         padding: const EdgeInsets.only(bottom: 4),
-        child: _inlineText(line),
+        child: _inlineText(context, line),
       ));
       i++;
     }
     return widgets;
   }
 
-  Widget _heading(String text, double size) => Padding(
+  Widget _heading(BuildContext context, String text, double size) => Padding(
         padding: const EdgeInsets.only(top: 10, bottom: 4),
         child: Text(
           text,
           style: TextStyle(
             fontSize: size,
             fontWeight: FontWeight.w600,
-            color: TermexColors.textPrimary,
+            color: context.colors.textPrimary,
           ),
         ),
       );
 
-  Widget _bullet(String text) => Padding(
+  Widget _bullet(BuildContext context, String text) => Padding(
         padding: const EdgeInsets.only(left: 12, bottom: 2),
         child: Row(
           crossAxisAlignment: CrossAxisAlignment.start,
@@ -126,43 +126,43 @@ class MarkdownRenderer extends StatelessWidget {
               child: Container(
                 width: 4,
                 height: 4,
-                decoration: const BoxDecoration(
+                decoration: BoxDecoration(
                   shape: BoxShape.circle,
-                  color: TermexColors.textSecondary,
+                  color: context.colors.textSecondary,
                 ),
               ),
             ),
-            Expanded(child: _inlineText(text)),
+            Expanded(child: _inlineText(context, text)),
           ],
         ),
       );
 
-  Widget _inlineText(String src) {
+  Widget _inlineText(BuildContext context, String src) {
     final hasInline = RegExp(r'`[^`]+`|\*\*[^*]+\*\*|\*[^*]+\*').hasMatch(src);
     if (!hasInline) {
       return Text(
         src,
-        style: const TextStyle(
+        style: TextStyle(
           fontSize: 13,
           height: 1.55,
-          color: TermexColors.textPrimary,
+          color: context.colors.textPrimary,
         ),
       );
     }
-    final spans = _buildSpans(src);
+    final spans = _buildSpans(context, src);
     return RichText(
       text: TextSpan(
-        style: const TextStyle(
+        style: TextStyle(
           fontSize: 13,
           height: 1.55,
-          color: TermexColors.textPrimary,
+          color: context.colors.textPrimary,
         ),
         children: spans,
       ),
     );
   }
 
-  List<InlineSpan> _buildSpans(String src) {
+  List<InlineSpan> _buildSpans(BuildContext context, String src) {
     final spans = <InlineSpan>[];
     final pattern = RegExp(r'`([^`]+)`|\*\*([^*]+)\*\*|\*([^*]+)\*');
     var last = 0;
@@ -176,16 +176,16 @@ class MarkdownRenderer extends StatelessWidget {
           child: Container(
             padding: const EdgeInsets.symmetric(horizontal: 4, vertical: 1),
             decoration: BoxDecoration(
-              color: TermexColors.backgroundTertiary,
+              color: context.colors.backgroundTertiary,
               borderRadius: BorderRadius.circular(3),
-              border: Border.all(color: TermexColors.border),
+              border: Border.all(color: context.colors.border),
             ),
             child: Text(
               match.group(1)!,
-              style: const TextStyle(
+              style: TextStyle(
                 fontFamily: 'monospace',
                 fontSize: 12,
-                color: TermexColors.textPrimary,
+                color: context.colors.textPrimary,
               ),
             ),
           ),

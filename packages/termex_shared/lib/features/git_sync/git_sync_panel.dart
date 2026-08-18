@@ -23,7 +23,7 @@ class GitSyncPanel extends ConsumerWidget {
     final reposState = ref.watch(gitSyncReposProvider(serverId));
 
     return Container(
-      color: TermexColors.backgroundPrimary,
+      color: context.colors.backgroundPrimary,
       padding: const EdgeInsets.all(16),
       child: ListView(
         children: [
@@ -33,14 +33,14 @@ class GitSyncPanel extends ConsumerWidget {
               style: TextStyle(
                 fontSize: 14,
                 fontWeight: FontWeight.w600,
-                color: TermexColors.textPrimary,
+                color: context.colors.textPrimary,
               )),
           const SizedBox(height: 8),
           if (reposState.repos.isEmpty)
             Text(AppLocalizations.of(context).gitSyncNoExtraRepos,
                 style: TextStyle(
                   fontSize: 12,
-                  color: TermexColors.textSecondary,
+                  color: context.colors.textSecondary,
                 ))
           else
             ...reposState.repos.map((r) => _RepoRow(serverId: serverId, repo: r)),
@@ -129,9 +129,9 @@ class _PrimaryStatusHeader extends ConsumerWidget {
     return Container(
       padding: const EdgeInsets.all(16),
       decoration: BoxDecoration(
-        color: TermexColors.backgroundSecondary,
+        color: context.colors.backgroundSecondary,
         borderRadius: BorderRadius.circular(8),
-        border: Border.all(color: TermexColors.border),
+        border: Border.all(color: context.colors.border),
       ),
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.start,
@@ -141,10 +141,10 @@ class _PrimaryStatusHeader extends ConsumerWidget {
               _HealthDot(health: status.health),
               const SizedBox(width: 8),
               Text('Git Sync · ${status.health.label}',
-                  style: const TextStyle(
+                  style: TextStyle(
                     fontSize: 14,
                     fontWeight: FontWeight.w600,
-                    color: TermexColors.textPrimary,
+                    color: context.colors.textPrimary,
                   )),
               const Spacer(),
               if (status.enabled)
@@ -163,9 +163,9 @@ class _PrimaryStatusHeader extends ConsumerWidget {
           ),
           if (status.enabled) ...[
             const SizedBox(height: 8),
-            _row(AppLocalizations.of(context).gitSyncRowLocal, status.localPath),
-            _row(AppLocalizations.of(context).gitSyncRowRemote, status.remoteUrl),
-            if (status.lastSyncAt != null) _row(AppLocalizations.of(context).gitSyncRowLastSync, status.lastSyncAt!),
+            _row(context, AppLocalizations.of(context).gitSyncRowLocal, status.localPath),
+            _row(context, AppLocalizations.of(context).gitSyncRowRemote, status.remoteUrl),
+            if (status.lastSyncAt != null) _row(context, AppLocalizations.of(context).gitSyncRowLastSync, status.lastSyncAt!),
             if (status.conflicts.isNotEmpty) ...[
               const SizedBox(height: 8),
               OutlinedButton.icon(
@@ -182,7 +182,7 @@ class _PrimaryStatusHeader extends ConsumerWidget {
     );
   }
 
-  Widget _row(String label, String value) {
+  Widget _row(BuildContext context, String label, String value) {
     return Padding(
       padding: const EdgeInsets.only(top: 4),
       child: Row(
@@ -190,14 +190,14 @@ class _PrimaryStatusHeader extends ConsumerWidget {
           SizedBox(
             width: 80,
             child: Text(label,
-                style: const TextStyle(
-                    fontSize: 11, color: TermexColors.textSecondary)),
+                style: TextStyle(
+                    fontSize: 11, color: context.colors.textSecondary)),
           ),
           Expanded(
             child: Text(value,
-                style: const TextStyle(
+                style: TextStyle(
                     fontSize: 11,
-                    color: TermexColors.textPrimary,
+                    color: context.colors.textPrimary,
                     fontFamily: 'monospace')),
           ),
         ],
@@ -258,7 +258,7 @@ class _HealthDot extends StatelessWidget {
       GitSyncHealth.pulling => Colors.amber,
       GitSyncHealth.conflict => Colors.red,
       GitSyncHealth.error => Colors.red,
-      GitSyncHealth.disabled => TermexColors.textSecondary,
+      GitSyncHealth.disabled => context.colors.textSecondary,
     };
     return Container(
       width: 10,
@@ -280,9 +280,9 @@ class _RepoRow extends ConsumerWidget {
       margin: const EdgeInsets.symmetric(vertical: 4),
       padding: const EdgeInsets.all(12),
       decoration: BoxDecoration(
-        color: TermexColors.backgroundSecondary,
+        color: context.colors.backgroundSecondary,
         borderRadius: BorderRadius.circular(6),
-        border: Border.all(color: TermexColors.border),
+        border: Border.all(color: context.colors.border),
       ),
       child: Row(
         children: [
@@ -291,11 +291,11 @@ class _RepoRow extends ConsumerWidget {
               crossAxisAlignment: CrossAxisAlignment.start,
               children: [
                 Text(repo.localPath,
-                    style: const TextStyle(
-                        fontSize: 12, color: TermexColors.textPrimary)),
+                    style: TextStyle(
+                        fontSize: 12, color: context.colors.textPrimary)),
                 Text(repo.remoteUrl,
-                    style: const TextStyle(
-                        fontSize: 10, color: TermexColors.textSecondary)),
+                    style: TextStyle(
+                        fontSize: 10, color: context.colors.textSecondary)),
                 if (repo.lastError != null)
                   Text(AppLocalizations.of(context).gitSyncRowError(repo.lastError ?? ''),
                       style: const TextStyle(fontSize: 10, color: Colors.red)),

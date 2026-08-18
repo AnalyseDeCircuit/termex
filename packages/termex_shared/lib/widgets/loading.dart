@@ -59,7 +59,7 @@ class _TermexLoadingState extends State<TermexLoading>
         size: Size(widget.size, widget.size),
         painter: _SpinnerPainter(
           progress: _ctrl.value,
-          color: widget.color ?? TermexColors.primary,
+          color: widget.color ?? context.colors.primary,
           strokeWidth: widget.size * 0.1,
         ),
       ),
@@ -97,7 +97,7 @@ class _TermexLoadingState extends State<TermexLoading>
           Text(
             widget.message!,
             style: TermexTypography.bodySmall.copyWith(
-              color: TermexColors.textSecondary,
+              color: context.colors.textSecondary,
             ),
           ),
         ],

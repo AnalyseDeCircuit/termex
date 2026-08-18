@@ -81,16 +81,16 @@ class TermexAvatar extends StatelessWidget {
             width: d,
             height: d,
             fit: BoxFit.cover,
-            errorBuilder: (_, __, ___) => _buildFallback(d),
+            errorBuilder: (_, __, ___) => _buildFallback(context, d),
           ),
         ),
       );
     }
 
-    return ClipOval(child: _buildFallback(d));
+    return ClipOval(child: _buildFallback(context, d));
   }
 
-  Widget _buildFallback(double d) {
+  Widget _buildFallback(BuildContext context, double d) {
     if (initials != null && initials!.isNotEmpty) {
       final abbr = _abbreviate(initials!);
       final bg = backgroundColor ?? _colorFromInitials(initials!);
@@ -115,7 +115,7 @@ class TermexAvatar extends StatelessWidget {
       return Container(
         width: d,
         height: d,
-        color: backgroundColor ?? TermexColors.backgroundTertiary,
+        color: backgroundColor ?? context.colors.backgroundTertiary,
         alignment: Alignment.center,
         child: icon,
       );
@@ -124,13 +124,13 @@ class TermexAvatar extends StatelessWidget {
     return Container(
       width: d,
       height: d,
-      color: backgroundColor ?? TermexColors.backgroundTertiary,
+      color: backgroundColor ?? context.colors.backgroundTertiary,
       alignment: Alignment.center,
       child: Text(
         '?',
         style: TextStyle(
           fontSize: _fontSize,
-          color: TermexColors.textSecondary,
+          color: context.colors.textSecondary,
           decoration: TextDecoration.none,
         ),
       ),

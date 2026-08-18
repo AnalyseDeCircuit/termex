@@ -100,7 +100,7 @@ class _SnippetEditorState extends ConsumerState<SnippetEditor> {
     // chrome. Without this the form threw "No Material widget found" and
     // rendered a red error box instead — which is what clicking "+" showed.
     return Material(
-      color: TermexColors.backgroundPrimary,
+      color: context.colors.backgroundPrimary,
       child: SizedBox(
         // The content field is Expanded, which needs a bounded height. Inline
         // the panel supplies one; the dialog does not, so state it here.
@@ -120,24 +120,24 @@ class _SnippetEditorState extends ConsumerState<SnippetEditor> {
                             ? l10n.snippetNewTitle
                             : l10n.snippetEditSnippet,
                         overflow: TextOverflow.ellipsis,
-                        style: const TextStyle(
+                        style: TextStyle(
                             fontSize: 14,
                             fontWeight: FontWeight.w600,
-                            color: TermexColors.textPrimary),
+                            color: context.colors.textPrimary),
                       ),
                     ),
                   const Spacer(),
                   TextButton(
                     onPressed: _close,
                     child: Text(l10n.commonCancel,
-                        style: const TextStyle(
-                            fontSize: 12, color: TermexColors.textSecondary)),
+                        style: TextStyle(
+                            fontSize: 12, color: context.colors.textSecondary)),
                   ),
                   const SizedBox(width: 8),
                   ElevatedButton(
                     onPressed: _save,
                     style: ElevatedButton.styleFrom(
-                      backgroundColor: TermexColors.primary,
+                      backgroundColor: context.colors.primary,
                       foregroundColor: Colors.white,
                       minimumSize: const Size(72, 32),
                       textStyle: const TextStyle(fontSize: 12),
@@ -153,8 +153,8 @@ class _SnippetEditorState extends ConsumerState<SnippetEditor> {
               TextField(
                 controller: _titleCtrl,
                 decoration: _dec(l10n.snippetNamePlaceholder),
-                style: const TextStyle(
-                    fontSize: 13, color: TermexColors.textPrimary),
+                style: TextStyle(
+                    fontSize: 13, color: context.colors.textPrimary),
               ),
               const SizedBox(height: 12),
               // Tags
@@ -163,8 +163,8 @@ class _SnippetEditorState extends ConsumerState<SnippetEditor> {
               TextField(
                 controller: _tagsCtrl,
                 decoration: _dec(l10n.snippetTagsPlaceholderExample),
-                style: const TextStyle(
-                    fontSize: 13, color: TermexColors.textPrimary),
+                style: TextStyle(
+                    fontSize: 13, color: context.colors.textPrimary),
               ),
               const SizedBox(height: 12),
               // Content
@@ -180,9 +180,9 @@ class _SnippetEditorState extends ConsumerState<SnippetEditor> {
                       _dec('ssh -J {{bastion}} {{user}}@{{host}}').copyWith(
                     alignLabelWithHint: true,
                   ),
-                  style: const TextStyle(
+                  style: TextStyle(
                     fontSize: 13,
-                    color: TermexColors.textPrimary,
+                    color: context.colors.textPrimary,
                     fontFamily: 'monospace',
                   ),
                 ),
@@ -198,16 +198,17 @@ class _SnippetEditorState extends ConsumerState<SnippetEditor> {
                             padding: const EdgeInsets.symmetric(
                                 horizontal: 8, vertical: 3),
                             decoration: BoxDecoration(
-                              color: TermexColors.primary.withOpacity(0.1),
+                              color: context.colors.primary.withOpacity(0.1),
                               borderRadius: BorderRadius.circular(4),
                               border: Border.all(
-                                  color: TermexColors.primary.withOpacity(0.3)),
+                                  color:
+                                      context.colors.primary.withOpacity(0.3)),
                             ),
                             child: Text(
                               '{{${v.name}${v.defaultValue != null ? ":${v.defaultValue}" : ""}}}',
-                              style: const TextStyle(
+                              style: TextStyle(
                                   fontSize: 11,
-                                  color: TermexColors.primary,
+                                  color: context.colors.primary,
                                   fontFamily: 'monospace'),
                             ),
                           ))
@@ -224,14 +225,14 @@ class _SnippetEditorState extends ConsumerState<SnippetEditor> {
   InputDecoration _dec(String hint) => InputDecoration(
         hintText: hint,
         hintStyle:
-            const TextStyle(fontSize: 12, color: TermexColors.textSecondary),
+            TextStyle(fontSize: 12, color: context.colors.textSecondary),
         border: OutlineInputBorder(
           borderRadius: BorderRadius.circular(6),
-          borderSide: const BorderSide(color: TermexColors.border),
+          borderSide: BorderSide(color: context.colors.border),
         ),
         enabledBorder: OutlineInputBorder(
           borderRadius: BorderRadius.circular(6),
-          borderSide: const BorderSide(color: TermexColors.border),
+          borderSide: BorderSide(color: context.colors.border),
         ),
         contentPadding: const EdgeInsets.all(10),
         isDense: true,
@@ -245,6 +246,6 @@ class _Label extends StatelessWidget {
   @override
   Widget build(BuildContext context) => Text(
         text,
-        style: const TextStyle(fontSize: 11, color: TermexColors.textSecondary),
+        style: TextStyle(fontSize: 11, color: context.colors.textSecondary),
       );
 }

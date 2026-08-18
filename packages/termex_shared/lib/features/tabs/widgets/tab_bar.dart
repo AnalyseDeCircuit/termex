@@ -85,8 +85,8 @@ class _TermexTabBarState extends ConsumerState<TermexTabBar> {
       // No bottom border: the active TabItem paints its own 2px primary
       // underline (see tab_item.dart). A full-width strip across the bar
       // would conflict with that "selected-tab-only" indicator design.
-      decoration: const BoxDecoration(
-        color: TermexColors.backgroundPrimary,
+      decoration: BoxDecoration(
+        color: context.colors.backgroundPrimary,
       ),
       child: Row(
         crossAxisAlignment: CrossAxisAlignment.stretch,
@@ -194,13 +194,13 @@ class _PlusTabCardState extends State<_PlusTabCard> {
           alignment: Alignment.center,
           decoration: BoxDecoration(
             color: _hovered
-                ? TermexColors.backgroundSecondary
+                ? context.colors.backgroundSecondary
                 : const Color(0x00000000),
           ),
-          child: const TermexIconWidget(
+          child: TermexIconWidget(
             TermexIcons.add,
             size: 16,
-            color: TermexColors.textSecondary,
+            color: context.colors.textSecondary,
           ),
         ),
       ),

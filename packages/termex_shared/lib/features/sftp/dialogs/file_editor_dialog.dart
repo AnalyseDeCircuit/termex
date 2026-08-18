@@ -137,7 +137,7 @@ class _FileEditorDialogState extends State<_FileEditorDialog> {
     final fileName = widget.remotePath.split('/').last;
 
     return Dialog(
-      backgroundColor: TermexColors.backgroundSecondary,
+      backgroundColor: context.colors.backgroundSecondary,
       shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(8)),
       child: SizedBox(
         width: 720,
@@ -146,9 +146,9 @@ class _FileEditorDialogState extends State<_FileEditorDialog> {
           crossAxisAlignment: CrossAxisAlignment.stretch,
           children: [
             _buildTitleBar(fileName),
-            const Divider(height: 1, color: TermexColors.border),
+            Divider(height: 1, color: context.colors.border),
             Expanded(child: _buildBody()),
-            const Divider(height: 1, color: TermexColors.border),
+            Divider(height: 1, color: context.colors.border),
             _buildFooter(),
           ],
         ),
@@ -162,13 +162,13 @@ class _FileEditorDialogState extends State<_FileEditorDialog> {
       padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 10),
       child: Row(
         children: [
-          const Icon(Icons.edit_outlined, size: 16, color: TermexColors.primary),
+          Icon(Icons.edit_outlined, size: 16, color: context.colors.primary),
           const SizedBox(width: 8),
           Expanded(
             child: Text(
               fileName,
-              style: const TextStyle(
-                color: TermexColors.textPrimary,
+              style: TextStyle(
+                color: context.colors.textPrimary,
                 fontSize: 14,
                 fontWeight: FontWeight.w600,
               ),
@@ -180,18 +180,18 @@ class _FileEditorDialogState extends State<_FileEditorDialog> {
               padding: const EdgeInsets.only(right: 8),
               child: Text(
                 l10n.sftpEditorModified,
-                style: const TextStyle(
-                    color: TermexColors.warning, fontSize: 11),
+                style: TextStyle(
+                    color: context.colors.warning, fontSize: 11),
               ),
             ),
           Text(
             _encoding,
-            style: const TextStyle(color: TermexColors.textMuted, fontSize: 11),
+            style: TextStyle(color: context.colors.textMuted, fontSize: 11),
           ),
           const SizedBox(width: 12),
           Text(
             _formatSize(widget.fileSize),
-            style: const TextStyle(color: TermexColors.textMuted, fontSize: 11),
+            style: TextStyle(color: context.colors.textMuted, fontSize: 11),
           ),
         ],
       ),
@@ -200,12 +200,12 @@ class _FileEditorDialogState extends State<_FileEditorDialog> {
 
   Widget _buildBody() {
     if (_loading) {
-      return const Center(
+      return Center(
         child: SizedBox(
           width: 24,
           height: 24,
           child: CircularProgressIndicator(
-              strokeWidth: 2, color: TermexColors.primary),
+              strokeWidth: 2, color: context.colors.primary),
         ),
       );
     }
@@ -216,14 +216,14 @@ class _FileEditorDialogState extends State<_FileEditorDialog> {
           child: Column(
             mainAxisSize: MainAxisSize.min,
             children: [
-              const Icon(Icons.error_outline,
-                  color: TermexColors.danger, size: 32),
+              Icon(Icons.error_outline,
+                  color: context.colors.danger, size: 32),
               const SizedBox(height: 12),
               Text(
                 _errorMessage!,
                 textAlign: TextAlign.center,
-                style: const TextStyle(
-                    color: TermexColors.textSecondary, fontSize: 13),
+                style: TextStyle(
+                    color: context.colors.textSecondary, fontSize: 13),
               ),
             ],
           ),
@@ -234,16 +234,16 @@ class _FileEditorDialogState extends State<_FileEditorDialog> {
       controller: _controller,
       maxLines: null,
       expands: true,
-      style: const TextStyle(
+      style: TextStyle(
         fontFamily: 'monospace',
         fontSize: 13,
-        color: TermexColors.textPrimary,
+        color: context.colors.textPrimary,
         height: 1.5,
       ),
-      decoration: const InputDecoration(
-        contentPadding: EdgeInsets.all(12),
+      decoration: InputDecoration(
+        contentPadding: const EdgeInsets.all(12),
         border: InputBorder.none,
-        fillColor: TermexColors.backgroundPrimary,
+        fillColor: context.colors.backgroundPrimary,
         filled: true,
       ),
       onChanged: (_) {
@@ -262,20 +262,20 @@ class _FileEditorDialogState extends State<_FileEditorDialog> {
           TextButton(
             onPressed: _saving ? null : () => Navigator.pop(context),
             child: Text(l10n.sftpCancel,
-                style: const TextStyle(color: TermexColors.textMuted)),
+                style: TextStyle(color: context.colors.textMuted)),
           ),
           const SizedBox(width: 8),
           TextButton(
             onPressed: _loading || _errorMessage != null || _saving ? null : _save,
             child: _saving
-                ? const SizedBox(
+                ? SizedBox(
                     width: 14,
                     height: 14,
                     child: CircularProgressIndicator(
-                        strokeWidth: 2, color: TermexColors.primary),
+                        strokeWidth: 2, color: context.colors.primary),
                   )
                 : Text(l10n.commonSave,
-                    style: const TextStyle(color: TermexColors.primary)),
+                    style: TextStyle(color: context.colors.primary)),
           ),
         ],
       ),

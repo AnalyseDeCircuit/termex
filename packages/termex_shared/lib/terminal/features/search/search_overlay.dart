@@ -124,8 +124,8 @@ class _SearchBar extends StatelessWidget {
             ? '${result.currentIndex + 1} / ${result.count}'
             : '无结果';
     final labelColor = controller.query.isNotEmpty && !hasMatches
-        ? TermexColors.danger
-        : TermexColors.textSecondary;
+        ? context.colors.danger
+        : context.colors.textSecondary;
 
     return KeyboardListener(
       focusNode: FocusNode(),
@@ -145,8 +145,8 @@ class _SearchBar extends StatelessWidget {
       child: Container(
         height: 40,
         decoration: BoxDecoration(
-          color: TermexColors.backgroundSecondary,
-          border: Border.all(color: TermexColors.border),
+          color: context.colors.backgroundSecondary,
+          border: Border.all(color: context.colors.border),
           borderRadius: BorderRadius.circular(6),
           boxShadow: const [
             BoxShadow(
@@ -161,10 +161,10 @@ class _SearchBar extends StatelessWidget {
           children: [
             const SizedBox(width: 8),
             // Search icon
-            const Icon(
+            Icon(
               Icons.search,
               size: 16,
-              color: TermexColors.textSecondary,
+              color: context.colors.textSecondary,
             ),
             const SizedBox(width: 6),
             // Text input
@@ -176,14 +176,14 @@ class _SearchBar extends StatelessWidget {
                 autofocus: true,
                 style: TermexTypography.monospace.copyWith(
                   fontSize: 13,
-                  color: TermexColors.textPrimary,
+                  color: context.colors.textPrimary,
                 ),
-                decoration: const InputDecoration(
+                decoration: InputDecoration(
                   isDense: true,
-                  contentPadding: EdgeInsets.symmetric(vertical: 6),
+                  contentPadding: const EdgeInsets.symmetric(vertical: 6),
                   border: InputBorder.none,
                   hintText: '搜索…',
-                  hintStyle: TextStyle(color: TermexColors.textMuted),
+                  hintStyle: TextStyle(color: context.colors.textMuted),
                 ),
                 onChanged: onQueryChanged,
               ),
@@ -265,7 +265,7 @@ class _Divider extends StatelessWidget {
   Widget build(BuildContext context) => Container(
         width: 1,
         height: 20,
-        color: TermexColors.border,
+        color: context.colors.border,
         margin: const EdgeInsets.symmetric(horizontal: 4),
       );
 }
@@ -296,16 +296,18 @@ class _ToggleButton extends StatelessWidget {
           margin: const EdgeInsets.symmetric(horizontal: 1),
           decoration: BoxDecoration(
             color: active
-                ? TermexColors.primary.withOpacity(0.25)
+                ? context.colors.primary.withOpacity(0.25)
                 : Colors.transparent,
             borderRadius: BorderRadius.circular(4),
             border: active
-                ? Border.all(color: TermexColors.primary.withOpacity(0.6))
+                ? Border.all(color: context.colors.primary.withOpacity(0.6))
                 : null,
           ),
           child: DefaultTextStyle(
             style: TextStyle(
-              color: active ? TermexColors.primary : TermexColors.textSecondary,
+              color: active
+                  ? context.colors.primary
+                  : context.colors.textSecondary,
             ),
             child: Center(child: child),
           ),
@@ -340,7 +342,8 @@ class _IconBtn extends StatelessWidget {
           child: Icon(
             icon,
             size: 16,
-            color: enabled ? TermexColors.textSecondary : TermexColors.textMuted,
+            color:
+                enabled ? context.colors.textSecondary : context.colors.textMuted,
           ),
         ),
       ),

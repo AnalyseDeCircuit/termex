@@ -105,7 +105,7 @@ class _ToastBubble extends StatelessWidget {
   Widget build(BuildContext context) {
     return DecoratedBox(
       decoration: BoxDecoration(
-        color: TermexColors.backgroundPrimary.withValues(alpha: 0.85),
+        color: context.colors.backgroundPrimary.withValues(alpha: 0.85),
         borderRadius: TermexRadius.md,
       ),
       child: Padding(
@@ -116,7 +116,7 @@ class _ToastBubble extends StatelessWidget {
         child: Text(
           label,
           style: TermexTypography.body.copyWith(
-            color: TermexColors.textPrimary,
+            color: context.colors.textPrimary,
           ),
         ),
       ),

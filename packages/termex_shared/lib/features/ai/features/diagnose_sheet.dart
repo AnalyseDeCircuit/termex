@@ -25,11 +25,11 @@ class DiagnoseSheet extends ConsumerWidget {
       maxChildSize: 0.75,
       expand: false,
       builder: (_, scroll) => Container(
-        decoration: const BoxDecoration(
-          color: TermexColors.backgroundSecondary,
+        decoration: BoxDecoration(
+          color: context.colors.backgroundSecondary,
           borderRadius:
-              BorderRadius.vertical(top: Radius.circular(12)),
-          border: Border(top: BorderSide(color: TermexColors.border)),
+              const BorderRadius.vertical(top: Radius.circular(12)),
+          border: Border(top: BorderSide(color: context.colors.border)),
         ),
         child: Column(
           children: [
@@ -40,7 +40,7 @@ class DiagnoseSheet extends ConsumerWidget {
                 width: 36,
                 height: 4,
                 decoration: BoxDecoration(
-                  color: TermexColors.border,
+                  color: context.colors.border,
                   borderRadius: BorderRadius.circular(2),
                 ),
               ),
@@ -49,15 +49,15 @@ class DiagnoseSheet extends ConsumerWidget {
               padding: const EdgeInsets.fromLTRB(16, 0, 16, 8),
               child: Row(
                 children: [
-                  const Icon(Icons.bug_report_outlined,
-                      size: 16, color: TermexColors.danger),
+                  Icon(Icons.bug_report_outlined,
+                      size: 16, color: context.colors.danger),
                   const SizedBox(width: 6),
                   Text(
                     '检测到 ${errors.length} 个错误',
-                    style: const TextStyle(
+                    style: TextStyle(
                       fontSize: 14,
                       fontWeight: FontWeight.w600,
-                      color: TermexColors.textPrimary,
+                      color: context.colors.textPrimary,
                     ),
                   ),
                 ],
@@ -99,9 +99,9 @@ class _ErrorCard extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     final color = switch (error.severity) {
-      ErrorSeverity.critical => TermexColors.danger,
-      ErrorSeverity.error => TermexColors.danger.withOpacity(0.8),
-      ErrorSeverity.warning => TermexColors.warning,
+      ErrorSeverity.critical => context.colors.danger,
+      ErrorSeverity.error => context.colors.danger.withOpacity(0.8),
+      ErrorSeverity.warning => context.colors.warning,
     };
 
     return Container(
@@ -124,10 +124,10 @@ class _ErrorCard extends StatelessWidget {
                   error.rawLine,
                   maxLines: 3,
                   overflow: TextOverflow.ellipsis,
-                  style: const TextStyle(
+                  style: TextStyle(
                     fontFamily: 'monospace',
                     fontSize: 11,
-                    color: TermexColors.textPrimary,
+                    color: context.colors.textPrimary,
                   ),
                 ),
               ],
@@ -140,14 +140,14 @@ class _ErrorCard extends StatelessWidget {
               padding:
                   const EdgeInsets.symmetric(horizontal: 8, vertical: 4),
               decoration: BoxDecoration(
-                color: TermexColors.primary.withOpacity(0.1),
+                color: context.colors.primary.withOpacity(0.1),
                 borderRadius: BorderRadius.circular(4),
               ),
-              child: const Text(
+              child: Text(
                 'AI 诊断',
                 style: TextStyle(
                   fontSize: 11,
-                  color: TermexColors.primary,
+                  color: context.colors.primary,
                   fontWeight: FontWeight.w500,
                 ),
               ),

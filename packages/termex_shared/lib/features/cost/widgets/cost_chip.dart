@@ -27,7 +27,7 @@ class CostChip extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    final color = _chipColor();
+    final color = _chipColor(context.colors);
     return Container(
       padding: const EdgeInsets.symmetric(
         horizontal: TermexSpacing.sm,
@@ -48,12 +48,12 @@ class CostChip extends StatelessWidget {
     );
   }
 
-  Color _chipColor() {
+  Color _chipColor(TermexColorScheme colors) {
     final cap = singleTaskCapUsd;
-    if (cap == null || cap <= 0) return TermexColors.textSecondary;
+    if (cap == null || cap <= 0) return colors.textSecondary;
     final ratio = costUsd / cap;
-    if (ratio >= 1.0) return TermexColors.danger;
-    if (ratio >= 0.75) return TermexColors.warning;
-    return TermexColors.textSecondary;
+    if (ratio >= 1.0) return colors.danger;
+    if (ratio >= 0.75) return colors.warning;
+    return colors.textSecondary;
   }
 }

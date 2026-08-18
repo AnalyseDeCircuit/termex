@@ -1,4 +1,6 @@
 import 'package:flutter/widgets.dart';
+
+import '../design/colors.dart';
 import 'package:lucide_icons_flutter/lucide_icons.dart';
 
 /// Termex icon set — line icons matching the Vue/Tauri build's design.
@@ -111,7 +113,7 @@ class TermexIcons {
 /// Convenience widget that renders a [TermexIcons] glyph with the project's
 /// default size and text color. Existing call sites just pass the icon:
 ///
-///   TermexIconWidget(TermexIcons.lock, size: 28, color: TermexColors.primary)
+///   TermexIconWidget(TermexIcons.lock, size: 28, color: context.colors.primary)
 class TermexIconWidget extends StatelessWidget {
   final IconData icon;
   final double size;
@@ -120,6 +122,10 @@ class TermexIconWidget extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    return Icon(icon, size: size, color: color ?? const Color(0xFFE6EDF3));
+    // The fallback used to be a literal 0xFFE6EDF3 — the dark palette's
+    // textPrimary, spelled out. That escaped both the `TermexColors` grep and
+    // the guard test while still painting dark under a light theme, which is
+    // the exact bug this migration exists to remove.
+    return Icon(icon, size: size, color: color ?? context.colors.textPrimary);
   }
 }

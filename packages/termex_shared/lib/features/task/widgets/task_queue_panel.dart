@@ -102,9 +102,9 @@ class _Tabs extends StatelessWidget {
   Widget build(BuildContext context) {
     return Container(
       height: 40,
-      decoration: const BoxDecoration(
+      decoration: BoxDecoration(
         border: Border(
-          bottom: BorderSide(color: TermexColors.border),
+          bottom: BorderSide(color: context.colors.border),
         ),
       ),
       child: Row(
@@ -154,7 +154,7 @@ class _Tab extends StatelessWidget {
           decoration: BoxDecoration(
             border: Border(
               bottom: BorderSide(
-                color: active ? TermexColors.primary : Colors.transparent,
+                color: active ? context.colors.primary : Colors.transparent,
                 width: 2,
               ),
             ),
@@ -164,8 +164,8 @@ class _Tab extends StatelessWidget {
             '$label ($count)',
             style: TermexTypography.body.copyWith(
               color: active
-                  ? TermexColors.textPrimary
-                  : TermexColors.textSecondary,
+                  ? context.colors.textPrimary
+                  : context.colors.textSecondary,
               fontWeight: active ? FontWeight.w600 : FontWeight.normal,
             ),
           ),
@@ -193,7 +193,7 @@ class _EmptyState extends StatelessWidget {
           msg,
           textAlign: TextAlign.center,
           style: TermexTypography.body.copyWith(
-            color: TermexColors.textSecondary,
+            color: context.colors.textSecondary,
           ),
         ),
       ),

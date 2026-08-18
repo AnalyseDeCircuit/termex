@@ -65,8 +65,8 @@ class _TermexSegmentedState extends State<TermexSegmented>
       label: 'Segmented control',
       child: Container(
         height: 32,
-        decoration: const BoxDecoration(
-          color: TermexColors.backgroundTertiary,
+        decoration: BoxDecoration(
+          color: context.colors.backgroundTertiary,
           borderRadius: TermexRadius.md,
         ),
         child: LayoutBuilder(
@@ -89,9 +89,9 @@ class _TermexSegmentedState extends State<TermexSegmented>
                       height: 28,
                       child: Container(
                         decoration: BoxDecoration(
-                          color: TermexColors.backgroundSecondary,
+                          color: ctx.colors.backgroundSecondary,
                           borderRadius: TermexRadius.sm,
-                          border: Border.all(color: TermexColors.border),
+                          border: Border.all(color: ctx.colors.border),
                         ),
                       ),
                     );
@@ -117,8 +117,8 @@ class _TermexSegmentedState extends State<TermexSegmented>
                                   widget.items[i],
                                   style: TermexTypography.bodySmall.copyWith(
                                     color: widget.selectedIndex == i
-                                        ? TermexColors.textPrimary
-                                        : TermexColors.textSecondary,
+                                        ? ctx.colors.textPrimary
+                                        : ctx.colors.textSecondary,
                                     fontWeight: widget.selectedIndex == i
                                         ? FontWeight.w600
                                         : FontWeight.normal,

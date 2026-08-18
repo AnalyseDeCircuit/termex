@@ -195,6 +195,11 @@ class SettingsState {
 class SettingsNotifier extends Notifier<SettingsState> {
   @override
   SettingsState build() {
+    // Without this, a debounced write scheduled by `update` outlives the
+    // notifier and its callback assigns to `state` on a disposed Notifier —
+    // which throws. Tests hit it reliably: they call `update` and then
+    // `container.dispose()` inside the same 300ms window.
+    ref.onDispose(() => _persistTimer?.cancel());
     Future.microtask(_load);
     return const SettingsState();
   }

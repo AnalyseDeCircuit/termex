@@ -64,10 +64,10 @@ class HostKeyDialog extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     return Dialog(
-      backgroundColor: TermexColors.backgroundSecondary,
+      backgroundColor: context.colors.backgroundSecondary,
       shape: RoundedRectangleBorder(
         borderRadius: BorderRadius.circular(8),
-        side: const BorderSide(color: TermexColors.warning, width: 1.5),
+        side: BorderSide(color: context.colors.warning, width: 1.5),
       ),
       child: ConstrainedBox(
         constraints: const BoxConstraints(maxWidth: 520),
@@ -80,15 +80,15 @@ class HostKeyDialog extends StatelessWidget {
               // Header
               Row(
                 children: [
-                  const Icon(Icons.warning_amber_rounded,
-                      color: TermexColors.warning, size: 22),
+                  Icon(Icons.warning_amber_rounded,
+                      color: context.colors.warning, size: 22),
                   const SizedBox(width: 10),
                   Text(
                     '未知主机密钥',
                     style: TermexTypography.monospace.copyWith(
                       fontSize: 16,
                       fontWeight: FontWeight.w600,
-                      color: TermexColors.textPrimary,
+                      color: context.colors.textPrimary,
                     ),
                   ),
                 ],
@@ -98,9 +98,9 @@ class HostKeyDialog extends StatelessWidget {
               Text(
                 '无法验证主机 ${info.host}:${info.port} 的真实性。\n'
                 '服务器的 ${info.keyType} 密钥指纹为：',
-                style: const TextStyle(
+                style: TextStyle(
                   fontSize: 13,
-                  color: TermexColors.textSecondary,
+                  color: context.colors.textSecondary,
                   height: 1.5,
                 ),
               ),
@@ -108,12 +108,12 @@ class HostKeyDialog extends StatelessWidget {
               // Fingerprint block
               _FingerprintBlock(fingerprint: info.fingerprint),
               const SizedBox(height: 16),
-              const Text(
+              Text(
                 '请通过其他途径验证此指纹后再继续。若您无法验证，'
                 '请选择"拒绝"以中止连接。',
                 style: TextStyle(
                   fontSize: 12,
-                  color: TermexColors.textMuted,
+                  color: context.colors.textMuted,
                   height: 1.5,
                 ),
               ),
@@ -124,21 +124,21 @@ class HostKeyDialog extends StatelessWidget {
                 children: [
                   _Button(
                     label: '拒绝',
-                    color: TermexColors.danger,
+                    color: context.colors.danger,
                     onTap: () =>
                         Navigator.of(context).pop(HostKeyDecision.reject),
                   ),
                   const SizedBox(width: 8),
                   _Button(
                     label: '仅本次接受',
-                    color: TermexColors.neutral,
+                    color: context.colors.neutral,
                     onTap: () =>
                         Navigator.of(context).pop(HostKeyDecision.acceptOnce),
                   ),
                   const SizedBox(width: 8),
                   _Button(
                     label: '永久信任',
-                    color: TermexColors.primary,
+                    color: context.colors.primary,
                     onTap: () => Navigator.of(context)
                         .pop(HostKeyDecision.acceptAlways),
                   ),
@@ -163,9 +163,9 @@ class _FingerprintBlock extends StatelessWidget {
       width: double.infinity,
       padding: const EdgeInsets.symmetric(horizontal: 14, vertical: 10),
       decoration: BoxDecoration(
-        color: TermexColors.backgroundTertiary,
+        color: context.colors.backgroundTertiary,
         borderRadius: BorderRadius.circular(6),
-        border: Border.all(color: TermexColors.border),
+        border: Border.all(color: context.colors.border),
       ),
       child: Row(
         children: [
@@ -174,7 +174,7 @@ class _FingerprintBlock extends StatelessWidget {
               fingerprint,
               style: TermexTypography.monospace.copyWith(
                 fontSize: 12,
-                color: TermexColors.textPrimary,
+                color: context.colors.textPrimary,
                 letterSpacing: 0.5,
               ),
             ),
@@ -184,10 +184,10 @@ class _FingerprintBlock extends StatelessWidget {
             message: '复制指纹',
             child: Clickable(
               onTap: () => Clipboard.setData(ClipboardData(text: fingerprint)),
-              child: const Icon(
+              child: Icon(
                 Icons.copy_outlined,
                 size: 15,
-                color: TermexColors.textMuted,
+                color: context.colors.textMuted,
               ),
             ),
           ),

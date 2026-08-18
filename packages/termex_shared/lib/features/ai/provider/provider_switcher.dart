@@ -24,31 +24,32 @@ class ProviderSwitcher extends ConsumerWidget {
       child: Container(
         padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 4),
         decoration: BoxDecoration(
-          border: Border.all(color: TermexColors.border),
+          border: Border.all(color: context.colors.border),
           borderRadius: BorderRadius.circular(6),
-          color: TermexColors.backgroundTertiary,
+          color: context.colors.backgroundTertiary,
         ),
         child: Row(
           mainAxisSize: MainAxisSize.min,
           children: [
             Text(
               meta.label,
-              style: const TextStyle(
+              style: TextStyle(
                 fontSize: 11,
                 fontWeight: FontWeight.w600,
-                color: TermexColors.textPrimary,
+                color: context.colors.textPrimary,
               ),
             ),
             const SizedBox(width: 4),
             Text(
               config.model,
-              style: const TextStyle(
+              style: TextStyle(
                 fontSize: 11,
-                color: TermexColors.textSecondary,
+                color: context.colors.textSecondary,
               ),
             ),
             const SizedBox(width: 4),
-            const Icon(Icons.arrow_drop_down, size: 14, color: TermexColors.textSecondary),
+            Icon(Icons.arrow_drop_down,
+                size: 14, color: context.colors.textSecondary),
           ],
         ),
       ),
@@ -96,7 +97,7 @@ class ProviderSwitcher extends ConsumerWidget {
     final result = await showMenu<_MenuAction>(
       context: context,
       position: _menuPosition(context),
-      color: TermexColors.backgroundSecondary,
+      color: context.colors.backgroundSecondary,
       items: [
         // Provider items — only those that are configured.
         if (visibleProviders.isEmpty)
@@ -171,8 +172,8 @@ class _ProviderMenuItem extends StatelessWidget {
       width: _kProviderMenuItemWidth,
       child: Row(
         children: [
-          const Icon(Icons.smart_toy_outlined,
-              size: 14, color: TermexColors.textSecondary),
+          Icon(Icons.smart_toy_outlined,
+              size: 14, color: context.colors.textSecondary),
           const SizedBox(width: 8),
           Expanded(
             child: Column(
@@ -183,15 +184,15 @@ class _ProviderMenuItem extends StatelessWidget {
                   meta.label,
                   maxLines: 1,
                   overflow: TextOverflow.ellipsis,
-                  style: const TextStyle(
-                      fontSize: 12, color: TermexColors.textPrimary),
+                  style: TextStyle(
+                      fontSize: 12, color: context.colors.textPrimary),
                 ),
                 Text(
                   meta.description,
                   maxLines: 1,
                   overflow: TextOverflow.ellipsis,
-                  style: const TextStyle(
-                      fontSize: 10, color: TermexColors.textSecondary),
+                  style: TextStyle(
+                      fontSize: 10, color: context.colors.textSecondary),
                 ),
               ],
             ),
@@ -214,17 +215,17 @@ class _EmptyHint extends StatelessWidget {
     return SizedBox(
       width: _kProviderMenuItemWidth,
       child: Row(
-        children: const [
+        children: [
           Icon(Icons.info_outline,
-              size: 14, color: TermexColors.textSecondary),
-          SizedBox(width: 8),
+              size: 14, color: context.colors.textSecondary),
+          const SizedBox(width: 8),
           Expanded(
             child: Text(
               '尚未配置 Provider\n打开设置 → AI 助手添加',
               maxLines: 2,
               style: TextStyle(
                 fontSize: 11,
-                color: TermexColors.textSecondary,
+                color: context.colors.textSecondary,
                 height: 1.3,
               ),
             ),
@@ -240,20 +241,20 @@ class _ConfigureMenuItem extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    return const SizedBox(
+    return SizedBox(
       width: _kProviderMenuItemWidth,
       child: Row(
         children: [
           Icon(Icons.settings_outlined,
-              size: 14, color: TermexColors.textSecondary),
-          SizedBox(width: 8),
+              size: 14, color: context.colors.textSecondary),
+          const SizedBox(width: 8),
           Expanded(
             child: Text(
               '配置当前 Provider',
               maxLines: 1,
               overflow: TextOverflow.ellipsis,
               style: TextStyle(
-                  fontSize: 12, color: TermexColors.textPrimary),
+                  fontSize: 12, color: context.colors.textPrimary),
             ),
           ),
         ],

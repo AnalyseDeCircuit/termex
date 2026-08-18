@@ -138,7 +138,7 @@ class _QuickConnectBarState extends ConsumerState<QuickConnectBar> {
   @override
   Widget build(BuildContext context) {
     final borderColor =
-        _focused ? TermexColors.borderFocus : TermexColors.border;
+        _focused ? context.colors.borderFocus : context.colors.border;
 
     return CompositedTransformTarget(
       link: _layerLink,
@@ -151,7 +151,7 @@ class _QuickConnectBarState extends ConsumerState<QuickConnectBar> {
             duration: const Duration(milliseconds: 150),
             height: 36,
             decoration: BoxDecoration(
-              color: TermexColors.backgroundSecondary,
+              color: context.colors.backgroundSecondary,
               borderRadius: TermexRadius.md,
               border: Border.all(
                 color: borderColor,
@@ -165,8 +165,8 @@ class _QuickConnectBarState extends ConsumerState<QuickConnectBar> {
                   TermexIcons.connect,
                   size: 14,
                   color: _focused
-                      ? TermexColors.primary
-                      : TermexColors.textSecondary,
+                      ? context.colors.primary
+                      : context.colors.textSecondary,
                 ),
                 const SizedBox(width: TermexSpacing.sm),
                 Expanded(
@@ -190,11 +190,11 @@ class _QuickConnectBarState extends ConsumerState<QuickConnectBar> {
                       focusNode: _focusNode,
                       style: TermexTypography.monospace.copyWith(
                         fontSize: 13,
-                        color: TermexColors.textPrimary,
+                        color: context.colors.textPrimary,
                       ),
-                      cursorColor: TermexColors.primary,
-                      backgroundCursorColor: TermexColors.backgroundTertiary,
-                      selectionColor: TermexColors.primary.withOpacity(0.3),
+                      cursorColor: context.colors.primary,
+                      backgroundCursorColor: context.colors.backgroundTertiary,
+                      selectionColor: context.colors.primary.withOpacity(0.3),
                       onChanged: _handleChanged,
                       onSubmitted: (_) => _connect(),
                     ),
@@ -212,7 +212,7 @@ class _QuickConnectBarState extends ConsumerState<QuickConnectBar> {
                   Text(
                     'user@host:port',
                     style: TermexTypography.caption.copyWith(
-                      color: TermexColors.textMuted,
+                      color: context.colors.textMuted,
                     ),
                   ),
                 ],
@@ -262,19 +262,19 @@ class _PreviewChip extends StatelessWidget {
         vertical: 2,
       ),
       decoration: BoxDecoration(
-        color: TermexColors.backgroundTertiary,
+        color: context.colors.backgroundTertiary,
         borderRadius: TermexRadius.full,
-        border: Border.all(color: TermexColors.border),
+        border: Border.all(color: context.colors.border),
       ),
       child: Row(
         mainAxisSize: MainAxisSize.min,
         children: [
-          TermexIconWidget(icon, size: 10, color: TermexColors.textSecondary),
+          TermexIconWidget(icon, size: 10, color: context.colors.textSecondary),
           const SizedBox(width: 3),
           Text(
             label,
             style: TermexTypography.caption.copyWith(
-              color: TermexColors.textSecondary,
+              color: context.colors.textSecondary,
             ),
           ),
         ],
@@ -354,9 +354,9 @@ class _HistoryDropdownState extends State<_HistoryDropdown>
                 ),
                 child: Container(
                   decoration: BoxDecoration(
-                    color: TermexColors.backgroundSecondary,
+                    color: context.colors.backgroundSecondary,
                     borderRadius: TermexRadius.md,
-                    border: Border.all(color: TermexColors.border),
+                    border: Border.all(color: context.colors.border),
                     boxShadow: TermexElevation.e2,
                   ),
                   child: Column(
@@ -371,7 +371,7 @@ class _HistoryDropdownState extends State<_HistoryDropdown>
                         child: Text(
                           'Recent',
                           style: TermexTypography.caption.copyWith(
-                            color: TermexColors.textMuted,
+                            color: context.colors.textMuted,
                           ),
                         ),
                       ),
@@ -427,21 +427,21 @@ class _HistoryTileState extends State<_HistoryTile> {
           height: 32,
           padding: const EdgeInsets.symmetric(horizontal: TermexSpacing.md),
           color: _hovered
-              ? TermexColors.backgroundTertiary
+              ? context.colors.backgroundTertiary
               : const Color(0x00000000),
           child: Row(
             children: [
-              const TermexIconWidget(
+              TermexIconWidget(
                 TermexIcons.server,
                 size: 13,
-                color: TermexColors.textSecondary,
+                color: context.colors.textSecondary,
               ),
               const SizedBox(width: TermexSpacing.sm),
               Expanded(
                 child: Text(
                   '${widget.entry.username}@${widget.entry.host}:${widget.entry.port}',
                   style: TermexTypography.body.copyWith(
-                    color: TermexColors.textPrimary,
+                    color: context.colors.textPrimary,
                     fontSize: 13,
                   ),
                   overflow: TextOverflow.ellipsis,

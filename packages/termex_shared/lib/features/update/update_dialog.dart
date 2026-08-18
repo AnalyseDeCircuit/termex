@@ -153,21 +153,21 @@ class _UpdateDialogBodyState extends ConsumerState<_UpdateDialogBody> {
       case _Phase.checking:
         return _statusBox(
           icon: TermexIcons.refresh,
-          color: TermexColors.primary,
+          color: context.colors.primary,
           title: l10n.updateInProgress,
           message: null,
         );
       case _Phase.upToDate:
         return _statusBox(
           icon: TermexIcons.connect,
-          color: TermexColors.success,
+          color: context.colors.success,
           title: l10n.updateUpToDateTitle,
           message: l10n.updateUpToDateDetail(kAppVersion, _channel),
         );
       case _Phase.error:
         return _statusBox(
           icon: TermexIcons.help,
-          color: TermexColors.danger,
+          color: context.colors.danger,
           title: l10n.updateCheckFailedTitle,
           message: _errorMessage,
         );
@@ -182,8 +182,8 @@ class _UpdateDialogBodyState extends ConsumerState<_UpdateDialogBody> {
     return Container(
       padding: const EdgeInsets.all(TermexSpacing.md),
       decoration: BoxDecoration(
-        color: TermexColors.backgroundSecondary,
-        border: Border.all(color: TermexColors.border, width: 0.5),
+        color: context.colors.backgroundSecondary,
+        border: Border.all(color: context.colors.border, width: 0.5),
         borderRadius: BorderRadius.circular(6),
       ),
       child: Column(
@@ -191,16 +191,16 @@ class _UpdateDialogBodyState extends ConsumerState<_UpdateDialogBody> {
         children: [
           Row(
             children: [
-              const TermexIconWidget(
+              TermexIconWidget(
                 TermexIcons.download,
                 size: 14,
-                color: TermexColors.primary,
+                color: context.colors.primary,
               ),
               const SizedBox(width: TermexSpacing.sm),
               Text(
                 l10n.updateNewVersionTitle(m.version),
                 style: TermexTypography.body.copyWith(
-                  color: TermexColors.textPrimary,
+                  color: context.colors.textPrimary,
                   fontWeight: FontWeight.w600,
                 ),
               ),
@@ -209,7 +209,7 @@ class _UpdateDialogBodyState extends ConsumerState<_UpdateDialogBody> {
                 Text(
                   m.pubDate,
                   style: TermexTypography.caption.copyWith(
-                    color: TermexColors.textMuted,
+                    color: context.colors.textMuted,
                   ),
                 ),
             ],
@@ -222,7 +222,7 @@ class _UpdateDialogBodyState extends ConsumerState<_UpdateDialogBody> {
                     ? m.releaseNotes
                     : l10n.updateNoReleaseNotes,
                 style: TermexTypography.caption.copyWith(
-                  color: TermexColors.textSecondary,
+                  color: context.colors.textSecondary,
                 ),
               ),
             ),
@@ -241,8 +241,8 @@ class _UpdateDialogBodyState extends ConsumerState<_UpdateDialogBody> {
     return Container(
       padding: const EdgeInsets.all(TermexSpacing.lg),
       decoration: BoxDecoration(
-        color: TermexColors.backgroundSecondary,
-        border: Border.all(color: TermexColors.border, width: 0.5),
+        color: context.colors.backgroundSecondary,
+        border: Border.all(color: context.colors.border, width: 0.5),
         borderRadius: BorderRadius.circular(6),
       ),
       child: Center(
@@ -254,7 +254,7 @@ class _UpdateDialogBodyState extends ConsumerState<_UpdateDialogBody> {
             Text(
               title,
               style: TermexTypography.body.copyWith(
-                color: TermexColors.textPrimary,
+                color: context.colors.textPrimary,
               ),
             ),
             if (message != null) ...[
@@ -265,7 +265,7 @@ class _UpdateDialogBodyState extends ConsumerState<_UpdateDialogBody> {
                   message,
                   textAlign: TextAlign.center,
                   style: TermexTypography.caption.copyWith(
-                    color: TermexColors.textMuted,
+                    color: context.colors.textMuted,
                   ),
                 ),
               ),
@@ -318,14 +318,14 @@ class _VersionRow extends StatelessWidget {
         Text(
           l10n.updateCurrentVersion,
           style: TermexTypography.caption.copyWith(
-            color: TermexColors.textSecondary,
+            color: context.colors.textSecondary,
           ),
         ),
         const Spacer(),
         Text(
           'v$kAppVersion · $channel',
           style: TermexTypography.caption.copyWith(
-            color: TermexColors.textPrimary,
+            color: context.colors.textPrimary,
             fontFamily: 'monospace',
           ),
         ),

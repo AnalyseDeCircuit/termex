@@ -29,17 +29,19 @@ double _fontSize(ButtonSize size) => switch (size) {
       ButtonSize.large => 15,
     };
 
-Color _bgColor(ButtonVariant variant) => switch (variant) {
-      ButtonVariant.primary => TermexColors.primary,
-      ButtonVariant.secondary => TermexColors.backgroundTertiary,
+Color _bgColor(ButtonVariant variant, TermexColorScheme colors) =>
+    switch (variant) {
+      ButtonVariant.primary => colors.primary,
+      ButtonVariant.secondary => colors.backgroundTertiary,
       ButtonVariant.ghost => const Color(0x00000000),
-      ButtonVariant.danger => TermexColors.danger,
+      ButtonVariant.danger => colors.danger,
     };
 
-Color _textColor(ButtonVariant variant) => switch (variant) {
+Color _textColor(ButtonVariant variant, TermexColorScheme colors) =>
+    switch (variant) {
       ButtonVariant.primary => const Color(0xFFFFFFFF),
-      ButtonVariant.secondary => TermexColors.textPrimary,
-      ButtonVariant.ghost => TermexColors.textPrimary,
+      ButtonVariant.secondary => colors.textPrimary,
+      ButtonVariant.ghost => colors.textPrimary,
       ButtonVariant.danger => const Color(0xFFFFFFFF),
     };
 
@@ -81,8 +83,8 @@ class _TermexButtonState extends State<TermexButton> {
 
   @override
   Widget build(BuildContext context) {
-    final bg = _bgColor(widget.variant);
-    final fg = _textColor(widget.variant);
+    final bg = _bgColor(widget.variant, context.colors);
+    final fg = _textColor(widget.variant, context.colors);
     final height = _buttonHeight(widget.size);
     final hPad = _hPadding(widget.size);
     final fs = _fontSize(widget.size);
@@ -90,10 +92,10 @@ class _TermexButtonState extends State<TermexButton> {
 
     Border? border;
     if (isGhost) {
-      border = Border.all(color: TermexColors.border, width: 1);
+      border = Border.all(color: context.colors.border, width: 1);
     }
     if (_focused) {
-      border = Border.all(color: TermexColors.borderFocus, width: 2);
+      border = Border.all(color: context.colors.borderFocus, width: 2);
     }
 
     Color effectiveBg = bg;
@@ -227,7 +229,7 @@ class _TermexIconButtonState extends State<TermexIconButton> {
 
   @override
   Widget build(BuildContext context) {
-    final bg = _bgColor(widget.variant);
+    final bg = _bgColor(widget.variant, context.colors);
     Color effectiveBg = bg;
     if (_hovered && _isInteractive) {
       effectiveBg = Color.alphaBlend(const Color(0x14FFFFFF), bg);
@@ -236,10 +238,10 @@ class _TermexIconButtonState extends State<TermexIconButton> {
     Border? border;
     final isGhost = widget.variant == ButtonVariant.ghost;
     if (isGhost) {
-      border = Border.all(color: TermexColors.border, width: 1);
+      border = Border.all(color: context.colors.border, width: 1);
     }
     if (_focused) {
-      border = Border.all(color: TermexColors.borderFocus, width: 2);
+      border = Border.all(color: context.colors.borderFocus, width: 2);
     }
 
     return Semantics(

@@ -39,9 +39,9 @@ class _CodeBlockState extends State<CodeBlock> {
     return Container(
       margin: const EdgeInsets.symmetric(vertical: 6),
       decoration: BoxDecoration(
-        color: TermexColors.backgroundTertiary,
+        color: context.colors.backgroundTertiary,
         borderRadius: BorderRadius.circular(6),
-        border: Border.all(color: TermexColors.border),
+        border: Border.all(color: context.colors.border),
       ),
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.start,
@@ -49,20 +49,21 @@ class _CodeBlockState extends State<CodeBlock> {
           // Header bar
           Container(
             padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 4),
-            decoration: const BoxDecoration(
-              color: TermexColors.backgroundSecondary,
+            decoration: BoxDecoration(
+              color: context.colors.backgroundSecondary,
               borderRadius:
-                  BorderRadius.vertical(top: Radius.circular(5)),
-              border: Border(bottom: BorderSide(color: TermexColors.border)),
+                  const BorderRadius.vertical(top: Radius.circular(5)),
+              border:
+                  Border(bottom: BorderSide(color: context.colors.border)),
             ),
             child: Row(
               children: [
                 if (widget.language != null)
                   Text(
                     widget.language!,
-                    style: const TextStyle(
+                    style: TextStyle(
                       fontSize: 11,
-                      color: TermexColors.textSecondary,
+                      color: context.colors.textSecondary,
                       fontFamily: 'monospace',
                     ),
                   ),
@@ -87,11 +88,11 @@ class _CodeBlockState extends State<CodeBlock> {
             padding: const EdgeInsets.all(12),
             child: SelectableText(
               widget.code,
-              style: const TextStyle(
+              style: TextStyle(
                 fontFamily: 'monospace',
                 fontSize: 12.5,
                 height: 1.5,
-                color: TermexColors.textPrimary,
+                color: context.colors.textPrimary,
               ),
             ),
           ),
@@ -119,11 +120,12 @@ class _HeaderButton extends StatelessWidget {
       child: Row(
         mainAxisSize: MainAxisSize.min,
         children: [
-          Icon(icon, size: 13, color: TermexColors.textSecondary),
+          Icon(icon, size: 13, color: context.colors.textSecondary),
           const SizedBox(width: 3),
           Text(
             label,
-            style: const TextStyle(fontSize: 11, color: TermexColors.textSecondary),
+            style: TextStyle(
+                fontSize: 11, color: context.colors.textSecondary),
           ),
         ],
       ),

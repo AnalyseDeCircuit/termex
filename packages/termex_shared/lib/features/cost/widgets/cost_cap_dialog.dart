@@ -47,9 +47,9 @@ class _CostCapDialogState extends State<CostCapDialog> {
     return Container(
       padding: const EdgeInsets.all(TermexSpacing.lg),
       decoration: BoxDecoration(
-        color: TermexColors.backgroundPrimary,
+        color: context.colors.backgroundPrimary,
         borderRadius: BorderRadius.circular(10),
-        border: Border.all(color: TermexColors.border),
+        border: Border.all(color: context.colors.border),
       ),
       child: Column(
         mainAxisSize: MainAxisSize.min,
@@ -58,14 +58,14 @@ class _CostCapDialogState extends State<CostCapDialog> {
           Text(
             'Spending caps',
             style: TermexTypography.heading3.copyWith(
-              color: TermexColors.textPrimary,
+              color: context.colors.textPrimary,
             ),
           ),
           const SizedBox(height: TermexSpacing.xs),
           Text(
             'Leave a field blank for no limit.',
             style: TermexTypography.caption.copyWith(
-              color: TermexColors.textSecondary,
+              color: context.colors.textSecondary,
             ),
           ),
           const SizedBox(height: TermexSpacing.md),
@@ -92,13 +92,13 @@ class _CostCapDialogState extends State<CostCapDialog> {
             children: [
               _DialogButton(
                 label: 'Cancel',
-                color: TermexColors.textSecondary,
+                color: context.colors.textSecondary,
                 onPressed: widget.onCancel,
               ),
               const SizedBox(width: TermexSpacing.sm),
               _DialogButton(
                 label: 'Save',
-                color: TermexColors.primary,
+                color: context.colors.primary,
                 onPressed: () => widget.onSave(UserCostCapVM(
                   monthlyUsd: _monthly,
                   singleTaskUsd: _single,
@@ -153,7 +153,7 @@ class _CapRowState extends State<_CapRow> {
           child: Text(
             widget.label,
             style: TermexTypography.body.copyWith(
-              color: TermexColors.textPrimary,
+              color: context.colors.textPrimary,
             ),
           ),
         ),
@@ -161,8 +161,8 @@ class _CapRowState extends State<_CapRow> {
         Expanded(
           child: Container(
             decoration: BoxDecoration(
-              color: TermexColors.backgroundSecondary,
-              border: Border.all(color: TermexColors.border),
+              color: context.colors.backgroundSecondary,
+              border: Border.all(color: context.colors.border),
               borderRadius: BorderRadius.circular(4),
             ),
             padding: const EdgeInsets.symmetric(horizontal: TermexSpacing.sm),
@@ -170,10 +170,10 @@ class _CapRowState extends State<_CapRow> {
               controller: _controller,
               focusNode: FocusNode(),
               style: TermexTypography.monospace.copyWith(
-                color: TermexColors.textPrimary,
+                color: context.colors.textPrimary,
               ),
-              cursorColor: TermexColors.primary,
-              backgroundCursorColor: TermexColors.border,
+              cursorColor: context.colors.primary,
+              backgroundCursorColor: context.colors.border,
               onChanged: (s) {
                 final t = s.trim();
                 if (t.isEmpty) {

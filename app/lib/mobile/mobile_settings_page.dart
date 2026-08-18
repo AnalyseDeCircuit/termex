@@ -114,7 +114,7 @@ class _MobileSettingsPageState extends ConsumerState<MobileSettingsPage>
   Widget build(BuildContext context) {
     final showBanner = _bannerHidden == false;
     return Container(
-      color: TermexColors.backgroundPrimary,
+      color: context.colors.backgroundPrimary,
       child: Column(
         children: [
           if (showBanner)
@@ -155,9 +155,9 @@ class _BatteryBanner extends StatelessWidget {
     return Container(
       height: 44,
       padding: const EdgeInsets.symmetric(horizontal: 12),
-      decoration: const BoxDecoration(
-        color: TermexColors.backgroundSecondary,
-        border: Border(bottom: BorderSide(color: TermexColors.border)),
+      decoration: BoxDecoration(
+        color: context.colors.backgroundSecondary,
+        border: Border(bottom: BorderSide(color: context.colors.border)),
       ),
       child: Row(
         children: [
@@ -176,7 +176,7 @@ class _BatteryBanner extends StatelessWidget {
               maxLines: 1,
               overflow: TextOverflow.ellipsis,
               style: TermexTypography.body.copyWith(
-                color: TermexColors.textPrimary,
+                color: context.colors.textPrimary,
               ),
             ),
           ),
@@ -189,7 +189,7 @@ class _BatteryBanner extends StatelessWidget {
               child: Text(
                 busy ? 'Opening…' : 'Fix',
                 style: TermexTypography.body.copyWith(
-                  color: TermexColors.primary,
+                  color: context.colors.primary,
                   fontWeight: FontWeight.w600,
                 ),
               ),
@@ -202,10 +202,10 @@ class _BatteryBanner extends StatelessWidget {
               width: 32,
               height: 44,
               alignment: Alignment.center,
-              child: const Icon(
+              child: Icon(
                 TermexIcons.close,
                 size: 18,
-                color: TermexColors.textSecondary,
+                color: context.colors.textSecondary,
               ),
             ),
           ),

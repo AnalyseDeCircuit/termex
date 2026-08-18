@@ -46,9 +46,12 @@ Future<bool?> showConfirmDialog({
     context: context,
     title: title,
     size: size,
-    body: Text(
-      message,
-      style: TermexTypography.body.copyWith(color: TermexColors.textSecondary),
+    body: Builder(
+      builder: (ctx) => Text(
+        message,
+        style:
+            TermexTypography.body.copyWith(color: ctx.colors.textSecondary),
+      ),
     ),
     actions: [
       Builder(
@@ -212,9 +215,9 @@ class _TermexDialogShell extends StatelessWidget {
             ),
             child: Container(
               decoration: BoxDecoration(
-                color: TermexColors.backgroundSecondary,
+                color: context.colors.backgroundSecondary,
                 borderRadius: TermexRadius.lg,
-                border: Border.all(color: TermexColors.border),
+                border: Border.all(color: context.colors.border),
               ),
               child: Column(
                 mainAxisSize: MainAxisSize.min,
@@ -259,8 +262,8 @@ class _DialogHeader extends StatelessWidget {
         horizontal: TermexSpacing.xl,
         vertical: TermexSpacing.lg,
       ),
-      decoration: const BoxDecoration(
-        border: Border(bottom: BorderSide(color: TermexColors.border)),
+      decoration: BoxDecoration(
+        border: Border(bottom: BorderSide(color: context.colors.border)),
       ),
       child: Row(
         children: [
@@ -268,7 +271,7 @@ class _DialogHeader extends StatelessWidget {
             child: Text(
               title,
               style: TermexTypography.heading3.copyWith(
-                color: TermexColors.textPrimary,
+                color: context.colors.textPrimary,
               ),
             ),
           ),
@@ -304,7 +307,7 @@ class _CloseButtonState extends State<_CloseButton> {
           height: 28,
           decoration: BoxDecoration(
             color: _hovered
-                ? TermexColors.backgroundTertiary
+                ? context.colors.backgroundTertiary
                 : const Color(0x00000000),
             borderRadius: TermexRadius.sm,
           ),
@@ -312,7 +315,7 @@ class _CloseButtonState extends State<_CloseButton> {
           child: Text(
             '×',
             style: TermexTypography.heading3.copyWith(
-              color: TermexColors.textSecondary,
+              color: context.colors.textSecondary,
               height: 1,
             ),
           ),
@@ -333,8 +336,8 @@ class _DialogFooter extends StatelessWidget {
         horizontal: TermexSpacing.xl,
         vertical: TermexSpacing.md,
       ),
-      decoration: const BoxDecoration(
-        border: Border(top: BorderSide(color: TermexColors.border)),
+      decoration: BoxDecoration(
+        border: Border(top: BorderSide(color: context.colors.border)),
       ),
       child: Row(
         mainAxisAlignment: MainAxisAlignment.end,

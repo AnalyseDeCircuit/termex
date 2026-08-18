@@ -99,6 +99,21 @@ class SftpPaneNotifier extends FamilyNotifier<SftpPaneState, String> {
 
   // ── Selection ─────────────────────────────────────────────────────────────
 
+  /// Replaces the selection with a single entry — what a plain left click
+  /// does. [toggleLocalSelection] / [toggleRemoteSelection] stay for
+  /// modifier-clicks, which is the only way to build a multi-selection.
+  void selectLocalOnly(String name) => state =
+      state.copyWith(local: state.local.copyWith(selectedNames: {name}));
+
+  void selectRemoteOnly(String name) => state =
+      state.copyWith(remote: state.remote.copyWith(selectedNames: {name}));
+
+  void selectAllLocal(Iterable<String> names) => state = state.copyWith(
+      local: state.local.copyWith(selectedNames: names.toSet()));
+
+  void selectAllRemote(Iterable<String> names) => state = state.copyWith(
+      remote: state.remote.copyWith(selectedNames: names.toSet()));
+
   void toggleLocalSelection(String name) {
     final sel = Set<String>.from(state.local.selectedNames);
     if (!sel.remove(name)) sel.add(name);

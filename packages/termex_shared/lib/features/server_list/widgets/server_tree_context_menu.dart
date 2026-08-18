@@ -113,9 +113,9 @@ class _ServerTreeContextMenuState extends State<ServerTreeContextMenu>
               width: menuWidth,
               padding: const EdgeInsets.symmetric(vertical: TermexSpacing.xs),
               decoration: BoxDecoration(
-                color: TermexColors.backgroundPrimary,
+                color: context.colors.backgroundPrimary,
                 borderRadius: TermexRadius.md,
-                border: Border.all(color: TermexColors.border),
+                border: Border.all(color: context.colors.border),
                 boxShadow: const [
                   BoxShadow(
                     color: Color(0x14000000),
@@ -132,13 +132,13 @@ class _ServerTreeContextMenuState extends State<ServerTreeContextMenu>
                       Column(
                         mainAxisSize: MainAxisSize.min,
                         children: [
-                          const Padding(
-                            padding: EdgeInsets.symmetric(
+                          Padding(
+                            padding: const EdgeInsets.symmetric(
                                 vertical: TermexSpacing.xs),
                             child: ColoredBox(
-                              color: TermexColors.border,
-                              child:
-                                  SizedBox(height: 1, width: double.infinity),
+                              color: context.colors.border,
+                              child: const SizedBox(
+                                  height: 1, width: double.infinity),
                             ),
                           ),
                           _buildRow(index, it),
@@ -179,9 +179,9 @@ class _ServerTreeContextMenuState extends State<ServerTreeContextMenu>
             ),
             padding: const EdgeInsets.symmetric(vertical: TermexSpacing.xs),
             decoration: BoxDecoration(
-              color: TermexColors.backgroundPrimary,
+              color: context.colors.backgroundPrimary,
               borderRadius: TermexRadius.md,
-              border: Border.all(color: TermexColors.border),
+              border: Border.all(color: context.colors.border),
               boxShadow: const [
                 BoxShadow(
                   color: Color(0x14000000),
@@ -199,13 +199,13 @@ class _ServerTreeContextMenuState extends State<ServerTreeContextMenu>
                       Column(
                         mainAxisSize: MainAxisSize.min,
                         children: [
-                          const Padding(
-                            padding: EdgeInsets.symmetric(
+                          Padding(
+                            padding: const EdgeInsets.symmetric(
                                 vertical: TermexSpacing.xs),
                             child: ColoredBox(
-                              color: TermexColors.border,
-                              child:
-                                  SizedBox(height: 1, width: double.infinity),
+                              color: context.colors.border,
+                              child: const SizedBox(
+                                  height: 1, width: double.infinity),
                             ),
                           ),
                           _ContextRow(
@@ -290,8 +290,8 @@ class _ContextRowState extends State<_ContextRow> {
   @override
   Widget build(BuildContext context) {
     final color = widget.item.danger
-        ? TermexColors.danger
-        : TermexColors.textPrimary;
+        ? context.colors.danger
+        : context.colors.textPrimary;
     return MouseRegion(
       cursor: SystemMouseCursors.click,
       onEnter: (_) => _setHovered(true),
@@ -307,8 +307,8 @@ class _ContextRowState extends State<_ContextRow> {
           padding: const EdgeInsets.symmetric(horizontal: TermexSpacing.md),
           color: _hovered
               ? (widget.item.danger
-                  ? TermexColors.danger.withOpacity(0.1)
-                  : TermexColors.backgroundTertiary)
+                  ? context.colors.danger.withOpacity(0.1)
+                  : context.colors.backgroundTertiary)
               : const Color(0x00000000),
           child: Row(
             children: [
@@ -323,7 +323,7 @@ class _ContextRowState extends State<_ContextRow> {
               ),
               if (widget.item.hasChildren)
                 TermexIconWidget(TermexIcons.chevronRight,
-                    size: 12, color: TermexColors.textMuted),
+                    size: 12, color: context.colors.textMuted),
             ],
           ),
         ),

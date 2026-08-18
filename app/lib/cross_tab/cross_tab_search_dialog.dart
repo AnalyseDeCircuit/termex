@@ -88,7 +88,7 @@ class _Empty extends StatelessWidget {
     return Center(
       child: Text(
         message,
-        style: TermexTypography.body.copyWith(color: TermexColors.textMuted),
+        style: TermexTypography.body.copyWith(color: context.colors.textMuted),
       ),
     );
   }
@@ -112,7 +112,7 @@ class _ResultList extends ConsumerWidget {
               Text(
                 '${r.serverName}  ·  ${r.count} match${r.count == 1 ? '' : 'es'}',
                 style: TermexTypography.body.copyWith(
-                  color: TermexColors.textPrimary,
+                  color: context.colors.textPrimary,
                   fontWeight: FontWeight.w600,
                 ),
               ),
@@ -128,7 +128,7 @@ class _ResultList extends ConsumerWidget {
                   child: Text(
                     '… ${r.matches.length - 20} more',
                     style: TermexTypography.caption.copyWith(
-                      color: TermexColors.textMuted,
+                      color: context.colors.textMuted,
                     ),
                   ),
                 ),
@@ -166,7 +166,7 @@ class _MatchRowState extends State<_MatchRow> {
             vertical: 6,
           ),
           decoration: BoxDecoration(
-            color: _hovered ? TermexColors.backgroundTertiary : null,
+            color: _hovered ? context.colors.backgroundTertiary : null,
             borderRadius: BorderRadius.circular(4),
           ),
           child: Row(
@@ -176,7 +176,7 @@ class _MatchRowState extends State<_MatchRow> {
                 child: Text(
                   'L${widget.match.lineNumber}',
                   style: TermexTypography.caption.copyWith(
-                    color: TermexColors.textMuted,
+                    color: context.colors.textMuted,
                   ),
                 ),
               ),
@@ -186,7 +186,7 @@ class _MatchRowState extends State<_MatchRow> {
                   maxLines: 1,
                   overflow: TextOverflow.ellipsis,
                   style: TermexTypography.monospace.copyWith(
-                    color: TermexColors.textPrimary,
+                    color: context.colors.textPrimary,
                     fontSize: 12,
                   ),
                 ),

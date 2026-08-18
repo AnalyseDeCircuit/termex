@@ -110,10 +110,10 @@ class _HighlightsTabState extends ConsumerState<HighlightsTab> {
             children: [
               Text(
                 l10n.settingsHighlightsTitle,
-                style: const TextStyle(
+                style: TextStyle(
                   fontSize: 16,
                   fontWeight: FontWeight.w600,
-                  color: TermexColors.textPrimary,
+                  color: context.colors.textPrimary,
                 ),
               ),
               const Spacer(),
@@ -132,9 +132,9 @@ class _HighlightsTabState extends ConsumerState<HighlightsTab> {
             child: Center(
               child: Text(
                 l10n.settingsHighlightsEmpty,
-                style: const TextStyle(
+                style: TextStyle(
                   fontSize: 12,
-                  color: TermexColors.textMuted,
+                  color: context.colors.textMuted,
                 ),
               ),
             ),
@@ -342,7 +342,7 @@ class _RuleRowState extends State<_RuleRow> {
     return Container(
       padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 6),
       decoration: BoxDecoration(
-        border: Border.all(color: TermexColors.border),
+        border: Border.all(color: context.colors.border),
         borderRadius: BorderRadius.circular(4),
       ),
       child: Row(
@@ -356,28 +356,28 @@ class _RuleRowState extends State<_RuleRow> {
               decoration: InputDecoration(
                 isDense: true,
                 hintText: l10n.settingsHighlightsPatternHint,
-                hintStyle: const TextStyle(
+                hintStyle: TextStyle(
                   fontSize: 12,
-                  color: TermexColors.textMuted,
+                  color: context.colors.textMuted,
                 ),
                 contentPadding: const EdgeInsets.symmetric(
                     horizontal: 8, vertical: 6),
                 border: OutlineInputBorder(
                   borderRadius: BorderRadius.circular(4),
-                  borderSide: const BorderSide(color: TermexColors.border),
+                  borderSide: BorderSide(color: context.colors.border),
                 ),
                 enabledBorder: OutlineInputBorder(
                   borderRadius: BorderRadius.circular(4),
-                  borderSide: const BorderSide(color: TermexColors.border),
+                  borderSide: BorderSide(color: context.colors.border),
                 ),
                 focusedBorder: OutlineInputBorder(
                   borderRadius: BorderRadius.circular(4),
-                  borderSide: const BorderSide(color: TermexColors.primary),
+                  borderSide: BorderSide(color: context.colors.primary),
                 ),
               ),
-              style: const TextStyle(
+              style: TextStyle(
                 fontSize: 12,
-                color: TermexColors.textPrimary,
+                color: context.colors.textPrimary,
                 fontFamily: 'SF Mono, ui-monospace, monospace',
               ),
             ),
@@ -417,8 +417,8 @@ class _RuleRowState extends State<_RuleRow> {
           ),
           IconButton(
             tooltip: l10n.commonDelete,
-            icon: const Icon(Icons.delete_outline,
-                size: 16, color: TermexColors.textMuted),
+            icon: Icon(Icons.delete_outline,
+                size: 16, color: context.colors.textMuted),
             visualDensity: VisualDensity.compact,
             onPressed: widget.onDelete,
           ),
@@ -455,12 +455,12 @@ class _MiniToggle extends StatelessWidget {
                 const EdgeInsets.symmetric(horizontal: 6, vertical: 3),
             decoration: BoxDecoration(
               color: value
-                  ? TermexColors.primary.withOpacity(0.15)
-                  : TermexColors.backgroundSecondary,
+                  ? context.colors.primary.withOpacity(0.15)
+                  : context.colors.backgroundSecondary,
               border: Border.all(
                 color: value
-                    ? TermexColors.primary
-                    : TermexColors.border,
+                    ? context.colors.primary
+                    : context.colors.border,
               ),
               borderRadius: BorderRadius.circular(3),
             ),
@@ -469,8 +469,8 @@ class _MiniToggle extends StatelessWidget {
               style: TextStyle(
                 fontSize: 11,
                 color: value
-                    ? TermexColors.primary
-                    : TermexColors.textSecondary,
+                    ? context.colors.primary
+                    : context.colors.textSecondary,
                 fontWeight: value ? FontWeight.w600 : FontWeight.w400,
               ),
             ),
@@ -507,13 +507,13 @@ class _ColorSwatch extends StatelessWidget {
           margin: const EdgeInsets.symmetric(horizontal: 2),
           decoration: BoxDecoration(
             color: hex ?? const Color(0x00000000),
-            border: Border.all(color: TermexColors.border),
+            border: Border.all(color: context.colors.border),
             borderRadius: BorderRadius.circular(3),
           ),
           alignment: Alignment.center,
           child: hex == null
-              ? const Icon(Icons.format_color_reset,
-                  size: 12, color: TermexColors.textMuted)
+              ? Icon(Icons.format_color_reset,
+                  size: 12, color: context.colors.textMuted)
               : null,
         ),
       ),
@@ -538,18 +538,18 @@ class _ColorSwatch extends StatelessWidget {
     final result = await showDialog<String>(
       context: context,
       builder: (ctx) => AlertDialog(
-        backgroundColor: TermexColors.backgroundSecondary,
+        backgroundColor: ctx.colors.backgroundSecondary,
         title: Text(tooltip,
             style:
-                const TextStyle(fontSize: 14, color: TermexColors.textPrimary)),
+                TextStyle(fontSize: 14, color: ctx.colors.textPrimary)),
         content: Column(
           mainAxisSize: MainAxisSize.min,
           crossAxisAlignment: CrossAxisAlignment.start,
           children: [
             Text(
               l10n.settingsHighlightsColorInputHint,
-              style: const TextStyle(
-                  fontSize: 11, color: TermexColors.textMuted),
+              style: TextStyle(
+                  fontSize: 11, color: ctx.colors.textMuted),
             ),
             const SizedBox(height: 8),
             TextField(
@@ -562,10 +562,10 @@ class _ColorSwatch extends StatelessWidget {
                 isDense: true,
                 hintText: '#RRGGBB',
               ),
-              style: const TextStyle(
+              style: TextStyle(
                 fontFamily: 'SF Mono, ui-monospace, monospace',
                 fontSize: 12,
-                color: TermexColors.textPrimary,
+                color: ctx.colors.textPrimary,
               ),
             ),
             const SizedBox(height: 12),
@@ -580,7 +580,7 @@ class _ColorSwatch extends StatelessWidget {
                     height: 22,
                     decoration: BoxDecoration(
                       color: _parseHex(c) ?? const Color(0xFF000000),
-                      border: Border.all(color: TermexColors.border),
+                      border: Border.all(color: ctx.colors.border),
                       borderRadius: BorderRadius.circular(3),
                     ),
                   ),
@@ -594,18 +594,18 @@ class _ColorSwatch extends StatelessWidget {
             TextButton(
               onPressed: () => Navigator.of(ctx).pop(''),
               child: Text(l10n.settingsHighlightsColorClear,
-                  style: const TextStyle(
-                      color: TermexColors.textSecondary)),
+                  style: TextStyle(
+                      color: ctx.colors.textSecondary)),
             ),
           TextButton(
             onPressed: () => Navigator.of(ctx).pop(null),
             child: Text(l10n.commonCancel,
-                style: const TextStyle(color: TermexColors.textSecondary)),
+                style: TextStyle(color: ctx.colors.textSecondary)),
           ),
           ElevatedButton(
             onPressed: () => Navigator.of(ctx).pop(ctrl.text.trim()),
             style: ElevatedButton.styleFrom(
-              backgroundColor: TermexColors.primary,
+              backgroundColor: ctx.colors.primary,
               foregroundColor: const Color(0xFFFFFFFF),
             ),
             child: Text(l10n.settingsHighlightsColorConfirm),
@@ -649,15 +649,15 @@ class _PrimaryButtonState extends State<_PrimaryButton> {
           padding:
               const EdgeInsets.symmetric(horizontal: 12, vertical: 6),
           decoration: BoxDecoration(
-            color: TermexColors.primary
+            color: context.colors.primary
                 .withOpacity(_hovered ? 0.25 : 0.15),
             borderRadius: BorderRadius.circular(4),
           ),
           child: Text(
             widget.label,
-            style: const TextStyle(
+            style: TextStyle(
               fontSize: 12,
-              color: TermexColors.primary,
+              color: context.colors.primary,
               fontWeight: FontWeight.w500,
             ),
           ),
@@ -692,15 +692,15 @@ class _SecondaryButtonState extends State<_SecondaryButton> {
           padding:
               const EdgeInsets.symmetric(horizontal: 12, vertical: 6),
           decoration: BoxDecoration(
-            border: Border.all(color: TermexColors.border),
+            border: Border.all(color: context.colors.border),
             borderRadius: BorderRadius.circular(4),
-            color: _hovered ? TermexColors.backgroundTertiary : null,
+            color: _hovered ? context.colors.backgroundTertiary : null,
           ),
           child: Text(
             widget.label,
-            style: const TextStyle(
+            style: TextStyle(
               fontSize: 12,
-              color: TermexColors.textSecondary,
+              color: context.colors.textSecondary,
             ),
           ),
         ),

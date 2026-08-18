@@ -36,7 +36,7 @@ class NotificationsTab extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     return Container(
-      color: TermexColors.backgroundPrimary,
+      color: context.colors.backgroundPrimary,
       child: ListView(
         padding: EdgeInsets.zero,
         children: [
@@ -68,8 +68,8 @@ class _NotificationThresholdsSection extends ConsumerWidget {
 
     return Container(
       padding: const EdgeInsets.fromLTRB(16, 12, 16, 12),
-      decoration: const BoxDecoration(
-        border: Border(bottom: BorderSide(color: TermexColors.border)),
+      decoration: BoxDecoration(
+        border: Border(bottom: BorderSide(color: context.colors.border)),
       ),
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.start,
@@ -77,7 +77,7 @@ class _NotificationThresholdsSection extends ConsumerWidget {
           Text(
             l10n.notificationThresholdsTitle,
             style: TermexTypography.body.copyWith(
-              color: TermexColors.textPrimary,
+              color: context.colors.textPrimary,
             ),
           ),
           const SizedBox(height: TermexSpacing.sm),
@@ -90,7 +90,7 @@ class _NotificationThresholdsSection extends ConsumerWidget {
           Text(
             l10n.notificationThresholdsSftpToggleHint,
             style: TermexTypography.caption.copyWith(
-              color: TermexColors.textMuted,
+              color: context.colors.textMuted,
             ),
           ),
           const SizedBox(height: TermexSpacing.md),
@@ -143,7 +143,7 @@ class _NotificationThresholdsSection extends ConsumerWidget {
           Text(
             l10n.notificationThresholdsHelp,
             style: TermexTypography.caption.copyWith(
-              color: TermexColors.textMuted,
+              color: context.colors.textMuted,
             ),
           ),
           const SizedBox(height: TermexSpacing.sm),
@@ -162,7 +162,7 @@ class _NotificationThresholdsSection extends ConsumerWidget {
                 child: Text(
                   l10n.notificationThresholdsReset,
                   style: TermexTypography.body.copyWith(
-                    color: TermexColors.primary,
+                    color: context.colors.primary,
                     fontWeight: FontWeight.w600,
                   ),
                 ),
@@ -196,14 +196,14 @@ class _LabeledSliderRow extends StatelessWidget {
               child: Text(
                 label,
                 style: TermexTypography.bodySmall.copyWith(
-                  color: TermexColors.textSecondary,
+                  color: context.colors.textSecondary,
                 ),
               ),
             ),
             Text(
               value,
               style: TermexTypography.bodySmall.copyWith(
-                color: TermexColors.textPrimary,
+                color: context.colors.textPrimary,
                 fontWeight: FontWeight.w600,
               ),
             ),

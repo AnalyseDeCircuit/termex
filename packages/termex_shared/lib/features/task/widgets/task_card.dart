@@ -45,9 +45,9 @@ class TaskCard extends StatelessWidget {
         ),
         padding: const EdgeInsets.all(TermexSpacing.md),
         decoration: BoxDecoration(
-          color: TermexColors.backgroundSecondary,
+          color: context.colors.backgroundSecondary,
           borderRadius: BorderRadius.circular(8),
-          border: Border.all(color: TermexColors.border),
+          border: Border.all(color: context.colors.border),
         ),
         child: Column(
           crossAxisAlignment: CrossAxisAlignment.start,
@@ -59,7 +59,7 @@ class TaskCard extends StatelessWidget {
                   child: Text(
                     _firstLine(task.prompt),
                     style: TermexTypography.body.copyWith(
-                      color: TermexColors.textPrimary,
+                      color: context.colors.textPrimary,
                       fontWeight: FontWeight.w600,
                     ),
                     maxLines: 1,
@@ -74,7 +74,7 @@ class TaskCard extends StatelessWidget {
             Text(
               '${task.serverName} · ${task.aiCliKind.displayName} · ${task.elapsedHuman}',
               style: TermexTypography.caption.copyWith(
-                color: TermexColors.textSecondary,
+                color: context.colors.textSecondary,
               ),
             ),
             const SizedBox(height: TermexSpacing.xs),
@@ -84,7 +84,7 @@ class TaskCard extends StatelessWidget {
               Text(
                 _firstLine(task.outputTail!),
                 style: TermexTypography.monospace.copyWith(
-                  color: TermexColors.textMuted,
+                  color: context.colors.textMuted,
                   fontSize: 11,
                 ),
                 maxLines: 1,
@@ -99,14 +99,14 @@ class TaskCard extends StatelessWidget {
                   if (onCancel != null && !task.status.isTerminal)
                     _CardButton(
                       label: 'Cancel',
-                      color: TermexColors.danger,
+                      color: context.colors.danger,
                       onPressed: onCancel!,
                     ),
                   if (onTap != null) ...[
                     const SizedBox(width: TermexSpacing.sm),
                     _CardButton(
                       label: 'Details ›',
-                      color: TermexColors.primary,
+                      color: context.colors.primary,
                       onPressed: onTap!,
                     ),
                   ],
@@ -148,7 +148,7 @@ class _MetricsLine extends StatelessWidget {
     return Text(
       parts.join(' · '),
       style: TermexTypography.caption.copyWith(
-        color: TermexColors.textSecondary,
+        color: context.colors.textSecondary,
       ),
     );
   }

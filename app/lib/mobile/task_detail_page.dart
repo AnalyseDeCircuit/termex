@@ -34,7 +34,7 @@ class MobileTaskDetailPage extends StatelessWidget {
     final l10n = AppLocalizations.of(context);
     final event = TaskEventBus.instance.latestFor(taskId);
     return Container(
-      color: TermexColors.backgroundPrimary,
+      color: context.colors.backgroundPrimary,
       child: SafeArea(
         child: Column(
           crossAxisAlignment: CrossAxisAlignment.stretch,
@@ -77,21 +77,21 @@ class _Header extends StatelessWidget {
     return Container(
       height: 48,
       padding: const EdgeInsets.symmetric(horizontal: 8),
-      decoration: const BoxDecoration(
-        border: Border(bottom: BorderSide(color: TermexColors.border)),
+      decoration: BoxDecoration(
+        border: Border(bottom: BorderSide(color: context.colors.border)),
       ),
       child: Row(
         children: [
           Clickable(
             behavior: HitTestBehavior.opaque,
             onTap: () => Navigator.of(context).maybePop(),
-            child: const SizedBox(
+            child: SizedBox(
               width: 40,
               height: 40,
               child: Icon(
                 TermexIcons.close,
                 size: 20,
-                color: TermexColors.textPrimary,
+                color: context.colors.textPrimary,
               ),
             ),
           ),
@@ -99,7 +99,7 @@ class _Header extends StatelessWidget {
             child: Text(
               l10n.taskDetailHeader,
               style: TermexTypography.body.copyWith(
-                color: TermexColors.textPrimary,
+                color: context.colors.textPrimary,
                 fontWeight: FontWeight.w600,
               ),
             ),
@@ -125,14 +125,14 @@ class _TitleBlock extends StatelessWidget {
         Text(
           event?.title ?? l10n.taskDetailUnknownTask,
           style: TermexTypography.heading3.copyWith(
-            color: TermexColors.textPrimary,
+            color: context.colors.textPrimary,
           ),
         ),
         const SizedBox(height: 4),
         Text(
           taskId,
           style: TermexTypography.caption.copyWith(
-            color: TermexColors.textMuted,
+            color: context.colors.textMuted,
             fontFamily: 'JetBrainsMono',
           ),
         ),
@@ -151,16 +151,16 @@ class _StatusRow extends StatelessWidget {
     if (event == null) {
       return _Pill(
         label: l10n.taskDetailStatusUnknown,
-        color: TermexColors.textMuted,
+        color: context.colors.textMuted,
       );
     }
     final color = switch (event!.status) {
-      TaskEventStatus.succeeded => TermexColors.success,
-      TaskEventStatus.failed => TermexColors.danger,
-      TaskEventStatus.cancelled => TermexColors.warning,
-      TaskEventStatus.running => TermexColors.primary,
-      TaskEventStatus.pending => TermexColors.textMuted,
-      TaskEventStatus.pendingConfirmation => TermexColors.warning,
+      TaskEventStatus.succeeded => context.colors.success,
+      TaskEventStatus.failed => context.colors.danger,
+      TaskEventStatus.cancelled => context.colors.warning,
+      TaskEventStatus.running => context.colors.primary,
+      TaskEventStatus.pending => context.colors.textMuted,
+      TaskEventStatus.pendingConfirmation => context.colors.warning,
     };
     final label = switch (event!.status) {
       TaskEventStatus.succeeded => l10n.taskDetailStatusSucceeded,
@@ -211,14 +211,14 @@ class _SummaryBlock extends StatelessWidget {
     return Container(
       padding: const EdgeInsets.all(12),
       decoration: BoxDecoration(
-        color: TermexColors.backgroundSecondary,
-        border: Border.all(color: TermexColors.border),
+        color: context.colors.backgroundSecondary,
+        border: Border.all(color: context.colors.border),
         borderRadius: BorderRadius.circular(6),
       ),
       child: Text(
         text,
         style: TermexTypography.body.copyWith(
-          color: TermexColors.textPrimary,
+          color: context.colors.textPrimary,
         ),
       ),
     );
@@ -237,14 +237,14 @@ class _PendingSection extends StatelessWidget {
       padding: const EdgeInsets.all(12),
       decoration: BoxDecoration(
         border: Border.all(
-          color: TermexColors.border,
+          color: context.colors.border,
           style: BorderStyle.solid,
         ),
         borderRadius: BorderRadius.circular(6),
       ),
       child: Text(
         label,
-        style: TermexTypography.caption.copyWith(color: TermexColors.textMuted),
+        style: TermexTypography.caption.copyWith(color: context.colors.textMuted),
       ),
     );
   }

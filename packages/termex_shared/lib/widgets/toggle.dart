@@ -55,10 +55,16 @@ class _TermexToggleState extends State<TermexToggle>
         curve: const Cubic(0.33, 1.0, 0.68, 1.0),
       ),
     );
+  }
 
+  // Resolved here rather than in initState: the tween's end colour comes from
+  // the active theme, and this also re-runs when the theme scope changes.
+  @override
+  void didChangeDependencies() {
+    super.didChangeDependencies();
     _trackColor = ColorTween(
       begin: const Color(0x00000000),
-      end: TermexColors.primary,
+      end: context.colors.primary,
     ).animate(_controller);
   }
 
@@ -99,8 +105,8 @@ class _TermexToggleState extends State<TermexToggle>
             borderRadius: TermexRadius.full,
             border: Border.all(
               color: widget.value
-                  ? TermexColors.primary
-                  : TermexColors.border,
+                  ? context.colors.primary
+                  : context.colors.border,
               width: 1,
             ),
           ),
@@ -115,7 +121,7 @@ class _TermexToggleState extends State<TermexToggle>
                   decoration: BoxDecoration(
                     color: widget.value
                         ? const Color(0xFFFFFFFF)
-                        : TermexColors.textMuted,
+                        : context.colors.textMuted,
                     shape: BoxShape.circle,
                   ),
                 ),
@@ -132,8 +138,8 @@ class _TermexToggleState extends State<TermexToggle>
         widget.label!,
         style: TermexTypography.body.copyWith(
           color: widget.disabled
-              ? TermexColors.textSecondary
-              : TermexColors.textPrimary,
+              ? context.colors.textSecondary
+              : context.colors.textPrimary,
         ),
       );
       content = Row(

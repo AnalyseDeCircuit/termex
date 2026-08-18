@@ -12,6 +12,7 @@ import 'package:termex_shared/features/server_list/models/server_dto.dart';
 import 'package:termex_shared/features/server_list/server_list_page.dart';
 import 'package:termex_shared/features/server_list/widgets/server_form_dialog.dart';
 import 'package:termex_shared/features/snippet/snippet_library.dart';
+import 'package:termex_shared/features/snippet/widgets/snippet_category_filter.dart';
 import 'package:termex_shared/widgets/bottom_bar.dart';
 import 'package:termex_shared/widgets/clickable.dart';
 
@@ -121,7 +122,7 @@ class _MobileShellState extends ConsumerState<MobileShell> {
     final useSideRail = mediaQuery.size.width >= 900;
 
     return Container(
-      color: TermexColors.backgroundPrimary,
+      color: context.colors.backgroundPrimary,
       child: useSideRail
           ? _buildSideRailLayout(safePadding)
           : _buildBottomBarLayout(safePadding),
@@ -170,7 +171,7 @@ class _MobileShellState extends ConsumerState<MobileShell> {
           ),
           Container(
             width: 1,
-            color: TermexColors.border,
+            color: context.colors.border,
           ),
           Expanded(child: _tabBody()),
         ],
@@ -196,7 +197,7 @@ class _NavRail extends StatelessWidget {
     return SizedBox(
       width: 80,
       child: ColoredBox(
-        color: TermexColors.backgroundSecondary,
+        color: context.colors.backgroundSecondary,
         child: Column(
           children: [
             const SizedBox(height: 16),
@@ -230,7 +231,7 @@ class _NavRailItem extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     final color =
-        selected ? TermexColors.primary : TermexColors.textSecondary;
+        selected ? context.colors.primary : context.colors.textSecondary;
     return Semantics(
       button: true,
       selected: selected,
@@ -327,7 +328,13 @@ class _TerminalTabState extends ConsumerState<_TerminalTab> {
     return _TabletSplitTab(
       leftPane: Column(
         children: [
-          _TerminalTabHeader(title: title, onAddServer: onAdd),
+          _TerminalTabHeader(
+            title: title,
+            onAddServer: onAdd,
+            titleTrailing: _category == _MobileSidebarCategory.snippets
+                ? const SnippetCategoryFilter()
+                : null,
+          ),
           _MobileSidebarTabs(
             active: _category,
             onSelect: (c) => setState(() => _category = c),
@@ -452,23 +459,23 @@ class _AiTabRoot extends StatelessWidget {
                   vertical: 6,
                 ),
                 decoration: BoxDecoration(
-                  color: TermexColors.backgroundSecondary.withValues(alpha: 0.9),
-                  border: Border.all(color: TermexColors.border),
+                  color: context.colors.backgroundSecondary.withValues(alpha: 0.9),
+                  border: Border.all(color: context.colors.border),
                   borderRadius: BorderRadius.circular(14),
                 ),
                 child: Row(
                   mainAxisSize: MainAxisSize.min,
                   children: [
-                    const Icon(
+                    Icon(
                       TermexIcons.history,
                       size: 14,
-                      color: TermexColors.textSecondary,
+                      color: context.colors.textSecondary,
                     ),
                     const SizedBox(width: 6),
                     Text(
                       l10n.taskHistoryEntryAction,
                       style: TermexTypography.caption.copyWith(
-                        color: TermexColors.textSecondary,
+                        color: context.colors.textSecondary,
                       ),
                     ),
                   ],
@@ -509,7 +516,7 @@ class _TabletSplitTab extends StatelessWidget {
       crossAxisAlignment: CrossAxisAlignment.stretch,
       children: [
         SizedBox(width: 280, child: leftPane),
-        Container(width: 1, color: TermexColors.border),
+        Container(width: 1, color: context.colors.border),
         Expanded(child: rightPane),
       ],
     );
@@ -523,14 +530,14 @@ class _EmptyDetailPane extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     return Container(
-      color: TermexColors.backgroundPrimary,
+      color: context.colors.backgroundPrimary,
       alignment: Alignment.center,
       padding: const EdgeInsets.symmetric(horizontal: 24),
       child: Text(
         message,
         textAlign: TextAlign.center,
         style: TermexTypography.body.copyWith(
-          color: TermexColors.textSecondary,
+          color: context.colors.textSecondary,
         ),
       ),
     );
@@ -605,6 +612,9 @@ class _ServerListScreenState extends ConsumerState<_ServerListScreen> {
             _MobileSidebarCategory.snippets => l10n.sidebarSnippets,
           },
           onAddServer: onAdd,
+          titleTrailing: _category == _MobileSidebarCategory.snippets
+              ? const SnippetCategoryFilter()
+              : null,
         ),
         _MobileSidebarTabs(
           active: _category,
@@ -643,9 +653,9 @@ class _MobileSidebarTabs extends StatelessWidget {
     final l10n = AppLocalizations.of(context);
     return Container(
       height: 40,
-      decoration: const BoxDecoration(
-        color: TermexColors.backgroundSecondary,
-        border: Border(bottom: BorderSide(color: TermexColors.border)),
+      decoration: BoxDecoration(
+        color: context.colors.backgroundSecondary,
+        border: Border(bottom: BorderSide(color: context.colors.border)),
       ),
       child: Row(
         children: [
@@ -689,7 +699,7 @@ class _MobileSidebarTab extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     final color =
-        active ? TermexColors.primary : TermexColors.textSecondary;
+        active ? context.colors.primary : context.colors.textSecondary;
     return Expanded(
       child: Clickable(
         behavior: HitTestBehavior.opaque,
@@ -699,7 +709,7 @@ class _MobileSidebarTab extends StatelessWidget {
             border: Border(
               bottom: BorderSide(
                 color: active
-                    ? TermexColors.primary
+                    ? context.colors.primary
                     : const Color(0x00000000),
                 width: 2,
               ),
@@ -729,9 +739,16 @@ class _MobileSidebarTab extends StatelessWidget {
 class _TerminalTabHeader extends StatelessWidget {
   final String title;
   final VoidCallback? onAddServer;
+
+  /// Optional control rendered immediately after the title — the snippet
+  /// panel puts its multi-select category filter here, matching where the
+  /// desktop sidebar mounts it in `_CategorySectionHeader`.
+  final Widget? titleTrailing;
+
   const _TerminalTabHeader({
     required this.title,
     this.onAddServer,
+    this.titleTrailing,
   });
 
   @override
@@ -739,18 +756,22 @@ class _TerminalTabHeader extends StatelessWidget {
     return Container(
       height: MobileTokens.navBarHeight,
       padding: const EdgeInsets.symmetric(horizontal: 16),
-      decoration: const BoxDecoration(
-        color: TermexColors.backgroundSecondary,
-        border: Border(bottom: BorderSide(color: TermexColors.border)),
+      decoration: BoxDecoration(
+        color: context.colors.backgroundSecondary,
+        border: Border(bottom: BorderSide(color: context.colors.border)),
       ),
       child: Row(
         children: [
           Text(
             title,
             style: TermexTypography.heading3.copyWith(
-              color: TermexColors.textPrimary,
+              color: context.colors.textPrimary,
             ),
           ),
+          if (titleTrailing != null) ...[
+            const SizedBox(width: 10),
+            Flexible(child: titleTrailing!),
+          ],
           const Spacer(),
           if (onAddServer != null)
             Clickable(
@@ -760,10 +781,10 @@ class _TerminalTabHeader extends StatelessWidget {
                 width: MobileTokens.minTouchTarget,
                 height: MobileTokens.minTouchTarget,
                 alignment: Alignment.center,
-                child: const Icon(
+                child: Icon(
                   TermexIcons.add,
                   size: 24,
-                  color: TermexColors.primary,
+                  color: context.colors.primary,
                 ),
               ),
             ),

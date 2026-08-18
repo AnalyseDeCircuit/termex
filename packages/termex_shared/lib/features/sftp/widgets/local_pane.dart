@@ -48,8 +48,37 @@ class _LocalPaneState extends ConsumerState<LocalPane> {
     // request was never sent, the 20s timeout never armed, and the `finally`
     // that clears the spinner never ran. The pane span forever.
     WidgetsBinding.instance.addPostFrameCallback((_) {
-      if (mounted) _loadCurrentDir();
+      if (mounted) _openHomeThenLoad();
     });
+  }
+
+  /// Resolves the real home directory before the first listing.
+  ///
+  /// `SftpPaneNotifier._homeDir()` returns the literal `'/'` as a placeholder,
+  /// with a comment saying LocalPane would call `navigateLocal` after boot —
+  /// which never happened, so the pane opened on the filesystem root and
+  /// stayed there. That was not just cosmetic: the drop handler builds the
+  /// destination from the opposite pane's `currentPath`, so every download
+  /// targeted `/<name>` and failed with "Read-only file system (os error 30)"
+  /// on macOS, and dragging out of `/` picked up unreadable system entries
+  /// like `/.file` ("Permission denied (os error 13)").
+  Future<void> _openHomeThenLoad() async {
+    final pane = ref.read(sftpPaneProvider(widget.sessionId));
+    if (pane.local.currentPath == '/') {
+      try {
+        final home = await bridge.localHomeDir();
+        if (!mounted) return;
+        if (home.isNotEmpty && home != '/') {
+          ref
+              .read(sftpPaneProvider(widget.sessionId).notifier)
+              .navigateLocal(home);
+        }
+      } catch (_) {
+        // Home is unresolvable (headless container, odd HOME) — fall back to
+        // listing `/` rather than leaving the pane blank.
+      }
+    }
+    if (mounted) await _loadCurrentDir();
   }
 
   Future<void> _loadCurrentDir() async {
@@ -92,6 +121,27 @@ class _LocalPaneState extends ConsumerState<LocalPane> {
 
   @override
   Widget build(BuildContext context) {
+    // Reload once a transfer that wrote into this pane finishes. Nothing
+    // watched completion before, so an uploaded/downloaded file only appeared
+    // after a manual refresh or a directory change.
+    ref.listen<SftpTransferState>(
+      sftpTransferProvider(widget.sessionId),
+      (prev, next) {
+        final before = prev?.items
+                .where((t) => t.status == TransferStatus.completed)
+                .length ??
+            0;
+        final after = next.items
+            .where((t) => t.status == TransferStatus.completed)
+            .length;
+        if (after <= before) return;
+        final landedHere = next.items.any((t) =>
+            t.status == TransferStatus.completed &&
+            t.direction == TransferDirection.download);
+        if (landedHere) _loadCurrentDir();
+      },
+    );
+
     final paneState = ref.watch(sftpPaneProvider(widget.sessionId));
     final local = paneState.local;
 
@@ -112,17 +162,34 @@ class _LocalPaneState extends ConsumerState<LocalPane> {
           ),
           const FileListHeader(),
           Expanded(
-            child: _DraggableFileList(
-              sessionId: widget.sessionId,
+            child: FileList(
               entries: _entries,
               selectedNames: local.selectedNames,
               isLoading: local.isLoading,
               errorMessage: local.errorMessage,
-              side: DragSide.local,
-              currentPath: local.currentPath,
+              // Only files are draggable: the transfer queue has no
+              // recursive directory walk, so a dragged folder would
+              // enqueue a transfer that cannot complete. Matches the
+              // double-tap rule, which also only downloads files.
+              rowWrapper: (entry, row) => entry.isDirectory
+                  ? row
+                  : wrapRowDraggable(
+                      entry: entry,
+                      row: row,
+                      side: DragSide.local,
+                      absolutePath:
+                          sftpJoin(local.currentPath, entry.name),
+                    ),
               onToggleSelect: (name) => ref
                   .read(sftpPaneProvider(widget.sessionId).notifier)
                   .toggleLocalSelection(name),
+              onSelectOnly: (name) => ref
+                  .read(sftpPaneProvider(widget.sessionId).notifier)
+                  .selectLocalOnly(name),
+              onSelectAll: () => ref
+                  .read(sftpPaneProvider(widget.sessionId).notifier)
+                  .selectAllLocal(_viewEntries().map((e) => e.name)),
+              onRefresh: _loadCurrentDir,
               onOpen: (entry) async {
                 if (entry.isDirectory) {
                   ref
@@ -206,47 +273,5 @@ class _LocalPaneState extends ConsumerState<LocalPane> {
       default:
         break;
     }
-  }
-}
-
-// ── Draggable file list ───────────────────────────────────────────────────────
-
-class _DraggableFileList extends StatelessWidget {
-  final String sessionId;
-  final List<FileRowData> entries;
-  final Set<String> selectedNames;
-  final bool isLoading;
-  final String? errorMessage;
-  final DragSide side;
-  final String currentPath;
-  final ValueChanged<String> onToggleSelect;
-  final ValueChanged<FileRowData> onOpen;
-  final void Function(FileRowData, FileAction) onAction;
-
-  const _DraggableFileList({
-    required this.sessionId,
-    required this.entries,
-    required this.selectedNames,
-    required this.isLoading,
-    this.errorMessage,
-    required this.side,
-    required this.currentPath,
-    required this.onToggleSelect,
-    required this.onOpen,
-    required this.onAction,
-  });
-
-  @override
-  Widget build(BuildContext context) {
-    // Delegate loading/error/empty states to FileList, then override itemBuilder.
-    return FileList(
-      entries: entries,
-      selectedNames: selectedNames,
-      isLoading: isLoading,
-      errorMessage: errorMessage,
-      onToggleSelect: onToggleSelect,
-      onOpen: onOpen,
-      onAction: onAction,
-    );
   }
 }

@@ -27,10 +27,11 @@ class TermexBadge extends StatelessWidget {
     return '$count';
   }
 
-  Color get _badgeColor => TermexColors.danger;
+  Color _badgeColor(TermexColorScheme colors) => colors.danger;
 
   @override
   Widget build(BuildContext context) {
+    final badgeColor = _badgeColor(context.colors);
     Widget? badge;
 
     if (variant == BadgeVariant.dot || dot) {
@@ -38,7 +39,7 @@ class TermexBadge extends StatelessWidget {
         width: 8,
         height: 8,
         decoration: BoxDecoration(
-          color: _badgeColor,
+          color: badgeColor,
           shape: BoxShape.circle,
         ),
       );
@@ -48,7 +49,7 @@ class TermexBadge extends StatelessWidget {
         constraints: const BoxConstraints(minWidth: 18, minHeight: 18),
         padding: const EdgeInsets.symmetric(horizontal: 4),
         decoration: BoxDecoration(
-          color: _badgeColor,
+          color: badgeColor,
           borderRadius: TermexRadius.full,
         ),
         alignment: Alignment.center,

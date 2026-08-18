@@ -31,8 +31,8 @@ class UpdateNotificationBanner extends ConsumerWidget {
     if (!visible) return const SizedBox.shrink();
 
     final color = status.stage == UpdateStage.ready
-        ? TermexColors.success
-        : TermexColors.primary;
+        ? context.colors.success
+        : context.colors.primary;
     final label = status.stage == UpdateStage.ready
         ? '更新已就绪 v${status.newVersion ?? ""} — 点击重启'
         : '有可用更新 v${status.newVersion ?? ""}';

@@ -87,20 +87,20 @@ class _TermexCheckboxState extends State<TermexCheckbox>
         width: 16,
         height: 16,
         decoration: BoxDecoration(
-          color: filled ? TermexColors.primary : const Color(0x00000000),
+          color: filled ? context.colors.primary : const Color(0x00000000),
           border: Border.all(
             color: filled
-                ? TermexColors.primary
+                ? context.colors.primary
                 : _focused
-                    ? TermexColors.borderFocus
-                    : TermexColors.border,
+                    ? context.colors.borderFocus
+                    : context.colors.border,
             width: _focused && !filled ? 2 : 1,
           ),
           borderRadius: TermexRadius.sm,
           boxShadow: _focused
               ? [
                   BoxShadow(
-                    color: TermexColors.primary.withOpacity(0.3),
+                    color: context.colors.primary.withOpacity(0.3),
                     blurRadius: 0,
                     spreadRadius: 2,
                   )
@@ -126,8 +126,8 @@ class _TermexCheckboxState extends State<TermexCheckbox>
             widget.label!,
             style: TermexTypography.body.copyWith(
               color: widget.disabled
-                  ? TermexColors.textSecondary
-                  : TermexColors.textPrimary,
+                  ? context.colors.textSecondary
+                  : context.colors.textPrimary,
             ),
           ),
         ],

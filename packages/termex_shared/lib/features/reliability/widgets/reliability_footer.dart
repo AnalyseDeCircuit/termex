@@ -27,11 +27,12 @@ class ReliabilityFooter extends StatelessWidget {
     if (!visible) return const SizedBox.shrink();
     final m = metrics;
     if (m == null) {
-      return _row('No metrics recorded yet.');
+      return _row(context, 'No metrics recorded yet.');
     }
     final pushLabel =
         m.pushLatencyMs == null ? '—' : '${m.pushLatencyMs}ms';
     return _row(
+      context,
       'WS ${formatDurationMs(m.wsUptimeMs)} · '
       'Reconnects ${m.reconnectCount} · '
       'BG ${formatDurationMs(m.bgDurationMs)} · '
@@ -40,17 +41,17 @@ class ReliabilityFooter extends StatelessWidget {
     );
   }
 
-  Widget _row(String label) => Container(
+  Widget _row(BuildContext context, String label) => Container(
         width: double.infinity,
         padding: const EdgeInsets.symmetric(
           horizontal: TermexSpacing.md,
           vertical: TermexSpacing.xs,
         ),
-        color: TermexColors.backgroundSecondary,
+        color: context.colors.backgroundSecondary,
         child: Text(
           label,
           style: TermexTypography.caption.copyWith(
-            color: TermexColors.textMuted,
+            color: context.colors.textMuted,
           ),
           maxLines: 1,
           overflow: TextOverflow.ellipsis,

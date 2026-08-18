@@ -6,7 +6,12 @@ import '../server_list/widgets/server_search_bar.dart';
 import '../sidebar_search.dart';
 
 import '../../design/tokens.dart';
+import '../../icons/termex_icons.dart';
+import '../../l10n/app_localizations.dart';
 import '../../widgets/clickable.dart';
+import '../../widgets/menu.dart';
+import '../../widgets/panel_context_menu.dart';
+import '../../widgets/toast.dart';
 import 'state/proxy_provider.dart';
 
 /// Proxy configuration panel — list proxies, add/delete, set default, test.
@@ -54,8 +59,26 @@ class _ProxyPanelState extends ConsumerState<ProxyPanel> {
                 p.proxyType.name.toLowerCase().contains(q))
             .toList(growable: false);
 
-    return Container(
-      color: TermexColors.backgroundPrimary,
+    return GestureDetector(
+      behavior: HitTestBehavior.opaque,
+      onSecondaryTapUp: (d) => showContextMenu(
+        context: context,
+        position: d.globalPosition,
+        items: [
+          MenuItem(
+            label: AppLocalizations.of(context).proxyNewTitle,
+            icon: menuIcon(context, TermexIcons.add),
+            onSelected: () => AddProxyDialog.show(context),
+          ),
+          MenuItem(
+            label: AppLocalizations.of(context).commonRefresh,
+            icon: menuIcon(context, TermexIcons.refresh),
+            onSelected: () => ref.read(proxyProvider.notifier).loadProxies(),
+          ),
+        ],
+      ),
+      child: Container(
+      color: context.colors.backgroundPrimary,
       child: Column(
         children: [
           // v0.79.59: the inline "Proxy + Add Proxy" header was removed —
@@ -84,6 +107,7 @@ class _ProxyPanelState extends ConsumerState<ProxyPanel> {
                         proxies: visible, testingId: state.testingId),
           ),
         ],
+      ),
       ),
     );
   }
@@ -133,16 +157,21 @@ class _ProxyRow extends ConsumerWidget {
   @override
   Widget build(BuildContext context, WidgetRef ref) {
     final n = ref.read(proxyProvider.notifier);
-    return Container(
+    return GestureDetector(
+      behavior: HitTestBehavior.opaque,
+      // Consumes the gesture, so the panel-level blank-area menu does not
+      // also fire when the click lands on a row.
+      onSecondaryTapUp: (d) => _showRowMenu(context, ref, d.globalPosition),
+      child: Container(
       margin: const EdgeInsets.only(bottom: 8),
       padding: const EdgeInsets.all(12),
       decoration: BoxDecoration(
-        color: TermexColors.backgroundSecondary,
+        color: context.colors.backgroundSecondary,
         borderRadius: BorderRadius.circular(6),
         border: Border.all(
           color: proxy.isDefault
-              ? TermexColors.primary.withOpacity(0.5)
-              : TermexColors.border,
+              ? context.colors.primary.withOpacity(0.5)
+              : context.colors.border,
         ),
       ),
       child: Row(
@@ -156,9 +185,9 @@ class _ProxyRow extends ConsumerWidget {
                 Row(
                   children: [
                     Text(proxy.address,
-                        style: const TextStyle(
+                        style: TextStyle(
                             fontSize: 13,
-                            color: TermexColors.textPrimary,
+                            color: context.colors.textPrimary,
                             fontFamily: 'monospace')),
                     if (proxy.isDefault) ...[
                       const SizedBox(width: 8),
@@ -166,13 +195,13 @@ class _ProxyRow extends ConsumerWidget {
                         padding: const EdgeInsets.symmetric(
                             horizontal: 5, vertical: 1),
                         decoration: BoxDecoration(
-                          color: TermexColors.primary.withOpacity(0.15),
+                          color: context.colors.primary.withOpacity(0.15),
                           borderRadius: BorderRadius.circular(3),
                         ),
-                        child: const Text('Default',
+                        child: Text('Default',
                             style: TextStyle(
                                 fontSize: 9,
-                                color: TermexColors.primary,
+                                color: context.colors.primary,
                                 fontWeight: FontWeight.w600)),
                       ),
                     ],
@@ -180,17 +209,17 @@ class _ProxyRow extends ConsumerWidget {
                 ),
                 if (proxy.username != null)
                   Text('User: ${proxy.username}',
-                      style: const TextStyle(
-                          fontSize: 11, color: TermexColors.textSecondary)),
+                      style: TextStyle(
+                          fontSize: 11, color: context.colors.textSecondary)),
               ],
             ),
           ),
           if (isTesting)
-            const SizedBox(
+            SizedBox(
               width: 16,
               height: 16,
               child: CircularProgressIndicator(
-                  strokeWidth: 1.5, color: TermexColors.primary),
+                  strokeWidth: 1.5, color: context.colors.primary),
             )
           else ...[
             if (!proxy.isDefault)
@@ -207,15 +236,57 @@ class _ProxyRow extends ConsumerWidget {
             InkWell(
               borderRadius: BorderRadius.circular(4),
               onTap: () => _delete(context, ref),
-              child: const Padding(
-                padding: EdgeInsets.all(4),
+              child: Padding(
+                padding: const EdgeInsets.all(4),
                 child: Icon(Icons.delete_outline,
-                    size: 14, color: TermexColors.danger),
+                    size: 14, color: context.colors.danger),
               ),
             ),
           ],
         ],
       ),
+      ),
+    );
+  }
+
+  /// Row menu. Mirrors the inline buttons so the actions stay reachable when
+  /// the sidebar is narrow enough to clip them, and adds copy-address.
+  void _showRowMenu(BuildContext context, WidgetRef ref, Offset position) {
+    final l10n = AppLocalizations.of(context);
+    final n = ref.read(proxyProvider.notifier);
+    showContextMenu(
+      context: context,
+      position: position,
+      items: [
+        if (!proxy.isDefault)
+          MenuItem(
+            label: l10n.ctxProxySetDefault,
+            icon: menuIcon(context, TermexIcons.check),
+            onSelected: () => n.setDefault(proxy.id),
+          ),
+        MenuItem(
+          label: l10n.ctxProxyTest,
+          icon: menuIcon(context, TermexIcons.connect),
+          // Already running for this proxy — a second request would just
+          // race the first.
+          disabled: isTesting,
+          onSelected: isTesting ? null : () => n.testConnection(proxy.id),
+        ),
+        MenuItem(
+          label: l10n.ctxProxyCopyAddress,
+          icon: menuIcon(context, TermexIcons.copy),
+          onSelected: () {
+            Clipboard.setData(ClipboardData(text: proxy.address));
+            ToastController.success(l10n.ctxCopied);
+          },
+        ),
+        const MenuItem.separator(),
+        deleteMenuItem(
+          context,
+          label: l10n.ctxProxyDelete,
+          onSelected: () => _delete(context, ref),
+        ),
+      ],
     );
   }
 
@@ -223,27 +294,28 @@ class _ProxyRow extends ConsumerWidget {
     showDialog<void>(
       context: context,
       builder: (_) => AlertDialog(
-        backgroundColor: TermexColors.backgroundSecondary,
-        title: const Text('Remove Proxy',
-            style: TextStyle(color: TermexColors.textPrimary, fontSize: 14)),
+        backgroundColor: context.colors.backgroundSecondary,
+        title: Text('Remove Proxy',
+            style:
+                TextStyle(color: context.colors.textPrimary, fontSize: 14)),
         content: Text(
           'Remove proxy ${proxy.address}?',
-          style: const TextStyle(
-              color: TermexColors.textSecondary, fontSize: 13),
+          style: TextStyle(
+              color: context.colors.textSecondary, fontSize: 13),
         ),
         actions: [
           TextButton(
             onPressed: () => Navigator.pop(context),
-            child: const Text('Cancel',
-                style: TextStyle(color: TermexColors.textSecondary)),
+            child: Text('Cancel',
+                style: TextStyle(color: context.colors.textSecondary)),
           ),
           TextButton(
             onPressed: () {
               Navigator.pop(context);
               ref.read(proxyProvider.notifier).deleteProxy(proxy.id);
             },
-            child: const Text('Remove',
-                style: TextStyle(color: TermexColors.danger)),
+            child: Text('Remove',
+                style: TextStyle(color: context.colors.danger)),
           ),
         ],
       ),
@@ -256,31 +328,34 @@ class _TypeBadge extends StatelessWidget {
 
   const _TypeBadge({required this.type});
 
-  Color get _color {
+  Color _colorOf(TermexColorScheme colors) {
     switch (type) {
       case ProxyType.socks5:
-        return TermexColors.primary;
+        return colors.primary;
       case ProxyType.http:
-        return TermexColors.warning;
+        return colors.warning;
       case ProxyType.tor:
-        return TermexColors.success;
+        return colors.success;
     }
   }
 
   @override
-  Widget build(BuildContext context) => Container(
-        padding: const EdgeInsets.symmetric(horizontal: 6, vertical: 2),
-        decoration: BoxDecoration(
-          color: _color.withOpacity(0.15),
-          borderRadius: BorderRadius.circular(3),
-          border: Border.all(color: _color.withOpacity(0.4)),
-        ),
-        child: Text(
-          type.label,
-          style: TextStyle(
-              fontSize: 10, color: _color, fontWeight: FontWeight.w600),
-        ),
-      );
+  Widget build(BuildContext context) {
+    final color = _colorOf(context.colors);
+    return Container(
+      padding: const EdgeInsets.symmetric(horizontal: 6, vertical: 2),
+      decoration: BoxDecoration(
+        color: color.withOpacity(0.15),
+        borderRadius: BorderRadius.circular(3),
+        border: Border.all(color: color.withOpacity(0.4)),
+      ),
+      child: Text(
+        type.label,
+        style: TextStyle(
+            fontSize: 10, color: color, fontWeight: FontWeight.w600),
+      ),
+    );
+  }
 }
 
 // ─── Add Proxy Dialog ─────────────────────────────────────────────────────────
@@ -333,18 +408,18 @@ class _AddProxyDialogState extends ConsumerState<_AddProxyDialog> {
   @override
   Widget build(BuildContext context) {
     return AlertDialog(
-      backgroundColor: TermexColors.backgroundSecondary,
-      title: const Text('Add Proxy',
-          style: TextStyle(color: TermexColors.textPrimary, fontSize: 14)),
+      backgroundColor: context.colors.backgroundSecondary,
+      title: Text('Add Proxy',
+          style: TextStyle(color: context.colors.textPrimary, fontSize: 14)),
       content: SizedBox(
         width: 340,
         child: Column(
           mainAxisSize: MainAxisSize.min,
           crossAxisAlignment: CrossAxisAlignment.start,
           children: [
-            const Text('Protocol',
-                style:
-                    TextStyle(fontSize: 11, color: TermexColors.textSecondary)),
+            Text('Protocol',
+                style: TextStyle(
+                    fontSize: 11, color: context.colors.textSecondary)),
             const SizedBox(height: 6),
             // Material DropdownButton overflows the dialog on macOS — only
             // 3 protocols, render them inline as toggle chips instead.
@@ -366,8 +441,8 @@ class _AddProxyDialogState extends ConsumerState<_AddProxyDialog> {
               child: TextField(
                 controller: _host,
                 autofocus: true,
-                style: const TextStyle(
-                    color: TermexColors.textPrimary, fontSize: 13),
+                style: TextStyle(
+                    color: context.colors.textPrimary, fontSize: 13),
                 decoration: _inputDeco('127.0.0.1'),
               ),
             ),
@@ -378,8 +453,8 @@ class _AddProxyDialogState extends ConsumerState<_AddProxyDialog> {
                 controller: _port,
                 keyboardType: TextInputType.number,
                 inputFormatters: [FilteringTextInputFormatter.digitsOnly],
-                style: const TextStyle(
-                    color: TermexColors.textPrimary, fontSize: 13),
+                style: TextStyle(
+                    color: context.colors.textPrimary, fontSize: 13),
                 decoration: _inputDeco('1080'),
               ),
             ),
@@ -388,8 +463,8 @@ class _AddProxyDialogState extends ConsumerState<_AddProxyDialog> {
               label: 'Username (optional)',
               child: TextField(
                 controller: _user,
-                style: const TextStyle(
-                    color: TermexColors.textPrimary, fontSize: 13),
+                style: TextStyle(
+                    color: context.colors.textPrimary, fontSize: 13),
                 decoration: _inputDeco(''),
               ),
             ),
@@ -402,8 +477,8 @@ class _AddProxyDialogState extends ConsumerState<_AddProxyDialog> {
               child: TextField(
                 controller: _pass,
                 obscureText: !_showPassword,
-                style: const TextStyle(
-                    color: TermexColors.textPrimary, fontSize: 13),
+                style: TextStyle(
+                    color: context.colors.textPrimary, fontSize: 13),
                 decoration: _inputDeco('').copyWith(
                   suffixIcon: Clickable(
                     onTap: () =>
@@ -415,7 +490,7 @@ class _AddProxyDialogState extends ConsumerState<_AddProxyDialog> {
                             ? Icons.visibility_off_outlined
                             : Icons.visibility_outlined,
                         size: 16,
-                        color: TermexColors.textMuted,
+                        color: context.colors.textMuted,
                       ),
                     ),
                   ),
@@ -425,8 +500,8 @@ class _AddProxyDialogState extends ConsumerState<_AddProxyDialog> {
             if (_err != null) ...[
               const SizedBox(height: 10),
               Text(_err!,
-                  style: const TextStyle(
-                      fontSize: 11, color: TermexColors.danger)),
+                  style: TextStyle(
+                      fontSize: 11, color: context.colors.danger)),
             ],
           ],
         ),
@@ -434,13 +509,13 @@ class _AddProxyDialogState extends ConsumerState<_AddProxyDialog> {
       actions: [
         TextButton(
           onPressed: () => Navigator.pop(context),
-          child: const Text('Cancel',
-              style: TextStyle(color: TermexColors.textSecondary)),
+          child: Text('Cancel',
+              style: TextStyle(color: context.colors.textSecondary)),
         ),
         TextButton(
           onPressed: _submit,
-          child: const Text('Add',
-              style: TextStyle(color: TermexColors.primary)),
+          child: Text('Add',
+              style: TextStyle(color: context.colors.primary)),
         ),
       ],
     );
@@ -448,13 +523,13 @@ class _AddProxyDialogState extends ConsumerState<_AddProxyDialog> {
 
   InputDecoration _inputDeco(String hint) => InputDecoration(
         hintText: hint,
-        hintStyle: const TextStyle(color: TermexColors.textMuted),
+        hintStyle: TextStyle(color: context.colors.textMuted),
         contentPadding:
             const EdgeInsets.symmetric(horizontal: 8, vertical: 8),
-        enabledBorder: const OutlineInputBorder(
-            borderSide: BorderSide(color: TermexColors.border)),
-        focusedBorder: const OutlineInputBorder(
-            borderSide: BorderSide(color: TermexColors.primary)),
+        enabledBorder: OutlineInputBorder(
+            borderSide: BorderSide(color: context.colors.border)),
+        focusedBorder: OutlineInputBorder(
+            borderSide: BorderSide(color: context.colors.primary)),
       );
 }
 
@@ -469,8 +544,8 @@ class _FieldRow extends StatelessWidget {
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
           Text(label,
-              style: const TextStyle(
-                  fontSize: 11, color: TermexColors.textSecondary)),
+              style: TextStyle(
+                  fontSize: 11, color: context.colors.textSecondary)),
           const SizedBox(height: 4),
           child,
         ],
@@ -498,18 +573,20 @@ class _ProtocolChip extends StatelessWidget {
               const EdgeInsets.symmetric(horizontal: 10, vertical: 5),
           decoration: BoxDecoration(
             color: active
-                ? TermexColors.primary.withValues(alpha: 0.12)
-                : TermexColors.backgroundTertiary,
+                ? context.colors.primary.withValues(alpha: 0.12)
+                : context.colors.backgroundTertiary,
             borderRadius: BorderRadius.circular(4),
             border: Border.all(
-              color: active ? TermexColors.primary : TermexColors.border,
+              color: active ? context.colors.primary : context.colors.border,
             ),
           ),
           child: Text(
             label,
             style: TextStyle(
               fontSize: 12,
-              color: active ? TermexColors.primary : TermexColors.textPrimary,
+              color: active
+                  ? context.colors.primary
+                  : context.colors.textPrimary,
               fontWeight: active ? FontWeight.w600 : FontWeight.normal,
             ),
           ),
@@ -525,11 +602,11 @@ class _EmptyState extends StatelessWidget {
         child: Column(
           mainAxisSize: MainAxisSize.min,
           children: [
-            const Icon(Icons.security, size: 36, color: TermexColors.textMuted),
+            Icon(Icons.security, size: 36, color: context.colors.textMuted),
             const SizedBox(height: 12),
-            const Text('No proxies configured',
+            Text('No proxies configured',
                 style: TextStyle(
-                    color: TermexColors.textSecondary, fontSize: 13)),
+                    color: context.colors.textSecondary, fontSize: 13)),
             const SizedBox(height: 12),
             TextButton.icon(
               onPressed: () => showDialog<void>(
@@ -538,7 +615,8 @@ class _EmptyState extends StatelessWidget {
               ),
               icon: const Icon(Icons.add, size: 14),
               label: const Text('Add Proxy'),
-              style: TextButton.styleFrom(foregroundColor: TermexColors.primary),
+              style: TextButton.styleFrom(
+                  foregroundColor: context.colors.primary),
             ),
           ],
         ),
@@ -555,14 +633,14 @@ class _ErrorBanner extends StatelessWidget {
   @override
   Widget build(BuildContext context) => Container(
         padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 8),
-        color: TermexColors.danger.withOpacity(0.15),
+        color: context.colors.danger.withOpacity(0.15),
         child: Row(children: [
-          const Icon(Icons.error_outline, size: 14, color: TermexColors.danger),
+          Icon(Icons.error_outline, size: 14, color: context.colors.danger),
           const SizedBox(width: 8),
           Expanded(
               child: Text(message,
-                  style: const TextStyle(
-                      fontSize: 12, color: TermexColors.danger))),
+                  style: TextStyle(
+                      fontSize: 12, color: context.colors.danger))),
         ]),
       );
 }
@@ -577,7 +655,7 @@ class _SmallBtn extends StatelessWidget {
   Widget build(BuildContext context) => TextButton(
         onPressed: onTap,
         style: TextButton.styleFrom(
-          foregroundColor: TermexColors.primary,
+          foregroundColor: context.colors.primary,
           padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 4),
           minimumSize: Size.zero,
           tapTargetSize: MaterialTapTargetSize.shrinkWrap,

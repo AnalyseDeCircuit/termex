@@ -166,9 +166,9 @@ class _PopoverShell extends StatelessWidget {
   Widget build(BuildContext context) {
     return Container(
       decoration: BoxDecoration(
-        color: TermexColors.backgroundSecondary,
+        color: context.colors.backgroundSecondary,
         borderRadius: TermexRadius.lg,
-        border: Border.all(color: TermexColors.border),
+        border: Border.all(color: context.colors.border),
         boxShadow: TermexElevation.e2,
       ),
       child: child,

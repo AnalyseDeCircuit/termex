@@ -27,9 +27,9 @@ class TakeoverConfirmDialog extends StatelessWidget {
       padding: const EdgeInsets.all(TermexSpacing.lg),
       constraints: const BoxConstraints(maxWidth: 360),
       decoration: BoxDecoration(
-        color: TermexColors.backgroundPrimary,
+        color: context.colors.backgroundPrimary,
         borderRadius: BorderRadius.circular(10),
-        border: Border.all(color: TermexColors.border),
+        border: Border.all(color: context.colors.border),
       ),
       child: Column(
         mainAxisSize: MainAxisSize.min,
@@ -38,7 +38,7 @@ class TakeoverConfirmDialog extends StatelessWidget {
           Text(
             'Take over task?',
             style: TermexTypography.heading3.copyWith(
-              color: TermexColors.textPrimary,
+              color: context.colors.textPrimary,
             ),
           ),
           const SizedBox(height: TermexSpacing.sm),
@@ -47,7 +47,7 @@ class TakeoverConfirmDialog extends StatelessWidget {
             'over, you will receive notifications and approval prompts '
             'for this task.',
             style: TermexTypography.body.copyWith(
-              color: TermexColors.textSecondary,
+              color: context.colors.textSecondary,
             ),
           ),
           const SizedBox(height: TermexSpacing.lg),
@@ -64,7 +64,7 @@ class TakeoverConfirmDialog extends StatelessWidget {
                   child: Text(
                     'Cancel',
                     style: TermexTypography.body.copyWith(
-                      color: TermexColors.textSecondary,
+                      color: context.colors.textSecondary,
                     ),
                   ),
                 ),
@@ -78,16 +78,16 @@ class TakeoverConfirmDialog extends StatelessWidget {
                     vertical: TermexSpacing.sm,
                   ),
                   decoration: BoxDecoration(
-                    color: TermexColors.primary.withValues(alpha: 0.18),
+                    color: context.colors.primary.withValues(alpha: 0.18),
                     border: Border.all(
-                      color: TermexColors.primary.withValues(alpha: 0.6),
+                      color: context.colors.primary.withValues(alpha: 0.6),
                     ),
                     borderRadius: BorderRadius.circular(4),
                   ),
                   child: Text(
                     'Take over',
                     style: TermexTypography.body.copyWith(
-                      color: TermexColors.primary,
+                      color: context.colors.primary,
                       fontWeight: FontWeight.w600,
                     ),
                   ),

@@ -128,7 +128,7 @@ class _TermexSelectState<T> extends State<TermexSelect<T>> {
   Widget build(BuildContext context) {
     final selected = _selected;
     final borderColor =
-        _open ? TermexColors.borderFocus : TermexColors.border;
+        _open ? context.colors.borderFocus : context.colors.border;
     final borderWidth = _open ? 2.0 : 1.0;
 
     return CompositedTransformTarget(
@@ -165,8 +165,8 @@ class _TermexSelectState<T> extends State<TermexSelect<T>> {
                     horizontal: TermexSpacing.md),
                 decoration: BoxDecoration(
                   color: _hovered && !widget.disabled
-                      ? TermexColors.backgroundTertiary
-                      : TermexColors.backgroundSecondary,
+                      ? context.colors.backgroundTertiary
+                      : context.colors.backgroundSecondary,
                   borderRadius: TermexRadius.md,
                   border:
                       Border.all(color: borderColor, width: borderWidth),
@@ -180,8 +180,8 @@ class _TermexSelectState<T> extends State<TermexSelect<T>> {
                             '',
                         style: TermexTypography.body.copyWith(
                           color: selected == null
-                              ? TermexColors.textMuted
-                              : TermexColors.textPrimary,
+                              ? context.colors.textMuted
+                              : context.colors.textPrimary,
                         ),
                         overflow: TextOverflow.ellipsis,
                       ),
@@ -210,17 +210,21 @@ class _ChevronIcon extends StatelessWidget {
       duration: const Duration(milliseconds: 150),
       child: CustomPaint(
         size: const Size(12, 8),
-        painter: _ChevronPainter(),
+        painter: _ChevronPainter(colors: context.colors),
       ),
     );
   }
 }
 
 class _ChevronPainter extends CustomPainter {
+  final TermexColorScheme colors;
+
+  const _ChevronPainter({required this.colors});
+
   @override
   void paint(Canvas canvas, Size size) {
     final paint = Paint()
-      ..color = TermexColors.textSecondary
+      ..color = colors.textSecondary
       ..style = PaintingStyle.stroke
       ..strokeWidth = 1.5
       ..strokeCap = StrokeCap.round
@@ -233,7 +237,8 @@ class _ChevronPainter extends CustomPainter {
   }
 
   @override
-  bool shouldRepaint(_ChevronPainter oldDelegate) => false;
+  bool shouldRepaint(_ChevronPainter oldDelegate) =>
+      oldDelegate.colors != colors;
 }
 
 class _DropdownOverlay<T> extends StatefulWidget {
@@ -314,9 +319,9 @@ class _DropdownOverlayState<T> extends State<_DropdownOverlay<T>>
                 ),
                 child: Container(
                   decoration: BoxDecoration(
-                    color: TermexColors.backgroundSecondary,
+                    color: context.colors.backgroundSecondary,
                     borderRadius: TermexRadius.md,
-                    border: Border.all(color: TermexColors.border),
+                    border: Border.all(color: context.colors.border),
                     boxShadow: TermexElevation.e2,
                   ),
                   child: Column(
@@ -375,9 +380,9 @@ class _SearchField extends StatelessWidget {
     final focusNode = FocusNode();
     return Container(
       height: 36,
-      decoration: const BoxDecoration(
+      decoration: BoxDecoration(
         border: Border(
-          bottom: BorderSide(color: TermexColors.border),
+          bottom: BorderSide(color: context.colors.border),
         ),
       ),
       padding: const EdgeInsets.symmetric(horizontal: TermexSpacing.md),
@@ -385,10 +390,11 @@ class _SearchField extends StatelessWidget {
         controller: controller,
         focusNode: focusNode,
         autofocus: true,
-        style: TermexTypography.body.copyWith(color: TermexColors.textPrimary),
-        cursorColor: TermexColors.primary,
-        backgroundCursorColor: TermexColors.backgroundTertiary,
-        selectionColor: TermexColors.primary.withOpacity(0.3),
+        style:
+            TermexTypography.body.copyWith(color: context.colors.textPrimary),
+        cursorColor: context.colors.primary,
+        backgroundCursorColor: context.colors.backgroundTertiary,
+        selectionColor: context.colors.primary.withOpacity(0.3),
         onChanged: onChanged,
       ),
     );
@@ -416,9 +422,11 @@ class _OptionTileState<T> extends State<_OptionTile<T>> {
   @override
   Widget build(BuildContext context) {
     Color bg = const Color(0x00000000);
-    if (_hovered && widget.onTap != null) bg = TermexColors.backgroundTertiary;
+    if (_hovered && widget.onTap != null) {
+      bg = context.colors.backgroundTertiary;
+    }
     if (widget.isSelected) {
-      bg = TermexColors.primary.withOpacity(0.15);
+      bg = context.colors.primary.withOpacity(0.15);
     }
 
     return MouseRegion(
@@ -443,7 +451,7 @@ class _OptionTileState<T> extends State<_OptionTile<T>> {
                   child: Text(
                     widget.option.label,
                     style: TermexTypography.body.copyWith(
-                      color: TermexColors.textPrimary,
+                      color: context.colors.textPrimary,
                     ),
                     overflow: TextOverflow.ellipsis,
                   ),
@@ -466,16 +474,20 @@ class _CheckIcon extends StatelessWidget {
   Widget build(BuildContext context) {
     return CustomPaint(
       size: const Size(14, 14),
-      painter: _CheckPainter(),
+      painter: _CheckPainter(colors: context.colors),
     );
   }
 }
 
 class _CheckPainter extends CustomPainter {
+  final TermexColorScheme colors;
+
+  const _CheckPainter({required this.colors});
+
   @override
   void paint(Canvas canvas, Size size) {
     final paint = Paint()
-      ..color = TermexColors.primary
+      ..color = colors.primary
       ..style = PaintingStyle.stroke
       ..strokeWidth = 2
       ..strokeCap = StrokeCap.round
@@ -488,5 +500,6 @@ class _CheckPainter extends CustomPainter {
   }
 
   @override
-  bool shouldRepaint(_CheckPainter oldDelegate) => false;
+  bool shouldRepaint(_CheckPainter oldDelegate) =>
+      oldDelegate.colors != colors;
 }

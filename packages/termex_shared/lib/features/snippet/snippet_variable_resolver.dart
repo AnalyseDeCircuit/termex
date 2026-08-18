@@ -52,9 +52,9 @@ class _VariableResolverDialogState extends State<_VariableResolverDialog> {
   Widget build(BuildContext context) {
     final l10n = AppLocalizations.of(context);
     return AlertDialog(
-      backgroundColor: TermexColors.backgroundSecondary,
+      backgroundColor: context.colors.backgroundSecondary,
       title: Text(l10n.snippetVariableTitleNamed(widget.snippet.title),
-          style: const TextStyle(fontSize: 14, color: TermexColors.textPrimary)),
+          style: TextStyle(fontSize: 14, color: context.colors.textPrimary)),
       content: SizedBox(
         width: 440,
         child: SingleChildScrollView(
@@ -65,19 +65,19 @@ class _VariableResolverDialogState extends State<_VariableResolverDialog> {
               ...widget.snippet.variables.map((v) => _VarField(variable: v, controller: _ctrls[v.name]!,
                   onChanged: (_) => setState(() {}))),
               const SizedBox(height: 16),
-              Text(l10n.snippetPreview, style: const TextStyle(fontSize: 11, color: TermexColors.textSecondary, fontWeight: FontWeight.w700)),
+              Text(l10n.snippetPreview, style: TextStyle(fontSize: 11, color: context.colors.textSecondary, fontWeight: FontWeight.w700)),
               const SizedBox(height: 4),
               Container(
                 width: double.infinity,
                 padding: const EdgeInsets.all(10),
                 decoration: BoxDecoration(
-                  color: TermexColors.backgroundTertiary,
+                  color: context.colors.backgroundTertiary,
                   borderRadius: BorderRadius.circular(6),
-                  border: Border.all(color: TermexColors.border),
+                  border: Border.all(color: context.colors.border),
                 ),
                 child: SelectableText(
                   _preview(),
-                  style: const TextStyle(fontSize: 12, color: TermexColors.textPrimary, fontFamily: 'monospace'),
+                  style: TextStyle(fontSize: 12, color: context.colors.textPrimary, fontFamily: 'monospace'),
                 ),
               ),
             ],
@@ -87,12 +87,12 @@ class _VariableResolverDialogState extends State<_VariableResolverDialog> {
       actions: [
         TextButton(
           onPressed: () => Navigator.pop(context),
-          child: Text(l10n.commonCancel, style: const TextStyle(fontSize: 12, color: TermexColors.textSecondary)),
+          child: Text(l10n.commonCancel, style: TextStyle(fontSize: 12, color: context.colors.textSecondary)),
         ),
         ElevatedButton(
           onPressed: () => Navigator.pop(context, _preview()),
           style: ElevatedButton.styleFrom(
-            backgroundColor: TermexColors.primary,
+            backgroundColor: context.colors.primary,
             foregroundColor: Colors.white,
             minimumSize: const Size(80, 32),
             textStyle: const TextStyle(fontSize: 12),
@@ -126,11 +126,11 @@ class _VarField extends StatelessWidget {
           Row(
             children: [
               Text(variable.name,
-                  style: const TextStyle(fontSize: 12, fontWeight: FontWeight.w600, color: TermexColors.textPrimary)),
+                  style: TextStyle(fontSize: 12, fontWeight: FontWeight.w600, color: context.colors.textPrimary)),
               if (variable.defaultValue != null) ...[
                 const SizedBox(width: 6),
                 Text(l10n.snippetVariableDefault(variable.defaultValue!),
-                    style: const TextStyle(fontSize: 10, color: TermexColors.textSecondary)),
+                    style: TextStyle(fontSize: 10, color: context.colors.textSecondary)),
               ],
             ],
           ),
@@ -140,19 +140,19 @@ class _VarField extends StatelessWidget {
             onChanged: onChanged,
             decoration: InputDecoration(
               hintText: variable.defaultValue ?? l10n.snippetVariableInputHint,
-              hintStyle: const TextStyle(fontSize: 12, color: TermexColors.textSecondary),
+              hintStyle: TextStyle(fontSize: 12, color: context.colors.textSecondary),
               border: OutlineInputBorder(
                 borderRadius: BorderRadius.circular(6),
-                borderSide: const BorderSide(color: TermexColors.border),
+                borderSide: BorderSide(color: context.colors.border),
               ),
               enabledBorder: OutlineInputBorder(
                 borderRadius: BorderRadius.circular(6),
-                borderSide: const BorderSide(color: TermexColors.border),
+                borderSide: BorderSide(color: context.colors.border),
               ),
               contentPadding: const EdgeInsets.symmetric(horizontal: 10, vertical: 8),
               isDense: true,
             ),
-            style: const TextStyle(fontSize: 12, color: TermexColors.textPrimary, fontFamily: 'monospace'),
+            style: TextStyle(fontSize: 12, color: context.colors.textPrimary, fontFamily: 'monospace'),
           ),
         ],
       ),

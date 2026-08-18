@@ -200,10 +200,10 @@ class _HeaderText extends StatelessWidget {
   Widget build(BuildContext context) {
     return Text(
       text,
-      style: const TextStyle(
+      style: TextStyle(
         fontSize: 10,
         fontWeight: FontWeight.w700,
-        color: TermexColors.textSecondary,
+        color: context.colors.textSecondary,
         letterSpacing: 0.5,
       ),
     );
@@ -228,10 +228,10 @@ class _ResetAllIconButton extends StatelessWidget {
       child: Clickable(
         behavior: HitTestBehavior.opaque,
         onTap: onPressed,
-        child: const Icon(
+        child: Icon(
           Icons.restore,
           size: 14,
-          color: TermexColors.textSecondary,
+          color: context.colors.textSecondary,
         ),
       ),
     );
@@ -265,8 +265,8 @@ class _KeybindingRow extends StatelessWidget {
   Widget build(BuildContext context) {
     return Container(
       padding: const EdgeInsets.symmetric(vertical: 6, horizontal: 4),
-      decoration: const BoxDecoration(
-        border: Border(bottom: BorderSide(color: TermexColors.border, width: 0.5)),
+      decoration: BoxDecoration(
+        border: Border(bottom: BorderSide(color: context.colors.border, width: 0.5)),
       ),
       child: Row(
         children: [
@@ -303,14 +303,14 @@ class _KeybindingRow extends StatelessWidget {
               entry.context,
               overflow: TextOverflow.ellipsis,
               maxLines: 1,
-              style: const TextStyle(
-                  fontSize: 11, color: TermexColors.textSecondary),
+              style: TextStyle(
+                  fontSize: 11, color: context.colors.textSecondary),
             ),
           ),
           Clickable(
             onTap: onReset,
-            child: const Icon(Icons.restore,
-                size: 14, color: TermexColors.textSecondary),
+            child: Icon(Icons.restore,
+                size: 14, color: context.colors.textSecondary),
           ),
         ],
       ),
@@ -341,9 +341,9 @@ class _ActionLabelText extends StatelessWidget {
         label,
         overflow: TextOverflow.ellipsis,
         maxLines: 1,
-        style: const TextStyle(
+        style: TextStyle(
           fontSize: 12,
-          color: TermexColors.textPrimary,
+          color: context.colors.textPrimary,
         ),
       );
     }
@@ -355,21 +355,21 @@ class _ActionLabelText extends StatelessWidget {
           label,
           overflow: TextOverflow.ellipsis,
           maxLines: 1,
-          style: const TextStyle(
+          style: TextStyle(
             fontSize: 12,
             fontFamily: 'monospace',
             fontStyle: FontStyle.italic,
-            color: TermexColors.textMuted,
+            color: context.colors.textMuted,
           ),
         ),
         Text(
           untranslatedSuffix,
           overflow: TextOverflow.ellipsis,
           maxLines: 1,
-          style: const TextStyle(
+          style: TextStyle(
             fontSize: 10,
             fontStyle: FontStyle.italic,
-            color: TermexColors.textMuted,
+            color: context.colors.textMuted,
           ),
         ),
       ],

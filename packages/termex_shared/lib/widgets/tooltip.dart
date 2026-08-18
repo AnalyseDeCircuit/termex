@@ -147,15 +147,15 @@ class _TooltipBox extends StatelessWidget {
         vertical: TermexSpacing.xs + 2,
       ),
       decoration: BoxDecoration(
-        color: TermexColors.backgroundSecondary,
+        color: context.colors.backgroundSecondary,
         borderRadius: TermexRadius.md,
-        border: Border.all(color: TermexColors.border),
+        border: Border.all(color: context.colors.border),
         boxShadow: TermexElevation.e2,
       ),
       child: Text(
         message,
         style: TermexTypography.caption.copyWith(
-          color: TermexColors.textPrimary,
+          color: context.colors.textPrimary,
         ),
       ),
     );

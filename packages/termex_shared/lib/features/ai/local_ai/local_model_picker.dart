@@ -29,7 +29,7 @@ class LocalModelPicker extends ConsumerWidget {
 
     return Container(
       decoration: BoxDecoration(
-        border: Border.all(color: TermexColors.border),
+        border: Border.all(color: context.colors.border),
         borderRadius: BorderRadius.circular(6),
       ),
       constraints: const BoxConstraints(maxHeight: 240),
@@ -38,8 +38,8 @@ class LocalModelPicker extends ConsumerWidget {
               padding: const EdgeInsets.all(16),
               child: Text(
                 l10n.aiModelListLoading,
-                style: const TextStyle(
-                    fontSize: 12, color: TermexColors.textSecondary),
+                style: TextStyle(
+                    fontSize: 12, color: context.colors.textSecondary),
               ),
             )
           : ListView.separated(
@@ -47,7 +47,7 @@ class LocalModelPicker extends ConsumerWidget {
               padding: EdgeInsets.zero,
               itemCount: models.length,
               separatorBuilder: (_, __) =>
-                  const Divider(height: 1, color: TermexColors.border),
+                  Divider(height: 1, color: context.colors.border),
               itemBuilder: (_, i) => _ModelRow(
                 model: models[i],
                 isSelected: models[i].id == selectedModelId,
@@ -93,16 +93,16 @@ class _ModelRow extends ConsumerWidget {
                     style: TextStyle(
                       fontSize: 12,
                       color: canSelect
-                          ? TermexColors.textPrimary
-                          : TermexColors.textSecondary,
+                          ? context.colors.textPrimary
+                          : context.colors.textSecondary,
                       fontWeight:
                           isSelected ? FontWeight.w600 : FontWeight.normal,
                     ),
                   ),
                   Text(
                     '${model.sizeLabel} · ${model.quantization}',
-                    style: const TextStyle(
-                        fontSize: 10, color: TermexColors.textSecondary),
+                    style: TextStyle(
+                        fontSize: 10, color: context.colors.textSecondary),
                   ),
                   if (isDownloading) ...[
                     const SizedBox(height: 4),
@@ -132,23 +132,23 @@ class _ModelRow extends ConsumerWidget {
     return await showDialog<bool>(
           context: context,
           builder: (_) => AlertDialog(
-            backgroundColor: TermexColors.backgroundSecondary,
+            backgroundColor: context.colors.backgroundSecondary,
             title: Text(l10n.aiDeleteModelTitle,
-                style: const TextStyle(
-                    color: TermexColors.textPrimary, fontSize: 14)),
+                style: TextStyle(
+                    color: context.colors.textPrimary, fontSize: 14)),
             content: Text(l10n.aiDeleteModelConfirm(name),
-                style: const TextStyle(
-                    color: TermexColors.textSecondary, fontSize: 13)),
+                style: TextStyle(
+                    color: context.colors.textSecondary, fontSize: 13)),
             actions: [
               TextButton(
                 onPressed: () => Navigator.pop(context, false),
                 child: Text(l10n.commonCancel,
-                    style: const TextStyle(color: TermexColors.textSecondary)),
+                    style: TextStyle(color: context.colors.textSecondary)),
               ),
               TextButton(
                 onPressed: () => Navigator.pop(context, true),
                 child: Text(l10n.commonDelete,
-                    style: const TextStyle(color: TermexColors.danger)),
+                    style: TextStyle(color: context.colors.danger)),
               ),
             ],
           ),
@@ -165,8 +165,10 @@ class _Radio extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     final color = !enabled
-        ? TermexColors.border
-        : (selected ? TermexColors.primary : TermexColors.textSecondary);
+        ? context.colors.border
+        : (selected
+            ? context.colors.primary
+            : context.colors.textSecondary);
     return Container(
       width: 14,
       height: 14,
@@ -181,7 +183,8 @@ class _Radio extends StatelessWidget {
                 height: 6,
                 decoration: BoxDecoration(
                   shape: BoxShape.circle,
-                  color: enabled ? TermexColors.primary : TermexColors.border,
+                  color:
+                      enabled ? context.colors.primary : context.colors.border,
                 ),
               ),
             )
@@ -201,8 +204,8 @@ class _ProgressBar extends StatelessWidget {
       child: LinearProgressIndicator(
         value: progress,
         minHeight: 3,
-        backgroundColor: TermexColors.backgroundTertiary,
-        valueColor: const AlwaysStoppedAnimation<Color>(TermexColors.primary),
+        backgroundColor: context.colors.backgroundTertiary,
+        valueColor: AlwaysStoppedAnimation<Color>(context.colors.primary),
       ),
     );
   }
@@ -230,12 +233,12 @@ class _StatusAction extends StatelessWidget {
         mainAxisSize: MainAxisSize.min,
         children: [
           Text('$pct%',
-              style: const TextStyle(
-                  fontSize: 10, color: TermexColors.textSecondary)),
+              style: TextStyle(
+                  fontSize: 10, color: context.colors.textSecondary)),
           const SizedBox(width: 6),
           _IconBtn(
             icon: Icons.close,
-            color: TermexColors.danger,
+            color: context.colors.danger,
             onTap: onCancel,
           ),
         ],
@@ -245,12 +248,12 @@ class _StatusAction extends StatelessWidget {
       return Row(
         mainAxisSize: MainAxisSize.min,
         children: [
-          const Icon(Icons.check_circle,
-              size: 12, color: TermexColors.success),
+          Icon(Icons.check_circle,
+              size: 12, color: context.colors.success),
           const SizedBox(width: 4),
           _IconBtn(
             icon: Icons.delete_outline,
-            color: TermexColors.danger,
+            color: context.colors.danger,
             onTap: onDelete,
           ),
         ],
@@ -281,11 +284,11 @@ class _TextBtn extends StatelessWidget {
       child: Row(
         mainAxisSize: MainAxisSize.min,
         children: [
-          Icon(icon, size: 12, color: TermexColors.primary),
+          Icon(icon, size: 12, color: context.colors.primary),
           const SizedBox(width: 3),
           Text(label,
               style:
-                  const TextStyle(fontSize: 11, color: TermexColors.primary)),
+                  TextStyle(fontSize: 11, color: context.colors.primary)),
         ],
       ),
     );

@@ -166,7 +166,7 @@ class _ImportSshConfigDialogState
         Text(
           'Termex will parse the SSH config file and let you choose which hosts to import.',
           style: TermexTypography.body.copyWith(
-            color: TermexColors.textSecondary,
+            color: context.colors.textSecondary,
           ),
         ),
         const SizedBox(height: TermexSpacing.lg),
@@ -214,7 +214,7 @@ class _ImportSshConfigDialogState
               child: Text(
                 'No importable hosts found in ${_pathCtrl.text.trim()}.',
                 style: TermexTypography.body.copyWith(
-                  color: TermexColors.textMuted,
+                  color: context.colors.textMuted,
                 ),
                 textAlign: TextAlign.center,
               ),
@@ -251,7 +251,7 @@ class _ImportSshConfigDialogState
           Text(
             _error!,
             style: TermexTypography.bodySmall
-                .copyWith(color: TermexColors.danger),
+                .copyWith(color: context.colors.danger),
           ),
         ],
         const SizedBox(height: TermexSpacing.xl),
@@ -287,7 +287,7 @@ class _ImportSshConfigDialogState
         child: Text(
           'Import complete.',
           style: TermexTypography.body.copyWith(
-            color: TermexColors.success,
+            color: context.colors.success,
             fontWeight: FontWeight.w600,
           ),
         ),
@@ -316,8 +316,8 @@ class _EntryHeader extends StatelessWidget {
         horizontal: TermexSpacing.md,
         vertical: TermexSpacing.sm,
       ),
-      decoration: const BoxDecoration(
-        color: TermexColors.backgroundTertiary,
+      decoration: BoxDecoration(
+        color: context.colors.backgroundTertiary,
         borderRadius: TermexRadius.sm,
       ),
       child: Row(
@@ -331,7 +331,7 @@ class _EntryHeader extends StatelessWidget {
             child: Text(
               'Host',
               style: TermexTypography.caption.copyWith(
-                color: TermexColors.textMuted,
+                color: context.colors.textMuted,
                 fontWeight: FontWeight.w600,
               ),
             ),
@@ -339,7 +339,7 @@ class _EntryHeader extends StatelessWidget {
           Text(
             'Connection',
             style: TermexTypography.caption.copyWith(
-              color: TermexColors.textMuted,
+              color: context.colors.textMuted,
               fontWeight: FontWeight.w600,
             ),
           ),
@@ -347,7 +347,7 @@ class _EntryHeader extends StatelessWidget {
           Text(
             '$selectedCount / $count',
             style: TermexTypography.caption.copyWith(
-              color: TermexColors.textMuted,
+              color: context.colors.textMuted,
             ),
           ),
         ],
@@ -373,9 +373,9 @@ class _EntryRow extends StatelessWidget {
             horizontal: TermexSpacing.md,
             vertical: TermexSpacing.sm,
           ),
-          decoration: const BoxDecoration(
+          decoration: BoxDecoration(
             border: Border(
-              bottom: BorderSide(color: TermexColors.border),
+              bottom: BorderSide(color: context.colors.border),
             ),
           ),
           child: Row(
@@ -387,15 +387,15 @@ class _EntryRow extends StatelessWidget {
                   entry.hostAlias,
                   style: TermexTypography.body.copyWith(
                     color: entry.selected
-                        ? TermexColors.textPrimary
-                        : TermexColors.textMuted,
+                        ? context.colors.textPrimary
+                        : context.colors.textMuted,
                   ),
                 ),
               ),
               Text(
                 '${entry.username}@${entry.hostname}:${entry.port}',
                 style: TermexTypography.bodySmall.copyWith(
-                  color: TermexColors.textSecondary,
+                  color: context.colors.textSecondary,
                 ),
               ),
               if (entry.identityFile != null) ...[

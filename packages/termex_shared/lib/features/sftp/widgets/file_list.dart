@@ -42,9 +42,9 @@ class SftpFilterBar extends StatelessWidget {
     return Container(
       height: 28,
       padding: const EdgeInsets.symmetric(horizontal: 8),
-      decoration: const BoxDecoration(
-        color: TermexColors.backgroundSecondary,
-        border: Border(bottom: BorderSide(color: TermexColors.border)),
+      decoration: BoxDecoration(
+        color: context.colors.backgroundSecondary,
+        border: Border(bottom: BorderSide(color: context.colors.border)),
       ),
       child: Row(
         children: [
@@ -61,8 +61,8 @@ class SftpFilterBar extends StatelessWidget {
                           : Icons.visibility_off_outlined,
                       size: 13,
                       color: showHidden
-                          ? TermexColors.primary
-                          : TermexColors.textSecondary,
+                          ? context.colors.primary
+                          : context.colors.textSecondary,
                     ),
                     const SizedBox(width: 4),
                     // Ellipsises instead of overflowing once the pane is docked
@@ -75,8 +75,8 @@ class SftpFilterBar extends StatelessWidget {
                         style: TextStyle(
                           fontSize: 11,
                           color: showHidden
-                              ? TermexColors.primary
-                              : TermexColors.textSecondary,
+                              ? context.colors.primary
+                              : context.colors.textSecondary,
                         ),
                       ),
                     ),
@@ -99,8 +99,8 @@ class SftpFilterBar extends StatelessWidget {
                             s == sort ? Icons.check : Icons.sort,
                             size: 12,
                             color: s == sort
-                                ? TermexColors.primary
-                                : TermexColors.textMuted,
+                                ? context.colors.primary
+                                : context.colors.textMuted,
                           ),
                           const SizedBox(width: 6),
                           Text(_label(s, l10n),
@@ -113,8 +113,8 @@ class SftpFilterBar extends StatelessWidget {
               padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 2),
               child: Row(
                 children: [
-                  const Icon(Icons.sort,
-                      size: 12, color: TermexColors.textSecondary),
+                  Icon(Icons.sort,
+                      size: 12, color: context.colors.textSecondary),
                   const SizedBox(width: 4),
                   // Not Flexible: PopupMenuButton gives its child unbounded
                   // width, where a flex child asserts. The label is short and
@@ -122,11 +122,11 @@ class SftpFilterBar extends StatelessWidget {
                   Text(
                     _label(sort, l10n),
                     softWrap: false,
-                    style: const TextStyle(
-                        fontSize: 11, color: TermexColors.textSecondary),
+                    style: TextStyle(
+                        fontSize: 11, color: context.colors.textSecondary),
                   ),
-                  const Icon(Icons.arrow_drop_down,
-                      size: 14, color: TermexColors.textSecondary),
+                  Icon(Icons.arrow_drop_down,
+                      size: 14, color: context.colors.textSecondary),
                 ],
               ),
             ),
@@ -141,9 +141,13 @@ class SftpFilterBar extends StatelessWidget {
 enum FileAction {
   download,
   upload,
+  /// Open a small remote text file in the inline editor.
+  edit,
   rename,
   delete,
   chmod,
+  /// Put the entry's full path on the system clipboard.
+  copyPath,
   newFile,
   newFolder,
   properties,
@@ -159,9 +163,9 @@ class FileListHeader extends StatelessWidget {
     return Container(
       height: 26,
       padding: const EdgeInsets.symmetric(horizontal: 8),
-      decoration: const BoxDecoration(
-        color: TermexColors.backgroundTertiary,
-        border: Border(bottom: BorderSide(color: TermexColors.border)),
+      decoration: BoxDecoration(
+        color: context.colors.backgroundTertiary,
+        border: Border(bottom: BorderSide(color: context.colors.border)),
       ),
       // Same width-derived column set the rows use, so the two never disagree.
       // The fixed 23 + 80 + 8 + 100 + 8 + 80 this used to draw needed 315px
@@ -211,9 +215,9 @@ class _ColHeader extends StatelessWidget {
   Widget build(BuildContext context) {
     return Text(
       label,
-      style: const TextStyle(
+      style: TextStyle(
         fontSize: 11,
-        color: TermexColors.textMuted,
+        color: context.colors.textMuted,
         fontWeight: FontWeight.w600,
       ),
       textAlign: align,
@@ -228,7 +232,19 @@ class FileList extends StatefulWidget {
   final bool isLoading;
   final String? errorMessage;
 
+  /// Modifier-click: adds/removes one entry from the selection.
   final ValueChanged<String> onToggleSelect;
+
+  /// Plain left click: replaces the selection with this entry. Clicking used
+  /// to call [onToggleSelect], which accumulated — so every click added
+  /// another row and there was no way to go back to one.
+  final ValueChanged<String> onSelectOnly;
+
+  /// Invoked by the context menu's "select all".
+  final VoidCallback onSelectAll;
+
+  /// Invoked by the context menu's "refresh".
+  final VoidCallback onRefresh;
   final ValueChanged<FileRowData> onOpen; // navigate or download
   final void Function(FileRowData entry, FileAction action) onAction;
 
@@ -247,6 +263,9 @@ class FileList extends StatefulWidget {
     required this.isLoading,
     this.errorMessage,
     required this.onToggleSelect,
+    required this.onSelectOnly,
+    required this.onSelectAll,
+    required this.onRefresh,
     required this.onOpen,
     required this.onAction,
     this.rowWrapper,
@@ -262,13 +281,13 @@ class _FileListState extends State<FileList> {
   @override
   Widget build(BuildContext context) {
     if (widget.isLoading) {
-      return const Center(
+      return Center(
         child: SizedBox(
           width: 24,
           height: 24,
           child: CircularProgressIndicator(
             strokeWidth: 2,
-            color: TermexColors.primary,
+            color: context.colors.primary,
           ),
         ),
       );
@@ -277,7 +296,7 @@ class _FileListState extends State<FileList> {
       return Center(
         child: Text(
           widget.errorMessage!,
-          style: const TextStyle(color: TermexColors.danger, fontSize: 12),
+          style: TextStyle(color: context.colors.danger, fontSize: 12),
         ),
       );
     }
@@ -285,7 +304,7 @@ class _FileListState extends State<FileList> {
       return Center(
         child: Text(
           AppLocalizations.of(context).sftpEmptyDir,
-          style: const TextStyle(color: TermexColors.textMuted, fontSize: 12),
+          style: TextStyle(color: context.colors.textMuted, fontSize: 12),
         ),
       );
     }
@@ -311,10 +330,19 @@ class _FileListState extends State<FileList> {
                 isSelected: widget.selectedNames.contains(entry.name),
                 onTap: () {
                   setState(() => _cursorIndex = i);
-                  widget.onToggleSelect(entry.name);
+                  // Plain click replaces the selection; only a modifier-click
+                  // accumulates. It used to always toggle, so every click
+                  // added another row with no way back to a single one.
+                  final multi = HardwareKeyboard.instance.isMetaPressed ||
+                      HardwareKeyboard.instance.isControlPressed;
+                  if (multi) {
+                    widget.onToggleSelect(entry.name);
+                  } else {
+                    widget.onSelectOnly(entry.name);
+                  }
                 },
                 onDoubleTap: () => widget.onOpen(entry),
-                onSecondaryTap: () => _showContextMenu(context, entry, i),
+                onSecondaryTap: (pos) => _showContextMenu(entry, i, pos),
               );
               return widget.rowWrapper?.call(entry, row) ?? row;
             },
@@ -341,41 +369,68 @@ class _FileListState extends State<FileList> {
     }
   }
 
-  void _showContextMenu(
-      BuildContext context, FileRowData entry, int idx) async {
+  void _showContextMenu(FileRowData entry, int idx, Offset globalPos) async {
     setState(() => _cursorIndex = idx);
-    final RenderBox box = context.findRenderObject() as RenderBox;
-    final offset = box.localToGlobal(Offset.zero);
 
+    // Right-clicking an unselected row selects it first, so the action always
+    // applies to what the user pointed at.
+    if (!widget.selectedNames.contains(entry.name)) {
+      widget.onSelectOnly(entry.name);
+    }
+
+    // Anchored to the pointer. The position used to be derived from the
+    // list's own origin plus `idx * 28`, which ignored scroll offset — after
+    // scrolling the menu opened far from the cursor, or off-screen entirely,
+    // which read as "there is no context menu".
+    final l10n = AppLocalizations.of(context);
+    final overlay =
+        Overlay.of(context).context.findRenderObject()! as RenderBox;
     final result = await showMenu<FileAction>(
       context: context,
-      color: TermexColors.backgroundSecondary,
-      position: RelativeRect.fromLTRB(
-          offset.dx + 40, offset.dy + idx * 28, offset.dx + 200, 0),
+      color: context.colors.backgroundSecondary,
+      position: RelativeRect.fromRect(
+        Rect.fromPoints(globalPos, globalPos),
+        Offset.zero & overlay.size,
+      ),
+      // Ordering and grouping follow the Tauri pane's menu
+      // (src/components/sftp/RemoteFilePane.vue).
       items: [
         if (!entry.isDirectory)
           PopupMenuItem(
               value: FileAction.download,
-              child: Text(AppLocalizations.of(context).sftpActionDownload)),
-        PopupMenuItem(
-            value: FileAction.rename,
-            child: Text(AppLocalizations.of(context).sftpActionRename)),
-        PopupMenuItem(
-            value: FileAction.delete,
-            child: Text(AppLocalizations.of(context).sftpActionDelete)),
+              child: Text(l10n.sftpActionDownload)),
         if (!entry.isDirectory)
           PopupMenuItem(
-              value: FileAction.chmod,
-              child: Text(AppLocalizations.of(context).sftpActionChmod)),
+              value: FileAction.edit, child: Text(l10n.sftpActionEdit)),
+        if (!entry.isDirectory) const PopupMenuDivider(),
         PopupMenuItem(
-            value: FileAction.newFile,
-            child: Text(AppLocalizations.of(context).sftpActionNewFile)),
+            value: FileAction.rename, child: Text(l10n.sftpActionRename)),
+        PopupMenuItem(
+            value: FileAction.delete, child: Text(l10n.sftpActionDelete)),
+        PopupMenuItem(
+            value: FileAction.copyPath,
+            child: Text(l10n.sftpActionCopyPath)),
+        if (!entry.isDirectory)
+          PopupMenuItem(
+              value: FileAction.chmod, child: Text(l10n.sftpActionChmod)),
+        const PopupMenuDivider(),
+        PopupMenuItem(
+            value: FileAction.newFile, child: Text(l10n.sftpActionNewFile)),
         PopupMenuItem(
             value: FileAction.newFolder,
-            child: Text(AppLocalizations.of(context).sftpActionNewFolder)),
+            child: Text(l10n.sftpActionNewFolder)),
+        const PopupMenuDivider(),
+        // Handled here rather than through onAction — they are list-level
+        // concerns the pane already exposes as callbacks.
+        PopupMenuItem(
+            onTap: widget.onSelectAll,
+            child: Text(l10n.sftpActionSelectAll)),
+        PopupMenuItem(
+            onTap: widget.onRefresh, child: Text(l10n.commonRefresh)),
+        const PopupMenuDivider(),
         PopupMenuItem(
             value: FileAction.properties,
-            child: Text(AppLocalizations.of(context).sftpActionProperties)),
+            child: Text(l10n.sftpActionProperties)),
       ],
     );
 

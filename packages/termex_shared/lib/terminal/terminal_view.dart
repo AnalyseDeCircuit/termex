@@ -206,26 +206,31 @@ class _ErrorDiagnoseBanner extends StatelessWidget {
     return Container(
       padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 10),
       decoration: BoxDecoration(
-        color: TermexColors.backgroundSecondary,
-        border: Border(top: BorderSide(color: TermexColors.warning.withOpacity(0.5))),
+        color: context.colors.backgroundSecondary,
+        border: Border(
+            top: BorderSide(color: context.colors.warning.withOpacity(0.5))),
       ),
       child: Row(
         children: [
-          const Icon(Icons.lightbulb_outline, size: 16, color: TermexColors.warning),
+          Icon(Icons.lightbulb_outline,
+              size: 16, color: context.colors.warning),
           const SizedBox(width: 8),
-          const Expanded(
+          Expanded(
             child: Text(
               '💡 AI 可以帮助分析这个错误',
-              style: TextStyle(fontSize: 12, color: TermexColors.textPrimary),
+              style:
+                  TextStyle(fontSize: 12, color: context.colors.textPrimary),
             ),
           ),
           TextButton(
             onPressed: onDiagnose,
-            style: TextButton.styleFrom(foregroundColor: TermexColors.warning),
+            style:
+                TextButton.styleFrom(foregroundColor: context.colors.warning),
             child: const Text('分析错误', style: TextStyle(fontSize: 12)),
           ),
           IconButton(
-            icon: const Icon(Icons.close, size: 14, color: TermexColors.textSecondary),
+            icon: Icon(Icons.close,
+                size: 14, color: context.colors.textSecondary),
             onPressed: onDismiss,
           ),
         ],

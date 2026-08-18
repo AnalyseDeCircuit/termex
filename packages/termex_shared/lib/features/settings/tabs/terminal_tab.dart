@@ -33,7 +33,7 @@ class TerminalTab extends ConsumerWidget {
             // nearest supported option to keep the dropdown stable as
             // the option set evolves.
             value: _coerceScrollback(settings.scrollbackLines),
-            dropdownColor: TermexColors.backgroundSecondary,
+            dropdownColor: context.colors.backgroundSecondary,
             items: [
               DropdownMenuItem(
                   value: 1000,
@@ -50,14 +50,14 @@ class TerminalTab extends ConsumerWidget {
             ],
             onChanged: (v) =>
                 notifier.update(settings.copyWith(scrollbackLines: v!)),
-            style: const TextStyle(fontSize: 12, color: TermexColors.textPrimary),
+            style: TextStyle(fontSize: 12, color: context.colors.textPrimary),
           ),
         ),
         SettingRow(
           label: l10n.settingsTerminalTabWidth,
           child: DropdownButton<int>(
             value: settings.tabWidth,
-            dropdownColor: TermexColors.backgroundSecondary,
+            dropdownColor: context.colors.backgroundSecondary,
             items: [
               DropdownMenuItem(
                   value: 2,
@@ -70,14 +70,14 @@ class TerminalTab extends ConsumerWidget {
                   child: Text(l10n.settingsTerminalSpacesOption('8'))),
             ],
             onChanged: (v) => notifier.update(settings.copyWith(tabWidth: v!)),
-            style: const TextStyle(fontSize: 12, color: TermexColors.textPrimary),
+            style: TextStyle(fontSize: 12, color: context.colors.textPrimary),
           ),
         ),
         SettingRow(
           label: l10n.settingsTerminalCursorShape,
           child: DropdownButton<CursorShape>(
             value: settings.cursorShape,
-            dropdownColor: TermexColors.backgroundSecondary,
+            dropdownColor: context.colors.backgroundSecondary,
             items: [
               DropdownMenuItem(
                   value: CursorShape.block,
@@ -91,7 +91,7 @@ class TerminalTab extends ConsumerWidget {
             ],
             onChanged: (v) =>
                 notifier.update(settings.copyWith(cursorShape: v!)),
-            style: const TextStyle(fontSize: 12, color: TermexColors.textPrimary),
+            style: TextStyle(fontSize: 12, color: context.colors.textPrimary),
           ),
         ),
         SettingRow(
@@ -141,7 +141,7 @@ class _TmuxModeRow extends ConsumerWidget {
       hint: l10n.settingsTerminalTmuxHint,
       child: DropdownButton<TmuxMode>(
         value: mode,
-        dropdownColor: TermexColors.backgroundSecondary,
+        dropdownColor: context.colors.backgroundSecondary,
         items: TmuxMode.values
             .map((m) => DropdownMenuItem(value: m, child: Text(m.label)))
             .toList(),
@@ -150,7 +150,7 @@ class _TmuxModeRow extends ConsumerWidget {
             ref.read(tmuxModeProvider.notifier).set(v);
           }
         },
-        style: const TextStyle(fontSize: 12, color: TermexColors.textPrimary),
+        style: TextStyle(fontSize: 12, color: context.colors.textPrimary),
       ),
     );
   }

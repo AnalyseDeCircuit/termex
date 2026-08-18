@@ -70,7 +70,7 @@ class _TermexRadioState<T> extends State<TermexRadio<T>>
       decoration: BoxDecoration(
         shape: BoxShape.circle,
         border: Border.all(
-          color: _isSelected ? TermexColors.primary : TermexColors.border,
+          color: _isSelected ? context.colors.primary : context.colors.border,
           width: 1.5,
         ),
       ),
@@ -80,8 +80,8 @@ class _TermexRadioState<T> extends State<TermexRadio<T>>
           child: Container(
             width: 8,
             height: 8,
-            decoration: const BoxDecoration(
-              color: TermexColors.primary,
+            decoration: BoxDecoration(
+              color: context.colors.primary,
               shape: BoxShape.circle,
             ),
           ),
@@ -100,8 +100,8 @@ class _TermexRadioState<T> extends State<TermexRadio<T>>
             widget.label!,
             style: TermexTypography.body.copyWith(
               color: widget.disabled
-                  ? TermexColors.textSecondary
-                  : TermexColors.textPrimary,
+                  ? context.colors.textSecondary
+                  : context.colors.textPrimary,
             ),
           ),
         ],

@@ -75,22 +75,22 @@ class _WelcomeScreen extends StatelessWidget {
           Icon(
             Icons.smart_toy_outlined,
             size: 48,
-            color: TermexColors.textSecondary.withOpacity(0.4),
+            color: context.colors.textSecondary.withOpacity(0.4),
           ),
           const SizedBox(height: 12),
-          const Text(
+          Text(
             'AI 助手',
             style: TextStyle(
               fontSize: 18,
               fontWeight: FontWeight.w600,
-              color: TermexColors.textPrimary,
+              color: context.colors.textPrimary,
             ),
           ),
           const SizedBox(height: 6),
-          const Text(
+          Text(
             '选择或创建对话开始',
-            style:
-                TextStyle(fontSize: 13, color: TermexColors.textSecondary),
+            style: TextStyle(
+                fontSize: 13, color: context.colors.textSecondary),
           ),
         ],
       ),
@@ -108,13 +108,13 @@ class _EmptyConversation extends StatelessWidget {
           Icon(
             Icons.chat_bubble_outline_rounded,
             size: 36,
-            color: TermexColors.textSecondary.withOpacity(0.3),
+            color: context.colors.textSecondary.withOpacity(0.3),
           ),
           const SizedBox(height: 8),
-          const Text(
+          Text(
             '发送消息开始对话',
-            style:
-                TextStyle(fontSize: 13, color: TermexColors.textSecondary),
+            style: TextStyle(
+                fontSize: 13, color: context.colors.textSecondary),
           ),
         ],
       ),

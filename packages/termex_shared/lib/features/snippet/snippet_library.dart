@@ -5,7 +5,10 @@ import '../sidebar_search.dart';
 
 import '../../design/tokens.dart';
 import '../../l10n/app_localizations.dart';
+import '../../icons/termex_icons.dart';
 import '../../widgets/clickable.dart';
+import '../../widgets/menu.dart';
+import '../../widgets/panel_context_menu.dart';
 import 'snippet_editor.dart';
 import 'snippet_row.dart';
 import 'state/snippet_provider.dart';
@@ -75,7 +78,10 @@ class _SnippetLibraryState extends ConsumerState<SnippetLibrary> {
       },
     );
 
-    return Column(
+    return GestureDetector(
+      behavior: HitTestBehavior.opaque,
+      onSecondaryTapUp: (d) => _showPanelMenu(context, d.globalPosition),
+      child: Column(
       children: [
         // v0.79.59: toolbar slimmed down. The inline "+ 新建" elevated
         // button next to the search field was redundant (host shells
@@ -91,8 +97,8 @@ class _SnippetLibraryState extends ConsumerState<SnippetLibrary> {
             sidebarSearchVisibleProvider(SidebarSearchPanel.snippets)))
           Container(
             padding: const EdgeInsets.fromLTRB(12, 6, 12, 6),
-            decoration: const BoxDecoration(
-              border: Border(bottom: BorderSide(color: TermexColors.border)),
+            decoration: BoxDecoration(
+              border: Border(bottom: BorderSide(color: context.colors.border)),
             ),
             child: SizedBox(
               height: 32,
@@ -102,46 +108,32 @@ class _SnippetLibraryState extends ConsumerState<SnippetLibrary> {
                 onChanged: ref.read(snippetProvider.notifier).setSearch,
                 decoration: InputDecoration(
                   hintText: l10n.snippetSearchPlaceholder,
-                  hintStyle: const TextStyle(fontSize: 12, color: TermexColors.textSecondary),
-                  prefixIcon: const Icon(Icons.search, size: 14, color: TermexColors.textSecondary),
+                  hintStyle: TextStyle(fontSize: 12, color: context.colors.textSecondary),
+                  prefixIcon: Icon(Icons.search, size: 14, color: context.colors.textSecondary),
                   prefixIconConstraints:
                       const BoxConstraints(minWidth: 30, minHeight: 30),
                   border: OutlineInputBorder(
                     borderRadius: BorderRadius.circular(6),
-                    borderSide: const BorderSide(color: TermexColors.border),
+                    borderSide: BorderSide(color: context.colors.border),
                   ),
                   enabledBorder: OutlineInputBorder(
                     borderRadius: BorderRadius.circular(6),
-                    borderSide: const BorderSide(color: TermexColors.border),
+                    borderSide: BorderSide(color: context.colors.border),
                   ),
                   contentPadding: EdgeInsets.zero,
                   isDense: true,
                 ),
-                style: const TextStyle(fontSize: 12, color: TermexColors.textPrimary),
+                style: TextStyle(fontSize: 12, color: context.colors.textPrimary),
               ),
             ),
           ),
-        // v0.79.59: tightened tag-filter row. The previous 36pt SizedBox
-        // with vertical:6 padding rendered a visually-tall band with a
-        // disproportionate gap before the first row (~140pt total). The
-        // chip itself is ~22pt — 28pt SizedBox + symmetric padding 3 is
-        // enough to host it without floating in dead space.
-        if (state.allTags.isNotEmpty)
-          SizedBox(
-            height: 28,
-            child: ListView(
-              scrollDirection: Axis.horizontal,
-              padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 3),
-              children: [
-                _TagFilter(tag: null, selected: state.selectedTag == null, label: l10n.snippetAllFolder),
-                ...state.allTags.map((t) => _TagFilter(
-                      tag: t,
-                      selected: state.selectedTag == t,
-                      label: t,
-                    )),
-              ],
-            ),
-          ),
+        // The tag filter no longer lives here. It used to be a 28pt
+        // horizontally-scrolling chip strip on its own row, which in a 240pt
+        // sidebar cost a full line to show one control and only allowed one
+        // category at a time. It is now `SnippetCategoryFilter`, a
+        // multi-select dropdown mounted next to the "Snippet" title in each
+        // host's section header (desktop `_CategorySectionHeader`, mobile
+        // `_TerminalTabHeader`).
         // List
         //
         // v0.79.60: `MediaQuery.removePadding(removeTop: true)` wrapping
@@ -160,16 +152,16 @@ class _SnippetLibraryState extends ConsumerState<SnippetLibrary> {
         // depend on inherited insets again.
         Expanded(
           child: state.isLoading
-              ? const Center(child: CircularProgressIndicator(color: TermexColors.primary))
+              ? Center(child: CircularProgressIndicator(color: context.colors.primary))
               : state.filtered.isEmpty
                   ? Center(
                       child: Column(
                         mainAxisSize: MainAxisSize.min,
                         children: [
-                          const Icon(Icons.code_off, size: 36, color: TermexColors.textSecondary),
+                          Icon(Icons.code_off, size: 36, color: context.colors.textSecondary),
                           const SizedBox(height: 8),
                           Text(l10n.snippetNoMatch,
-                              style: const TextStyle(fontSize: 12, color: TermexColors.textSecondary)),
+                              style: TextStyle(fontSize: 12, color: context.colors.textSecondary)),
                         ],
                       ),
                     )
@@ -188,40 +180,33 @@ class _SnippetLibraryState extends ConsumerState<SnippetLibrary> {
                     ),
         ),
       ],
-    );
-  }
-}
-
-class _TagFilter extends ConsumerWidget {
-  final String? tag;
-  final bool selected;
-  final String label;
-
-  const _TagFilter({required this.tag, required this.selected, required this.label});
-
-  @override
-  Widget build(BuildContext context, WidgetRef ref) {
-    return Clickable(
-      onTap: () => ref.read(snippetProvider.notifier).setTag(tag),
-      child: Container(
-        margin: const EdgeInsets.only(right: 6),
-        padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 3),
-        decoration: BoxDecoration(
-          color: selected ? TermexColors.primary.withOpacity(0.12) : TermexColors.backgroundTertiary,
-          borderRadius: BorderRadius.circular(12),
-          border: Border.all(
-            color: selected ? TermexColors.primary.withOpacity(0.4) : TermexColors.border,
-          ),
-        ),
-        child: Text(
-          label,
-          style: TextStyle(
-            fontSize: 11,
-            color: selected ? TermexColors.primary : TermexColors.textSecondary,
-            fontWeight: selected ? FontWeight.w600 : FontWeight.normal,
-          ),
-        ),
       ),
     );
   }
+
+  /// Blank-area menu: what applies to the library as a whole.
+  void _showPanelMenu(BuildContext context, Offset position) {
+    final l10n = AppLocalizations.of(context);
+    final state = ref.read(snippetProvider);
+    showContextMenu(
+      context: context,
+      position: position,
+      items: [
+        MenuItem(
+          label: l10n.snippetCreate,
+          icon: menuIcon(context, TermexIcons.add),
+          onSelected: () => SnippetLibrary.startNew(context),
+        ),
+        if (state.selectedTags.isNotEmpty) ...[
+          const MenuItem.separator(),
+          MenuItem(
+            label: l10n.snippetCategoryAll,
+            icon: menuIcon(context, TermexIcons.close),
+            onSelected: ref.read(snippetProvider.notifier).clearTags,
+          ),
+        ],
+      ],
+    );
+  }
 }
+

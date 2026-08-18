@@ -78,16 +78,16 @@ class _TermexSliderState extends State<TermexSlider> {
                     : (currentThumb + 8 - trackHeight) / 2,
                 child: Container(
                   height: trackHeight,
-                  decoration: const BoxDecoration(
-                    color: TermexColors.border,
+                  decoration: BoxDecoration(
+                    color: context.colors.border,
                     borderRadius: TermexRadius.full,
                   ),
                   child: FractionallySizedBox(
                     alignment: Alignment.centerLeft,
                     widthFactor: fraction,
                     child: Container(
-                      decoration: const BoxDecoration(
-                        color: TermexColors.primary,
+                      decoration: BoxDecoration(
+                        color: context.colors.primary,
                         borderRadius: TermexRadius.full,
                       ),
                     ),
@@ -103,15 +103,16 @@ class _TermexSliderState extends State<TermexSlider> {
                     width: 60,
                     height: tooltipHeight,
                     decoration: BoxDecoration(
-                      color: TermexColors.backgroundTertiary,
-                      border: Border.all(color: TermexColors.border, width: 1),
+                      color: context.colors.backgroundTertiary,
+                      border:
+                          Border.all(color: context.colors.border, width: 1),
                       borderRadius: TermexRadius.md,
                     ),
                     alignment: Alignment.center,
                     child: Text(
                       widget.label!,
                       style: TermexTypography.caption.copyWith(
-                        color: TermexColors.textPrimary,
+                        color: context.colors.textPrimary,
                       ),
                     ),
                   ),

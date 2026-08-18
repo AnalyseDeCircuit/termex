@@ -875,6 +875,15 @@
   "connectionForwardDynamic": "Dynamic Forward (SOCKS5)",
   "connectionForwardDynamicHint": "SOCKS5 proxy — all browser traffic routed through remote server",
   "connectionForwardNone": "No forwarding rules configured.",
+  "ctxProxySetDefault": "Set as default",
+  "ctxProxyTest": "Test connection",
+  "ctxProxyCopyAddress": "Copy address",
+  "ctxProxyDelete": "Delete proxy",
+  "ctxSnippetCopyContent": "Copy content",
+  "ctxRecordingCopyPath": "Copy file path",
+  "ctxCloudCopyLabel": "Copy name",
+  "ctxCopied": "Copied to clipboard",
+  "ctxCloudCopyDetail": "Copy details",
   "contextConnect": "Connect",
   "contextEdit": "Edit",
   "contextDuplicate": "Duplicate",
@@ -1296,6 +1305,18 @@
     }
   },
   "snippetAllFolders": "All",
+  "snippetCategoryFilter": "Category",
+  "snippetCategoryAll": "All categories",
+  "snippetCategoryCount": "{count} categories",
+  "@snippetCategoryCount": {
+    "description": "Header dropdown label when 2+ snippet categories are ticked",
+    "placeholders": {
+      "count": {
+        "type": "int"
+      }
+    }
+  },
+  "snippetCategoryNone": "No categories",
   "snippetAllFolder": "All",
   "snippetNewFolder": "New Folder",
   "snippetFolderName": "Folder name",
@@ -1876,6 +1897,9 @@
   "sftpEmptyDir": "(empty directory)",
   "sftpActionDownload": "Download",
   "sftpActionRename": "Rename",
+  "sftpActionEdit": "Edit",
+  "sftpActionCopyPath": "Copy Path",
+  "sftpActionSelectAll": "Select All",
   "sftpActionDelete": "Delete",
   "sftpActionChmod": "Change permissions",
   "sftpActionNewFile": "New file",

@@ -85,10 +85,10 @@ class _ServerTreeNodeState extends State<ServerTreeNode> {
 
   Color _bgColor() {
     if (widget.isSelected) {
-      return TermexColors.primary.withOpacity(0.18);
+      return context.colors.primary.withOpacity(0.18);
     }
     if (_hovered) {
-      return TermexColors.backgroundTertiary.withOpacity(0.7);
+      return context.colors.backgroundTertiary.withOpacity(0.7);
     }
     return const Color(0x00000000);
   }
@@ -145,8 +145,8 @@ class _ServerTreeNodeState extends State<ServerTreeNode> {
                     : TermexIcons.server,
                 size: 14,
                 color: widget.isGroup
-                    ? TermexColors.warning
-                    : TermexColors.neutral,
+                    ? context.colors.warning
+                    : context.colors.neutral,
               ),
               const SizedBox(width: TermexSpacing.sm),
               // Name + optional subtitle
@@ -162,7 +162,7 @@ class _ServerTreeNodeState extends State<ServerTreeNode> {
                           child: Text(
                             widget.name,
                             style: TermexTypography.body.copyWith(
-                              color: TermexColors.textPrimary,
+                              color: context.colors.textPrimary,
                               fontWeight: widget.isGroup
                                   ? FontWeight.w500
                                   : FontWeight.normal,
@@ -184,7 +184,7 @@ class _ServerTreeNodeState extends State<ServerTreeNode> {
                           const SizedBox(width: 3),
                           _CapsuleBadge(
                             label: 'B',
-                            color: const Color(0xFF2F81F7), // blue (primary)
+                            color: context.colors.primary,
                             tooltip: l10n.serverBadgeBastionTooltip,
                           ),
                         ],
@@ -192,7 +192,7 @@ class _ServerTreeNodeState extends State<ServerTreeNode> {
                           const SizedBox(width: 3),
                           _CapsuleBadge(
                             label: 'T',
-                            color: const Color(0xFF3FB950), // green
+                            color: context.colors.success,
                             tooltip: l10n.serverSharedToTeam,
                           ),
                         ],
@@ -202,7 +202,7 @@ class _ServerTreeNodeState extends State<ServerTreeNode> {
                       Text(
                         widget.subtitle!,
                         style: TermexTypography.caption.copyWith(
-                          color: TermexColors.textMuted,
+                          color: context.colors.textMuted,
                         ),
                         maxLines: 1,
                         overflow: TextOverflow.ellipsis,
@@ -214,12 +214,12 @@ class _ServerTreeNodeState extends State<ServerTreeNode> {
               if (!widget.isGroup) ...[
                 const SizedBox(width: TermexSpacing.xs),
                 if (widget.isConnected)
-                  const _StatusDot(color: TermexColors.success)
+                  _StatusDot(color: context.colors.success)
                 else if (widget.lastConnected != null)
                   Text(
                     widget.lastConnected!,
                     style: TermexTypography.caption.copyWith(
-                      color: TermexColors.textMuted,
+                      color: context.colors.textMuted,
                     ),
                   ),
               ],
@@ -240,10 +240,10 @@ class _ExpandIcon extends StatelessWidget {
     return AnimatedRotation(
       turns: isExpanded ? 0.25 : 0.0,
       duration: const Duration(milliseconds: 150),
-      child: const TermexIconWidget(
+      child: TermexIconWidget(
         TermexIcons.chevronRight,
         size: 12,
-        color: TermexColors.textSecondary,
+        color: context.colors.textSecondary,
       ),
     );
   }

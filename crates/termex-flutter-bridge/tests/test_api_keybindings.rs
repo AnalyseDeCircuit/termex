@@ -114,7 +114,13 @@ fn test_keybinding_reset_all_ok() {
 
 #[test]
 fn test_keybinding_check_conflict_detects_existing() {
-    // "⌘T" is already used by "new_tab" (global) — checks defaults only, no registry needed.
+    // "⌘T" is already used by "new_tab" (global). This needs `setup()` despite
+    // only asserting on a default: `keybinding_check_conflict` consults the
+    // persisted overrides *before* falling back to defaults, so a concurrent
+    // test that rebinds new_tab makes ⌘T stop conflicting. Without the guard
+    // this failed intermittently under the default parallel test runner while
+    // passing alone and under `--test-threads=1`.
+    let _guard = setup();
     let conflict = keybinding_check_conflict("⌘T".into(), "global".into()).unwrap();
     assert!(conflict.is_some(), "⌘T should conflict with new_tab");
     let info = conflict.unwrap();
@@ -123,7 +129,9 @@ fn test_keybinding_check_conflict_detects_existing() {
 
 #[test]
 fn test_keybinding_check_conflict_no_conflict() {
-    // An unmapped combination should not conflict.
+    // An unmapped combination should not conflict. Guarded for the same
+    // reason as the test above — this reads the shared overrides registry.
+    let _guard = setup();
     let conflict = keybinding_check_conflict("⌘Shift+Z".into(), "global".into()).unwrap();
     assert!(conflict.is_none(), "⌘Shift+Z should not conflict");
 }

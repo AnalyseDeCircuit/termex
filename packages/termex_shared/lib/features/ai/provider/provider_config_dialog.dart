@@ -85,10 +85,11 @@ class _ProviderConfigDialogState extends ConsumerState<_ProviderConfigDialog> {
     final l10n = AppLocalizations.of(context);
 
     return AlertDialog(
-      backgroundColor: TermexColors.backgroundSecondary,
+      backgroundColor: context.colors.backgroundSecondary,
       title: Text(
         l10n.settingsAiConfigureTitle(meta.label),
-        style: const TextStyle(fontSize: 15, color: TermexColors.textPrimary),
+        style:
+            TextStyle(fontSize: 15, color: context.colors.textPrimary),
       ),
       content: SizedBox(
         width: 420,
@@ -99,8 +100,8 @@ class _ProviderConfigDialogState extends ConsumerState<_ProviderConfigDialog> {
             children: [
               Text(
                 meta.description,
-                style:
-                    const TextStyle(fontSize: 12, color: TermexColors.textSecondary),
+                style: TextStyle(
+                    fontSize: 12, color: context.colors.textSecondary),
               ),
               const SizedBox(height: 16),
 
@@ -123,7 +124,7 @@ class _ProviderConfigDialogState extends ConsumerState<_ProviderConfigDialog> {
                                   ? Icons.visibility_off
                                   : Icons.visibility,
                               size: 16,
-                              color: TermexColors.textSecondary,
+                              color: context.colors.textSecondary,
                             ),
                           ),
                         ),
@@ -142,8 +143,8 @@ class _ProviderConfigDialogState extends ConsumerState<_ProviderConfigDialog> {
                     padding: const EdgeInsets.only(top: 4),
                     child: Text(
                       configState.verifyError!,
-                      style: const TextStyle(
-                          fontSize: 11, color: TermexColors.danger),
+                      style: TextStyle(
+                          fontSize: 11, color: context.colors.danger),
                     ),
                   ),
                 const SizedBox(height: 12),
@@ -164,7 +165,7 @@ class _ProviderConfigDialogState extends ConsumerState<_ProviderConfigDialog> {
               _Label(l10n.aiConfigModel),
               DropdownButtonFormField<String>(
                 initialValue: _selectedModel,
-                dropdownColor: TermexColors.backgroundSecondary,
+                dropdownColor: context.colors.backgroundSecondary,
                 style: _inputStyle,
                 decoration: _inputDecoration(hint: ''),
                 items: meta.models
@@ -178,7 +179,7 @@ class _ProviderConfigDialogState extends ConsumerState<_ProviderConfigDialog> {
               _Label(l10n.settingsAiTerminalContextLines),
               DropdownButtonFormField<int>(
                 initialValue: _contextLines,
-                dropdownColor: TermexColors.backgroundSecondary,
+                dropdownColor: context.colors.backgroundSecondary,
                 style: _inputStyle,
                 decoration: _inputDecoration(hint: ''),
                 items: const [50, 100, 200, 500]
@@ -195,12 +196,12 @@ class _ProviderConfigDialogState extends ConsumerState<_ProviderConfigDialog> {
         TextButton(
           onPressed: () => Navigator.of(context).pop(),
           child: Text(l10n.commonCancel,
-              style: const TextStyle(color: TermexColors.textSecondary)),
+              style: TextStyle(color: context.colors.textSecondary)),
         ),
         ElevatedButton(
           onPressed: _save,
           style: ElevatedButton.styleFrom(
-            backgroundColor: TermexColors.primary,
+            backgroundColor: context.colors.primary,
             foregroundColor: Colors.white,
           ),
           child: Text(l10n.commonSave),
@@ -212,15 +213,16 @@ class _ProviderConfigDialogState extends ConsumerState<_ProviderConfigDialog> {
   InputDecoration _inputDecoration({required String hint, Widget? suffix}) =>
       InputDecoration(
         hintText: hint,
-        hintStyle: const TextStyle(color: TermexColors.textSecondary, fontSize: 12),
+        hintStyle: TextStyle(
+            color: context.colors.textSecondary, fontSize: 12),
         suffixIcon: suffix,
         border: OutlineInputBorder(
           borderRadius: BorderRadius.circular(6),
-          borderSide: const BorderSide(color: TermexColors.border),
+          borderSide: BorderSide(color: context.colors.border),
         ),
         enabledBorder: OutlineInputBorder(
           borderRadius: BorderRadius.circular(6),
-          borderSide: const BorderSide(color: TermexColors.border),
+          borderSide: BorderSide(color: context.colors.border),
         ),
         contentPadding:
             const EdgeInsets.symmetric(horizontal: 10, vertical: 8),
@@ -228,7 +230,7 @@ class _ProviderConfigDialogState extends ConsumerState<_ProviderConfigDialog> {
       );
 
   TextStyle get _inputStyle =>
-      const TextStyle(fontSize: 12, color: TermexColors.textPrimary);
+      TextStyle(fontSize: 12, color: context.colors.textPrimary);
 }
 
 class _Label extends StatelessWidget {
@@ -241,10 +243,10 @@ class _Label extends StatelessWidget {
       padding: const EdgeInsets.only(bottom: 4),
       child: Text(
         text,
-        style: const TextStyle(
+        style: TextStyle(
           fontSize: 11,
           fontWeight: FontWeight.w600,
-          color: TermexColors.textSecondary,
+          color: context.colors.textSecondary,
         ),
       ),
     );
@@ -264,22 +266,22 @@ class _VerifyButton extends StatelessWidget {
       child: Container(
         padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 8),
         decoration: BoxDecoration(
-          border: Border.all(color: TermexColors.border),
+          border: Border.all(color: context.colors.border),
           borderRadius: BorderRadius.circular(6),
         ),
         child: isVerifying
-            ? const SizedBox(
+            ? SizedBox(
                 width: 14,
                 height: 14,
                 child: CircularProgressIndicator(
                   strokeWidth: 2,
-                  color: TermexColors.primary,
+                  color: context.colors.primary,
                 ),
               )
             : Text(
                 l10n.settingsAiVerify,
-                style: const TextStyle(
-                    fontSize: 12, color: TermexColors.textSecondary),
+                style: TextStyle(
+                    fontSize: 12, color: context.colors.textSecondary),
               ),
       ),
     );

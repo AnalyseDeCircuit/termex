@@ -9,6 +9,7 @@
 /// (not stubbed) so the panel is fully functional out of the box.
 library;
 
+import 'package:flutter/services.dart';
 import 'package:flutter/widgets.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 
@@ -22,6 +23,8 @@ import '../../design/typography.dart';
 import '../../icons/termex_icons.dart';
 import '../../l10n/app_localizations.dart';
 import '../../widgets/clickable.dart';
+import '../../widgets/menu.dart';
+import '../../widgets/panel_context_menu.dart';
 import '../../widgets/toast.dart';
 
 class RecordingListPanel extends ConsumerStatefulWidget {
@@ -76,9 +79,16 @@ class _RecordingListPanelState extends ConsumerState<RecordingListPanel> {
       },
     );
 
-    return Column(
+    // The panel used to open with its own `_Header` row — a record icon, the
+    // text "会话录制" and a refresh button. The host sidebar already draws a
+    // section header with that exact title, so the title appeared twice and
+    // the second row existed only to carry one button. Refresh moved to the
+    // right-click menu (below), which lets the whole row go.
+    return GestureDetector(
+      behavior: HitTestBehavior.opaque,
+      onSecondaryTapUp: (d) => _showPanelMenu(context, d.globalPosition),
+      child: Column(
       children: [
-        _Header(onRefresh: _reload),
         if (ref.watch(
             sidebarSearchVisibleProvider(SidebarSearchPanel.recordings)))
           Padding(
@@ -94,14 +104,14 @@ class _RecordingListPanelState extends ConsumerState<RecordingListPanel> {
             builder: (ctx, snap) {
               final l10n = AppLocalizations.of(ctx);
               if (snap.connectionState != ConnectionState.done) {
-                return const Center(
+                return Center(
                   child: SizedBox(
                     width: 16,
                     height: 16,
                     child: TermexIconWidget(
                       TermexIcons.refresh,
                       size: 16,
-                      color: TermexColors.textMuted,
+                      color: ctx.colors.textMuted,
                     ),
                   ),
                 );
@@ -111,7 +121,7 @@ class _RecordingListPanelState extends ConsumerState<RecordingListPanel> {
                   child: Text(
                     l10n.commonLoadFailed('${snap.error}'),
                     style: TermexTypography.caption.copyWith(
-                      color: TermexColors.danger,
+                      color: ctx.colors.danger,
                     ),
                   ),
                 );
@@ -154,56 +164,30 @@ class _RecordingListPanelState extends ConsumerState<RecordingListPanel> {
           ),
         ),
       ],
+      ),
     );
   }
-}
 
-// ─── Header ───────────────────────────────────────────────────────────────
-
-class _Header extends StatelessWidget {
-  final VoidCallback onRefresh;
-  const _Header({required this.onRefresh});
-
-  @override
-  Widget build(BuildContext context) {
+  /// Right-click menu for the panel, including its blank area — the
+  /// `HitTestBehavior.opaque` on the wrapping detector is what makes empty
+  /// space below the last row still respond.
+  void _showPanelMenu(BuildContext context, Offset position) {
     final l10n = AppLocalizations.of(context);
-    return Container(
-        padding: const EdgeInsets.symmetric(
-          horizontal: TermexSpacing.md,
-          vertical: TermexSpacing.sm,
-        ),
-        decoration: const BoxDecoration(
-          border: Border(
-            bottom: BorderSide(color: TermexColors.border, width: 0.5),
+    showContextMenu(
+      context: context,
+      position: position,
+      items: [
+        MenuItem(
+          label: l10n.commonRefresh,
+          icon: TermexIconWidget(
+            TermexIcons.refresh,
+            size: 13,
+            color: context.colors.textSecondary,
           ),
+          onSelected: _reload,
         ),
-        child: Row(
-          children: [
-            const TermexIconWidget(
-              TermexIcons.record,
-              size: 14,
-              color: TermexColors.textSecondary,
-            ),
-            const SizedBox(width: TermexSpacing.sm),
-            Text(
-              l10n.recordingTitle,
-              style: TermexTypography.bodySmall.copyWith(
-                color: TermexColors.textPrimary,
-                fontWeight: FontWeight.w500,
-              ),
-            ),
-            const Spacer(),
-            Clickable(
-              onTap: onRefresh,
-              child: const TermexIconWidget(
-                TermexIcons.refresh,
-                size: 12,
-                color: TermexColors.textMuted,
-              ),
-            ),
-          ],
-        ),
-      );
+      ],
+    );
   }
 }
 
@@ -217,23 +201,23 @@ class _EmptyState extends StatelessWidget {
         child: Column(
           mainAxisSize: MainAxisSize.min,
           children: [
-            const TermexIconWidget(
+            TermexIconWidget(
               TermexIcons.record,
               size: 36,
-              color: TermexColors.textMuted,
+              color: context.colors.textMuted,
             ),
             const SizedBox(height: TermexSpacing.sm),
             Text(
               l10n.recordingEmpty,
               style: TermexTypography.caption.copyWith(
-                color: TermexColors.textSecondary,
+                color: context.colors.textSecondary,
               ),
             ),
             const SizedBox(height: 4),
             Text(
               l10n.recordingEmptyHint,
               style: TermexTypography.caption.copyWith(
-                color: TermexColors.textMuted,
+                color: context.colors.textMuted,
               ),
             ),
           ],
@@ -276,7 +260,7 @@ class _GroupSection extends StatelessWidget {
             maxLines: 1,
             overflow: TextOverflow.ellipsis,
             style: TermexTypography.caption.copyWith(
-              color: TermexColors.textMuted,
+              color: context.colors.textMuted,
               fontWeight: FontWeight.w500,
             ),
           ),
@@ -329,13 +313,18 @@ class _RowState extends State<_Row> {
       onExit: (_) => setState(() => _hovered = false),
       child: Clickable(
         onDoubleTap: () => widget.onOpen?.call(r.id, r.filePath),
+        // Row menu. Consumes the gesture so the panel's blank-area menu
+        // does not also fire. It matters more here than elsewhere: the
+        // open/delete buttons only appear on hover, so without a menu
+        // there is no affordance at all on a touch screen.
+        onSecondaryTap: (pos) => _showRowMenu(context, pos),
         child: Container(
           padding: const EdgeInsets.symmetric(
             horizontal: TermexSpacing.md,
             vertical: TermexSpacing.xs,
           ),
           color: _hovered
-              ? TermexColors.backgroundTertiary
+              ? context.colors.backgroundTertiary
               : const Color(0x00000000),
           child: Row(
             children: [
@@ -348,7 +337,7 @@ class _RowState extends State<_Row> {
                       maxLines: 1,
                       overflow: TextOverflow.ellipsis,
                       style: TermexTypography.bodySmall.copyWith(
-                        color: TermexColors.textPrimary,
+                        color: context.colors.textPrimary,
                       ),
                     ),
                     const SizedBox(height: 2),
@@ -359,7 +348,7 @@ class _RowState extends State<_Row> {
                       maxLines: 1,
                       overflow: TextOverflow.ellipsis,
                       style: TermexTypography.caption.copyWith(
-                        color: TermexColors.textMuted,
+                        color: context.colors.textMuted,
                       ),
                     ),
                   ],
@@ -375,7 +364,7 @@ class _RowState extends State<_Row> {
                 _IconBtn(
                   icon: TermexIcons.delete,
                   tooltip: l10n.commonDelete,
-                  color: TermexColors.danger,
+                  color: context.colors.danger,
                   onTap: widget.onDelete,
                 ),
               ],
@@ -383,6 +372,41 @@ class _RowState extends State<_Row> {
           ),
         ),
       ),
+    );
+  }
+
+  void _showRowMenu(BuildContext context, Offset position) {
+    final r = widget.rec;
+    final l10n = AppLocalizations.of(context);
+    showContextMenu(
+      context: context,
+      position: position,
+      items: [
+        MenuItem(
+          label: l10n.recordingOpen,
+          icon: menuIcon(context, TermexIcons.externalLink),
+          // The host wires playback; with no handler the entry would do
+          // nothing, so show it as unavailable instead.
+          disabled: widget.onOpen == null,
+          onSelected: widget.onOpen == null
+              ? null
+              : () => widget.onOpen!(r.id, r.filePath),
+        ),
+        MenuItem(
+          label: l10n.ctxRecordingCopyPath,
+          icon: menuIcon(context, TermexIcons.copy),
+          onSelected: () {
+            Clipboard.setData(ClipboardData(text: r.filePath));
+            ToastController.success(l10n.ctxCopied);
+          },
+        ),
+        const MenuItem.separator(),
+        deleteMenuItem(
+          context,
+          label: l10n.commonDelete,
+          onSelected: widget.onDelete,
+        ),
+      ],
     );
   }
 }
@@ -410,7 +434,7 @@ class _IconBtn extends StatelessWidget {
             child: TermexIconWidget(
               icon ?? TermexIcons.externalLink,
               size: 12,
-              color: color ?? TermexColors.textSecondary,
+              color: color ?? context.colors.textSecondary,
             ),
           ),
         ),

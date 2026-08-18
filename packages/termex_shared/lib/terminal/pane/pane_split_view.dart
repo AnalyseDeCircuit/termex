@@ -91,7 +91,7 @@ class _PaneWrapper extends StatelessWidget {
       child: Container(
         decoration: BoxDecoration(
           border: Border.all(
-            color: isFocused ? TermexColors.primary : TermexColors.border,
+            color: isFocused ? context.colors.primary : context.colors.border,
             width: isFocused ? 1.5 : 1.0,
           ),
         ),
@@ -198,7 +198,7 @@ class _DragHandle extends StatelessWidget {
         child: Container(
           width: isHorizontal ? 6 : double.infinity,
           height: isHorizontal ? double.infinity : 6,
-          color: TermexColors.border,
+          color: context.colors.border,
         ),
       ),
     );

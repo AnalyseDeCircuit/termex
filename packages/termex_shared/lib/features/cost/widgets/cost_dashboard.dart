@@ -76,9 +76,9 @@ class _Header extends StatelessWidget {
     return Container(
       padding: const EdgeInsets.all(TermexSpacing.lg),
       decoration: BoxDecoration(
-        color: TermexColors.backgroundSecondary,
+        color: context.colors.backgroundSecondary,
         borderRadius: BorderRadius.circular(8),
-        border: Border.all(color: TermexColors.border),
+        border: Border.all(color: context.colors.border),
       ),
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.start,
@@ -86,7 +86,7 @@ class _Header extends StatelessWidget {
           Text(
             summary.periodLabel,
             style: TermexTypography.caption.copyWith(
-              color: TermexColors.textSecondary,
+              color: context.colors.textSecondary,
             ),
           ),
           const SizedBox(height: TermexSpacing.xs),
@@ -97,7 +97,7 @@ class _Header extends StatelessWidget {
               Text(
                 formatUsd(summary.totalUsd),
                 style: TermexTypography.heading1.copyWith(
-                  color: TermexColors.textPrimary,
+                  color: context.colors.textPrimary,
                 ),
               ),
               if (remaining != null) ...[
@@ -106,8 +106,8 @@ class _Header extends StatelessWidget {
                   '${formatUsd(remaining)} left',
                   style: TermexTypography.caption.copyWith(
                     color: remaining < 0
-                        ? TermexColors.danger
-                        : TermexColors.textSecondary,
+                        ? context.colors.danger
+                        : context.colors.textSecondary,
                   ),
                 ),
               ],
@@ -119,7 +119,7 @@ class _Header extends StatelessWidget {
             '${formatTokens(summary.totalInputTokens)} in · '
             '${formatTokens(summary.totalOutputTokens)} out',
             style: TermexTypography.caption.copyWith(
-              color: TermexColors.textSecondary,
+              color: context.colors.textSecondary,
             ),
           ),
         ],
@@ -137,7 +137,7 @@ class _SectionTitle extends StatelessWidget {
         child: Text(
           text,
           style: TermexTypography.heading4.copyWith(
-            color: TermexColors.textSecondary,
+            color: context.colors.textSecondary,
           ),
         ),
       );
@@ -154,7 +154,7 @@ class _EmptyHint extends StatelessWidget {
         ),
         child: Text(
           label,
-          style: TermexTypography.caption.copyWith(color: TermexColors.textMuted),
+          style: TermexTypography.caption.copyWith(color: context.colors.textMuted),
         ),
       );
 }
@@ -181,7 +181,7 @@ class _ServerRow extends StatelessWidget {
                 child: Text(
                   row.serverName,
                   style: TermexTypography.body.copyWith(
-                    color: TermexColors.textPrimary,
+                    color: context.colors.textPrimary,
                   ),
                   maxLines: 1,
                   overflow: TextOverflow.ellipsis,
@@ -190,13 +190,13 @@ class _ServerRow extends StatelessWidget {
               Text(
                 '${formatUsd(row.costUsd)} · ${row.taskCount} task${row.taskCount == 1 ? "" : "s"}',
                 style: TermexTypography.caption.copyWith(
-                  color: TermexColors.textSecondary,
+                  color: context.colors.textSecondary,
                 ),
               ),
             ],
           ),
           const SizedBox(height: 4),
-          _BarMeter(value: pct, color: TermexColors.primary),
+          _BarMeter(value: pct, color: context.colors.primary),
         ],
       ),
     );
@@ -219,7 +219,7 @@ class _TaskRow extends StatelessWidget {
         ),
         margin: const EdgeInsets.symmetric(vertical: 2),
         decoration: BoxDecoration(
-          color: TermexColors.backgroundSecondary,
+          color: context.colors.backgroundSecondary,
           borderRadius: BorderRadius.circular(6),
         ),
         child: Row(
@@ -228,7 +228,7 @@ class _TaskRow extends StatelessWidget {
               child: Text(
                 row.promptPreview.isEmpty ? row.taskId : row.promptPreview,
                 style: TermexTypography.body.copyWith(
-                  color: TermexColors.textPrimary,
+                  color: context.colors.textPrimary,
                 ),
                 maxLines: 1,
                 overflow: TextOverflow.ellipsis,
@@ -238,7 +238,7 @@ class _TaskRow extends StatelessWidget {
             Text(
               formatUsd(row.costUsd),
               style: TermexTypography.caption.copyWith(
-                color: TermexColors.textPrimary,
+                color: context.colors.textPrimary,
                 fontWeight: FontWeight.w600,
               ),
             ),
@@ -275,14 +275,14 @@ class _KindBreakdown extends StatelessWidget {
                       child: Text(
                         e.key.displayName,
                         style: TermexTypography.body.copyWith(
-                          color: TermexColors.textPrimary,
+                          color: context.colors.textPrimary,
                         ),
                       ),
                     ),
                     Text(
                       formatUsd(e.value),
                       style: TermexTypography.caption.copyWith(
-                        color: TermexColors.textSecondary,
+                        color: context.colors.textSecondary,
                       ),
                     ),
                   ],
@@ -290,7 +290,7 @@ class _KindBreakdown extends StatelessWidget {
                 const SizedBox(height: 4),
                 _BarMeter(
                   value: total <= 0 ? 0 : e.value / total,
-                  color: _colorFor(e.key),
+                  color: _colorFor(e.key, context.colors),
                 ),
               ],
             ),
@@ -299,10 +299,11 @@ class _KindBreakdown extends StatelessWidget {
     );
   }
 
-  Color _colorFor(CostKindVM kind) => switch (kind) {
-        CostKindVM.primaryAiCall => TermexColors.primary,
-        CostKindVM.streamingSummary => TermexColors.warning,
-        CostKindVM.toolUse => TermexColors.success,
+  Color _colorFor(CostKindVM kind, TermexColorScheme colors) =>
+      switch (kind) {
+        CostKindVM.primaryAiCall => colors.primary,
+        CostKindVM.streamingSummary => colors.warning,
+        CostKindVM.toolUse => colors.success,
       };
 }
 
@@ -319,7 +320,7 @@ class _BarMeter extends StatelessWidget {
           Container(
             height: 4,
             decoration: BoxDecoration(
-              color: TermexColors.backgroundTertiary,
+              color: context.colors.backgroundTertiary,
               borderRadius: BorderRadius.circular(2),
             ),
           ),

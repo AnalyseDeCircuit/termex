@@ -45,12 +45,12 @@ class PendingConfirmationSheet extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    final accent = _accentFor(risk.level);
+    final accent = _accentFor(risk.level, context.colors);
     return Container(
       padding: const EdgeInsets.all(TermexSpacing.lg),
-      decoration: const BoxDecoration(
-        color: TermexColors.backgroundSecondary,
-        borderRadius: BorderRadius.vertical(top: Radius.circular(16)),
+      decoration: BoxDecoration(
+        color: context.colors.backgroundSecondary,
+        borderRadius: const BorderRadius.vertical(top: Radius.circular(16)),
       ),
       child: Column(
         mainAxisSize: MainAxisSize.min,
@@ -64,21 +64,21 @@ class PendingConfirmationSheet extends StatelessWidget {
           Text(
             'Prompt:',
             style: TermexTypography.caption.copyWith(
-              color: TermexColors.textSecondary,
+              color: context.colors.textSecondary,
             ),
           ),
           const SizedBox(height: TermexSpacing.xs),
           Container(
             padding: const EdgeInsets.all(TermexSpacing.sm),
             decoration: BoxDecoration(
-              color: TermexColors.backgroundTertiary,
+              color: context.colors.backgroundTertiary,
               borderRadius: BorderRadius.circular(6),
-              border: Border.all(color: TermexColors.border),
+              border: Border.all(color: context.colors.border),
             ),
             child: Text(
               risk.preview.isEmpty ? prompt : risk.preview,
               style: TermexTypography.monospace.copyWith(
-                color: TermexColors.textPrimary,
+                color: context.colors.textPrimary,
                 fontSize: 13,
               ),
             ),
@@ -88,7 +88,7 @@ class PendingConfirmationSheet extends StatelessWidget {
             Text(
               'Reasons:',
               style: TermexTypography.caption.copyWith(
-                color: TermexColors.textSecondary,
+                color: context.colors.textSecondary,
               ),
             ),
             const SizedBox(height: TermexSpacing.xs),
@@ -101,7 +101,7 @@ class PendingConfirmationSheet extends StatelessWidget {
                 child: Text(
                   '• $r',
                   style: TermexTypography.body.copyWith(
-                    color: TermexColors.textPrimary,
+                    color: context.colors.textPrimary,
                   ),
                 ),
               ),
@@ -112,7 +112,7 @@ class PendingConfirmationSheet extends StatelessWidget {
             children: [
               _SheetButton(
                 label: 'Deny',
-                color: TermexColors.danger,
+                color: context.colors.danger,
                 onPressed: () => onDecide(ConfirmationDecision.deny),
               ),
               const SizedBox(width: TermexSpacing.sm),
@@ -129,16 +129,16 @@ class PendingConfirmationSheet extends StatelessWidget {
     );
   }
 
-  Color _accentFor(RiskLevel l) {
+  Color _accentFor(RiskLevel l, TermexColorScheme colors) {
     switch (l) {
       case RiskLevel.critical:
-        return TermexColors.danger;
+        return colors.danger;
       case RiskLevel.high:
-        return TermexColors.warning;
+        return colors.warning;
       case RiskLevel.medium:
-        return TermexColors.primary;
+        return colors.primary;
       case RiskLevel.low:
-        return TermexColors.success;
+        return colors.success;
     }
   }
 }
@@ -175,7 +175,7 @@ class _Header extends StatelessWidget {
           child: Text(
             'Confirmation required — ${level.displayName} risk',
             style: TermexTypography.heading3.copyWith(
-              color: TermexColors.textPrimary,
+              color: context.colors.textPrimary,
             ),
           ),
         ),
@@ -201,7 +201,7 @@ class _LabeledRow extends StatelessWidget {
             child: Text(
               label,
               style: TermexTypography.caption.copyWith(
-                color: TermexColors.textSecondary,
+                color: context.colors.textSecondary,
               ),
             ),
           ),
@@ -209,7 +209,7 @@ class _LabeledRow extends StatelessWidget {
             child: Text(
               value,
               style: TermexTypography.body.copyWith(
-                color: TermexColors.textPrimary,
+                color: context.colors.textPrimary,
               ),
             ),
           ),
@@ -249,7 +249,7 @@ class _SheetButton extends StatelessWidget {
         child: Text(
           label,
           style: TermexTypography.body.copyWith(
-            color: filled ? TermexColors.textPrimary : color,
+            color: filled ? context.colors.textPrimary : color,
             fontWeight: FontWeight.w600,
           ),
         ),

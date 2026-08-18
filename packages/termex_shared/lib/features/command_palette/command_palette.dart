@@ -213,9 +213,9 @@ class _CommandPaletteState extends ConsumerState<CommandPalette> {
             width: 560,
             margin: const EdgeInsets.only(top: 80),
             decoration: BoxDecoration(
-              color: TermexColors.backgroundPrimary,
+              color: context.colors.backgroundPrimary,
               borderRadius: TermexRadius.lg,
-              border: Border.all(color: TermexColors.border),
+              border: Border.all(color: context.colors.border),
             ),
             child: Focus(
               onKeyEvent: _handleKey,
@@ -226,25 +226,25 @@ class _CommandPaletteState extends ConsumerState<CommandPalette> {
                     padding: const EdgeInsets.fromLTRB(12, 12, 12, 4),
                     child: Row(
                       children: [
-                        const Icon(Icons.search,
-                            size: 18, color: TermexColors.textSecondary),
+                        Icon(Icons.search,
+                            size: 18, color: context.colors.textSecondary),
                         const SizedBox(width: 8),
                         Expanded(
                           child: EditableText(
                             controller: _ctrl,
                             focusNode: _focus,
                             style: TermexTypography.body.copyWith(
-                              color: TermexColors.textPrimary,
+                              color: context.colors.textPrimary,
                             ),
-                            cursorColor: TermexColors.primary,
-                            backgroundCursorColor: TermexColors.textMuted,
+                            cursorColor: context.colors.primary,
+                            backgroundCursorColor: context.colors.textMuted,
                             onChanged: (_) => setState(() => _highlight = 0),
                           ),
                         ),
                         Text(
                           'Esc',
                           style: TermexTypography.caption.copyWith(
-                            color: TermexColors.textMuted,
+                            color: context.colors.textMuted,
                           ),
                         ),
                       ],
@@ -252,7 +252,7 @@ class _CommandPaletteState extends ConsumerState<CommandPalette> {
                   ),
                   Container(
                     height: 1,
-                    color: TermexColors.border,
+                    color: context.colors.border,
                   ),
                   ConstrainedBox(
                     constraints: const BoxConstraints(maxHeight: 360),
@@ -263,7 +263,7 @@ class _CommandPaletteState extends ConsumerState<CommandPalette> {
                             child: Text(
                               '无匹配项',
                               style: TermexTypography.body.copyWith(
-                                color: TermexColors.textMuted,
+                                color: context.colors.textMuted,
                               ),
                             ),
                           )
@@ -284,13 +284,13 @@ class _CommandPaletteState extends ConsumerState<CommandPalette> {
                                         const EdgeInsets.symmetric(
                                             horizontal: 12, vertical: 8),
                                     color: isSel
-                                        ? TermexColors.primary.withOpacity(0.12)
+                                        ? context.colors.primary.withOpacity(0.12)
                                         : null,
                                     child: Row(
                                       children: [
                                         Icon(item.icon,
                                             size: 16,
-                                            color: TermexColors.textSecondary),
+                                            color: context.colors.textSecondary),
                                         const SizedBox(width: 10),
                                         Expanded(
                                           child: Column(
@@ -301,8 +301,8 @@ class _CommandPaletteState extends ConsumerState<CommandPalette> {
                                                 item.title,
                                                 style: TermexTypography.body
                                                     .copyWith(
-                                                  color: TermexColors
-                                                      .textPrimary,
+                                                  color: context
+                                                      .colors.textPrimary,
                                                 ),
                                               ),
                                               Text(
@@ -310,8 +310,8 @@ class _CommandPaletteState extends ConsumerState<CommandPalette> {
                                                 style: TermexTypography
                                                     .caption
                                                     .copyWith(
-                                                  color: TermexColors
-                                                      .textMuted,
+                                                  color: context
+                                                      .colors.textMuted,
                                                 ),
                                               ),
                                             ],
@@ -321,7 +321,7 @@ class _CommandPaletteState extends ConsumerState<CommandPalette> {
                                           item.category,
                                           style: TermexTypography.caption
                                               .copyWith(
-                                            color: TermexColors.textMuted,
+                                            color: context.colors.textMuted,
                                           ),
                                         ),
                                       ],

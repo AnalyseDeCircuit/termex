@@ -23,7 +23,7 @@ class SyncStatusIndicator extends ConsumerWidget {
     if (!status.enabled) {
       return const SizedBox.shrink();
     }
-    final color = _colorFor(status.health);
+    final color = _colorFor(status.health, context.colors);
     return Tooltip(
       message: status.health.label +
           (status.lastSyncAt != null
@@ -46,14 +46,14 @@ class SyncStatusIndicator extends ConsumerWidget {
     );
   }
 
-  Color _colorFor(GitSyncHealth h) {
+  Color _colorFor(GitSyncHealth h, TermexColorScheme colors) {
     return switch (h) {
       GitSyncHealth.synced => Colors.green,
       GitSyncHealth.pushing => Colors.amber,
       GitSyncHealth.pulling => Colors.amber,
       GitSyncHealth.conflict => Colors.red,
       GitSyncHealth.error => Colors.red,
-      GitSyncHealth.disabled => TermexColors.textSecondary,
+      GitSyncHealth.disabled => colors.textSecondary,
     };
   }
 }

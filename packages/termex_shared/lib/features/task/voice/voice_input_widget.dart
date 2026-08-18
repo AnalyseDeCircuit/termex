@@ -101,7 +101,7 @@ class _VoiceInputWidgetState extends State<VoiceInputWidget> {
                   ? 'Listening… tap to stop'
                   : 'Tap to speak',
           style: TermexTypography.body.copyWith(
-            color: TermexColors.textSecondary,
+            color: context.colors.textSecondary,
           ),
         ),
         const SizedBox(height: TermexSpacing.md),
@@ -111,7 +111,7 @@ class _VoiceInputWidgetState extends State<VoiceInputWidget> {
           Text(
             _state.error!,
             style: TermexTypography.caption.copyWith(
-              color: TermexColors.danger,
+              color: context.colors.danger,
             ),
           ),
         ],
@@ -123,7 +123,7 @@ class _VoiceInputWidgetState extends State<VoiceInputWidget> {
             child: Text(
               'Use keyboard instead',
               style: TermexTypography.caption.copyWith(
-                color: TermexColors.primary,
+                color: context.colors.primary,
               ),
             ),
           ),
@@ -147,8 +147,8 @@ class _MicButton extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     final color = !enabled
-        ? TermexColors.textMuted
-        : (listening ? TermexColors.primary : TermexColors.backgroundTertiary);
+        ? context.colors.textMuted
+        : (listening ? context.colors.primary : context.colors.backgroundTertiary);
     return Clickable(
       onTap: enabled ? onTap : null,
       child: Container(
@@ -160,14 +160,14 @@ class _MicButton extends StatelessWidget {
           boxShadow: listening
               ? [
                   BoxShadow(
-                    color: TermexColors.primary.withValues(alpha: 0.4),
+                    color: context.colors.primary.withValues(alpha: 0.4),
                     blurRadius: 20,
                     spreadRadius: 4,
                   ),
                 ]
               : null,
           border: Border.all(
-            color: listening ? TermexColors.primary : TermexColors.border,
+            color: listening ? context.colors.primary : context.colors.border,
           ),
         ),
         alignment: Alignment.center,
@@ -175,7 +175,7 @@ class _MicButton extends StatelessWidget {
           listening ? '●' : '🎤',
           style: TextStyle(
             fontSize: 44,
-            color: enabled ? TermexColors.textPrimary : TermexColors.textMuted,
+            color: enabled ? context.colors.textPrimary : context.colors.textMuted,
           ),
         ),
       ),
@@ -194,14 +194,14 @@ class _TranscriptPreview extends StatelessWidget {
       constraints: const BoxConstraints(minHeight: 80),
       padding: const EdgeInsets.all(TermexSpacing.sm),
       decoration: BoxDecoration(
-        color: TermexColors.backgroundTertiary,
+        color: context.colors.backgroundTertiary,
         borderRadius: BorderRadius.circular(6),
-        border: Border.all(color: TermexColors.border),
+        border: Border.all(color: context.colors.border),
       ),
       child: RichText(
         text: TextSpan(
           style: TermexTypography.body.copyWith(
-            color: TermexColors.textPrimary,
+            color: context.colors.textPrimary,
           ),
           children: [
             if (state.committed.isNotEmpty)
@@ -211,16 +211,16 @@ class _TranscriptPreview extends StatelessWidget {
             if (state.partial.isNotEmpty)
               TextSpan(
                 text: state.partial,
-                style: const TextStyle(
-                  color: TermexColors.textSecondary,
+                style: TextStyle(
+                  color: context.colors.textSecondary,
                   fontStyle: FontStyle.italic,
                 ),
               ),
             if (state.committed.isEmpty && state.partial.isEmpty)
-              const TextSpan(
+              TextSpan(
                 text: 'Your speech will appear here',
                 style: TextStyle(
-                  color: TermexColors.textMuted,
+                  color: context.colors.textMuted,
                   fontStyle: FontStyle.italic,
                 ),
               ),

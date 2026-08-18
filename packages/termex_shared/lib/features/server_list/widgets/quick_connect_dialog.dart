@@ -161,7 +161,7 @@ class _QuickConnectDialogState extends ConsumerState<QuickConnectDialog> {
           Text(
             'Connect to a server without saving full credentials.',
             style: TermexTypography.bodySmall.copyWith(
-              color: TermexColors.textSecondary,
+              color: context.colors.textSecondary,
             ),
           ),
           const SizedBox(height: TermexSpacing.lg),
@@ -185,7 +185,7 @@ class _QuickConnectDialogState extends ConsumerState<QuickConnectDialog> {
             Text(
               _error!,
               style: TermexTypography.bodySmall.copyWith(
-                color: TermexColors.danger,
+                color: context.colors.danger,
               ),
             ),
           ],

@@ -5,6 +5,9 @@ import 'dart:async';
 
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
+
+import '../../../system/clipboard_service.dart';
+import '../dialogs/file_editor_dialog.dart';
 import 'package:termex_bridge/src/api.dart' as bridge;
 
 import '../../../l10n/app_localizations.dart';
@@ -134,6 +137,27 @@ class _RemotePaneState extends ConsumerState<RemotePane> {
 
   @override
   Widget build(BuildContext context) {
+    // Reload once a transfer that wrote into this pane finishes. Nothing
+    // watched completion before, so an uploaded/downloaded file only appeared
+    // after a manual refresh or a directory change.
+    ref.listen<SftpTransferState>(
+      sftpTransferProvider(widget.sessionId),
+      (prev, next) {
+        final before = prev?.items
+                .where((t) => t.status == TransferStatus.completed)
+                .length ??
+            0;
+        final after = next.items
+            .where((t) => t.status == TransferStatus.completed)
+            .length;
+        if (after <= before) return;
+        final landedHere = next.items.any((t) =>
+            t.status == TransferStatus.completed &&
+            t.direction == TransferDirection.upload);
+        if (landedHere) _loadCurrentDir();
+      },
+    );
+
     final paneState = ref.watch(sftpPaneProvider(widget.sessionId));
     final remote = paneState.remote;
 
@@ -166,9 +190,28 @@ class _RemotePaneState extends ConsumerState<RemotePane> {
               selectedNames: remote.selectedNames,
               isLoading: remote.isLoading,
               errorMessage: remote.errorMessage,
+              // See the matching comment in local_pane.dart: directories
+              // are not draggable because the transfer queue cannot walk
+              // them recursively.
+              rowWrapper: (entry, row) => entry.isDirectory
+                  ? row
+                  : wrapRowDraggable(
+                      entry: entry,
+                      row: row,
+                      side: DragSide.remote,
+                      absolutePath:
+                          sftpJoin(remote.currentPath, entry.name),
+                    ),
               onToggleSelect: (name) => ref
                   .read(sftpPaneProvider(widget.sessionId).notifier)
                   .toggleRemoteSelection(name),
+              onSelectOnly: (name) => ref
+                  .read(sftpPaneProvider(widget.sessionId).notifier)
+                  .selectRemoteOnly(name),
+              onSelectAll: () => ref
+                  .read(sftpPaneProvider(widget.sessionId).notifier)
+                  .selectAllRemote(_viewEntries().map((e) => e.name)),
+              onRefresh: _loadCurrentDir,
               onOpen: (entry) async {
                 if (entry.isDirectory) {
                   ref
@@ -202,6 +245,22 @@ class _RemotePaneState extends ConsumerState<RemotePane> {
     final remotePath =
         '${ref.read(sftpPaneProvider(widget.sessionId)).remote.currentPath}/${entry.name}';
     switch (action) {
+      case FileAction.edit:
+        await showFileEditorDialog(
+          context,
+          sessionId: widget.sessionId,
+          remotePath: sftpJoin(
+              ref.read(sftpPaneProvider(widget.sessionId)).remote.currentPath,
+              entry.name),
+          fileSize: entry.sizeBytes ?? 0,
+        );
+        await _loadCurrentDir();
+        break;
+      case FileAction.copyPath:
+        await ClipboardService.instance.write(sftpJoin(
+            ref.read(sftpPaneProvider(widget.sessionId)).remote.currentPath,
+            entry.name));
+        break;
       case FileAction.download:
         final localPath =
             '${widget.localCurrentPath ?? '/tmp'}/${entry.name}';

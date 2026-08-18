@@ -11,11 +11,12 @@ import 'clickable.dart';
 
 enum ToastType { info, success, warning, error }
 
-Color _toastAccent(ToastType type) => switch (type) {
-      ToastType.info => TermexColors.primary,
-      ToastType.success => TermexColors.success,
-      ToastType.warning => TermexColors.warning,
-      ToastType.error => TermexColors.danger,
+Color _toastAccent(ToastType type, TermexColorScheme colors) =>
+    switch (type) {
+      ToastType.info => colors.primary,
+      ToastType.success => colors.success,
+      ToastType.warning => colors.warning,
+      ToastType.error => colors.danger,
     };
 
 Duration _defaultDuration(ToastType type) =>
@@ -156,7 +157,7 @@ class _ToastItemState extends State<_ToastItem>
 
   @override
   Widget build(BuildContext context) {
-    final accent = _toastAccent(widget.data.type);
+    final accent = _toastAccent(widget.data.type, context.colors);
     return SlideTransition(
       position: _slide,
       child: FadeTransition(
@@ -166,9 +167,9 @@ class _ToastItemState extends State<_ToastItem>
           child: Container(
             constraints: const BoxConstraints(maxWidth: 360),
             decoration: BoxDecoration(
-              color: TermexColors.backgroundSecondary,
+              color: context.colors.backgroundSecondary,
               borderRadius: TermexRadius.md,
-              border: Border.all(color: TermexColors.border),
+              border: Border.all(color: context.colors.border),
               boxShadow: TermexElevation.e2,
             ),
             child: Row(
@@ -194,7 +195,7 @@ class _ToastItemState extends State<_ToastItem>
                     child: Text(
                       widget.data.message,
                       style: TermexTypography.body.copyWith(
-                        color: TermexColors.textPrimary,
+                        color: context.colors.textPrimary,
                       ),
                     ),
                   ),

@@ -62,14 +62,14 @@ class _DeleteServerDialogState extends ConsumerState<DeleteServerDialog> {
         RichText(
           text: TextSpan(
             style: TermexTypography.body.copyWith(
-              color: TermexColors.textSecondary,
+              color: context.colors.textSecondary,
             ),
             children: [
               const TextSpan(text: 'Are you sure you want to delete '),
               TextSpan(
                 text: widget.serverName,
                 style: TermexTypography.body.copyWith(
-                  color: TermexColors.textPrimary,
+                  color: context.colors.textPrimary,
                   fontWeight: FontWeight.w600,
                 ),
               ),

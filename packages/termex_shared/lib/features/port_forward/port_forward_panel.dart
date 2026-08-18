@@ -70,7 +70,7 @@ class _PortForwardPanelState extends ConsumerState<PortForwardPanel> {
     final visible = _applyFilter(state.rules);
 
     return Container(
-      color: TermexColors.backgroundPrimary,
+      color: context.colors.backgroundPrimary,
       child: Column(
         children: [
           _Header(sessionId: widget.sessionId),
@@ -96,10 +96,10 @@ class _PortForwardPanelState extends ConsumerState<PortForwardPanel> {
                 : state.rules.isEmpty
                     ? _EmptyState(sessionId: widget.sessionId)
                     : visible.isEmpty
-                        ? const Center(
+                        ? Center(
                             child: Text('No rules match search',
                                 style: TextStyle(
-                                    color: TermexColors.textMuted,
+                                    color: context.colors.textMuted,
                                     fontSize: 12)))
                         : _RuleList(rules: visible),
           ),
@@ -135,8 +135,8 @@ class _SearchSortBar extends StatelessWidget {
   Widget build(BuildContext context) {
     return Container(
       padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 8),
-      decoration: const BoxDecoration(
-        border: Border(bottom: BorderSide(color: TermexColors.border)),
+      decoration: BoxDecoration(
+        border: Border(bottom: BorderSide(color: context.colors.border)),
       ),
       child: Row(
         children: [
@@ -145,22 +145,22 @@ class _SearchSortBar extends StatelessWidget {
               height: 28,
               child: TextField(
                 onChanged: onQueryChanged,
-                style: const TextStyle(
-                    fontSize: 12, color: TermexColors.textPrimary),
-                decoration: const InputDecoration(
+                style: TextStyle(
+                    fontSize: 12, color: context.colors.textPrimary),
+                decoration: InputDecoration(
                   prefixIcon: Icon(Icons.search,
-                      size: 14, color: TermexColors.textMuted),
+                      size: 14, color: context.colors.textMuted),
                   prefixIconConstraints:
-                      BoxConstraints(minWidth: 28, minHeight: 20),
+                      const BoxConstraints(minWidth: 28, minHeight: 20),
                   hintText: 'Search rules',
                   hintStyle: TextStyle(
-                      fontSize: 12, color: TermexColors.textMuted),
-                  contentPadding: EdgeInsets.symmetric(vertical: 4),
+                      fontSize: 12, color: context.colors.textMuted),
+                  contentPadding: const EdgeInsets.symmetric(vertical: 4),
                   isDense: true,
                   enabledBorder: OutlineInputBorder(
-                      borderSide: BorderSide(color: TermexColors.border)),
+                      borderSide: BorderSide(color: context.colors.border)),
                   focusedBorder: OutlineInputBorder(
-                      borderSide: BorderSide(color: TermexColors.primary)),
+                      borderSide: BorderSide(color: context.colors.primary)),
                 ),
               ),
             ),
@@ -183,8 +183,8 @@ class _SearchSortBar extends StatelessWidget {
                                 : Icons.sort,
                             size: 12,
                             color: s == sort
-                                ? TermexColors.primary
-                                : TermexColors.textMuted,
+                                ? context.colors.primary
+                                : context.colors.textMuted,
                           ),
                           const SizedBox(width: 6),
                           Text(_label(s),
@@ -197,17 +197,17 @@ class _SearchSortBar extends StatelessWidget {
               padding:
                   const EdgeInsets.symmetric(horizontal: 8, vertical: 4),
               decoration: BoxDecoration(
-                border: Border.all(color: TermexColors.border),
+                border: Border.all(color: context.colors.border),
                 borderRadius: BorderRadius.circular(4),
               ),
               child: Row(
                 children: [
                   Icon(ascending ? Icons.arrow_upward : Icons.arrow_downward,
-                      size: 12, color: TermexColors.textSecondary),
+                      size: 12, color: context.colors.textSecondary),
                   const SizedBox(width: 4),
                   Text(_label(sort),
-                      style: const TextStyle(
-                          fontSize: 12, color: TermexColors.textPrimary)),
+                      style: TextStyle(
+                          fontSize: 12, color: context.colors.textPrimary)),
                 ],
               ),
             ),
@@ -229,19 +229,19 @@ class _Header extends StatelessWidget {
   Widget build(BuildContext context) {
     return Container(
       padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 10),
-      decoration: const BoxDecoration(
-        color: TermexColors.backgroundSecondary,
-        border: Border(bottom: BorderSide(color: TermexColors.border)),
+      decoration: BoxDecoration(
+        color: context.colors.backgroundSecondary,
+        border: Border(bottom: BorderSide(color: context.colors.border)),
       ),
       child: Row(
         children: [
-          const Icon(Icons.alt_route, size: 16, color: TermexColors.primary),
+          Icon(Icons.alt_route, size: 16, color: context.colors.primary),
           const SizedBox(width: 8),
-          const Text('Port Forwarding',
+          Text('Port Forwarding',
               style: TextStyle(
                   fontSize: 13,
                   fontWeight: FontWeight.w600,
-                  color: TermexColors.textPrimary)),
+                  color: context.colors.textPrimary)),
           const Spacer(),
           TextButton.icon(
             onPressed: () => showDialog<void>(
@@ -250,7 +250,8 @@ class _Header extends StatelessWidget {
             ),
             icon: const Icon(Icons.add, size: 14),
             label: const Text('New Rule', style: TextStyle(fontSize: 12)),
-            style: TextButton.styleFrom(foregroundColor: TermexColors.primary),
+            style:
+                TextButton.styleFrom(foregroundColor: context.colors.primary),
           ),
         ],
       ),
@@ -286,10 +287,10 @@ class _RuleRow extends ConsumerWidget {
       margin: const EdgeInsets.only(bottom: 8),
       padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 10),
       decoration: BoxDecoration(
-        color: TermexColors.backgroundSecondary,
+        color: context.colors.backgroundSecondary,
         borderRadius: BorderRadius.circular(6),
         border: Border.all(
-          color: rule.isActive ? TermexColors.success.withOpacity(0.5) : TermexColors.border,
+          color: rule.isActive ? context.colors.success.withOpacity(0.5) : context.colors.border,
         ),
       ),
       child: Row(
@@ -301,9 +302,9 @@ class _RuleRow extends ConsumerWidget {
               crossAxisAlignment: CrossAxisAlignment.start,
               children: [
                 Text(rule.summary,
-                    style: const TextStyle(
+                    style: TextStyle(
                         fontSize: 12,
-                        color: TermexColors.textPrimary,
+                        color: context.colors.textPrimary,
                         fontFamily: 'monospace')),
                 const SizedBox(height: 2),
                 Row(
@@ -313,8 +314,8 @@ class _RuleRow extends ConsumerWidget {
                       height: 6,
                       decoration: BoxDecoration(
                         color: rule.isActive
-                            ? TermexColors.success
-                            : TermexColors.textMuted,
+                            ? context.colors.success
+                            : context.colors.textMuted,
                         shape: BoxShape.circle,
                       ),
                     ),
@@ -324,8 +325,8 @@ class _RuleRow extends ConsumerWidget {
                       style: TextStyle(
                           fontSize: 10,
                           color: rule.isActive
-                              ? TermexColors.success
-                              : TermexColors.textMuted),
+                              ? context.colors.success
+                              : context.colors.textMuted),
                     ),
                   ],
                 ),
@@ -333,8 +334,8 @@ class _RuleRow extends ConsumerWidget {
             ),
           ),
           IconButton(
-            icon: const Icon(Icons.close, size: 14,
-                color: TermexColors.textSecondary),
+            icon: Icon(Icons.close, size: 14,
+                color: context.colors.textSecondary),
             tooltip: 'Stop',
             onPressed: () => ref
                 .read(portForwardProvider.notifier)
@@ -353,30 +354,33 @@ class _TypeBadge extends StatelessWidget {
 
   const _TypeBadge({required this.type});
 
-  Color get _color {
+  Color _colorOf(TermexColorScheme colors) {
     switch (type) {
       case ForwardType.local:
-        return TermexColors.primary;
+        return colors.primary;
       case ForwardType.remote:
-        return TermexColors.warning;
+        return colors.warning;
       case ForwardType.dynamic:
-        return TermexColors.success;
+        return colors.success;
     }
   }
 
   @override
-  Widget build(BuildContext context) => Container(
-        padding: const EdgeInsets.symmetric(horizontal: 6, vertical: 2),
-        decoration: BoxDecoration(
-          color: _color.withOpacity(0.15),
-          borderRadius: BorderRadius.circular(3),
-          border: Border.all(color: _color.withOpacity(0.4)),
-        ),
-        child: Text(
-          type.label.split(' ').first, // "Local" / "Remote" / "Dynamic"
-          style: TextStyle(fontSize: 10, color: _color, fontWeight: FontWeight.w600),
-        ),
-      );
+  Widget build(BuildContext context) {
+    final color = _colorOf(context.colors);
+    return Container(
+      padding: const EdgeInsets.symmetric(horizontal: 6, vertical: 2),
+      decoration: BoxDecoration(
+        color: color.withOpacity(0.15),
+        borderRadius: BorderRadius.circular(3),
+        border: Border.all(color: color.withOpacity(0.4)),
+      ),
+      child: Text(
+        type.label.split(' ').first, // "Local" / "Remote" / "Dynamic"
+        style: TextStyle(fontSize: 10, color: color, fontWeight: FontWeight.w600),
+      ),
+    );
+  }
 }
 
 // ─── Add Rule Dialog ──────────────────────────────────────────────────────────
@@ -435,17 +439,18 @@ class _AddRuleDialogState extends ConsumerState<_AddRuleDialog> {
   @override
   Widget build(BuildContext context) {
     return AlertDialog(
-      backgroundColor: TermexColors.backgroundSecondary,
-      title: const Text('New Port Forwarding Rule',
-          style: TextStyle(color: TermexColors.textPrimary, fontSize: 14)),
+      backgroundColor: context.colors.backgroundSecondary,
+      title: Text('New Port Forwarding Rule',
+          style: TextStyle(color: context.colors.textPrimary, fontSize: 14)),
       content: SizedBox(
         width: 380,
         child: Column(
           mainAxisSize: MainAxisSize.min,
           crossAxisAlignment: CrossAxisAlignment.start,
           children: [
-            const Text('Type',
-                style: TextStyle(fontSize: 11, color: TermexColors.textSecondary)),
+            Text('Type',
+                style: TextStyle(
+                    fontSize: 11, color: context.colors.textSecondary)),
             const SizedBox(height: 6),
             SegmentedButton<ForwardType>(
               segments: ForwardType.values
@@ -456,8 +461,8 @@ class _AddRuleDialogState extends ConsumerState<_AddRuleDialog> {
               style: ButtonStyle(
                 foregroundColor: WidgetStateProperty.resolveWith(
                   (s) => s.contains(WidgetState.selected)
-                      ? TermexColors.primary
-                      : TermexColors.textSecondary,
+                      ? context.colors.primary
+                      : context.colors.textSecondary,
                 ),
               ),
             ),
@@ -484,8 +489,8 @@ class _AddRuleDialogState extends ConsumerState<_AddRuleDialog> {
             if (_err != null) ...[
               const SizedBox(height: 10),
               Text(_err!,
-                  style: const TextStyle(
-                      fontSize: 11, color: TermexColors.danger)),
+                  style: TextStyle(
+                      fontSize: 11, color: context.colors.danger)),
             ],
           ],
         ),
@@ -493,13 +498,13 @@ class _AddRuleDialogState extends ConsumerState<_AddRuleDialog> {
       actions: [
         TextButton(
           onPressed: () => Navigator.pop(context),
-          child: const Text('Cancel',
-              style: TextStyle(color: TermexColors.textSecondary)),
+          child: Text('Cancel',
+              style: TextStyle(color: context.colors.textSecondary)),
         ),
         TextButton(
           onPressed: _submit,
-          child: const Text('Add Rule',
-              style: TextStyle(color: TermexColors.primary)),
+          child: Text('Add Rule',
+              style: TextStyle(color: context.colors.primary)),
         ),
       ],
     );
@@ -519,24 +524,24 @@ class _PortField extends StatelessWidget {
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
           Text(label,
-              style: const TextStyle(
-                  fontSize: 11, color: TermexColors.textSecondary)),
+              style: TextStyle(
+                  fontSize: 11, color: context.colors.textSecondary)),
           const SizedBox(height: 4),
           TextField(
             controller: controller,
             keyboardType: TextInputType.number,
             inputFormatters: [FilteringTextInputFormatter.digitsOnly],
-            style: const TextStyle(
-                color: TermexColors.textPrimary, fontSize: 13),
+            style: TextStyle(
+                color: context.colors.textPrimary, fontSize: 13),
             decoration: InputDecoration(
               hintText: hint,
-              hintStyle: const TextStyle(color: TermexColors.textMuted),
+              hintStyle: TextStyle(color: context.colors.textMuted),
               contentPadding:
                   const EdgeInsets.symmetric(horizontal: 8, vertical: 8),
-              enabledBorder: const OutlineInputBorder(
-                  borderSide: BorderSide(color: TermexColors.border)),
-              focusedBorder: const OutlineInputBorder(
-                  borderSide: BorderSide(color: TermexColors.primary)),
+              enabledBorder: OutlineInputBorder(
+                  borderSide: BorderSide(color: context.colors.border)),
+              focusedBorder: OutlineInputBorder(
+                  borderSide: BorderSide(color: context.colors.primary)),
             ),
           ),
         ],
@@ -556,22 +561,22 @@ class _TextField extends StatelessWidget {
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
           Text(label,
-              style: const TextStyle(
-                  fontSize: 11, color: TermexColors.textSecondary)),
+              style: TextStyle(
+                  fontSize: 11, color: context.colors.textSecondary)),
           const SizedBox(height: 4),
           TextField(
             controller: controller,
-            style: const TextStyle(
-                color: TermexColors.textPrimary, fontSize: 13),
+            style: TextStyle(
+                color: context.colors.textPrimary, fontSize: 13),
             decoration: InputDecoration(
               hintText: hint,
-              hintStyle: const TextStyle(color: TermexColors.textMuted),
+              hintStyle: TextStyle(color: context.colors.textMuted),
               contentPadding:
                   const EdgeInsets.symmetric(horizontal: 8, vertical: 8),
-              enabledBorder: const OutlineInputBorder(
-                  borderSide: BorderSide(color: TermexColors.border)),
-              focusedBorder: const OutlineInputBorder(
-                  borderSide: BorderSide(color: TermexColors.primary)),
+              enabledBorder: OutlineInputBorder(
+                  borderSide: BorderSide(color: context.colors.border)),
+              focusedBorder: OutlineInputBorder(
+                  borderSide: BorderSide(color: context.colors.primary)),
             ),
           ),
         ],
@@ -590,11 +595,11 @@ class _EmptyState extends StatelessWidget {
         child: Column(
           mainAxisSize: MainAxisSize.min,
           children: [
-            const Icon(Icons.alt_route, size: 36, color: TermexColors.textMuted),
+            Icon(Icons.alt_route, size: 36, color: context.colors.textMuted),
             const SizedBox(height: 12),
-            const Text('No forwarding rules',
+            Text('No forwarding rules',
                 style: TextStyle(
-                    color: TermexColors.textSecondary, fontSize: 13)),
+                    color: context.colors.textSecondary, fontSize: 13)),
             const SizedBox(height: 12),
             TextButton.icon(
               onPressed: () => showDialog<void>(
@@ -603,7 +608,8 @@ class _EmptyState extends StatelessWidget {
               ),
               icon: const Icon(Icons.add, size: 14),
               label: const Text('Add Rule'),
-              style: TextButton.styleFrom(foregroundColor: TermexColors.primary),
+              style: TextButton.styleFrom(
+                  foregroundColor: context.colors.primary),
             ),
           ],
         ),
@@ -620,14 +626,14 @@ class _ErrorBanner extends StatelessWidget {
   @override
   Widget build(BuildContext context) => Container(
         padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 8),
-        color: TermexColors.danger.withOpacity(0.15),
+        color: context.colors.danger.withOpacity(0.15),
         child: Row(children: [
-          const Icon(Icons.error_outline, size: 14, color: TermexColors.danger),
+          Icon(Icons.error_outline, size: 14, color: context.colors.danger),
           const SizedBox(width: 8),
           Expanded(
               child: Text(message,
-                  style: const TextStyle(
-                      fontSize: 12, color: TermexColors.danger))),
+                  style: TextStyle(
+                      fontSize: 12, color: context.colors.danger))),
         ]),
       );
 }

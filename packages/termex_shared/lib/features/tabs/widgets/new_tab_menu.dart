@@ -51,9 +51,9 @@ class NewTabMenu extends ConsumerWidget {
       width: 260,
       constraints: const BoxConstraints(maxHeight: 360),
       decoration: BoxDecoration(
-        color: TermexColors.backgroundSecondary,
+        color: context.colors.backgroundSecondary,
         borderRadius: TermexRadius.md,
-        border: Border.all(color: TermexColors.border),
+        border: Border.all(color: context.colors.border),
         boxShadow: TermexElevation.e2,
       ),
       child: Column(
@@ -66,9 +66,9 @@ class NewTabMenu extends ConsumerWidget {
               onLocalTerminal();
             },
           ),
-          const SizedBox(
+          SizedBox(
             height: 1,
-            child: ColoredBox(color: TermexColors.border),
+            child: ColoredBox(color: context.colors.border),
           ),
           Padding(
             padding: const EdgeInsets.fromLTRB(
@@ -80,7 +80,7 @@ class NewTabMenu extends ConsumerWidget {
             child: Text(
               'Recent Servers',
               style: TermexTypography.caption.copyWith(
-                color: TermexColors.textMuted,
+                color: context.colors.textMuted,
               ),
             ),
           ),
@@ -93,7 +93,7 @@ class NewTabMenu extends ConsumerWidget {
               child: Text(
                 'No recent servers.',
                 style: TermexTypography.body.copyWith(
-                  color: TermexColors.textMuted,
+                  color: context.colors.textMuted,
                 ),
               ),
             )
@@ -124,7 +124,7 @@ class NewTabMenu extends ConsumerWidget {
 
 /// First-row tile in the new-tab dropdown — opens a local PTY shell.
 ///
-/// Painted with a green (`TermexColors.success`) accent — left border,
+/// Painted with a green (`context.colors.success`) accent — left border,
 /// tinted background, accent-colored icon and title — to make it clearly
 /// distinct from the neutral-colored remote SSH server tiles below.
 class _LocalTerminalTile extends StatefulWidget {
@@ -141,7 +141,7 @@ class _LocalTerminalTileState extends State<_LocalTerminalTile> {
 
   @override
   Widget build(BuildContext context) {
-    const accent = TermexColors.success;
+    final accent = context.colors.success;
     return MouseRegion(
       cursor: SystemMouseCursors.click,
       onEnter: (_) => setState(() => _hovered = true),
@@ -158,13 +158,13 @@ class _LocalTerminalTileState extends State<_LocalTerminalTile> {
             color: _hovered
                 ? const Color(0x1A1A7F37) // 10% success tint on hover
                 : const Color(0x0D1A7F37), // 5% success tint at rest
-            border: const Border(
+            border: Border(
               left: BorderSide(color: accent, width: 3),
             ),
           ),
           child: Row(
             children: [
-              const TermexIconWidget(
+              TermexIconWidget(
                 TermexIcons.terminal,
                 size: 16,
                 color: accent,
@@ -184,7 +184,7 @@ class _LocalTerminalTileState extends State<_LocalTerminalTile> {
                     Text(
                       '在本机打开一个 shell',
                       style: TermexTypography.caption.copyWith(
-                        color: TermexColors.textMuted,
+                        color: context.colors.textMuted,
                       ),
                     ),
                   ],
@@ -236,14 +236,14 @@ class _RecentServerTileState extends State<_RecentServerTile> {
             vertical: TermexSpacing.sm,
           ),
           color: _hovered
-              ? TermexColors.backgroundTertiary
+              ? context.colors.backgroundTertiary
               : const Color(0x00000000),
           child: Row(
             children: [
-              const TermexIconWidget(
+              TermexIconWidget(
                 TermexIcons.server,
                 size: 14,
-                color: TermexColors.neutral,
+                color: context.colors.neutral,
               ),
               const SizedBox(width: TermexSpacing.sm),
               Expanded(
@@ -253,14 +253,14 @@ class _RecentServerTileState extends State<_RecentServerTile> {
                     Text(
                       s.name,
                       style: TermexTypography.body.copyWith(
-                        color: TermexColors.textPrimary,
+                        color: context.colors.textPrimary,
                       ),
                       overflow: TextOverflow.ellipsis,
                     ),
                     Text(
                       '${s.username}@${s.host}:${s.port}',
                       style: TermexTypography.caption.copyWith(
-                        color: TermexColors.textMuted,
+                        color: context.colors.textMuted,
                       ),
                       overflow: TextOverflow.ellipsis,
                     ),
@@ -271,7 +271,7 @@ class _RecentServerTileState extends State<_RecentServerTile> {
               Text(
                 _relativeTime(s.lastConnected),
                 style: TermexTypography.caption.copyWith(
-                  color: TermexColors.textMuted,
+                  color: context.colors.textMuted,
                 ),
               ),
             ],

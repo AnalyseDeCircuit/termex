@@ -61,23 +61,25 @@ class ModelDownloadProgress extends StatelessWidget {
                   child: LinearProgressIndicator(
                     value: indicatorValue,
                     minHeight: 6,
-                    backgroundColor: TermexColors.backgroundTertiary,
-                    valueColor:
-                        const AlwaysStoppedAnimation<Color>(TermexColors.primary),
+                    backgroundColor: context.colors.backgroundTertiary,
+                    valueColor: AlwaysStoppedAnimation<Color>(
+                        context.colors.primary),
                   ),
                 ),
               ),
               const SizedBox(width: 8),
               Clickable(
                 onTap: onCancel,
-                child: const Icon(Icons.close, size: 14, color: TermexColors.danger),
+                child: Icon(Icons.close,
+                    size: 14, color: context.colors.danger),
               ),
             ],
           ),
           const SizedBox(height: 3),
           Text(
             label,
-            style: const TextStyle(fontSize: 10, color: TermexColors.textSecondary),
+            style:
+                TextStyle(fontSize: 10, color: context.colors.textSecondary),
           ),
         ],
       ),

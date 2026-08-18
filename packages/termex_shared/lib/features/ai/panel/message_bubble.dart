@@ -83,8 +83,8 @@ class _Bubble extends StatelessWidget {
       constraints: const BoxConstraints(maxWidth: 520),
       decoration: BoxDecoration(
         color: isUser
-            ? TermexColors.primary.withOpacity(0.12)
-            : TermexColors.backgroundSecondary,
+            ? context.colors.primary.withOpacity(0.12)
+            : context.colors.backgroundSecondary,
         borderRadius: BorderRadius.only(
           topLeft: const Radius.circular(12),
           topRight: const Radius.circular(12),
@@ -93,17 +93,17 @@ class _Bubble extends StatelessWidget {
         ),
         border: Border.all(
           color: isUser
-              ? TermexColors.primary.withOpacity(0.3)
-              : TermexColors.border,
+              ? context.colors.primary.withOpacity(0.3)
+              : context.colors.border,
         ),
       ),
       child: isUser
           ? SelectableText(
               content,
-              style: const TextStyle(
+              style: TextStyle(
                 fontSize: 13,
                 height: 1.5,
-                color: TermexColors.textPrimary,
+                color: context.colors.textPrimary,
               ),
             )
           : content.isEmpty
@@ -162,9 +162,9 @@ class _TypingIndicatorState extends State<_TypingIndicator>
                 child: Container(
                   width: 6,
                   height: 6,
-                  decoration: const BoxDecoration(
+                  decoration: BoxDecoration(
                     shape: BoxShape.circle,
-                    color: TermexColors.textSecondary,
+                    color: context.colors.textSecondary,
                   ),
                 ),
               ),
@@ -193,14 +193,15 @@ class _Avatar extends StatelessWidget {
       decoration: BoxDecoration(
         shape: BoxShape.circle,
         color: isUser
-            ? TermexColors.primary.withOpacity(0.2)
-            : TermexColors.backgroundTertiary,
-        border: Border.all(color: TermexColors.border),
+            ? context.colors.primary.withOpacity(0.2)
+            : context.colors.backgroundTertiary,
+        border: Border.all(color: context.colors.border),
       ),
       child: Icon(
         isUser ? Icons.person_rounded : Icons.smart_toy_rounded,
         size: 16,
-        color: isUser ? TermexColors.primary : TermexColors.textSecondary,
+        color:
+            isUser ? context.colors.primary : context.colors.textSecondary,
       ),
     );
   }
@@ -218,7 +219,7 @@ class _TokenCounter extends StatelessWidget {
     if (tokensOut != null) parts.add('↓ ${_fmt(tokensOut!)}');
     return Text(
       '${parts.join('  ')} tokens',
-      style: const TextStyle(fontSize: 10, color: TermexColors.textSecondary),
+      style: TextStyle(fontSize: 10, color: context.colors.textSecondary),
     );
   }
 
@@ -236,15 +237,15 @@ class _SystemBanner extends StatelessWidget {
       margin: const EdgeInsets.symmetric(vertical: 4, horizontal: 12),
       padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 6),
       decoration: BoxDecoration(
-        color: TermexColors.backgroundTertiary,
+        color: context.colors.backgroundTertiary,
         borderRadius: BorderRadius.circular(6),
       ),
       child: Text(
         content,
-        style: const TextStyle(
+        style: TextStyle(
           fontSize: 11,
           fontStyle: FontStyle.italic,
-          color: TermexColors.textSecondary,
+          color: context.colors.textSecondary,
         ),
       ),
     );

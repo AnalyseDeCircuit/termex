@@ -338,7 +338,7 @@ class _MobileTaskHistoryPageState extends State<MobileTaskHistoryPage> {
     final filtered = _filteredItems;
     final counts = _counts();
     return Container(
-      color: TermexColors.backgroundPrimary,
+      color: context.colors.backgroundPrimary,
       child: SafeArea(
         child: Column(
           children: [
@@ -469,9 +469,9 @@ class _UndoBanner extends StatelessWidget {
         : '$deletedLabel「${pending.values.first.title}」';
     return Container(
       padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 10),
-      decoration: const BoxDecoration(
-        color: TermexColors.backgroundSecondary,
-        border: Border(top: BorderSide(color: TermexColors.border)),
+      decoration: BoxDecoration(
+        color: context.colors.backgroundSecondary,
+        border: Border(top: BorderSide(color: context.colors.border)),
       ),
       child: Row(
         children: [
@@ -481,7 +481,7 @@ class _UndoBanner extends StatelessWidget {
               maxLines: 1,
               overflow: TextOverflow.ellipsis,
               style: TermexTypography.body.copyWith(
-                color: TermexColors.textPrimary,
+                color: context.colors.textPrimary,
               ),
             ),
           ),
@@ -494,7 +494,7 @@ class _UndoBanner extends StatelessWidget {
               child: Text(
                 undoLabel,
                 style: TermexTypography.body.copyWith(
-                  color: TermexColors.primary,
+                  color: context.colors.primary,
                   fontWeight: FontWeight.w600,
                 ),
               ),
@@ -507,10 +507,10 @@ class _UndoBanner extends StatelessWidget {
               width: 32,
               height: 32,
               alignment: Alignment.center,
-              child: const Icon(
+              child: Icon(
                 TermexIcons.close,
                 size: 16,
-                color: TermexColors.textSecondary,
+                color: context.colors.textSecondary,
               ),
             ),
           ),
@@ -535,21 +535,21 @@ class _Header extends StatelessWidget {
     return Container(
       height: 48,
       padding: const EdgeInsets.symmetric(horizontal: 8),
-      decoration: const BoxDecoration(
-        border: Border(bottom: BorderSide(color: TermexColors.border)),
+      decoration: BoxDecoration(
+        border: Border(bottom: BorderSide(color: context.colors.border)),
       ),
       child: Row(
         children: [
           Clickable(
             behavior: HitTestBehavior.opaque,
             onTap: () => Navigator.of(context).maybePop(),
-            child: const SizedBox(
+            child: SizedBox(
               width: 40,
               height: 40,
               child: Icon(
                 TermexIcons.close,
                 size: 20,
-                color: TermexColors.textPrimary,
+                color: context.colors.textPrimary,
               ),
             ),
           ),
@@ -557,7 +557,7 @@ class _Header extends StatelessWidget {
             child: Text(
               title,
               style: TermexTypography.body.copyWith(
-                color: TermexColors.textPrimary,
+                color: context.colors.textPrimary,
                 fontWeight: FontWeight.w600,
               ),
             ),
@@ -574,7 +574,7 @@ class _Header extends StatelessWidget {
                 child: Text(
                   trailingLabel!,
                   style: TermexTypography.body.copyWith(
-                    color: TermexColors.danger,
+                    color: context.colors.danger,
                   ),
                 ),
               ),
@@ -603,7 +603,7 @@ class _EmptyState extends StatelessWidget {
             Text(
               title,
               style: TermexTypography.body.copyWith(
-                color: TermexColors.textSecondary,
+                color: context.colors.textSecondary,
               ),
               textAlign: TextAlign.center,
             ),
@@ -611,7 +611,7 @@ class _EmptyState extends StatelessWidget {
             Text(
               hint,
               style: TermexTypography.caption.copyWith(
-                color: TermexColors.textMuted,
+                color: context.colors.textMuted,
               ),
               textAlign: TextAlign.center,
             ),
@@ -648,8 +648,8 @@ class _TaskRow extends StatelessWidget {
       )),
       child: Container(
         padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 12),
-        decoration: const BoxDecoration(
-          border: Border(bottom: BorderSide(color: TermexColors.border)),
+        decoration: BoxDecoration(
+          border: Border(bottom: BorderSide(color: context.colors.border)),
         ),
         child: Row(
           crossAxisAlignment: CrossAxisAlignment.start,
@@ -665,7 +665,7 @@ class _TaskRow extends StatelessWidget {
                     needles: highlightTokens,
                     maxLines: 1,
                     baseStyle: TermexTypography.body.copyWith(
-                      color: TermexColors.textPrimary,
+                      color: context.colors.textPrimary,
                       fontWeight: FontWeight.w600,
                     ),
                   ),
@@ -675,7 +675,7 @@ class _TaskRow extends StatelessWidget {
                     needles: highlightTokens,
                     maxLines: 2,
                     baseStyle: TermexTypography.caption.copyWith(
-                      color: TermexColors.textSecondary,
+                      color: context.colors.textSecondary,
                     ),
                   ),
                 ],
@@ -685,7 +685,7 @@ class _TaskRow extends StatelessWidget {
             Text(
               _relative(event.occurredAt, l10n),
               style: TermexTypography.caption.copyWith(
-                color: TermexColors.textMuted,
+                color: context.colors.textMuted,
               ),
             ),
           ],
@@ -716,12 +716,12 @@ class _StatusDot extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     final color = switch (status) {
-      TaskEventStatus.succeeded => TermexColors.success,
-      TaskEventStatus.failed => TermexColors.danger,
-      TaskEventStatus.cancelled => TermexColors.warning,
-      TaskEventStatus.running => TermexColors.primary,
-      TaskEventStatus.pending => TermexColors.textMuted,
-      TaskEventStatus.pendingConfirmation => TermexColors.warning,
+      TaskEventStatus.succeeded => context.colors.success,
+      TaskEventStatus.failed => context.colors.danger,
+      TaskEventStatus.cancelled => context.colors.warning,
+      TaskEventStatus.running => context.colors.primary,
+      TaskEventStatus.pending => context.colors.textMuted,
+      TaskEventStatus.pendingConfirmation => context.colors.warning,
     };
     return Container(
       width: 10,
@@ -793,8 +793,8 @@ class _SourceFilterChips extends StatelessWidget {
     return Container(
       height: 44,
       padding: const EdgeInsets.symmetric(horizontal: 12),
-      decoration: const BoxDecoration(
-        border: Border(bottom: BorderSide(color: TermexColors.border)),
+      decoration: BoxDecoration(
+        border: Border(bottom: BorderSide(color: context.colors.border)),
       ),
       child: ListView.separated(
         scrollDirection: Axis.horizontal,
@@ -826,11 +826,11 @@ class _Chip extends StatelessWidget {
         padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 6),
         decoration: BoxDecoration(
           color: active
-              ? TermexColors.primary
-              : TermexColors.backgroundSecondary,
+              ? context.colors.primary
+              : context.colors.backgroundSecondary,
           borderRadius: BorderRadius.circular(14),
           border: Border.all(
-            color: active ? TermexColors.primary : TermexColors.border,
+            color: active ? context.colors.primary : context.colors.border,
           ),
         ),
         child: Text(
@@ -838,7 +838,7 @@ class _Chip extends StatelessWidget {
           style: TermexTypography.bodySmall.copyWith(
             color: active
                 ? const Color(0xFFFFFFFF)
-                : TermexColors.textSecondary,
+                : context.colors.textSecondary,
             fontWeight: active ? FontWeight.w600 : FontWeight.w400,
           ),
         ),
@@ -876,22 +876,22 @@ class _SearchBox extends StatelessWidget {
         controller: controller,
         placeholder: placeholder,
         onChanged: onChanged,
-        leadingIcon: const Icon(
+        leadingIcon: Icon(
           TermexIcons.search,
           size: 16,
-          color: TermexColors.textSecondary,
+          color: context.colors.textSecondary,
         ),
         trailing: hasQuery
             ? Clickable(
                 behavior: HitTestBehavior.opaque,
                 onTap: onClear,
-                child: const SizedBox(
+                child: SizedBox(
                   width: 28,
                   height: 28,
                   child: Icon(
                     TermexIcons.close,
                     size: 16,
-                    color: TermexColors.textSecondary,
+                    color: context.colors.textSecondary,
                   ),
                 ),
               )
@@ -911,7 +911,7 @@ class _SwipeDeleteBackground extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     return Container(
-      color: TermexColors.danger,
+      color: context.colors.danger,
       alignment: Alignment.centerRight,
       padding: const EdgeInsets.only(right: 20),
       child: const Icon(

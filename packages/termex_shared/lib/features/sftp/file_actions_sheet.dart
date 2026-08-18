@@ -29,7 +29,7 @@ class _FileActionsSheetContent extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    final colors = TermexColorScheme.dark();
+    final colors = context.colors;
     final actions = _buildActions(context, colors);
 
     return Padding(
@@ -53,7 +53,7 @@ class _FileActionsSheetContent extends StatelessWidget {
                       : const IconData(0xe873, fontFamily: 'MaterialIcons'),
                   size: 18,
                   color: file.isDirectory
-                      ? TermexColors.warning
+                      ? colors.warning
                       : colors.textSecondary,
                 ),
                 const SizedBox(width: TermexSpacing.sm),

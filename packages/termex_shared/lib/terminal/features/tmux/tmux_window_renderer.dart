@@ -34,22 +34,22 @@ class TmuxWindowBar extends StatelessWidget {
 
         return Container(
           height: 28,
-          color: TermexColors.backgroundTertiary,
+          color: context.colors.backgroundTertiary,
           child: Row(
             children: [
               // Tmux indicator
-              const Padding(
-                padding: EdgeInsets.symmetric(horizontal: 8),
+              Padding(
+                padding: const EdgeInsets.symmetric(horizontal: 8),
                 child: Text(
                   '[tmux]',
                   style: TextStyle(
                     fontSize: 10,
-                    color: TermexColors.textMuted,
+                    color: context.colors.textMuted,
                     fontWeight: FontWeight.w600,
                   ),
                 ),
               ),
-              Container(width: 1, height: 16, color: TermexColors.border),
+              Container(width: 1, height: 16, color: context.colors.border),
               // Window tabs
               Expanded(
                 child: ListView.builder(
@@ -107,11 +107,11 @@ class _WindowTab extends StatelessWidget {
         padding: const EdgeInsets.symmetric(horizontal: 12),
         decoration: BoxDecoration(
           color: isActive
-              ? TermexColors.backgroundSecondary
+              ? context.colors.backgroundSecondary
               : Colors.transparent,
           border: Border(
             top: BorderSide(
-              color: isActive ? TermexColors.primary : Colors.transparent,
+              color: isActive ? context.colors.primary : Colors.transparent,
               width: 2,
             ),
           ),
@@ -124,8 +124,8 @@ class _WindowTab extends StatelessWidget {
               style: TermexTypography.monospace.copyWith(
                 fontSize: 12,
                 color: isActive
-                    ? TermexColors.textPrimary
-                    : TermexColors.textSecondary,
+                    ? context.colors.textPrimary
+                    : context.colors.textSecondary,
               ),
             ),
             const SizedBox(width: 4),
@@ -135,14 +135,14 @@ class _WindowTab extends StatelessWidget {
                 padding:
                     const EdgeInsets.symmetric(horizontal: 4, vertical: 1),
                 decoration: BoxDecoration(
-                  color: TermexColors.backgroundTertiary,
+                  color: context.colors.backgroundTertiary,
                   borderRadius: BorderRadius.circular(8),
                 ),
                 child: Text(
                   '${window.panes.length}',
-                  style: const TextStyle(
+                  style: TextStyle(
                     fontSize: 9,
-                    color: TermexColors.textMuted,
+                    color: context.colors.textMuted,
                   ),
                 ),
               ),
@@ -161,7 +161,7 @@ class _WindowTab extends StatelessWidget {
         position.dx + 1,
         position.dy + 1,
       ),
-      color: TermexColors.backgroundSecondary,
+      color: context.colors.backgroundSecondary,
       items: [
         const PopupMenuItem(value: 'rename', child: Text('重命名窗口')),
         const PopupMenuItem(value: 'close', child: Text('关闭窗口')),
@@ -183,17 +183,17 @@ class _WindowTab extends StatelessWidget {
     final ctrl = TextEditingController(text: window.name);
     return showDialog<String>(
       context: context,
-      builder: (_) => AlertDialog(
-        backgroundColor: TermexColors.backgroundSecondary,
-        title: const Text('重命名窗口',
-            style: TextStyle(color: TermexColors.textPrimary)),
+      builder: (ctx) => AlertDialog(
+        backgroundColor: ctx.colors.backgroundSecondary,
+        title: Text('重命名窗口',
+            style: TextStyle(color: ctx.colors.textPrimary)),
         content: TextField(
           controller: ctrl,
           autofocus: true,
-          style: const TextStyle(color: TermexColors.textPrimary),
-          decoration: const InputDecoration(
+          style: TextStyle(color: ctx.colors.textPrimary),
+          decoration: InputDecoration(
             hintText: '窗口名称',
-            hintStyle: TextStyle(color: TermexColors.textMuted),
+            hintStyle: TextStyle(color: ctx.colors.textMuted),
           ),
         ),
         actions: [
@@ -228,10 +228,11 @@ class _IconBtn extends StatelessWidget {
       message: tooltip,
       child: Clickable(
         onTap: onTap,
-        child: const SizedBox(
+        child: SizedBox(
           width: 28,
           height: 28,
-          child: Icon(Icons.add, size: 14, color: TermexColors.textSecondary),
+          child:
+              Icon(Icons.add, size: 14, color: context.colors.textSecondary),
         ),
       ),
     );

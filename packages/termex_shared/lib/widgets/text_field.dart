@@ -132,10 +132,10 @@ class _TermexTextFieldState extends State<TermexTextField> {
   @override
   Widget build(BuildContext context) {
     final borderColor = _hasError
-        ? TermexColors.danger
+        ? context.colors.danger
         : _focused
-            ? TermexColors.borderFocus
-            : TermexColors.border;
+            ? context.colors.borderFocus
+            : context.colors.border;
     final borderWidth = _focused ? 2.0 : 1.0;
     final isMultiline = (widget.maxLines ?? 1) != 1;
 
@@ -149,77 +149,88 @@ class _TermexTextFieldState extends State<TermexTextField> {
             Text(
               widget.label!,
               style: TermexTypography.bodySmall.copyWith(
-                color: TermexColors.textSecondary,
+                color: context.colors.textSecondary,
               ),
             ),
             const SizedBox(height: TermexSpacing.xs),
           ],
-          GestureDetector(
-            onTap: widget.disabled ? null : () => _focusNode.requestFocus(),
-            child: AnimatedContainer(
-              duration: const Duration(milliseconds: 150),
-              curve: Curves.easeOut,
-              constraints: BoxConstraints(
-                minHeight: isMultiline ? 80 : 36,
-              ),
-              decoration: BoxDecoration(
-                color: TermexColors.backgroundSecondary,
-                borderRadius: TermexRadius.md,
-                border: Border.all(color: borderColor, width: borderWidth),
-              ),
-              padding: EdgeInsets.symmetric(
-                horizontal: TermexSpacing.md,
-                vertical: isMultiline ? TermexSpacing.sm : 0,
-              ),
-              child: Row(
-                crossAxisAlignment: isMultiline
-                    ? CrossAxisAlignment.start
-                    : CrossAxisAlignment.center,
-                children: [
-                  if (widget.leadingIcon != null) ...[
-                    widget.leadingIcon!,
-                    const SizedBox(width: TermexSpacing.sm),
-                  ],
-                  Expanded(
-                    child: Stack(
-                      alignment: isMultiline
-                          ? Alignment.topLeft
-                          : Alignment.centerLeft,
-                      children: [
-                        if (_placeholderShown)
-                          Text(
-                            widget.placeholder!,
-                            style: TermexTypography.body.copyWith(
-                              color: TermexColors.textSecondary,
+          // The inner EditableText already shows an I-beam over the text
+          // itself; without this the surrounding padding — which is also
+          // clickable, and focuses the field — showed a plain arrow.
+          // `text`, not `click`: this is an input, not a button.
+          MouseRegion(
+            cursor: widget.disabled
+                ? SystemMouseCursors.forbidden
+                : SystemMouseCursors.text,
+            child: GestureDetector(
+              onTap: widget.disabled ? null : () => _focusNode.requestFocus(),
+              child: AnimatedContainer(
+                duration: const Duration(milliseconds: 150),
+                curve: Curves.easeOut,
+                constraints: BoxConstraints(
+                  minHeight: isMultiline ? 80 : 36,
+                ),
+                decoration: BoxDecoration(
+                  color: context.colors.backgroundSecondary,
+                  borderRadius: TermexRadius.md,
+                  border: Border.all(color: borderColor, width: borderWidth),
+                ),
+                padding: EdgeInsets.symmetric(
+                  horizontal: TermexSpacing.md,
+                  vertical: isMultiline ? TermexSpacing.sm : 0,
+                ),
+                child: Row(
+                  crossAxisAlignment: isMultiline
+                      ? CrossAxisAlignment.start
+                      : CrossAxisAlignment.center,
+                  children: [
+                    if (widget.leadingIcon != null) ...[
+                      widget.leadingIcon!,
+                      const SizedBox(width: TermexSpacing.sm),
+                    ],
+                    Expanded(
+                      child: Stack(
+                        alignment: isMultiline
+                            ? Alignment.topLeft
+                            : Alignment.centerLeft,
+                        children: [
+                          if (_placeholderShown)
+                            Text(
+                              widget.placeholder!,
+                              style: TermexTypography.body.copyWith(
+                                color: context.colors.textSecondary,
+                              ),
                             ),
+                          EditableText(
+                            controller: _controller,
+                            focusNode: _focusNode,
+                            readOnly: widget.readOnly || widget.disabled,
+                            obscureText: widget.obscureText,
+                            maxLines: widget.obscureText ? 1 : widget.maxLines,
+                            minLines: 1,
+                            keyboardType: widget.keyboardType,
+                            style: TermexTypography.body.copyWith(
+                              color: context.colors.textPrimary,
+                            ),
+                            cursorColor: context.colors.primary,
+                            backgroundCursorColor:
+                                context.colors.backgroundTertiary,
+                            selectionColor:
+                                context.colors.primary.withOpacity(0.3),
+                            onChanged: _handleChanged,
+                            onSubmitted: _handleSubmitted,
+                            strutStyle:
+                                const StrutStyle(forceStrutHeight: true),
                           ),
-                        EditableText(
-                          controller: _controller,
-                          focusNode: _focusNode,
-                          readOnly: widget.readOnly || widget.disabled,
-                          obscureText: widget.obscureText,
-                          maxLines: widget.obscureText ? 1 : widget.maxLines,
-                          minLines: 1,
-                          keyboardType: widget.keyboardType,
-                          style: TermexTypography.body.copyWith(
-                            color: TermexColors.textPrimary,
-                          ),
-                          cursorColor: TermexColors.primary,
-                          backgroundCursorColor: TermexColors.backgroundTertiary,
-                          selectionColor:
-                              TermexColors.primary.withOpacity(0.3),
-                          onChanged: _handleChanged,
-                          onSubmitted: _handleSubmitted,
-                          strutStyle: const StrutStyle(forceStrutHeight: true),
-                        ),
-                      ],
+                        ],
+                      ),
                     ),
-                  ),
-                  if (widget.trailing != null) ...[
-                    const SizedBox(width: TermexSpacing.sm),
-                    widget.trailing!,
+                    if (widget.trailing != null) ...[
+                      const SizedBox(width: TermexSpacing.sm),
+                      widget.trailing!,
+                    ],
                   ],
-                ],
+                ),
               ),
             ),
           ),
@@ -228,7 +239,7 @@ class _TermexTextFieldState extends State<TermexTextField> {
             Text(
               _effectiveError!,
               style: TermexTypography.caption.copyWith(
-                color: TermexColors.danger,
+                color: context.colors.danger,
               ),
             ),
           ] else if (widget.helperText != null) ...[
@@ -236,7 +247,7 @@ class _TermexTextFieldState extends State<TermexTextField> {
             Text(
               widget.helperText!,
               style: TermexTypography.caption.copyWith(
-                color: TermexColors.textMuted,
+                color: context.colors.textMuted,
               ),
             ),
           ],

@@ -36,8 +36,8 @@ class CpuCard extends StatelessWidget {
     return _Card(
       title: 'CPU',
       mainValue: '${latest.cpuPercent.toStringAsFixed(1)}%',
-      accent: TermexColors.primary,
-      child: Sparkline(values: series.cast<double?>(), color: TermexColors.primary),
+      accent: context.colors.primary,
+      child: Sparkline(values: series.cast<double?>(), color: context.colors.primary),
     );
   }
 }
@@ -89,10 +89,10 @@ class DiskCard extends StatelessWidget {
       title: 'Disk',
       mainValue: '${pct.toStringAsFixed(1)}%',
       sub: '${used.toStringAsFixed(1)} / ${total.toStringAsFixed(1)} GB',
-      accent: TermexColors.warning,
+      accent: context.colors.warning,
       child: _UsageBar(
         ratio: pct / 100,
-        color: TermexColors.warning,
+        color: context.colors.warning,
       ),
     );
   }
@@ -122,13 +122,13 @@ class NetworkCard extends StatelessWidget {
       title: 'Network',
       mainValue: '↓ ${_humanBytes(rx)}',
       sub: '↑ ${_humanBytes(tx)}',
-      accent: TermexColors.success,
+      accent: context.colors.success,
       child: Column(
         children: [
           Expanded(
             child: Sparkline(
               values: rxSeries,
-              color: TermexColors.success,
+              color: context.colors.success,
               height: 14,
             ),
           ),
@@ -136,7 +136,7 @@ class NetworkCard extends StatelessWidget {
           Expanded(
             child: Sparkline(
               values: txSeries,
-              color: TermexColors.warning,
+              color: context.colors.warning,
               height: 14,
             ),
           ),
@@ -192,8 +192,8 @@ class _Card extends StatelessWidget {
     return Container(
       padding: const EdgeInsets.all(TermexSpacing.md),
       decoration: BoxDecoration(
-        color: TermexColors.backgroundSecondary,
-        border: Border.all(color: TermexColors.border, width: 0.5),
+        color: context.colors.backgroundSecondary,
+        border: Border.all(color: context.colors.border, width: 0.5),
         borderRadius: BorderRadius.circular(6),
       ),
       child: Column(
@@ -213,7 +213,7 @@ class _Card extends StatelessWidget {
               Text(
                 title,
                 style: TermexTypography.caption.copyWith(
-                  color: TermexColors.textSecondary,
+                  color: context.colors.textSecondary,
                   fontWeight: FontWeight.w500,
                 ),
               ),
@@ -223,7 +223,7 @@ class _Card extends StatelessWidget {
           Text(
             mainValue,
             style: TermexTypography.body.copyWith(
-              color: TermexColors.textPrimary,
+              color: context.colors.textPrimary,
               fontWeight: FontWeight.w600,
               fontSize: 18,
             ),
@@ -233,7 +233,7 @@ class _Card extends StatelessWidget {
             Text(
               sub!,
               style: TermexTypography.caption.copyWith(
-                color: TermexColors.textMuted,
+                color: context.colors.textMuted,
               ),
             ),
           ],
@@ -260,7 +260,7 @@ class _UsageBar extends StatelessWidget {
           Container(
             height: 6,
             decoration: BoxDecoration(
-              color: TermexColors.backgroundTertiary,
+              color: context.colors.backgroundTertiary,
               borderRadius: BorderRadius.circular(3),
             ),
           ),

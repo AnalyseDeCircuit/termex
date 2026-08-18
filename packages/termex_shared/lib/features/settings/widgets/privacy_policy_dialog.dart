@@ -38,7 +38,7 @@ class PrivacyPolicyDialog extends StatelessWidget {
             Text(
               l10n.privacyEffectiveDate,
               style: TermexTypography.caption.copyWith(
-                color: TermexColors.textMuted,
+                color: context.colors.textMuted,
               ),
             ),
             const SizedBox(height: TermexSpacing.md),
@@ -109,7 +109,7 @@ class _Section extends StatelessWidget {
           Text(
             heading,
             style: TermexTypography.body.copyWith(
-              color: TermexColors.textPrimary,
+              color: context.colors.textPrimary,
               fontWeight: FontWeight.w600,
             ),
           ),
@@ -117,7 +117,7 @@ class _Section extends StatelessWidget {
           Text(
             body,
             style: TermexTypography.bodySmall.copyWith(
-              color: TermexColors.textSecondary,
+              color: context.colors.textSecondary,
               height: 1.6,
             ),
           ),

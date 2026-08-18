@@ -105,8 +105,8 @@ class _NotificationsTestRowState extends State<NotificationsTestRow> {
     final l10n = AppLocalizations.of(context);
     return Container(
       padding: const EdgeInsets.fromLTRB(16, 12, 12, 12),
-      decoration: const BoxDecoration(
-        border: Border(bottom: BorderSide(color: TermexColors.border)),
+      decoration: BoxDecoration(
+        border: Border(bottom: BorderSide(color: context.colors.border)),
       ),
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.start,
@@ -117,7 +117,7 @@ class _NotificationsTestRowState extends State<NotificationsTestRow> {
                 child: Text(
                   l10n.notificationsSectionTitle,
                   style: TermexTypography.body.copyWith(
-                    color: TermexColors.textPrimary,
+                    color: context.colors.textPrimary,
                   ),
                 ),
               ),
@@ -133,8 +133,8 @@ class _NotificationsTestRowState extends State<NotificationsTestRow> {
                     l10n.notificationsTestButton,
                     style: TermexTypography.body.copyWith(
                       color: _firing
-                          ? TermexColors.textMuted
-                          : TermexColors.primary,
+                          ? context.colors.textMuted
+                          : context.colors.primary,
                       fontWeight: FontWeight.w600,
                     ),
                   ),
@@ -157,8 +157,8 @@ class _NotificationsTestRowState extends State<NotificationsTestRow> {
                   l10n.notificationsDemoTaskButton,
                   style: TermexTypography.body.copyWith(
                     color: _firing
-                        ? TermexColors.textMuted
-                        : TermexColors.primary,
+                        ? context.colors.textMuted
+                        : context.colors.primary,
                     fontWeight: FontWeight.w600,
                   ),
                 ),
@@ -170,7 +170,7 @@ class _NotificationsTestRowState extends State<NotificationsTestRow> {
             Text(
               _feedback!,
               style: TermexTypography.caption.copyWith(
-                color: _ok ? TermexColors.success : TermexColors.danger,
+                color: _ok ? context.colors.success : context.colors.danger,
               ),
             ),
           ],

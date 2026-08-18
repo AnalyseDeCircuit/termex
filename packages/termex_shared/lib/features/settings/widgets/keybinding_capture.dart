@@ -108,13 +108,13 @@ class _KeybindingCaptureState extends State<KeybindingCapture> {
               const EdgeInsets.symmetric(horizontal: 8, vertical: 4),
           decoration: BoxDecoration(
             color: widget.isCapturing
-                ? TermexColors.primary.withOpacity(0.1)
-                : TermexColors.backgroundTertiary,
+                ? context.colors.primary.withOpacity(0.1)
+                : context.colors.backgroundTertiary,
             borderRadius: BorderRadius.circular(5),
             border: Border.all(
               color: widget.isCapturing
-                  ? TermexColors.primary
-                  : TermexColors.border,
+                  ? context.colors.primary
+                  : context.colors.border,
               width: widget.isCapturing ? 1.5 : 1,
             ),
           ),
@@ -126,8 +126,8 @@ class _KeybindingCaptureState extends State<KeybindingCapture> {
               fontFamily: 'monospace',
               fontSize: 12,
               color: widget.isCapturing
-                  ? TermexColors.primary
-                  : TermexColors.textPrimary,
+                  ? context.colors.primary
+                  : context.colors.textPrimary,
             ),
           ),
         ),

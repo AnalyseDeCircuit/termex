@@ -36,8 +36,8 @@ class _TabItemState extends State<TabItem> {
   bool _hovered = false;
 
   Color _bgColor() {
-    if (widget.isActive) return TermexColors.backgroundTertiary;
-    if (_hovered) return TermexColors.backgroundSecondary.withOpacity(0.8);
+    if (widget.isActive) return context.colors.backgroundTertiary;
+    if (_hovered) return context.colors.backgroundSecondary.withOpacity(0.8);
     return const Color(0x00000000);
   }
 
@@ -60,9 +60,9 @@ class _TabItemState extends State<TabItem> {
           decoration: BoxDecoration(
             color: _bgColor(),
             border: widget.isActive
-                ? const Border(
+                ? Border(
                     bottom: BorderSide(
-                      color: TermexColors.primary,
+                      color: context.colors.primary,
                       width: 2,
                     ),
                   )
@@ -79,8 +79,8 @@ class _TabItemState extends State<TabItem> {
                   widget.title,
                   style: TermexTypography.bodySmall.copyWith(
                     color: widget.isActive
-                        ? TermexColors.textPrimary
-                        : TermexColors.textSecondary,
+                        ? context.colors.textPrimary
+                        : context.colors.textSecondary,
                     fontWeight:
                         widget.isActive ? FontWeight.w500 : FontWeight.normal,
                   ),
@@ -176,22 +176,22 @@ class _TabStatusIndicatorState extends State<_TabStatusIndicator>
       case TabStatus.connecting:
         return RotationTransition(
           turns: _rotation,
-          child: const SizedBox(
+          child: SizedBox(
             width: 10,
             height: 10,
             child: CircularProgressIndicator(
               strokeWidth: 1.5,
               valueColor:
-                  AlwaysStoppedAnimation<Color>(TermexColors.primary),
+                  AlwaysStoppedAnimation<Color>(context.colors.primary),
             ),
           ),
         );
       case TabStatus.connected:
-        return const _Dot(color: TermexColors.success);
+        return _Dot(color: context.colors.success);
       case TabStatus.error:
-        return const _Dot(color: TermexColors.danger);
+        return _Dot(color: context.colors.danger);
       case TabStatus.disconnected:
-        return const _Dot(color: TermexColors.neutral);
+        return _Dot(color: context.colors.neutral);
     }
   }
 }
@@ -208,17 +208,17 @@ class _BroadcastBadge extends StatelessWidget {
       child: Container(
         padding: const EdgeInsets.symmetric(horizontal: 4, vertical: 1),
         decoration: BoxDecoration(
-          color: TermexColors.warning.withOpacity(0.18),
+          color: context.colors.warning.withOpacity(0.18),
           borderRadius: TermexRadius.sm,
           border: Border.all(
-            color: TermexColors.warning.withOpacity(0.6),
+            color: context.colors.warning.withOpacity(0.6),
             width: 0.5,
           ),
         ),
-        child: const Icon(
+        child: Icon(
           Icons.podcasts,
           size: 10,
-          color: TermexColors.warning,
+          color: context.colors.warning,
         ),
       ),
     );
@@ -276,7 +276,7 @@ class _CloseButtonState extends State<_CloseButton> {
             height: 16,
             decoration: BoxDecoration(
               color: _hovered
-                  ? TermexColors.textMuted.withOpacity(0.3)
+                  ? context.colors.textMuted.withOpacity(0.3)
                   : const Color(0x00000000),
               borderRadius: TermexRadius.full,
             ),
@@ -285,8 +285,8 @@ class _CloseButtonState extends State<_CloseButton> {
               TermexIcons.close,
               size: 10,
               color: _hovered
-                  ? TermexColors.textPrimary
-                  : TermexColors.textSecondary,
+                  ? context.colors.textPrimary
+                  : context.colors.textSecondary,
             ),
           ),
         ),
@@ -363,9 +363,9 @@ class _TabContextMenuState extends State<_TabContextMenu>
             child: Container(
               width: menuWidth,
               decoration: BoxDecoration(
-                color: TermexColors.backgroundSecondary,
+                color: context.colors.backgroundSecondary,
                 borderRadius: TermexRadius.md,
-                border: Border.all(color: TermexColors.border),
+                border: Border.all(color: context.colors.border),
               ),
               padding: const EdgeInsets.symmetric(vertical: TermexSpacing.xs),
               child: Column(
@@ -419,7 +419,8 @@ class _ContextItemState extends State<_ContextItem> {
 
   @override
   Widget build(BuildContext context) {
-    final color = widget.danger ? TermexColors.danger : TermexColors.textPrimary;
+    final color =
+        widget.danger ? context.colors.danger : context.colors.textPrimary;
     return MouseRegion(
       cursor: SystemMouseCursors.click,
       onEnter: (_) => setState(() => _hovered = true),
@@ -432,8 +433,8 @@ class _ContextItemState extends State<_ContextItem> {
           padding: const EdgeInsets.symmetric(horizontal: TermexSpacing.md),
           color: _hovered
               ? (widget.danger
-                  ? TermexColors.danger.withOpacity(0.1)
-                  : TermexColors.backgroundTertiary)
+                  ? context.colors.danger.withOpacity(0.1)
+                  : context.colors.backgroundTertiary)
               : const Color(0x00000000),
           child: Row(
             children: [

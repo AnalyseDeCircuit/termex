@@ -86,9 +86,9 @@ class _Nl2CmdOverlayState extends ConsumerState<Nl2CmdOverlay> {
         width: 480,
         padding: const EdgeInsets.all(16),
         decoration: BoxDecoration(
-          color: TermexColors.backgroundSecondary,
+          color: context.colors.backgroundSecondary,
           borderRadius: BorderRadius.circular(10),
-          border: Border.all(color: TermexColors.border),
+          border: Border.all(color: context.colors.border),
           boxShadow: [
             BoxShadow(
               color: Colors.black.withOpacity(0.2),
@@ -103,20 +103,21 @@ class _Nl2CmdOverlayState extends ConsumerState<Nl2CmdOverlay> {
           children: [
             Row(
               children: [
-                const Icon(Icons.terminal, size: 14, color: TermexColors.primary),
+                Icon(Icons.terminal, size: 14, color: context.colors.primary),
                 const SizedBox(width: 6),
                 Text(
                   l10n.aiNl2cmdTitle,
-                  style: const TextStyle(
+                  style: TextStyle(
                     fontSize: 13,
                     fontWeight: FontWeight.w600,
-                    color: TermexColors.textPrimary,
+                    color: context.colors.textPrimary,
                   ),
                 ),
                 const Spacer(),
                 Clickable(
                   onTap: widget.onClose,
-                  child: const Icon(Icons.close, size: 14, color: TermexColors.textSecondary),
+                  child: Icon(Icons.close,
+                      size: 14, color: context.colors.textSecondary),
                 ),
               ],
             ),
@@ -126,36 +127,37 @@ class _Nl2CmdOverlayState extends ConsumerState<Nl2CmdOverlay> {
               focusNode: _focus,
               decoration: InputDecoration(
                 hintText: l10n.aiNl2cmdHint,
-                hintStyle:
-                    const TextStyle(fontSize: 12, color: TermexColors.textSecondary),
+                hintStyle: TextStyle(
+                    fontSize: 12, color: context.colors.textSecondary),
                 border: OutlineInputBorder(
                   borderRadius: BorderRadius.circular(6),
-                  borderSide: const BorderSide(color: TermexColors.border),
+                  borderSide: BorderSide(color: context.colors.border),
                 ),
                 enabledBorder: OutlineInputBorder(
                   borderRadius: BorderRadius.circular(6),
-                  borderSide: const BorderSide(color: TermexColors.border),
+                  borderSide: BorderSide(color: context.colors.border),
                 ),
                 focusedBorder: OutlineInputBorder(
                   borderRadius: BorderRadius.circular(6),
-                  borderSide: const BorderSide(color: TermexColors.primary),
+                  borderSide: BorderSide(color: context.colors.primary),
                 ),
                 contentPadding:
                     const EdgeInsets.symmetric(horizontal: 10, vertical: 8),
                 isDense: true,
               ),
-              style: const TextStyle(fontSize: 13, color: TermexColors.textPrimary),
+              style:
+                  TextStyle(fontSize: 13, color: context.colors.textPrimary),
               onSubmitted: (_) => _convert(),
             ),
             const SizedBox(height: 8),
             if (_isLoading)
-              const Center(
+              Center(
                 child: SizedBox(
                   width: 18,
                   height: 18,
                   child: CircularProgressIndicator(
                     strokeWidth: 2,
-                    color: TermexColors.primary,
+                    color: context.colors.primary,
                   ),
                 ),
               )
@@ -163,7 +165,7 @@ class _Nl2CmdOverlayState extends ConsumerState<Nl2CmdOverlay> {
               Text(
                 _error!,
                 style:
-                    const TextStyle(fontSize: 11, color: TermexColors.danger),
+                    TextStyle(fontSize: 11, color: context.colors.danger),
               )
             else if (_result != null)
               _ResultRow(
@@ -182,14 +184,14 @@ class _Nl2CmdOverlayState extends ConsumerState<Nl2CmdOverlay> {
                 TextButton(
                   onPressed: widget.onClose,
                   child: Text(l10n.commonCancel,
-                      style: const TextStyle(
-                          fontSize: 12, color: TermexColors.textSecondary)),
+                      style: TextStyle(
+                          fontSize: 12, color: context.colors.textSecondary)),
                 ),
                 const SizedBox(width: 8),
                 ElevatedButton(
                   onPressed: _isLoading ? null : _convert,
                   style: ElevatedButton.styleFrom(
-                    backgroundColor: TermexColors.primary,
+                    backgroundColor: context.colors.primary,
                     foregroundColor: Colors.white,
                     minimumSize: const Size(64, 32),
                     textStyle: const TextStyle(fontSize: 12),
@@ -216,27 +218,27 @@ class _ResultRow extends StatelessWidget {
     return Container(
       padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 6),
       decoration: BoxDecoration(
-        color: TermexColors.backgroundTertiary,
+        color: context.colors.backgroundTertiary,
         borderRadius: BorderRadius.circular(6),
-        border: Border.all(color: TermexColors.border),
+        border: Border.all(color: context.colors.border),
       ),
       child: Row(
         children: [
           Expanded(
             child: Text(
               command,
-              style: const TextStyle(
+              style: TextStyle(
                 fontFamily: 'monospace',
                 fontSize: 12,
-                color: TermexColors.textPrimary,
+                color: context.colors.textPrimary,
               ),
             ),
           ),
           if (onAccept != null)
             Clickable(
               onTap: onAccept,
-              child: const Icon(Icons.send_rounded,
-                  size: 14, color: TermexColors.primary),
+              child: Icon(Icons.send_rounded,
+                  size: 14, color: context.colors.primary),
             ),
         ],
       ),

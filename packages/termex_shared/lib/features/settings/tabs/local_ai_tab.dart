@@ -26,6 +26,7 @@ class LocalAiTab extends ConsumerWidget {
         SettingRow(
           label: l10n.settingsAiServerPort,
           child: _numberField(
+            context,
             value: settings.localAiPort,
             onChanged: (v) =>
                 notifier.update(settings.copyWith(localAiPort: v)),
@@ -34,6 +35,7 @@ class LocalAiTab extends ConsumerWidget {
         SettingRow(
           label: l10n.settingsAiInferenceThreads,
           child: _numberField(
+            context,
             value: settings.localAiThreads,
             onChanged: (v) =>
                 notifier.update(settings.copyWith(localAiThreads: v)),
@@ -43,6 +45,7 @@ class LocalAiTab extends ConsumerWidget {
           label: l10n.settingsLocalAiContextSize,
           hint: l10n.settingsLocalAiContextSizeHint,
           child: _numberField(
+            context,
             value: settings.localAiContextSize,
             onChanged: (v) =>
                 notifier.update(settings.copyWith(localAiContextSize: v)),
@@ -51,10 +54,10 @@ class LocalAiTab extends ConsumerWidget {
         const Divider(height: 32),
         Text(
           l10n.settingsLocalAiModelManagement,
-          style: const TextStyle(
+          style: TextStyle(
             fontSize: 13,
             fontWeight: FontWeight.w600,
-            color: TermexColors.textPrimary,
+            color: context.colors.textPrimary,
           ),
         ),
         const SizedBox(height: 12),
@@ -63,7 +66,8 @@ class LocalAiTab extends ConsumerWidget {
     );
   }
 
-  Widget _numberField({
+  Widget _numberField(
+    BuildContext context, {
     required int value,
     required ValueChanged<int> onChanged,
   }) {
@@ -81,7 +85,7 @@ class LocalAiTab extends ConsumerWidget {
           isDense: true,
           contentPadding: EdgeInsets.symmetric(horizontal: 8, vertical: 6),
         ),
-        style: const TextStyle(fontSize: 12, color: TermexColors.textPrimary),
+        style: TextStyle(fontSize: 12, color: context.colors.textPrimary),
       ),
     );
   }

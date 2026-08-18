@@ -74,7 +74,7 @@ class _ServerSearchBarState extends State<ServerSearchBar> {
   @override
   Widget build(BuildContext context) {
     final borderColor =
-        _focused ? TermexColors.borderFocus : TermexColors.border;
+        _focused ? context.colors.borderFocus : context.colors.border;
     final hasText = _controller.text.isNotEmpty;
 
     return SizedBox(
@@ -85,7 +85,7 @@ class _ServerSearchBarState extends State<ServerSearchBar> {
           duration: const Duration(milliseconds: 150),
           curve: Curves.easeOut,
           decoration: BoxDecoration(
-            color: TermexColors.backgroundSecondary,
+            color: context.colors.backgroundSecondary,
             borderRadius: TermexRadius.md,
             border: Border.all(
               color: borderColor,
@@ -99,8 +99,8 @@ class _ServerSearchBarState extends State<ServerSearchBar> {
                 TermexIcons.search,
                 size: 14,
                 color: _focused
-                    ? TermexColors.primary
-                    : TermexColors.textSecondary,
+                    ? context.colors.primary
+                    : context.colors.textSecondary,
               ),
               const SizedBox(width: TermexSpacing.sm),
               Expanded(
@@ -108,11 +108,11 @@ class _ServerSearchBarState extends State<ServerSearchBar> {
                   controller: _controller,
                   focusNode: _focusNode,
                   style: TermexTypography.body.copyWith(
-                    color: TermexColors.textPrimary,
+                    color: context.colors.textPrimary,
                   ),
-                  cursorColor: TermexColors.primary,
-                  backgroundCursorColor: TermexColors.backgroundTertiary,
-                  selectionColor: TermexColors.primary.withOpacity(0.3),
+                  cursorColor: context.colors.primary,
+                  backgroundCursorColor: context.colors.backgroundTertiary,
+                  selectionColor: context.colors.primary.withOpacity(0.3),
                   onChanged: _handleChanged,
                 ),
               ),
@@ -153,15 +153,15 @@ class _ClearButtonState extends State<_ClearButton> {
           height: 18,
           decoration: BoxDecoration(
             color: _hovered
-                ? TermexColors.backgroundTertiary
+                ? context.colors.backgroundTertiary
                 : const Color(0x00000000),
             borderRadius: TermexRadius.full,
           ),
           alignment: Alignment.center,
-          child: const TermexIconWidget(
+          child: TermexIconWidget(
             TermexIcons.close,
             size: 11,
-            color: TermexColors.textSecondary,
+            color: context.colors.textSecondary,
           ),
         ),
       ),

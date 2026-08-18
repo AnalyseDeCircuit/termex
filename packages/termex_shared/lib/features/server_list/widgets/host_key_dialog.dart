@@ -84,7 +84,7 @@ class HostKeyDialog extends StatelessWidget {
         Text(
           'Key type: ${data.keyType}',
           style: TermexTypography.bodySmall.copyWith(
-            color: TermexColors.textSecondary,
+            color: context.colors.textSecondary,
           ),
         ),
         const SizedBox(height: TermexSpacing.sm),
@@ -92,13 +92,13 @@ class HostKeyDialog extends StatelessWidget {
           _FingerprintRow(
             label: 'Old fingerprint',
             fingerprint: data.oldFingerprint!,
-            highlight: TermexColors.danger,
+            highlight: context.colors.danger,
           ),
           const SizedBox(height: TermexSpacing.sm),
           _FingerprintRow(
             label: 'New fingerprint',
             fingerprint: data.fingerprint,
-            highlight: TermexColors.warning,
+            highlight: context.colors.warning,
           ),
         ] else ...[
           _FingerprintRow(
@@ -111,7 +111,7 @@ class HostKeyDialog extends StatelessWidget {
           Text(
             'Verify the fingerprint with the server administrator before connecting.',
             style: TermexTypography.bodySmall.copyWith(
-              color: TermexColors.textMuted,
+              color: context.colors.textMuted,
             ),
           )
         else
@@ -151,7 +151,7 @@ class _Banner extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    final color = isWarning ? TermexColors.danger : TermexColors.primary;
+    final color = isWarning ? context.colors.danger : context.colors.primary;
     final bgColor = color.withOpacity(0.1);
 
     return Container(
@@ -191,7 +191,7 @@ class _Banner extends StatelessWidget {
                       : 'This is the first time you are connecting to this host. '
                           'Please verify the fingerprint below.',
                   style: TermexTypography.bodySmall.copyWith(
-                    color: TermexColors.textSecondary,
+                    color: context.colors.textSecondary,
                   ),
                 ),
               ],
@@ -222,7 +222,7 @@ class _FingerprintRow extends StatelessWidget {
         Text(
           label,
           style: TermexTypography.caption.copyWith(
-            color: TermexColors.textMuted,
+            color: context.colors.textMuted,
           ),
         ),
         const SizedBox(height: TermexSpacing.xs),
@@ -233,17 +233,17 @@ class _FingerprintRow extends StatelessWidget {
             vertical: TermexSpacing.sm,
           ),
           decoration: BoxDecoration(
-            color: TermexColors.backgroundTertiary,
+            color: context.colors.backgroundTertiary,
             borderRadius: TermexRadius.sm,
             border: highlight != null
                 ? Border.all(color: highlight!.withOpacity(0.5))
-                : Border.all(color: TermexColors.border),
+                : Border.all(color: context.colors.border),
           ),
           child: Text(
             fingerprint,
             style: TermexTypography.monospace.copyWith(
               fontSize: 12,
-              color: highlight ?? TermexColors.textPrimary,
+              color: highlight ?? context.colors.textPrimary,
             ),
           ),
         ),
@@ -258,14 +258,14 @@ class _WarningNote extends StatelessWidget {
     return Container(
       padding: const EdgeInsets.all(TermexSpacing.sm),
       decoration: BoxDecoration(
-        color: TermexColors.danger.withOpacity(0.08),
+        color: context.colors.danger.withOpacity(0.08),
         borderRadius: TermexRadius.sm,
-        border: Border.all(color: TermexColors.danger.withOpacity(0.3)),
+        border: Border.all(color: context.colors.danger.withOpacity(0.3)),
       ),
       child: Text(
         'Only accept the new key if you are certain the server was legitimately re-keyed.',
         style: TermexTypography.bodySmall.copyWith(
-          color: TermexColors.danger,
+          color: context.colors.danger,
         ),
       ),
     );

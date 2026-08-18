@@ -74,19 +74,19 @@ class _NameDialogState extends State<_NameDialog> {
   @override
   Widget build(BuildContext context) {
     return AlertDialog(
-      backgroundColor: TermexColors.backgroundSecondary,
+      backgroundColor: context.colors.backgroundSecondary,
       title: Text(widget.title,
-          style: const TextStyle(
-              color: TermexColors.textPrimary, fontSize: 15)),
+          style: TextStyle(
+              color: context.colors.textPrimary, fontSize: 15)),
       content: SizedBox(
         width: 300,
         child: TextField(
           controller: _ctrl,
           autofocus: true,
-          style: const TextStyle(color: TermexColors.textPrimary),
+          style: TextStyle(color: context.colors.textPrimary),
           decoration: InputDecoration(
             hintText: widget.hint,
-            hintStyle: const TextStyle(color: TermexColors.textMuted),
+            hintStyle: TextStyle(color: context.colors.textMuted),
             errorText: _error,
             border: const OutlineInputBorder(),
           ),

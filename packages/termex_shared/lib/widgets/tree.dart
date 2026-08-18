@@ -187,16 +187,20 @@ class _TriangleIcon extends StatelessWidget {
   Widget build(BuildContext context) {
     return CustomPaint(
       size: const Size(8, 8),
-      painter: _TrianglePainter(),
+      painter: _TrianglePainter(colors: context.colors),
     );
   }
 }
 
 class _TrianglePainter extends CustomPainter {
+  final TermexColorScheme colors;
+
+  const _TrianglePainter({required this.colors});
+
   @override
   void paint(Canvas canvas, Size size) {
     final paint = Paint()
-      ..color = TermexColors.textSecondary
+      ..color = colors.textSecondary
       ..style = PaintingStyle.fill;
     final path = Path()
       ..moveTo(0, 0)
@@ -207,5 +211,6 @@ class _TrianglePainter extends CustomPainter {
   }
 
   @override
-  bool shouldRepaint(covariant CustomPainter oldDelegate) => false;
+  bool shouldRepaint(covariant _TrianglePainter oldDelegate) =>
+      oldDelegate.colors != colors;
 }

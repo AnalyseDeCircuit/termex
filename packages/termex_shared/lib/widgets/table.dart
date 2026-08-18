@@ -86,7 +86,7 @@ class TermexDataTable<T> extends StatelessWidget {
     Widget label = Text(
       col.label.toUpperCase(),
       style: TermexTypography.bodySmall.copyWith(
-        color: TermexColors.textSecondary,
+        color: context.colors.textSecondary,
         letterSpacing: 0.5,
       ),
     );
@@ -100,7 +100,7 @@ class TermexDataTable<T> extends StatelessWidget {
           Text(
             sortDirection == SortDirection.asc ? '↑' : '↓',
             style: TermexTypography.bodySmall.copyWith(
-              color: TermexColors.primary,
+              color: context.colors.primary,
             ),
           ),
         ],
@@ -135,10 +135,10 @@ class TermexDataTable<T> extends StatelessWidget {
   Widget _buildHeader(BuildContext context) {
     return Container(
       height: 40,
-      decoration: const BoxDecoration(
-        color: TermexColors.backgroundSecondary,
+      decoration: BoxDecoration(
+        color: context.colors.backgroundSecondary,
         border: Border(
-          bottom: BorderSide(color: TermexColors.border, width: 1),
+          bottom: BorderSide(color: context.colors.border, width: 1),
         ),
       ),
       child: Row(
@@ -249,7 +249,7 @@ class _DataRowState<T> extends State<_DataRow<T>> {
   Widget build(BuildContext context) {
     Color bg = const Color(0x00000000);
     if (widget.isSelected || _hovered) {
-      bg = TermexColors.backgroundTertiary;
+      bg = context.colors.backgroundTertiary;
     }
 
     return MouseRegion(
@@ -309,12 +309,12 @@ class _HeaderCheckbox extends StatelessWidget {
         height: 16,
         decoration: BoxDecoration(
           color: (checked || indeterminate)
-              ? TermexColors.primary
+              ? context.colors.primary
               : const Color(0x00000000),
           border: Border.all(
             color: (checked || indeterminate)
-                ? TermexColors.primary
-                : TermexColors.border,
+                ? context.colors.primary
+                : context.colors.border,
             width: 1,
           ),
           borderRadius: TermexRadius.sm,
@@ -341,9 +341,9 @@ class _RowCheckbox extends StatelessWidget {
         width: 16,
         height: 16,
         decoration: BoxDecoration(
-          color: checked ? TermexColors.primary : const Color(0x00000000),
+          color: checked ? context.colors.primary : const Color(0x00000000),
           border: Border.all(
-            color: checked ? TermexColors.primary : TermexColors.border,
+            color: checked ? context.colors.primary : context.colors.border,
             width: 1,
           ),
           borderRadius: TermexRadius.sm,

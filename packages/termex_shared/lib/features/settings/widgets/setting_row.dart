@@ -35,14 +35,14 @@ class SettingRow extends StatelessWidget {
         Text(
           label,
           style:
-              const TextStyle(fontSize: 13, color: TermexColors.textPrimary),
+              TextStyle(fontSize: 13, color: context.colors.textPrimary),
         ),
         if (hint != null) ...[
           const SizedBox(height: 2),
           Text(
             hint!,
-            style: const TextStyle(
-                fontSize: 11, color: TermexColors.textSecondary),
+            style: TextStyle(
+                fontSize: 11, color: context.colors.textSecondary),
           ),
         ],
       ],

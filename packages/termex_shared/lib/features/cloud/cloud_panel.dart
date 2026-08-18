@@ -14,6 +14,7 @@
 /// erroneously demoted Cloud to a "Pro forever stub".
 library;
 
+import 'package:flutter/services.dart';
 import 'package:flutter/widgets.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:termex_bridge/src/api.dart' as bridge;
@@ -22,7 +23,11 @@ import '../../design/colors.dart';
 import '../../design/spacing.dart';
 import '../../design/typography.dart';
 import '../../icons/termex_icons.dart';
+import '../../l10n/app_localizations.dart';
 import '../../widgets/clickable.dart';
+import '../../widgets/menu.dart';
+import '../../widgets/panel_context_menu.dart';
+import '../../widgets/toast.dart';
 
 class CloudPanel extends ConsumerStatefulWidget {
   const CloudPanel({super.key});
@@ -59,19 +64,26 @@ class _CloudPanelState extends ConsumerState<CloudPanel> {
 
   @override
   Widget build(BuildContext context) {
-    return Column(
+    // Same duplicate-title fix as `RecordingListPanel`: this panel opened with
+    // its own `_Header` row reading "云端资源" while the host sidebar already
+    // draws a "云端" section header directly above it. Two title rows, and the
+    // second only existed to carry a refresh button — which now lives in the
+    // right-click menu.
+    return GestureDetector(
+      behavior: HitTestBehavior.opaque,
+      onSecondaryTapUp: (d) => _showPanelMenu(context, d.globalPosition),
+      child: Column(
       children: [
-        _Header(onRefresh: _reload),
         Expanded(
           child: FutureBuilder<_CloudData>(
             future: _future,
             builder: (ctx, snap) {
               if (snap.connectionState != ConnectionState.done) {
-                return const Center(
+                return Center(
                   child: TermexIconWidget(
                     TermexIcons.refresh,
                     size: 14,
-                    color: TermexColors.textMuted,
+                    color: ctx.colors.textMuted,
                   ),
                 );
               }
@@ -122,6 +134,28 @@ class _CloudPanelState extends ConsumerState<CloudPanel> {
           ),
         ),
       ],
+      ),
+    );
+  }
+
+  /// Right-click menu for the panel, blank area included — that is what the
+  /// `HitTestBehavior.opaque` on the wrapping detector buys.
+  void _showPanelMenu(BuildContext context, Offset position) {
+    final l10n = AppLocalizations.of(context);
+    showContextMenu(
+      context: context,
+      position: position,
+      items: [
+        MenuItem(
+          label: l10n.cloudRefresh,
+          icon: TermexIconWidget(
+            TermexIcons.refresh,
+            size: 13,
+            color: context.colors.textSecondary,
+          ),
+          onSelected: _reload,
+        ),
+      ],
     );
   }
 }
@@ -136,50 +170,6 @@ class _CloudData {
     this.ssm = const [],
     this.ecs = const [],
   });
-}
-
-class _Header extends StatelessWidget {
-  final VoidCallback onRefresh;
-  const _Header({required this.onRefresh});
-
-  @override
-  Widget build(BuildContext context) => Container(
-        padding: const EdgeInsets.symmetric(
-          horizontal: TermexSpacing.md,
-          vertical: TermexSpacing.sm,
-        ),
-        decoration: const BoxDecoration(
-          border: Border(
-            bottom: BorderSide(color: TermexColors.border, width: 0.5),
-          ),
-        ),
-        child: Row(
-          children: [
-            const TermexIconWidget(
-              TermexIcons.cloud,
-              size: 14,
-              color: TermexColors.textSecondary,
-            ),
-            const SizedBox(width: TermexSpacing.sm),
-            Text(
-              '云端资源',
-              style: TermexTypography.bodySmall.copyWith(
-                color: TermexColors.textPrimary,
-                fontWeight: FontWeight.w500,
-              ),
-            ),
-            const Spacer(),
-            Clickable(
-              onTap: onRefresh,
-              child: const TermexIconWidget(
-                TermexIcons.refresh,
-                size: 12,
-                color: TermexColors.textMuted,
-              ),
-            ),
-          ],
-        ),
-      );
 }
 
 class _Section extends StatelessWidget {
@@ -212,7 +202,7 @@ class _Section extends StatelessWidget {
             maxLines: 1,
             overflow: TextOverflow.ellipsis,
             style: TermexTypography.caption.copyWith(
-              color: TermexColors.textMuted,
+              color: context.colors.textMuted,
               fontWeight: FontWeight.w500,
             ),
           ),
@@ -228,7 +218,7 @@ class _Section extends StatelessWidget {
             child: Text(
               emptyHint,
               style: TermexTypography.caption.copyWith(
-                color: TermexColors.textMuted,
+                color: context.colors.textMuted,
               ),
             ),
           )
@@ -263,13 +253,18 @@ class _RowState extends State<_Row> {
   Widget build(BuildContext context) => MouseRegion(
         onEnter: (_) => setState(() => _hovered = true),
         onExit: (_) => setState(() => _hovered = false),
+        child: GestureDetector(
+        behavior: HitTestBehavior.opaque,
+        // Cloud rows are read-only status, so the menu is copy-only —
+        // enough to get a context name or instance id out to a terminal.
+        onSecondaryTapUp: (d) => _showRowMenu(context, d.globalPosition),
         child: Container(
           padding: const EdgeInsets.symmetric(
             horizontal: TermexSpacing.md,
             vertical: TermexSpacing.xs,
           ),
           color: _hovered
-              ? TermexColors.backgroundTertiary
+              ? context.colors.backgroundTertiary
               : const Color(0x00000000),
           child: Row(
             children: [
@@ -277,8 +272,8 @@ class _RowState extends State<_Row> {
                 widget.icon,
                 size: 12,
                 color: widget.accent
-                    ? TermexColors.primary
-                    : TermexColors.textSecondary,
+                    ? context.colors.primary
+                    : context.colors.textSecondary,
               ),
               const SizedBox(width: TermexSpacing.sm),
               Expanded(
@@ -291,8 +286,8 @@ class _RowState extends State<_Row> {
                       overflow: TextOverflow.ellipsis,
                       style: TermexTypography.bodySmall.copyWith(
                         color: widget.accent
-                            ? TermexColors.primary
-                            : TermexColors.textPrimary,
+                            ? context.colors.primary
+                            : context.colors.textPrimary,
                         fontWeight: widget.accent ? FontWeight.w600 : null,
                       ),
                     ),
@@ -302,7 +297,7 @@ class _RowState extends State<_Row> {
                       maxLines: 1,
                       overflow: TextOverflow.ellipsis,
                       style: TermexTypography.caption.copyWith(
-                        color: TermexColors.textMuted,
+                        color: context.colors.textMuted,
                       ),
                     ),
                   ],
@@ -311,5 +306,32 @@ class _RowState extends State<_Row> {
             ],
           ),
         ),
+        ),
       );
+
+  void _showRowMenu(BuildContext context, Offset position) {
+    final l10n = AppLocalizations.of(context);
+    showContextMenu(
+      context: context,
+      position: position,
+      items: [
+        MenuItem(
+          label: l10n.ctxCloudCopyLabel,
+          icon: menuIcon(context, TermexIcons.copy),
+          onSelected: () {
+            Clipboard.setData(ClipboardData(text: widget.label));
+            ToastController.success(l10n.ctxCopied);
+          },
+        ),
+        MenuItem(
+          label: l10n.ctxCloudCopyDetail,
+          icon: menuIcon(context, TermexIcons.copy),
+          onSelected: () {
+            Clipboard.setData(ClipboardData(text: widget.sub));
+            ToastController.success(l10n.ctxCopied);
+          },
+        ),
+      ],
+    );
+  }
 }

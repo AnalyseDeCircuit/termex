@@ -31,7 +31,7 @@ class ReconnectBanner extends ConsumerWidget {
             (c.status == ReconnectStatus.failed && c.hopAttempt > 0));
     if (!isInteresting) return const SizedBox.shrink();
 
-    final (icon, color, text) = _composeMessage(c);
+    final (icon, color, text) = _composeMessage(c, context.colors);
     return Material(
       color: color.withOpacity(0.12),
       child: Container(
@@ -64,25 +64,28 @@ class ReconnectBanner extends ConsumerWidget {
     );
   }
 
-  (IconData, Color, String) _composeMessage(ConnectionState c) {
+  (IconData, Color, String) _composeMessage(
+    ConnectionState c,
+    TermexColorScheme colors,
+  ) {
     final hop = '${c.currentHop}/${c.totalHops}';
     if (c.status == ReconnectStatus.failed) {
       return (
         Icons.error_outline,
-        TermexColors.danger,
+        colors.danger,
         '链式连接失败 · hop $hop (${c.hopName}) — ${c.lastError ?? "未知错误"}',
       );
     }
     if (c.hopAttempt > 0) {
       return (
         Icons.sync_problem,
-        TermexColors.warning,
+        colors.warning,
         '重试 hop $hop (${c.hopName})· 第 ${c.hopAttempt} 次尝试',
       );
     }
     return (
       Icons.cable,
-      TermexColors.primary,
+      colors.primary,
       '正在连接 hop $hop (${c.hopName})…',
     );
   }

@@ -202,14 +202,14 @@ class _ServerTreeState extends ConsumerState<ServerTree> {
     final name = await showDialog<String>(
       context: context,
       builder: (ctx) => AlertDialog(
-        backgroundColor: TermexColors.backgroundSecondary,
+        backgroundColor: ctx.colors.backgroundSecondary,
         title: Text(l10n.sidebarNewGroup,
-            style: const TextStyle(
-                color: TermexColors.textPrimary, fontSize: 14)),
+            style: TextStyle(
+                color: ctx.colors.textPrimary, fontSize: 14)),
         content: TextField(
           controller: controller,
           autofocus: true,
-          style: const TextStyle(color: TermexColors.textPrimary),
+          style: TextStyle(color: ctx.colors.textPrimary),
           decoration: InputDecoration(hintText: l10n.sidebarGroupNameHint),
           onSubmitted: (v) => Navigator.of(ctx).pop(v),
         ),
@@ -304,15 +304,15 @@ class _ServerTreeState extends ConsumerState<ServerTree> {
     return showDialog<String>(
       context: context,
       builder: (ctx) => AlertDialog(
-        backgroundColor: TermexColors.backgroundSecondary,
+        backgroundColor: ctx.colors.backgroundSecondary,
         title: Text(title,
-            style: const TextStyle(
-                color: TermexColors.textPrimary, fontSize: 14)),
+            style: TextStyle(
+                color: ctx.colors.textPrimary, fontSize: 14)),
         content: TextField(
           controller: controller,
           autofocus: true,
           obscureText: obscure,
-          style: const TextStyle(color: TermexColors.textPrimary),
+          style: TextStyle(color: ctx.colors.textPrimary),
           decoration: InputDecoration(hintText: hint),
           onSubmitted: (v) => Navigator.of(ctx).pop(v),
         ),
@@ -404,13 +404,13 @@ class _ServerTreeState extends ConsumerState<ServerTree> {
     final confirmed = await showDialog<bool>(
       context: context,
       builder: (ctx) => AlertDialog(
-        backgroundColor: TermexColors.backgroundSecondary,
+        backgroundColor: ctx.colors.backgroundSecondary,
         title: Text(l10n.contextDelete,
-            style: const TextStyle(
-                color: TermexColors.textPrimary, fontSize: 14)),
+            style: TextStyle(
+                color: ctx.colors.textPrimary, fontSize: 14)),
         content: Text(
           l10n.contextDeleteConfirm(server.name),
-          style: const TextStyle(color: TermexColors.textSecondary),
+          style: TextStyle(color: ctx.colors.textSecondary),
         ),
         actions: [
           TextButton(
@@ -420,7 +420,7 @@ class _ServerTreeState extends ConsumerState<ServerTree> {
           TextButton(
             onPressed: () => Navigator.of(ctx).pop(true),
             child: Text(l10n.commonDelete,
-                style: const TextStyle(color: TermexColors.danger)),
+                style: TextStyle(color: ctx.colors.danger)),
           ),
         ],
       ),
@@ -687,12 +687,12 @@ class _LoadingSpinner extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    return const SizedBox(
+    return SizedBox(
       width: 22,
       height: 22,
       child: CircularProgressIndicator(
         strokeWidth: 2,
-        valueColor: AlwaysStoppedAnimation<Color>(TermexColors.primary),
+        valueColor: AlwaysStoppedAnimation<Color>(context.colors.primary),
       ),
     );
   }
@@ -710,7 +710,7 @@ class _EmptyState extends StatelessWidget {
         child: Text(
           isFiltered ? 'No servers match your search.' : 'No servers yet.',
           style: TermexTypography.body.copyWith(
-            color: TermexColors.textMuted,
+            color: context.colors.textMuted,
           ),
           textAlign: TextAlign.center,
         ),

@@ -29,7 +29,7 @@ class TestResultList extends StatelessWidget {
             child: Text(
               'Failures (${payload.failures.length})',
               style: TermexTypography.body.copyWith(
-                color: TermexColors.textPrimary,
+                color: context.colors.textPrimary,
                 fontWeight: FontWeight.w600,
               ),
             ),
@@ -56,25 +56,25 @@ class _SummaryRow extends StatelessWidget {
         runSpacing: TermexSpacing.xs,
         crossAxisAlignment: WrapCrossAlignment.center,
         children: [
-          _StatChip(label: framework, color: TermexColors.textSecondary),
+          _StatChip(label: framework, color: context.colors.textSecondary),
           _StatChip(
             label: '${summary.passed} passed',
-            color: TermexColors.success,
+            color: context.colors.success,
           ),
           if (summary.failed > 0)
             _StatChip(
               label: '${summary.failed} failed',
-              color: TermexColors.danger,
+              color: context.colors.danger,
             ),
           if (summary.skipped > 0)
             _StatChip(
               label: '${summary.skipped} skipped',
-              color: TermexColors.warning,
+              color: context.colors.warning,
             ),
           if (summary.durationMs != null)
             _StatChip(
               label: _formatDuration(summary.durationMs!),
-              color: TermexColors.textMuted,
+              color: context.colors.textMuted,
             ),
         ],
       ),
@@ -128,8 +128,8 @@ class _FailureCard extends StatelessWidget {
       ),
       padding: const EdgeInsets.all(TermexSpacing.sm),
       decoration: BoxDecoration(
-        color: TermexColors.danger.withValues(alpha: 0.05),
-        border: Border.all(color: TermexColors.danger.withValues(alpha: 0.4)),
+        color: context.colors.danger.withValues(alpha: 0.05),
+        border: Border.all(color: context.colors.danger.withValues(alpha: 0.4)),
         borderRadius: BorderRadius.circular(6),
       ),
       child: Column(
@@ -138,7 +138,7 @@ class _FailureCard extends StatelessWidget {
           Text(
             failure.testName,
             style: TermexTypography.body.copyWith(
-              color: TermexColors.textPrimary,
+              color: context.colors.textPrimary,
               fontWeight: FontWeight.w600,
             ),
           ),
@@ -149,7 +149,7 @@ class _FailureCard extends StatelessWidget {
                   ? '${failure.file}:${failure.line}'
                   : failure.file!,
               style: TermexTypography.monospace.copyWith(
-                color: TermexColors.textMuted,
+                color: context.colors.textMuted,
                 fontSize: 11,
               ),
             ),
@@ -159,7 +159,7 @@ class _FailureCard extends StatelessWidget {
             Text(
               failure.message!,
               style: TermexTypography.monospace.copyWith(
-                color: TermexColors.textPrimary,
+                color: context.colors.textPrimary,
                 fontSize: 12,
               ),
             ),

@@ -18,23 +18,23 @@ class ConflictWarning extends StatelessWidget {
     return Container(
       padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 8),
       decoration: BoxDecoration(
-        color: TermexColors.warning.withOpacity(0.1),
+        color: context.colors.warning.withOpacity(0.1),
         borderRadius: BorderRadius.circular(6),
-        border: Border.all(color: TermexColors.warning.withOpacity(0.4)),
+        border: Border.all(color: context.colors.warning.withOpacity(0.4)),
       ),
       child: Row(
         children: [
-          const Icon(Icons.warning_amber_rounded, size: 14, color: TermexColors.warning),
+          Icon(Icons.warning_amber_rounded, size: 14, color: context.colors.warning),
           const SizedBox(width: 8),
           Expanded(
             child: Text(
               '与「$conflictingAction」快捷键冲突，已取消保存',
-              style: const TextStyle(fontSize: 12, color: TermexColors.warning),
+              style: TextStyle(fontSize: 12, color: context.colors.warning),
             ),
           ),
           Clickable(
             onTap: onDismiss,
-            child: const Icon(Icons.close, size: 13, color: TermexColors.textSecondary),
+            child: Icon(Icons.close, size: 13, color: context.colors.textSecondary),
           ),
         ],
       ),

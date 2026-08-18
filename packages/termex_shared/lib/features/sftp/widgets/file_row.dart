@@ -89,7 +89,12 @@ class FileRow extends StatelessWidget {
   final bool isSelected;
   final VoidCallback? onTap;
   final VoidCallback? onDoubleTap;
-  final VoidCallback? onSecondaryTap;
+
+  /// Receives the pointer's global position so the caller can anchor a
+  /// context menu there. `FileList` already passes one; this was still a
+  /// bare [VoidCallback] that discarded the offset, so the two did not
+  /// typecheck.
+  final void Function(Offset globalPosition)? onSecondaryTap;
 
   /// Columns to draw. Supplied by [FileList] so every row agrees with the
   /// header; omitting it falls back to whatever fits the enclosing width.
@@ -148,13 +153,12 @@ class FileRow extends StatelessWidget {
       onDoubleTap: onDoubleTap,
       // Clickable hands the anchor position to secondary-tap handlers; this
       // row's callback doesn't need it.
-      onSecondaryTap:
-          onSecondaryTap == null ? null : (_) => onSecondaryTap!(),
+      onSecondaryTap: onSecondaryTap,
       child: Container(
         height: rowHeight,
         padding: padding,
         color: isSelected
-            ? TermexColors.primary.withOpacity(0.2)
+            ? context.colors.primary.withOpacity(0.2)
             : Colors.transparent,
         child: Row(
           children: [
@@ -163,8 +167,8 @@ class FileRow extends StatelessWidget {
               data.isDirectory ? Icons.folder : _fileIcon(data.name),
               size: iconSize,
               color: data.isDirectory
-                  ? TermexColors.warning
-                  : TermexColors.textSecondary,
+                  ? context.colors.warning
+                  : context.colors.textSecondary,
             ),
             const SizedBox(width: 8),
             // Name
@@ -175,8 +179,8 @@ class FileRow extends StatelessWidget {
                 style: TermexTypography.monospace.copyWith(
                   fontSize: isMobile ? 15 : 13,
                   color: isSelected
-                      ? TermexColors.textPrimary
-                      : TermexColors.textSecondary,
+                      ? context.colors.textPrimary
+                      : context.colors.textSecondary,
                 ),
                 overflow: TextOverflow.ellipsis,
               ),
@@ -189,7 +193,7 @@ class FileRow extends StatelessWidget {
                   data.isDirectory ? '' : _formatSize(data.sizeBytes),
                   style: TextStyle(
                     fontSize: isMobile ? 12 : 11,
-                    color: TermexColors.textMuted,
+                    color: context.colors.textMuted,
                   ),
                   textAlign: TextAlign.right,
                 ),
@@ -203,9 +207,9 @@ class FileRow extends StatelessWidget {
                 width: SftpColumns.modifiedWidth,
                 child: Text(
                   _formatDate(data.modifiedAt),
-                  style: const TextStyle(
+                  style: TextStyle(
                     fontSize: 11,
-                    color: TermexColors.textMuted,
+                    color: context.colors.textMuted,
                   ),
                   textAlign: TextAlign.right,
                 ),
@@ -218,7 +222,7 @@ class FileRow extends StatelessWidget {
                 data.permissions ?? '',
                 style: TermexTypography.monospace.copyWith(
                   fontSize: 10,
-                  color: TermexColors.textMuted,
+                  color: context.colors.textMuted,
                 ),
                 textAlign: TextAlign.right,
               ),

@@ -116,17 +116,17 @@ class _ProviderInlineFormState extends ConsumerState<ProviderInlineForm> {
     final l10n = AppLocalizations.of(context);
 
     return Container(
-      decoration: const BoxDecoration(
-        color: TermexColors.backgroundSecondary,
-        border: Border(top: BorderSide(color: TermexColors.border)),
+      decoration: BoxDecoration(
+        color: context.colors.backgroundSecondary,
+        border: Border(top: BorderSide(color: context.colors.border)),
       ),
       padding: const EdgeInsets.all(12),
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.stretch,
         children: [
           Text(meta.description,
-              style: const TextStyle(
-                  fontSize: 11, color: TermexColors.textSecondary)),
+              style: TextStyle(
+                  fontSize: 11, color: context.colors.textSecondary)),
           const SizedBox(height: 12),
 
           if (meta.requiresApiKey) ...[
@@ -146,7 +146,7 @@ class _ProviderInlineFormState extends ConsumerState<ProviderInlineForm> {
                             ? Icons.visibility_off
                             : Icons.visibility,
                         size: 14,
-                        color: TermexColors.textSecondary,
+                        color: context.colors.textSecondary,
                       ),
                     ),
                   ),
@@ -185,9 +185,9 @@ class _ProviderInlineFormState extends ConsumerState<ProviderInlineForm> {
           DropdownButtonFormField<int>(
             initialValue: _contextLines,
             isDense: true,
-            dropdownColor: TermexColors.backgroundSecondary,
+            dropdownColor: context.colors.backgroundSecondary,
             style:
-                const TextStyle(fontSize: 12, color: TermexColors.textPrimary),
+                TextStyle(fontSize: 12, color: context.colors.textPrimary),
             decoration: _decoration(''),
             items: const [50, 100, 200, 500]
                 .map((n) => DropdownMenuItem(
@@ -198,13 +198,13 @@ class _ProviderInlineFormState extends ConsumerState<ProviderInlineForm> {
 
           if (isLocal) ...[
             const SizedBox(height: 16),
-            const Divider(color: TermexColors.border, height: 1),
+            Divider(color: context.colors.border, height: 1),
             const SizedBox(height: 12),
             Text(l10n.settingsAiLlamaEngine,
-                style: const TextStyle(
+                style: TextStyle(
                   fontSize: 12,
                   fontWeight: FontWeight.w600,
-                  color: TermexColors.textPrimary,
+                  color: context.colors.textPrimary,
                 )),
             const SizedBox(height: 10),
             const _LocalEngineSettings(),
@@ -219,8 +219,8 @@ class _ProviderInlineFormState extends ConsumerState<ProviderInlineForm> {
               style: TextStyle(
                 fontSize: 11,
                 color: _statusOk
-                    ? TermexColors.success
-                    : TermexColors.danger,
+                    ? context.colors.success
+                    : context.colors.danger,
               ),
             ),
           ],
@@ -252,7 +252,7 @@ class _ProviderInlineFormState extends ConsumerState<ProviderInlineForm> {
     return TextField(
       controller: controller,
       obscureText: obscure,
-      style: const TextStyle(fontSize: 12, color: TermexColors.textPrimary),
+      style: TextStyle(fontSize: 12, color: context.colors.textPrimary),
       decoration: _decoration(hint, suffix: suffix),
     );
   }
@@ -281,8 +281,8 @@ class _ProviderInlineFormState extends ConsumerState<ProviderInlineForm> {
     return DropdownButtonFormField<String>(
       value: value,
       isDense: true,
-      dropdownColor: TermexColors.backgroundSecondary,
-      style: const TextStyle(fontSize: 12, color: TermexColors.textPrimary),
+      dropdownColor: context.colors.backgroundSecondary,
+      style: TextStyle(fontSize: 12, color: context.colors.textPrimary),
       decoration: _decoration(''),
       items: uniqueModels
           .map((m) => DropdownMenuItem(value: m, child: Text(m)))
@@ -295,7 +295,7 @@ class _ProviderInlineFormState extends ConsumerState<ProviderInlineForm> {
       InputDecoration(
         hintText: hint,
         hintStyle:
-            const TextStyle(fontSize: 12, color: TermexColors.textSecondary),
+            TextStyle(fontSize: 12, color: context.colors.textSecondary),
         suffixIcon: suffix == null
             ? null
             : Padding(
@@ -309,11 +309,11 @@ class _ProviderInlineFormState extends ConsumerState<ProviderInlineForm> {
         isDense: true,
         border: OutlineInputBorder(
           borderRadius: BorderRadius.circular(6),
-          borderSide: const BorderSide(color: TermexColors.border),
+          borderSide: BorderSide(color: context.colors.border),
         ),
         enabledBorder: OutlineInputBorder(
           borderRadius: BorderRadius.circular(6),
-          borderSide: const BorderSide(color: TermexColors.border),
+          borderSide: BorderSide(color: context.colors.border),
         ),
       );
 }
@@ -328,10 +328,10 @@ class _Label extends StatelessWidget {
       padding: const EdgeInsets.only(bottom: 4),
       child: Text(
         text,
-        style: const TextStyle(
+        style: TextStyle(
           fontSize: 11,
           fontWeight: FontWeight.w600,
-          color: TermexColors.textSecondary,
+          color: context.colors.textSecondary,
         ),
       ),
     );
@@ -354,10 +354,10 @@ class _SmallBtn extends StatelessWidget {
     final disabled = onTap == null;
     final bg = primary
         ? (disabled
-            ? TermexColors.primary.withOpacity(0.5)
-            : TermexColors.primary)
-        : TermexColors.backgroundTertiary;
-    final fg = primary ? Colors.white : TermexColors.textPrimary;
+            ? context.colors.primary.withOpacity(0.5)
+            : context.colors.primary)
+        : context.colors.backgroundTertiary;
+    final fg = primary ? Colors.white : context.colors.textPrimary;
     return Clickable(
       onTap: onTap,
       child: Container(
@@ -366,7 +366,7 @@ class _SmallBtn extends StatelessWidget {
           color: bg,
           borderRadius: BorderRadius.circular(4),
           border: Border.all(
-            color: primary ? Colors.transparent : TermexColors.border,
+            color: primary ? Colors.transparent : context.colors.border,
           ),
         ),
         child: Text(label, style: TextStyle(fontSize: 12, color: fg)),
@@ -389,6 +389,7 @@ class _LocalEngineSettings extends ConsumerWidget {
       crossAxisAlignment: CrossAxisAlignment.stretch,
       children: [
         _row(
+          context,
           l10n.settingsAiServerPort,
           _NumberField(
             value: settings.localAiPort,
@@ -397,6 +398,7 @@ class _LocalEngineSettings extends ConsumerWidget {
           ),
         ),
         _row(
+          context,
           l10n.settingsAiInferenceThreads,
           _NumberField(
             value: settings.localAiThreads,
@@ -405,6 +407,7 @@ class _LocalEngineSettings extends ConsumerWidget {
           ),
         ),
         _row(
+          context,
           l10n.settingsAiContextWindow,
           _NumberField(
             value: settings.localAiContextSize,
@@ -413,6 +416,7 @@ class _LocalEngineSettings extends ConsumerWidget {
           ),
         ),
         _row(
+          context,
           l10n.settingsAiAutoStartEngine,
           Switch(
             value: settings.localAiAutoStart,
@@ -424,15 +428,15 @@ class _LocalEngineSettings extends ConsumerWidget {
     );
   }
 
-  Widget _row(String label, Widget child) {
+  Widget _row(BuildContext context, String label, Widget child) {
     return Padding(
       padding: const EdgeInsets.only(bottom: 6),
       child: Row(
         children: [
           Expanded(
             child: Text(label,
-                style: const TextStyle(
-                    fontSize: 12, color: TermexColors.textSecondary)),
+                style: TextStyle(
+                    fontSize: 12, color: context.colors.textSecondary)),
           ),
           child,
         ],
@@ -480,7 +484,7 @@ class _NumberFieldState extends State<_NumberField> {
       child: TextField(
         controller: _ctrl,
         keyboardType: TextInputType.number,
-        style: const TextStyle(fontSize: 12, color: TermexColors.textPrimary),
+        style: TextStyle(fontSize: 12, color: context.colors.textPrimary),
         onSubmitted: (s) {
           final v = int.tryParse(s);
           if (v != null && v > 0) widget.onChanged(v);
@@ -491,11 +495,11 @@ class _NumberFieldState extends State<_NumberField> {
               const EdgeInsets.symmetric(horizontal: 8, vertical: 6),
           border: OutlineInputBorder(
             borderRadius: BorderRadius.circular(4),
-            borderSide: const BorderSide(color: TermexColors.border),
+            borderSide: BorderSide(color: context.colors.border),
           ),
           enabledBorder: OutlineInputBorder(
             borderRadius: BorderRadius.circular(4),
-            borderSide: const BorderSide(color: TermexColors.border),
+            borderSide: BorderSide(color: context.colors.border),
           ),
         ),
       ),
@@ -518,7 +522,8 @@ class _LocalEngineStatus extends ConsumerWidget {
             padding: const EdgeInsets.only(top: 6),
             child: Text(
               state.errorMessage!,
-              style: const TextStyle(fontSize: 11, color: TermexColors.danger),
+              style:
+                  TextStyle(fontSize: 11, color: context.colors.danger),
             ),
           ),
       ],

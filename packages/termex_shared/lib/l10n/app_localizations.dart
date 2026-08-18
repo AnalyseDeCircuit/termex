@@ -2896,6 +2896,60 @@ abstract class AppLocalizations {
   /// **'No forwarding rules configured.'**
   String get connectionForwardNone;
 
+  /// No description provided for @ctxProxySetDefault.
+  ///
+  /// In en, this message translates to:
+  /// **'Set as default'**
+  String get ctxProxySetDefault;
+
+  /// No description provided for @ctxProxyTest.
+  ///
+  /// In en, this message translates to:
+  /// **'Test connection'**
+  String get ctxProxyTest;
+
+  /// No description provided for @ctxProxyCopyAddress.
+  ///
+  /// In en, this message translates to:
+  /// **'Copy address'**
+  String get ctxProxyCopyAddress;
+
+  /// No description provided for @ctxProxyDelete.
+  ///
+  /// In en, this message translates to:
+  /// **'Delete proxy'**
+  String get ctxProxyDelete;
+
+  /// No description provided for @ctxSnippetCopyContent.
+  ///
+  /// In en, this message translates to:
+  /// **'Copy content'**
+  String get ctxSnippetCopyContent;
+
+  /// No description provided for @ctxRecordingCopyPath.
+  ///
+  /// In en, this message translates to:
+  /// **'Copy file path'**
+  String get ctxRecordingCopyPath;
+
+  /// No description provided for @ctxCloudCopyLabel.
+  ///
+  /// In en, this message translates to:
+  /// **'Copy name'**
+  String get ctxCloudCopyLabel;
+
+  /// No description provided for @ctxCopied.
+  ///
+  /// In en, this message translates to:
+  /// **'Copied to clipboard'**
+  String get ctxCopied;
+
+  /// No description provided for @ctxCloudCopyDetail.
+  ///
+  /// In en, this message translates to:
+  /// **'Copy details'**
+  String get ctxCloudCopyDetail;
+
   /// No description provided for @contextConnect.
   ///
   /// In en, this message translates to:
@@ -4497,6 +4551,30 @@ abstract class AppLocalizations {
   /// In en, this message translates to:
   /// **'All'**
   String get snippetAllFolders;
+
+  /// No description provided for @snippetCategoryFilter.
+  ///
+  /// In en, this message translates to:
+  /// **'Category'**
+  String get snippetCategoryFilter;
+
+  /// No description provided for @snippetCategoryAll.
+  ///
+  /// In en, this message translates to:
+  /// **'All categories'**
+  String get snippetCategoryAll;
+
+  /// Header dropdown label when 2+ snippet categories are ticked
+  ///
+  /// In en, this message translates to:
+  /// **'{count} categories'**
+  String snippetCategoryCount(int count);
+
+  /// No description provided for @snippetCategoryNone.
+  ///
+  /// In en, this message translates to:
+  /// **'No categories'**
+  String get snippetCategoryNone;
 
   /// No description provided for @snippetAllFolder.
   ///
@@ -6591,6 +6669,24 @@ abstract class AppLocalizations {
   /// In en, this message translates to:
   /// **'Rename'**
   String get sftpActionRename;
+
+  /// No description provided for @sftpActionEdit.
+  ///
+  /// In en, this message translates to:
+  /// **'Edit'**
+  String get sftpActionEdit;
+
+  /// No description provided for @sftpActionCopyPath.
+  ///
+  /// In en, this message translates to:
+  /// **'Copy Path'**
+  String get sftpActionCopyPath;
+
+  /// No description provided for @sftpActionSelectAll.
+  ///
+  /// In en, this message translates to:
+  /// **'Select All'**
+  String get sftpActionSelectAll;
 
   /// No description provided for @sftpActionDelete.
   ///

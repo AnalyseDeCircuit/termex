@@ -65,8 +65,8 @@ class _UnderlineTabs extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     return Container(
-      decoration: const BoxDecoration(
-        border: Border(bottom: BorderSide(color: TermexColors.border)),
+      decoration: BoxDecoration(
+        border: Border(bottom: BorderSide(color: context.colors.border)),
       ),
       child: Row(
         mainAxisSize: MainAxisSize.min,
@@ -104,10 +104,10 @@ class _UnderlineTabItemState extends State<_UnderlineTabItem> {
   @override
   Widget build(BuildContext context) {
     final color = widget.isActive
-        ? TermexColors.textPrimary
+        ? context.colors.textPrimary
         : _hovered
-            ? TermexColors.textSecondary
-            : TermexColors.textMuted;
+            ? context.colors.textSecondary
+            : context.colors.textMuted;
 
     return MouseRegion(
       cursor: SystemMouseCursors.click,
@@ -124,7 +124,7 @@ class _UnderlineTabItemState extends State<_UnderlineTabItem> {
             border: Border(
               bottom: BorderSide(
                 color: widget.isActive
-                    ? TermexColors.primary
+                    ? context.colors.primary
                     : const Color(0x00000000),
                 width: 2,
               ),
@@ -188,14 +188,14 @@ class _PillTabItemState extends State<_PillTabItem> {
   Widget build(BuildContext context) {
     Color bg = const Color(0x00000000);
     if (widget.isActive) {
-      bg = TermexColors.backgroundTertiary;
+      bg = context.colors.backgroundTertiary;
     } else if (_hovered) {
-      bg = TermexColors.backgroundTertiary.withOpacity(0.5);
+      bg = context.colors.backgroundTertiary.withOpacity(0.5);
     }
 
     final textColor = widget.isActive
-        ? TermexColors.textPrimary
-        : TermexColors.textSecondary;
+        ? context.colors.textPrimary
+        : context.colors.textSecondary;
 
     return MouseRegion(
       cursor: SystemMouseCursors.click,
@@ -235,9 +235,9 @@ class _SegmentedTabs extends StatelessWidget {
   Widget build(BuildContext context) {
     return Container(
       decoration: BoxDecoration(
-        color: TermexColors.backgroundPrimary,
+        color: context.colors.backgroundPrimary,
         borderRadius: TermexRadius.md,
-        border: Border.all(color: TermexColors.border),
+        border: Border.all(color: context.colors.border),
       ),
       padding: const EdgeInsets.all(2),
       child: Row(
@@ -277,14 +277,14 @@ class _SegmentedTabItemState extends State<_SegmentedTabItem> {
   Widget build(BuildContext context) {
     Color bg = const Color(0x00000000);
     if (widget.isActive) {
-      bg = TermexColors.backgroundSecondary;
+      bg = context.colors.backgroundSecondary;
     } else if (_hovered) {
-      bg = TermexColors.backgroundTertiary.withOpacity(0.4);
+      bg = context.colors.backgroundTertiary.withOpacity(0.4);
     }
 
     final textColor = widget.isActive
-        ? TermexColors.textPrimary
-        : TermexColors.textSecondary;
+        ? context.colors.textPrimary
+        : context.colors.textSecondary;
 
     return MouseRegion(
       cursor: SystemMouseCursors.click,

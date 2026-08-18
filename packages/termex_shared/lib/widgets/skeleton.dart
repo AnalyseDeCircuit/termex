@@ -54,10 +54,10 @@ class _TermexSkeletonState extends State<TermexSkeleton>
                 _controller.value.clamp(0.0, 1.0),
                 (_controller.value + 0.3).clamp(0.0, 1.0),
               ],
-              colors: const [
-                TermexColors.backgroundSecondary,
-                TermexColors.backgroundTertiary,
-                TermexColors.backgroundSecondary,
+              colors: [
+                context.colors.backgroundSecondary,
+                context.colors.backgroundTertiary,
+                context.colors.backgroundSecondary,
               ],
             ),
           ),

@@ -189,7 +189,7 @@ class _SettingsPageState extends ConsumerState<SettingsPage> {
     final matches = filteredIndex(l10n);
 
     return Scaffold(
-      backgroundColor: TermexColors.backgroundPrimary,
+      backgroundColor: context.colors.backgroundPrimary,
       body: Column(
         children: [
           // Settings auto-save (see SettingsNotifier.update), so the title
@@ -221,7 +221,7 @@ class _SettingsPageState extends ConsumerState<SettingsPage> {
                   // wasting horizontal space the detail pane can use.
                   width: MediaQuery.sizeOf(context).width < 600 ? 96 : 140,
                   child: Container(
-                    color: TermexColors.backgroundSecondary,
+                    color: context.colors.backgroundSecondary,
                     child: ListView(
                       padding: const EdgeInsets.symmetric(vertical: 8),
                       children: _buildSidebarItems(l10n),
@@ -314,18 +314,18 @@ class _TitleBar extends StatelessWidget {
     return Container(
       height: 44,
       padding: const EdgeInsets.symmetric(horizontal: 16),
-      decoration: const BoxDecoration(
-        color: TermexColors.backgroundSecondary,
-        border: Border(bottom: BorderSide(color: TermexColors.border)),
+      decoration: BoxDecoration(
+        color: context.colors.backgroundSecondary,
+        border: Border(bottom: BorderSide(color: context.colors.border)),
       ),
       child: Row(
         children: [
           Text(
             l10n.settingsTitle,
-            style: const TextStyle(
+            style: TextStyle(
               fontSize: 15,
               fontWeight: FontWeight.w600,
-              color: TermexColors.textPrimary,
+              color: context.colors.textPrimary,
             ),
           ),
         ],
@@ -347,9 +347,9 @@ class _SearchBar extends StatelessWidget {
     // search bar feels like an inline filter, not a hero input.
     return Container(
       padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 4),
-      decoration: const BoxDecoration(
-        color: TermexColors.backgroundSecondary,
-        border: Border(bottom: BorderSide(color: TermexColors.border)),
+      decoration: BoxDecoration(
+        color: context.colors.backgroundSecondary,
+        border: Border(bottom: BorderSide(color: context.colors.border)),
       ),
       child: SizedBox(
         height: 28,
@@ -358,26 +358,26 @@ class _SearchBar extends StatelessWidget {
           onChanged: onChanged,
           decoration: InputDecoration(
             hintText: l10n.settingsSearchPlaceholder,
-            hintStyle: const TextStyle(
-                fontSize: 12, color: TermexColors.textSecondary),
-            prefixIcon: const Icon(Icons.search,
-                size: 14, color: TermexColors.textSecondary),
+            hintStyle: TextStyle(
+                fontSize: 12, color: context.colors.textSecondary),
+            prefixIcon: Icon(Icons.search,
+                size: 14, color: context.colors.textSecondary),
             prefixIconConstraints:
                 const BoxConstraints(minWidth: 26, minHeight: 26),
             border: OutlineInputBorder(
               borderRadius: BorderRadius.circular(4),
-              borderSide: const BorderSide(color: TermexColors.border),
+              borderSide: BorderSide(color: context.colors.border),
             ),
             enabledBorder: OutlineInputBorder(
               borderRadius: BorderRadius.circular(4),
-              borderSide: const BorderSide(color: TermexColors.border),
+              borderSide: BorderSide(color: context.colors.border),
             ),
             contentPadding:
                 const EdgeInsets.symmetric(horizontal: 4, vertical: 0),
             isDense: true,
           ),
           style:
-              const TextStyle(fontSize: 12, color: TermexColors.textPrimary),
+              TextStyle(fontSize: 12, color: context.colors.textPrimary),
         ),
       ),
     );
@@ -396,23 +396,23 @@ class _SearchResults extends StatelessWidget {
       return Center(
         child: Text(
           AppLocalizations.of(context).settingsSearchNoMatch,
-          style: const TextStyle(
-              fontSize: 13, color: TermexColors.textSecondary),
+          style: TextStyle(
+              fontSize: 13, color: context.colors.textSecondary),
         ),
       );
     }
     return ListView.separated(
       padding: const EdgeInsets.all(16),
       itemCount: matches.length,
-      separatorBuilder: (_, __) => const Divider(color: TermexColors.border, height: 1),
+      separatorBuilder: (_, __) => Divider(color: context.colors.border, height: 1),
       itemBuilder: (ctx, i) {
         final e = matches[i];
         return ListTile(
           dense: true,
           title: Text(e.label,
-              style: const TextStyle(fontSize: 13, color: TermexColors.textPrimary)),
+              style: TextStyle(fontSize: 13, color: context.colors.textPrimary)),
           subtitle: Text(e.description,
-              style: const TextStyle(fontSize: 11, color: TermexColors.textSecondary)),
+              style: TextStyle(fontSize: 11, color: context.colors.textSecondary)),
           onTap: () => onTap(e.tab),
         );
       },
@@ -446,10 +446,10 @@ class _SidebarItem extends StatelessWidget {
         height: 36,
         padding: EdgeInsets.symmetric(horizontal: horizontalPad),
         decoration: BoxDecoration(
-          color: isActive ? TermexColors.primary.withOpacity(0.1) : null,
+          color: isActive ? context.colors.primary.withOpacity(0.1) : null,
           border: Border(
             left: BorderSide(
-              color: isActive ? TermexColors.primary : Colors.transparent,
+              color: isActive ? context.colors.primary : Colors.transparent,
               width: 2,
             ),
           ),
@@ -459,8 +459,8 @@ class _SidebarItem extends StatelessWidget {
             Icon(_tabIcon(tab),
                 size: iconSize,
                 color: isActive
-                    ? TermexColors.primary
-                    : TermexColors.textSecondary),
+                    ? context.colors.primary
+                    : context.colors.textSecondary),
             SizedBox(width: iconGap),
             Expanded(
               child: Text(
@@ -469,8 +469,8 @@ class _SidebarItem extends StatelessWidget {
                 style: TextStyle(
                   fontSize: 12,
                   color: isActive
-                      ? TermexColors.textPrimary
-                      : TermexColors.textSecondary,
+                      ? context.colors.textPrimary
+                      : context.colors.textSecondary,
                   fontWeight:
                       isActive ? FontWeight.w500 : FontWeight.normal,
                 ),
@@ -527,10 +527,10 @@ class _ExtraSidebarItem extends StatelessWidget {
         height: 36,
         padding: EdgeInsets.symmetric(horizontal: horizontalPad),
         decoration: BoxDecoration(
-          color: isActive ? TermexColors.primary.withOpacity(0.1) : null,
+          color: isActive ? context.colors.primary.withOpacity(0.1) : null,
           border: Border(
             left: BorderSide(
-              color: isActive ? TermexColors.primary : Colors.transparent,
+              color: isActive ? context.colors.primary : Colors.transparent,
               width: 2,
             ),
           ),
@@ -540,8 +540,8 @@ class _ExtraSidebarItem extends StatelessWidget {
             Icon(extra.icon,
                 size: iconSize,
                 color: isActive
-                    ? TermexColors.primary
-                    : TermexColors.textSecondary),
+                    ? context.colors.primary
+                    : context.colors.textSecondary),
             SizedBox(width: iconGap),
             Expanded(
               child: Text(
@@ -550,8 +550,8 @@ class _ExtraSidebarItem extends StatelessWidget {
                 style: TextStyle(
                   fontSize: 12,
                   color: isActive
-                      ? TermexColors.textPrimary
-                      : TermexColors.textSecondary,
+                      ? context.colors.textPrimary
+                      : context.colors.textSecondary,
                   fontWeight:
                       isActive ? FontWeight.w500 : FontWeight.normal,
                 ),

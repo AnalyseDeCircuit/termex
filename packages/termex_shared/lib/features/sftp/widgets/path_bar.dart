@@ -77,9 +77,9 @@ class _PathBarState extends State<PathBar> {
     return Container(
       height: 32,
       padding: const EdgeInsets.symmetric(horizontal: 8),
-      decoration: const BoxDecoration(
-        color: TermexColors.backgroundTertiary,
-        border: Border(bottom: BorderSide(color: TermexColors.border)),
+      decoration: BoxDecoration(
+        color: context.colors.backgroundTertiary,
+        border: Border(bottom: BorderSide(color: context.colors.border)),
       ),
       child: Row(
         children: [
@@ -119,9 +119,9 @@ class _PathBarState extends State<PathBar> {
         children: [
           for (int i = 0; i < parts.length; i++) ...[
             if (i > 0)
-              const Text(
+              Text(
                 ' / ',
-                style: TextStyle(fontSize: 12, color: TermexColors.textMuted),
+                style: TextStyle(fontSize: 12, color: context.colors.textMuted),
               ),
             // The trailing segment is the directory already being shown, so
             // it is rendered as plain text and not navigable; only the
@@ -133,8 +133,8 @@ class _PathBarState extends State<PathBar> {
                 style: TermexTypography.monospace.copyWith(
                   fontSize: 12,
                   color: isCurrent
-                      ? TermexColors.textPrimary
-                      : TermexColors.primary,
+                      ? context.colors.textPrimary
+                      : context.colors.primary,
                   decoration:
                       isCurrent ? null : TextDecoration.underline,
                 ),
@@ -163,7 +163,7 @@ class _PathBarState extends State<PathBar> {
       focusNode: _focusNode,
       style: TermexTypography.monospace.copyWith(
         fontSize: 12,
-        color: TermexColors.textPrimary,
+        color: context.colors.textPrimary,
       ),
       decoration: const InputDecoration(
         isDense: true,
@@ -211,7 +211,7 @@ class _BarBtn extends StatelessWidget {
           onTap: onTap,
           child: Padding(
             padding: const EdgeInsets.symmetric(horizontal: 4),
-            child: Icon(icon, size: 15, color: TermexColors.textSecondary),
+            child: Icon(icon, size: 15, color: context.colors.textSecondary),
           ),
         ),
       ),

@@ -61,9 +61,9 @@ class _AiInputState extends ConsumerState<AiInput> {
 
     return Container(
       padding: const EdgeInsets.fromLTRB(12, 8, 12, 8),
-      decoration: const BoxDecoration(
-        color: TermexColors.backgroundSecondary,
-        border: Border(top: BorderSide(color: TermexColors.border)),
+      decoration: BoxDecoration(
+        color: context.colors.backgroundSecondary,
+        border: Border(top: BorderSide(color: context.colors.border)),
       ),
       child: Column(
         mainAxisSize: MainAxisSize.min,
@@ -99,21 +99,24 @@ class _AiInputState extends ConsumerState<AiInput> {
                     minLines: 1,
                     decoration: InputDecoration(
                       hintText: '询问 AI… (Enter 发送，Shift+Enter 换行)',
-                      hintStyle: const TextStyle(
+                      hintStyle: TextStyle(
                         fontSize: 13,
-                        color: TermexColors.textSecondary,
+                        color: context.colors.textSecondary,
                       ),
                       border: OutlineInputBorder(
                         borderRadius: BorderRadius.circular(8),
-                        borderSide: const BorderSide(color: TermexColors.border),
+                        borderSide:
+                            BorderSide(color: context.colors.border),
                       ),
                       enabledBorder: OutlineInputBorder(
                         borderRadius: BorderRadius.circular(8),
-                        borderSide: const BorderSide(color: TermexColors.border),
+                        borderSide:
+                            BorderSide(color: context.colors.border),
                       ),
                       focusedBorder: OutlineInputBorder(
                         borderRadius: BorderRadius.circular(8),
-                        borderSide: const BorderSide(color: TermexColors.primary),
+                        borderSide:
+                            BorderSide(color: context.colors.primary),
                       ),
                       contentPadding: const EdgeInsets.symmetric(
                         horizontal: 12,
@@ -121,9 +124,9 @@ class _AiInputState extends ConsumerState<AiInput> {
                       ),
                       isDense: true,
                     ),
-                    style: const TextStyle(
+                    style: TextStyle(
                       fontSize: 13,
-                      color: TermexColors.textPrimary,
+                      color: context.colors.textPrimary,
                     ),
                   ),
                 ),
@@ -160,13 +163,15 @@ class _SendButton extends StatelessWidget {
         width: 36,
         height: 36,
         decoration: BoxDecoration(
-          color: enabled ? TermexColors.primary : TermexColors.backgroundTertiary,
+          color: enabled
+              ? context.colors.primary
+              : context.colors.backgroundTertiary,
           borderRadius: BorderRadius.circular(8),
         ),
         child: Icon(
           Icons.send_rounded,
           size: 18,
-          color: enabled ? Colors.white : TermexColors.textSecondary,
+          color: enabled ? Colors.white : context.colors.textSecondary,
         ),
       ),
     );
@@ -185,14 +190,15 @@ class _CancelButton extends StatelessWidget {
         width: 36,
         height: 36,
         decoration: BoxDecoration(
-          color: TermexColors.danger.withOpacity(0.1),
+          color: context.colors.danger.withOpacity(0.1),
           borderRadius: BorderRadius.circular(8),
-          border: Border.all(color: TermexColors.danger.withOpacity(0.4)),
+          border:
+              Border.all(color: context.colors.danger.withOpacity(0.4)),
         ),
-        child: const Icon(
+        child: Icon(
           Icons.stop_rounded,
           size: 20,
-          color: TermexColors.danger,
+          color: context.colors.danger,
         ),
       ),
     );
@@ -210,28 +216,30 @@ class _RateLimitBanner extends StatelessWidget {
       margin: const EdgeInsets.only(bottom: 8),
       padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 6),
       decoration: BoxDecoration(
-        color: TermexColors.warning.withOpacity(0.1),
+        color: context.colors.warning.withOpacity(0.1),
         borderRadius: BorderRadius.circular(6),
-        border: Border.all(color: TermexColors.warning.withOpacity(0.4)),
+        border:
+            Border.all(color: context.colors.warning.withOpacity(0.4)),
       ),
       child: Row(
         children: [
-          const Icon(Icons.warning_amber_rounded,
-              size: 14, color: TermexColors.warning),
+          Icon(Icons.warning_amber_rounded,
+              size: 14, color: context.colors.warning),
           const SizedBox(width: 6),
           Expanded(
             child: Text(
               '达到速率限制，请 $seconds 秒后重试',
-              style: const TextStyle(fontSize: 12, color: TermexColors.warning),
+              style:
+                  TextStyle(fontSize: 12, color: context.colors.warning),
             ),
           ),
           Clickable(
             onTap: onRetry,
-            child: const Text(
+            child: Text(
               '重试',
               style: TextStyle(
                 fontSize: 12,
-                color: TermexColors.primary,
+                color: context.colors.primary,
                 fontWeight: FontWeight.w600,
               ),
             ),

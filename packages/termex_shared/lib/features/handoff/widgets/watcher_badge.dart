@@ -32,7 +32,7 @@ class WatcherBadge extends StatelessWidget {
       // (still tap-able so the user can discover "Send to device").
       return _Pill(
         label: 'Only this device',
-        color: TermexColors.textMuted,
+        color: context.colors.textMuted,
         onTap: onTap,
       );
     }
@@ -40,7 +40,7 @@ class WatcherBadge extends StatelessWidget {
       label: others == 1
           ? '1 other watching'
           : '$others others watching',
-      color: TermexColors.primary,
+      color: context.colors.primary,
       onTap: onTap,
     );
   }
