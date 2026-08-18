@@ -149,9 +149,9 @@ class _DragFeedback extends StatelessWidget {
       child: Container(
         padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 6),
         decoration: BoxDecoration(
-          color: context.colors.backgroundSecondary.withOpacity(0.9),
+          color: context.colors.backgroundSecondary.withValues(alpha: 0.9),
           borderRadius: BorderRadius.circular(6),
-          border: Border.all(color: context.colors.primary.withOpacity(0.6)),
+          border: Border.all(color: context.colors.primary.withValues(alpha: 0.6)),
           boxShadow: const [
             BoxShadow(color: Color(0x50000000), blurRadius: 8),
           ],
@@ -284,9 +284,9 @@ class _DropOverlay extends StatelessWidget {
             child: IgnorePointer(
               child: Container(
                 decoration: BoxDecoration(
-                  color: context.colors.primary.withOpacity(0.12),
+                  color: context.colors.primary.withValues(alpha: 0.12),
                   border: Border.all(
-                    color: context.colors.primary.withOpacity(0.7),
+                    color: context.colors.primary.withValues(alpha: 0.7),
                     width: 2,
                   ),
                 ),

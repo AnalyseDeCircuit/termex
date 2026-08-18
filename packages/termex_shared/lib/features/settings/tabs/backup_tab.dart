@@ -269,8 +269,8 @@ class _HistoryRow extends StatelessWidget {
         borderRadius: BorderRadius.circular(4),
         border: Border.all(
           color: isOk
-              ? context.colors.success.withOpacity(0.3)
-              : context.colors.danger.withOpacity(0.4),
+              ? context.colors.success.withValues(alpha: 0.3)
+              : context.colors.danger.withValues(alpha: 0.4),
         ),
       ),
       child: Row(

@@ -126,7 +126,7 @@ class _SegmentChipState extends State<_SegmentChip> {
           padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 5),
           decoration: BoxDecoration(
             color: selected
-                ? context.colors.primary.withOpacity(0.15)
+                ? context.colors.primary.withValues(alpha: 0.15)
                 : (_hovered ? context.colors.backgroundTertiary : null),
             border: Border.all(
               color: selected ? context.colors.primary : context.colors.border,

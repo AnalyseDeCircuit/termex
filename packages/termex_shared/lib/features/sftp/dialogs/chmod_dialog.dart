@@ -306,7 +306,7 @@ class _PermGroup extends StatelessWidget {
                   )),
               selected: bits[offset + i],
               onSelected: (_) => onToggle(offset + i),
-              selectedColor: context.colors.primary.withOpacity(0.3),
+              selectedColor: context.colors.primary.withValues(alpha: 0.3),
               backgroundColor: context.colors.backgroundTertiary,
               side: BorderSide(
                 color: bits[offset + i]

@@ -5,7 +5,6 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 import '../../../design/tokens.dart';
 import '../../../widgets/clickable.dart';
 import '../state/ai_stream_provider.dart';
-import '../state/conversation_provider.dart' show AiProvider;
 import '../state/provider_config_provider.dart';
 
 /// Multi-line text input for AI messages.
@@ -56,7 +55,9 @@ class _AiInputState extends ConsumerState<AiInput> {
   @override
   Widget build(BuildContext context) {
     final streamState = ref.watch(aiStreamProvider);
-    final config = ref.watch(providerConfigProvider).activeConfig;
+    // Watched for the rebuild, not the value — the input's enabled state
+    // follows whichever provider is active.
+    ref.watch(providerConfigProvider);
     final isGenerating = streamState.isGenerating;
 
     return Container(
@@ -190,10 +191,10 @@ class _CancelButton extends StatelessWidget {
         width: 36,
         height: 36,
         decoration: BoxDecoration(
-          color: context.colors.danger.withOpacity(0.1),
+          color: context.colors.danger.withValues(alpha: 0.1),
           borderRadius: BorderRadius.circular(8),
           border:
-              Border.all(color: context.colors.danger.withOpacity(0.4)),
+              Border.all(color: context.colors.danger.withValues(alpha: 0.4)),
         ),
         child: Icon(
           Icons.stop_rounded,
@@ -216,10 +217,10 @@ class _RateLimitBanner extends StatelessWidget {
       margin: const EdgeInsets.only(bottom: 8),
       padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 6),
       decoration: BoxDecoration(
-        color: context.colors.warning.withOpacity(0.1),
+        color: context.colors.warning.withValues(alpha: 0.1),
         borderRadius: BorderRadius.circular(6),
         border:
-            Border.all(color: context.colors.warning.withOpacity(0.4)),
+            Border.all(color: context.colors.warning.withValues(alpha: 0.4)),
       ),
       child: Row(
         children: [

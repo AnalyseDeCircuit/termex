@@ -284,7 +284,7 @@ class _CommandPaletteState extends ConsumerState<CommandPalette> {
                                         const EdgeInsets.symmetric(
                                             horizontal: 12, vertical: 8),
                                     color: isSel
-                                        ? context.colors.primary.withOpacity(0.12)
+                                        ? context.colors.primary.withValues(alpha: 0.12)
                                         : null,
                                     child: Row(
                                       children: [

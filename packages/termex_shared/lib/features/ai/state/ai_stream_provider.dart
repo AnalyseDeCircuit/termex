@@ -63,7 +63,10 @@ class AiStreamNotifier extends Notifier<AiStreamState> {
   int _accumulatedLength = 0;
 
   @override
-  AiStreamState build() => const AiStreamState();
+  AiStreamState build() {
+    ref.onDispose(_cleanup);
+    return const AiStreamState();
+  }
 
   /// Redact lines that look like password prompts before sending to AI.
   @visibleForTesting
@@ -438,6 +441,9 @@ class AiStreamNotifier extends Notifier<AiStreamState> {
     await send(userContent: lastUser.content, terminalContext: terminalContext);
   }
 
+  /// Cancels the in-flight stream. Registered on disposal in [build] —
+  /// it existed but nothing called it, so a provider torn down mid-stream
+  /// left its subscription running.
   void _cleanup() {
     _sub?.cancel();
   }

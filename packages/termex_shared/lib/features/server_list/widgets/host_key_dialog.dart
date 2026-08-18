@@ -152,14 +152,14 @@ class _Banner extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     final color = isWarning ? context.colors.danger : context.colors.primary;
-    final bgColor = color.withOpacity(0.1);
+    final bgColor = color.withValues(alpha: 0.1);
 
     return Container(
       padding: const EdgeInsets.all(TermexSpacing.md),
       decoration: BoxDecoration(
         color: bgColor,
         borderRadius: TermexRadius.md,
-        border: Border.all(color: color.withOpacity(0.4)),
+        border: Border.all(color: color.withValues(alpha: 0.4)),
       ),
       child: Row(
         crossAxisAlignment: CrossAxisAlignment.start,
@@ -236,7 +236,7 @@ class _FingerprintRow extends StatelessWidget {
             color: context.colors.backgroundTertiary,
             borderRadius: TermexRadius.sm,
             border: highlight != null
-                ? Border.all(color: highlight!.withOpacity(0.5))
+                ? Border.all(color: highlight!.withValues(alpha: 0.5))
                 : Border.all(color: context.colors.border),
           ),
           child: Text(
@@ -258,9 +258,9 @@ class _WarningNote extends StatelessWidget {
     return Container(
       padding: const EdgeInsets.all(TermexSpacing.sm),
       decoration: BoxDecoration(
-        color: context.colors.danger.withOpacity(0.08),
+        color: context.colors.danger.withValues(alpha: 0.08),
         borderRadius: TermexRadius.sm,
-        border: Border.all(color: context.colors.danger.withOpacity(0.3)),
+        border: Border.all(color: context.colors.danger.withValues(alpha: 0.3)),
       ),
       child: Text(
         'Only accept the new key if you are certain the server was legitimately re-keyed.',

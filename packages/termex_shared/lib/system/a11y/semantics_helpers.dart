@@ -78,15 +78,14 @@ bool meetsWcagAA(Color foreground, Color background, {bool largeText = false}) {
 }
 
 double _relativeLuminance(Color c) {
-  double linearize(int channel) {
-    final s = channel / 255.0;
-    return s <= 0.04045
-        ? s / 12.92
-        : math.pow((s + 0.055) / 1.055, 2.4).toDouble();
+  double linearize(double channel) {
+    return channel <= 0.04045
+        ? channel / 12.92
+        : math.pow((channel + 0.055) / 1.055, 2.4).toDouble();
   }
 
-  final r = linearize(c.red);
-  final g = linearize(c.green);
-  final b = linearize(c.blue);
+  final r = linearize(c.r);
+  final g = linearize(c.g);
+  final b = linearize(c.b);
   return 0.2126 * r + 0.7152 * g + 0.0722 * b;
 }

@@ -6,7 +6,6 @@ import '../sidebar_search.dart';
 import '../../design/tokens.dart';
 import '../../l10n/app_localizations.dart';
 import '../../icons/termex_icons.dart';
-import '../../widgets/clickable.dart';
 import '../../widgets/menu.dart';
 import '../../widgets/panel_context_menu.dart';
 import 'snippet_editor.dart';

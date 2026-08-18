@@ -14,17 +14,12 @@ export 'suggestion_source.dart';
 class AutocompleteEngine {
   final List<SuggestionSource> _sources;
 
-  /// Optional AI-backed source — registered separately so callers can feed it
-  /// asynchronously after an AI response arrives.
-  AiBackedSuggestionSource? _aiSource;
-
   AutocompleteEngine({List<SuggestionSource>? sources})
       : _sources = sources ?? [BuiltinCommandSource()];
 
   /// Attach an [AiBackedSuggestionSource] so the engine can use it for
   /// suggestions when other sources come up empty.
   void registerAiSource(AiBackedSuggestionSource source) {
-    _aiSource = source;
     if (!_sources.contains(source)) _sources.add(source);
   }
 

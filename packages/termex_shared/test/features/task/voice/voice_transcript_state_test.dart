@@ -4,7 +4,7 @@ import 'package:termex_shared/features/task/voice/voice_transcript_state.dart';
 void main() {
   group('VoiceTranscriptReducer', () {
     test('start clears partial + error, sets listening', () {
-      final s0 = const VoiceTranscriptState(
+      const s0 = VoiceTranscriptState(
         committed: 'hi',
         partial: 'th',
         error: 'old',

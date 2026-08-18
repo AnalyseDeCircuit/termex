@@ -53,7 +53,12 @@ class _TerminalViewState extends ConsumerState<TerminalView> {
 
   /// AI-backed suggestion source — fed asynchronously after AI responses.
   final _aiSource = AiBackedSuggestionSource();
+  // Constructed, never queried — the autocomplete feature is wired up only
+  // this far.
+  // ignore: unused_field
   late final AutocompleteEngine _engine;
+  // Fed nothing; the command-tracking feature stops at construction.
+  // ignore: unused_field
   late final CommandTracker _tracker;
 
   @override
@@ -208,7 +213,7 @@ class _ErrorDiagnoseBanner extends StatelessWidget {
       decoration: BoxDecoration(
         color: context.colors.backgroundSecondary,
         border: Border(
-            top: BorderSide(color: context.colors.warning.withOpacity(0.5))),
+            top: BorderSide(color: context.colors.warning.withValues(alpha: 0.5))),
       ),
       child: Row(
         children: [

@@ -322,7 +322,7 @@ class _AddProviderButtonState extends State<_AddProviderButton> {
           padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 5),
           decoration: BoxDecoration(
             color: _hovered
-                ? context.colors.primary.withOpacity(0.15)
+                ? context.colors.primary.withValues(alpha: 0.15)
                 : context.colors.backgroundTertiary,
             border: Border.all(
               color: _hovered
@@ -469,7 +469,7 @@ class _ProviderRowState extends State<_ProviderRow> {
               : context.colors.backgroundSecondary,
           border: Border.all(
             color: widget.isActive
-                ? context.colors.primary.withOpacity(0.5)
+                ? context.colors.primary.withValues(alpha: 0.5)
                 : context.colors.border,
           ),
           borderRadius: radius,
@@ -557,8 +557,8 @@ class _Badge extends StatelessWidget {
     return Container(
       padding: const EdgeInsets.symmetric(horizontal: 6, vertical: 1),
       decoration: BoxDecoration(
-        color: color.withOpacity(0.15),
-        border: Border.all(color: color.withOpacity(0.5)),
+        color: color.withValues(alpha: 0.15),
+        border: Border.all(color: color.withValues(alpha: 0.5)),
         borderRadius: BorderRadius.circular(3),
       ),
       child: Text(
@@ -670,7 +670,7 @@ class _PricingSnapshotFooter extends StatelessWidget {
         color: context.colors.backgroundSecondary,
         border: Border.all(
           color: stale
-              ? context.colors.warning.withOpacity(0.5)
+              ? context.colors.warning.withValues(alpha: 0.5)
               : context.colors.border,
         ),
         borderRadius: BorderRadius.circular(6),
@@ -715,8 +715,8 @@ class _PricingSnapshotFooter extends StatelessWidget {
             Container(
               padding: const EdgeInsets.symmetric(horizontal: 6, vertical: 1),
               decoration: BoxDecoration(
-                color: context.colors.warning.withOpacity(0.15),
-                border: Border.all(color: context.colors.warning.withOpacity(0.5)),
+                color: context.colors.warning.withValues(alpha: 0.15),
+                border: Border.all(color: context.colors.warning.withValues(alpha: 0.5)),
                 borderRadius: BorderRadius.circular(3),
               ),
               child: Text(

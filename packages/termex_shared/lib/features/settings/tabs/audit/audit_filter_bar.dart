@@ -265,7 +265,7 @@ class _Chip extends StatelessWidget {
         padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 3),
         decoration: BoxDecoration(
           color: isSelected
-              ? context.colors.primary.withOpacity(0.15)
+              ? context.colors.primary.withValues(alpha: 0.15)
               : context.colors.backgroundTertiary,
           borderRadius: BorderRadius.circular(4),
           border: Border.all(

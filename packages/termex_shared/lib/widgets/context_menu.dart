@@ -315,7 +315,7 @@ class _ContextRowState extends State<_ContextRow> {
           padding: const EdgeInsets.symmetric(horizontal: TermexSpacing.md),
           color: _hovered
               ? (widget.item.danger
-                  ? context.colors.danger.withOpacity(0.1)
+                  ? context.colors.danger.withValues(alpha: 0.1)
                   : context.colors.backgroundTertiary)
               : const Color(0x00000000),
           child: Row(

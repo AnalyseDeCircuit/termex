@@ -147,7 +147,7 @@ class _StopButton extends StatelessWidget {
       child: Container(
         padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 3),
         decoration: BoxDecoration(
-          border: Border.all(color: context.colors.danger.withOpacity(0.4)),
+          border: Border.all(color: context.colors.danger.withValues(alpha: 0.4)),
           borderRadius: BorderRadius.circular(4),
         ),
         child: Text(

@@ -15,7 +15,7 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:path_provider/path_provider.dart';
 import 'package:termex_bridge/termex_bridge.dart' as bridge;
 
-import 'src/frb_generated/frb_generated.dart';
+import 'package:termex_bridge/api.dart';
 
 import 'package:termex_shared/design/tokens.dart';
 import 'desktop/desktop_shell.dart';

@@ -194,7 +194,7 @@ class _QuickConnectBarState extends ConsumerState<QuickConnectBar> {
                       ),
                       cursorColor: context.colors.primary,
                       backgroundCursorColor: context.colors.backgroundTertiary,
-                      selectionColor: context.colors.primary.withOpacity(0.3),
+                      selectionColor: context.colors.primary.withValues(alpha: 0.3),
                       onChanged: _handleChanged,
                       onSubmitted: (_) => _connect(),
                     ),

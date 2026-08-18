@@ -204,7 +204,7 @@ class _SnippetRow extends StatelessWidget {
           ),
           decoration: BoxDecoration(
             color: highlighted
-                ? context.colors.primary.withOpacity(0.10)
+                ? context.colors.primary.withValues(alpha: 0.10)
                 : null,
             borderRadius: BorderRadius.circular(4),
           ),

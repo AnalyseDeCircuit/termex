@@ -19,7 +19,7 @@ class _PreviewEntry {
   final int port;
   final String username;
   final String? identityFile;
-  bool selected;
+  bool selected = true;
 
   _PreviewEntry({
     required this.hostAlias,
@@ -27,7 +27,6 @@ class _PreviewEntry {
     required this.port,
     required this.username,
     this.identityFile,
-    this.selected = true,
   });
 }
 

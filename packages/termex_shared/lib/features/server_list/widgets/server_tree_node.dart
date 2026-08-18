@@ -95,10 +95,10 @@ class _ServerTreeNodeState extends State<ServerTreeNode> {
 
   Color _bgColor() {
     if (widget.isSelected) {
-      return context.colors.primary.withOpacity(0.18);
+      return context.colors.primary.withValues(alpha: 0.18);
     }
     if (_hovered) {
-      return context.colors.backgroundTertiary.withOpacity(0.7);
+      return context.colors.backgroundTertiary.withValues(alpha: 0.7);
     }
     return const Color(0x00000000);
   }
@@ -290,9 +290,9 @@ class _CapsuleBadge extends StatelessWidget {
         height: 14,
         alignment: Alignment.center,
         decoration: BoxDecoration(
-          color: color.withOpacity(0.18),
+          color: color.withValues(alpha: 0.18),
           borderRadius: BorderRadius.circular(3),
-          border: Border.all(color: color.withOpacity(0.55), width: 0.5),
+          border: Border.all(color: color.withValues(alpha: 0.55), width: 0.5),
         ),
         child: Text(
           label,
@@ -322,7 +322,7 @@ class _StatusDot extends StatelessWidget {
         borderRadius: TermexRadius.full,
         boxShadow: [
           BoxShadow(
-            color: color.withOpacity(0.45),
+            color: color.withValues(alpha: 0.45),
             blurRadius: 4,
             spreadRadius: 1,
           ),

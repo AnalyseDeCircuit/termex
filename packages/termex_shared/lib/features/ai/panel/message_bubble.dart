@@ -83,7 +83,7 @@ class _Bubble extends StatelessWidget {
       constraints: const BoxConstraints(maxWidth: 520),
       decoration: BoxDecoration(
         color: isUser
-            ? context.colors.primary.withOpacity(0.12)
+            ? context.colors.primary.withValues(alpha: 0.12)
             : context.colors.backgroundSecondary,
         borderRadius: BorderRadius.only(
           topLeft: const Radius.circular(12),
@@ -93,7 +93,7 @@ class _Bubble extends StatelessWidget {
         ),
         border: Border.all(
           color: isUser
-              ? context.colors.primary.withOpacity(0.3)
+              ? context.colors.primary.withValues(alpha: 0.3)
               : context.colors.border,
         ),
       ),
@@ -193,7 +193,7 @@ class _Avatar extends StatelessWidget {
       decoration: BoxDecoration(
         shape: BoxShape.circle,
         color: isUser
-            ? context.colors.primary.withOpacity(0.2)
+            ? context.colors.primary.withValues(alpha: 0.2)
             : context.colors.backgroundTertiary,
         border: Border.all(color: context.colors.border),
       ),

@@ -296,11 +296,11 @@ class _ToggleButton extends StatelessWidget {
           margin: const EdgeInsets.symmetric(horizontal: 1),
           decoration: BoxDecoration(
             color: active
-                ? context.colors.primary.withOpacity(0.25)
+                ? context.colors.primary.withValues(alpha: 0.25)
                 : Colors.transparent,
             borderRadius: BorderRadius.circular(4),
             border: active
-                ? Border.all(color: context.colors.primary.withOpacity(0.6))
+                ? Border.all(color: context.colors.primary.withValues(alpha: 0.6))
                 : null,
           ),
           child: DefaultTextStyle(

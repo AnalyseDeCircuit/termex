@@ -198,11 +198,11 @@ class _SnippetEditorState extends ConsumerState<SnippetEditor> {
                             padding: const EdgeInsets.symmetric(
                                 horizontal: 8, vertical: 3),
                             decoration: BoxDecoration(
-                              color: context.colors.primary.withOpacity(0.1),
+                              color: context.colors.primary.withValues(alpha: 0.1),
                               borderRadius: BorderRadius.circular(4),
                               border: Border.all(
                                   color:
-                                      context.colors.primary.withOpacity(0.3)),
+                                      context.colors.primary.withValues(alpha: 0.3)),
                             ),
                             child: Text(
                               '{{${v.name}${v.defaultValue != null ? ":${v.defaultValue}" : ""}}}',

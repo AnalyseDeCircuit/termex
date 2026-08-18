@@ -8,7 +8,7 @@
 
 rust_input: crate::api
 rust_root: crates/termex-flutter-bridge
-dart_output: app/lib/src/frb_generated
+dart_output: crates/termex-flutter-bridge/lib/src/generated
 c_output: crates/termex-flutter-bridge/include/frb_api.h
 dart_entrypoint_class_name: TermexBridge
 

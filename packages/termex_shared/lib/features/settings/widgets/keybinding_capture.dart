@@ -108,7 +108,7 @@ class _KeybindingCaptureState extends State<KeybindingCapture> {
               const EdgeInsets.symmetric(horizontal: 8, vertical: 4),
           decoration: BoxDecoration(
             color: widget.isCapturing
-                ? context.colors.primary.withOpacity(0.1)
+                ? context.colors.primary.withValues(alpha: 0.1)
                 : context.colors.backgroundTertiary,
             borderRadius: BorderRadius.circular(5),
             border: Border.all(

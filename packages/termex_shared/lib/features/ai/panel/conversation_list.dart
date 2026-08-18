@@ -171,7 +171,7 @@ class _ConversationRow extends StatelessWidget {
         height: 40,
         padding: const EdgeInsets.symmetric(horizontal: 10),
         decoration: BoxDecoration(
-          color: isActive ? context.colors.primary.withOpacity(0.08) : null,
+          color: isActive ? context.colors.primary.withValues(alpha: 0.08) : null,
           border: Border(
             left: BorderSide(
               color: isActive ? context.colors.primary : Colors.transparent,

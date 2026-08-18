@@ -3,7 +3,7 @@
 # flutter_rust_bridge codegen runner
 #
 # Generates Dart bindings from crates/termex-flutter-bridge/src/api/*.rs
-# into app/lib/src/frb_generated/.
+# into crates/termex-flutter-bridge/lib/src/generated/.
 #
 # Requirements:
 #   - Rust toolchain (stable)
@@ -59,7 +59,7 @@ flutter_rust_bridge_codegen generate --no-deps-check --no-auto-upgrade-dependenc
 if [[ $CHECK_MODE -eq 1 ]]; then
   # All paths codegen touches. Keep in sync with the regen behaviour above.
   CHECK_PATHS=(
-    app/lib/src/frb_generated/
+    crates/termex-flutter-bridge/lib/src/generated/
     crates/termex-flutter-bridge/include/
     crates/termex-flutter-bridge/src/frb_generated.rs
   )

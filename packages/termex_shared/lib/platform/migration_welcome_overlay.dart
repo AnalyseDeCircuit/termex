@@ -57,7 +57,9 @@ class _MigrationWelcomeOverlayState
     // Navigator, so its own context has no Navigator ancestor. Use the global
     // navigator key which always points to the root navigator.
     final navCtx = rootNavigatorKey.currentContext;
-    if (navCtx == null) return;
+    // The root navigator's context, not this widget's — so it is that
+    // context's own liveness that has to hold across the awaits above.
+    if (navCtx == null || !navCtx.mounted) return;
 
     await showTermexDialog<void>(
       context: navCtx,

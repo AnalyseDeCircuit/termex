@@ -290,7 +290,7 @@ class _RuleRow extends ConsumerWidget {
         color: context.colors.backgroundSecondary,
         borderRadius: BorderRadius.circular(6),
         border: Border.all(
-          color: rule.isActive ? context.colors.success.withOpacity(0.5) : context.colors.border,
+          color: rule.isActive ? context.colors.success.withValues(alpha: 0.5) : context.colors.border,
         ),
       ),
       child: Row(
@@ -371,9 +371,9 @@ class _TypeBadge extends StatelessWidget {
     return Container(
       padding: const EdgeInsets.symmetric(horizontal: 6, vertical: 2),
       decoration: BoxDecoration(
-        color: color.withOpacity(0.15),
+        color: color.withValues(alpha: 0.15),
         borderRadius: BorderRadius.circular(3),
-        border: Border.all(color: color.withOpacity(0.4)),
+        border: Border.all(color: color.withValues(alpha: 0.4)),
       ),
       child: Text(
         type.label.split(' ').first, // "Local" / "Remote" / "Dynamic"
@@ -626,7 +626,7 @@ class _ErrorBanner extends StatelessWidget {
   @override
   Widget build(BuildContext context) => Container(
         padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 8),
-        color: context.colors.danger.withOpacity(0.15),
+        color: context.colors.danger.withValues(alpha: 0.15),
         child: Row(children: [
           Icon(Icons.error_outline, size: 14, color: context.colors.danger),
           const SizedBox(width: 8),

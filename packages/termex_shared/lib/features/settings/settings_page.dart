@@ -291,7 +291,7 @@ class _SidebarItem extends StatelessWidget {
         height: 36,
         padding: EdgeInsets.symmetric(horizontal: horizontalPad),
         decoration: BoxDecoration(
-          color: isActive ? context.colors.primary.withOpacity(0.1) : null,
+          color: isActive ? context.colors.primary.withValues(alpha: 0.1) : null,
           border: Border(
             left: BorderSide(
               color: isActive ? context.colors.primary : Colors.transparent,
@@ -370,7 +370,7 @@ class _ExtraSidebarItem extends StatelessWidget {
         height: 36,
         padding: EdgeInsets.symmetric(horizontal: horizontalPad),
         decoration: BoxDecoration(
-          color: isActive ? context.colors.primary.withOpacity(0.1) : null,
+          color: isActive ? context.colors.primary.withValues(alpha: 0.1) : null,
           border: Border(
             left: BorderSide(
               color: isActive ? context.colors.primary : Colors.transparent,

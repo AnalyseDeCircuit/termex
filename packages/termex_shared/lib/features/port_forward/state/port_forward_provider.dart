@@ -96,12 +96,6 @@ class PortForwardNotifier extends Notifier<PortForwardState> {
         isActive: b.isActive,
       );
 
-  String _dirStr(ForwardType t) => switch (t) {
-        ForwardType.local => 'local',
-        ForwardType.remote => 'remote',
-        ForwardType.dynamic => 'dynamic',
-      };
-
   Future<void> loadRules(String sessionId) async {
     state = state.copyWith(isLoading: true, clearError: true);
     try {

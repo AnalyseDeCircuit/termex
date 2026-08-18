@@ -55,7 +55,7 @@ class LocalAiPanel extends ConsumerWidget {
             Container(
               padding:
                   const EdgeInsets.symmetric(horizontal: 12, vertical: 6),
-              color: context.colors.danger.withOpacity(0.08),
+              color: context.colors.danger.withValues(alpha: 0.08),
               child: Row(
                 children: [
                   Icon(Icons.error_outline,

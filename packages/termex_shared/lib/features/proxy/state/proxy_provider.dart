@@ -101,12 +101,6 @@ class ProxyNotifier extends Notifier<ProxyState> {
         isDefault: b.isDefault,
       );
 
-  String _typeStr(ProxyType t) => switch (t) {
-        ProxyType.socks5 => 'socks5',
-        ProxyType.http => 'http',
-        ProxyType.tor => 'tor',
-      };
-
   Future<void> loadProxies() async {
     state = state.copyWith(isLoading: true, clearError: true);
     try {

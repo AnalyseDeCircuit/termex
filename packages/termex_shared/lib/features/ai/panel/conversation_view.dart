@@ -75,7 +75,7 @@ class _WelcomeScreen extends StatelessWidget {
           Icon(
             Icons.smart_toy_outlined,
             size: 48,
-            color: context.colors.textSecondary.withOpacity(0.4),
+            color: context.colors.textSecondary.withValues(alpha: 0.4),
           ),
           const SizedBox(height: 12),
           Text(
@@ -108,7 +108,7 @@ class _EmptyConversation extends StatelessWidget {
           Icon(
             Icons.chat_bubble_outline_rounded,
             size: 36,
-            color: context.colors.textSecondary.withOpacity(0.3),
+            color: context.colors.textSecondary.withValues(alpha: 0.3),
           ),
           const SizedBox(height: 8),
           Text(

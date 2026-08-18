@@ -52,7 +52,7 @@ class _TabItemState extends State<TabItem> {
           ? context.colors.warning.withValues(alpha: 0.12)
           : context.colors.backgroundTertiary;
     }
-    if (_hovered) return context.colors.backgroundSecondary.withOpacity(0.8);
+    if (_hovered) return context.colors.backgroundSecondary.withValues(alpha: 0.8);
     return const Color(0x00000000);
   }
 
@@ -226,10 +226,10 @@ class _BroadcastBadge extends StatelessWidget {
       child: Container(
         padding: const EdgeInsets.symmetric(horizontal: 4, vertical: 1),
         decoration: BoxDecoration(
-          color: context.colors.warning.withOpacity(0.18),
+          color: context.colors.warning.withValues(alpha: 0.18),
           borderRadius: TermexRadius.sm,
           border: Border.all(
-            color: context.colors.warning.withOpacity(0.6),
+            color: context.colors.warning.withValues(alpha: 0.6),
             width: 0.5,
           ),
         ),
@@ -294,7 +294,7 @@ class _CloseButtonState extends State<_CloseButton> {
             height: 16,
             decoration: BoxDecoration(
               color: _hovered
-                  ? context.colors.textMuted.withOpacity(0.3)
+                  ? context.colors.textMuted.withValues(alpha: 0.3)
                   : const Color(0x00000000),
               borderRadius: TermexRadius.full,
             ),
@@ -451,7 +451,7 @@ class _ContextItemState extends State<_ContextItem> {
           padding: const EdgeInsets.symmetric(horizontal: TermexSpacing.md),
           color: _hovered
               ? (widget.danger
-                  ? context.colors.danger.withOpacity(0.1)
+                  ? context.colors.danger.withValues(alpha: 0.1)
                   : context.colors.backgroundTertiary)
               : const Color(0x00000000),
           child: Row(

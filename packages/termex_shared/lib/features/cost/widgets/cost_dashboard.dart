@@ -39,24 +39,24 @@ class CostDashboard extends StatelessWidget {
       children: [
         _Header(summary: summary, caps: caps),
         const SizedBox(height: TermexSpacing.lg),
-        _SectionTitle('By server'),
+        const _SectionTitle('By server'),
         const SizedBox(height: TermexSpacing.sm),
         if (summary.byServer.isEmpty)
-          _EmptyHint(label: 'No spend in this period.')
+          const _EmptyHint(label: 'No spend in this period.')
         else
           ...summary.byServer.map((s) => _ServerRow(row: s, total: summary.totalUsd)),
         const SizedBox(height: TermexSpacing.lg),
-        _SectionTitle('Top tasks'),
+        const _SectionTitle('Top tasks'),
         const SizedBox(height: TermexSpacing.sm),
         if (summary.topTasks.isEmpty)
-          _EmptyHint(label: 'No tasks recorded.')
+          const _EmptyHint(label: 'No tasks recorded.')
         else
           ...summary.topTasks.map((t) => _TaskRow(row: t, onTap: onTaskTap)),
         const SizedBox(height: TermexSpacing.lg),
-        _SectionTitle('By kind'),
+        const _SectionTitle('By kind'),
         const SizedBox(height: TermexSpacing.sm),
         if (summary.byKind.isEmpty)
-          _EmptyHint(label: 'No breakdown yet.')
+          const _EmptyHint(label: 'No breakdown yet.')
         else
           _KindBreakdown(byKind: summary.byKind, total: summary.totalUsd),
       ],

@@ -18,9 +18,9 @@ class ConflictWarning extends StatelessWidget {
     return Container(
       padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 8),
       decoration: BoxDecoration(
-        color: context.colors.warning.withOpacity(0.1),
+        color: context.colors.warning.withValues(alpha: 0.1),
         borderRadius: BorderRadius.circular(6),
-        border: Border.all(color: context.colors.warning.withOpacity(0.4)),
+        border: Border.all(color: context.colors.warning.withValues(alpha: 0.4)),
       ),
       child: Row(
         children: [

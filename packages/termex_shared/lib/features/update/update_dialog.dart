@@ -87,7 +87,7 @@ class _UpdateDialogBodyState extends ConsumerState<_UpdateDialogBody> {
       );
       final available = await bridge.isUpdateAvailable(
         current: kAppVersion,
-        remote: manifest.version,
+        remote: manifest.availableVersion ?? kAppVersion,
       );
       await bridge.updateMarkChecked(
         nowRfc3339: DateTime.now().toUtc().toIso8601String(),
@@ -125,8 +125,17 @@ class _UpdateDialogBodyState extends ConsumerState<_UpdateDialogBody> {
     }
   }
 
+  /// Download size from the appcast enclosure, shown beside the version.
+  static String _formatSize(int bytes) {
+    if (bytes < 1024 * 1024) return '${(bytes / 1024).toStringAsFixed(0)} KB';
+    return '${(bytes / (1024 * 1024)).toStringAsFixed(1)} MB';
+  }
+
   Future<void> _openReleasePage() async {
-    final url = _manifest?.releaseUrl;
+    // The appcast points at the changelog; the download URL is what the
+    // in-app updater consumes, so it is not what "view the release page"
+    // should open.
+    final url = _manifest?.changelogUrl;
     if (url == null || url.isEmpty) return;
     final uri = Uri.tryParse(url);
     if (uri == null) return;
@@ -198,16 +207,17 @@ class _UpdateDialogBodyState extends ConsumerState<_UpdateDialogBody> {
               ),
               const SizedBox(width: TermexSpacing.sm),
               Text(
-                l10n.updateNewVersionTitle(m.version),
+                l10n.updateNewVersionTitle(
+                    m.availableVersion ?? m.currentVersion),
                 style: TermexTypography.body.copyWith(
                   color: context.colors.textPrimary,
                   fontWeight: FontWeight.w600,
                 ),
               ),
               const Spacer(),
-              if (m.pubDate.isNotEmpty)
+              if (m.sizeBytes != null)
                 Text(
-                  m.pubDate,
+                  _formatSize(m.sizeBytes!),
                   style: TermexTypography.caption.copyWith(
                     color: context.colors.textMuted,
                   ),
@@ -218,9 +228,7 @@ class _UpdateDialogBodyState extends ConsumerState<_UpdateDialogBody> {
           Expanded(
             child: SingleChildScrollView(
               child: Text(
-                m.releaseNotes.isNotEmpty
-                    ? m.releaseNotes
-                    : l10n.updateNoReleaseNotes,
+                m.changelogUrl ?? l10n.updateNoReleaseNotes,
                 style: TermexTypography.caption.copyWith(
                   color: context.colors.textSecondary,
                 ),

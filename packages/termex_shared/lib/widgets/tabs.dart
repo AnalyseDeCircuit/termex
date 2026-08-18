@@ -190,7 +190,7 @@ class _PillTabItemState extends State<_PillTabItem> {
     if (widget.isActive) {
       bg = context.colors.backgroundTertiary;
     } else if (_hovered) {
-      bg = context.colors.backgroundTertiary.withOpacity(0.5);
+      bg = context.colors.backgroundTertiary.withValues(alpha: 0.5);
     }
 
     final textColor = widget.isActive
@@ -279,7 +279,7 @@ class _SegmentedTabItemState extends State<_SegmentedTabItem> {
     if (widget.isActive) {
       bg = context.colors.backgroundSecondary;
     } else if (_hovered) {
-      bg = context.colors.backgroundTertiary.withOpacity(0.4);
+      bg = context.colors.backgroundTertiary.withValues(alpha: 0.4);
     }
 
     final textColor = widget.isActive

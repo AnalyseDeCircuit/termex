@@ -182,7 +182,7 @@ class _StepRow extends StatelessWidget {
               height: 28,
               decoration: BoxDecoration(
                 color: canRun
-                    ? context.colors.primary.withOpacity(0.1)
+                    ? context.colors.primary.withValues(alpha: 0.1)
                     : context.colors.backgroundTertiary,
                 borderRadius: TermexRadius.sm,
               ),
@@ -237,7 +237,7 @@ class _RiskBadge extends StatelessWidget {
     return Container(
       padding: const EdgeInsets.symmetric(horizontal: 6, vertical: 1),
       decoration: BoxDecoration(
-        color: color.withOpacity(0.12),
+        color: color.withValues(alpha: 0.12),
         borderRadius: BorderRadius.circular(3),
       ),
       child: Text(

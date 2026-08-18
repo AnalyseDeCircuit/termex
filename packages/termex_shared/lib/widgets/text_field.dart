@@ -216,7 +216,7 @@ class _TermexTextFieldState extends State<TermexTextField> {
                             backgroundCursorColor:
                                 context.colors.backgroundTertiary,
                             selectionColor:
-                                context.colors.primary.withOpacity(0.3),
+                                context.colors.primary.withValues(alpha: 0.3),
                             onChanged: _handleChanged,
                             onSubmitted: _handleSubmitted,
                             strutStyle:

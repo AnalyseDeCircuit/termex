@@ -40,8 +40,8 @@ class _CommandChipState extends State<CommandChip> {
       CommandRisk.safe => context.colors.border,
     };
     final bgColor = switch (risk) {
-      CommandRisk.dangerous => context.colors.danger.withOpacity(0.06),
-      CommandRisk.caution => context.colors.warning.withOpacity(0.06),
+      CommandRisk.dangerous => context.colors.danger.withValues(alpha: 0.06),
+      CommandRisk.caution => context.colors.warning.withValues(alpha: 0.06),
       CommandRisk.safe => context.colors.backgroundTertiary,
     };
 

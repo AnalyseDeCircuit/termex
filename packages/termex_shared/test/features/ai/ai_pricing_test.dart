@@ -193,13 +193,13 @@ void main() {
 
     test('snapshot just under threshold is not stale', () {
       final updated = DateTime.parse(kPricingLastUpdatedIso);
-      final justUnder = updated.add(Duration(days: kPricingStaleAfterDays));
+      final justUnder = updated.add(const Duration(days: kPricingStaleAfterDays));
       expect(isPricingStale(now: justUnder), isFalse);
     });
 
     test('snapshot past threshold is stale', () {
       final updated = DateTime.parse(kPricingLastUpdatedIso);
-      final past = updated.add(Duration(days: kPricingStaleAfterDays + 1));
+      final past = updated.add(const Duration(days: kPricingStaleAfterDays + 1));
       expect(isPricingStale(now: past), isTrue);
     });
 

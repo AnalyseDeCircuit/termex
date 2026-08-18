@@ -100,16 +100,16 @@ class _ErrorCard extends StatelessWidget {
   Widget build(BuildContext context) {
     final color = switch (error.severity) {
       ErrorSeverity.critical => context.colors.danger,
-      ErrorSeverity.error => context.colors.danger.withOpacity(0.8),
+      ErrorSeverity.error => context.colors.danger.withValues(alpha: 0.8),
       ErrorSeverity.warning => context.colors.warning,
     };
 
     return Container(
       padding: const EdgeInsets.all(10),
       decoration: BoxDecoration(
-        color: color.withOpacity(0.06),
+        color: color.withValues(alpha: 0.06),
         borderRadius: BorderRadius.circular(8),
-        border: Border.all(color: color.withOpacity(0.3)),
+        border: Border.all(color: color.withValues(alpha: 0.3)),
       ),
       child: Row(
         crossAxisAlignment: CrossAxisAlignment.start,
@@ -140,7 +140,7 @@ class _ErrorCard extends StatelessWidget {
               padding:
                   const EdgeInsets.symmetric(horizontal: 8, vertical: 4),
               decoration: BoxDecoration(
-                color: context.colors.primary.withOpacity(0.1),
+                color: context.colors.primary.withValues(alpha: 0.1),
                 borderRadius: BorderRadius.circular(4),
               ),
               child: Text(

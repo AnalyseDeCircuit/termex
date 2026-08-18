@@ -227,7 +227,7 @@ class _TagChip extends StatelessWidget {
         margin: const EdgeInsets.only(right: 4),
         padding: const EdgeInsets.symmetric(horizontal: 6, vertical: 1),
         decoration: BoxDecoration(
-          color: context.colors.primary.withOpacity(0.08),
+          color: context.colors.primary.withValues(alpha: 0.08),
           borderRadius: BorderRadius.circular(4),
         ),
         child: Text(tag, style: TextStyle(fontSize: 10, color: context.colors.primary)),

@@ -82,11 +82,12 @@ class _RecordingPlayerState extends State<RecordingPlayer> {
       if (cast.events.isEmpty) return;
       _play();
     } catch (e) {
-      if (mounted)
+      if (mounted) {
         setState(() {
           _error = e.toString();
           _loading = false;
         });
+      }
     }
   }
 

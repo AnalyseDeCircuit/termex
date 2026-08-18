@@ -81,17 +81,6 @@ class _TermexTooltipState extends State<TermexTooltip>
     });
   }
 
-  Offset _calcOffset(Size tooltipSize) {
-    const gap = 6.0;
-    return switch (widget.position) {
-      TooltipPosition.top =>
-        Offset(-(tooltipSize.width / 2), -(tooltipSize.height + gap)),
-      TooltipPosition.bottom => Offset(-(tooltipSize.width / 2), gap),
-      TooltipPosition.left =>
-        Offset(-(tooltipSize.width + gap), -(tooltipSize.height / 2)),
-      TooltipPosition.right => Offset(gap, -(tooltipSize.height / 2)),
-    };
-  }
 
   OverlayEntry _buildEntry() {
     return OverlayEntry(

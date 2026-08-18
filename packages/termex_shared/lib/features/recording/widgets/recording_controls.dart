@@ -6,7 +6,6 @@
 library;
 
 import 'dart:async';
-import 'dart:ui' show FontFeature;
 
 import 'package:flutter/widgets.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
@@ -162,7 +161,7 @@ class _RecordingControlsState extends ConsumerState<RecordingControls> {
               fontSize: 10,
               color: context.colors.textMuted,
               // Keeps the badge from jittering as the digits change.
-              fontFeatures: [FontFeature.tabularFigures()],
+              fontFeatures: const [FontFeature.tabularFigures()],
             ),
           ),
         ],

@@ -394,7 +394,7 @@ class _SearchField extends StatelessWidget {
             TermexTypography.body.copyWith(color: context.colors.textPrimary),
         cursorColor: context.colors.primary,
         backgroundCursorColor: context.colors.backgroundTertiary,
-        selectionColor: context.colors.primary.withOpacity(0.3),
+        selectionColor: context.colors.primary.withValues(alpha: 0.3),
         onChanged: onChanged,
       ),
     );
@@ -426,7 +426,7 @@ class _OptionTileState<T> extends State<_OptionTile<T>> {
       bg = context.colors.backgroundTertiary;
     }
     if (widget.isSelected) {
-      bg = context.colors.primary.withOpacity(0.15);
+      bg = context.colors.primary.withValues(alpha: 0.15);
     }
 
     return MouseRegion(

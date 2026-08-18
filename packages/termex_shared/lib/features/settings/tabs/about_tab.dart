@@ -425,7 +425,7 @@ class _PoolStatRow extends StatelessWidget {
           Container(
             padding: const EdgeInsets.symmetric(horizontal: 4, vertical: 1),
             decoration: BoxDecoration(
-              color: context.colors.primary.withOpacity(0.15),
+              color: context.colors.primary.withValues(alpha: 0.15),
               borderRadius: BorderRadius.circular(2),
             ),
             child: Text(stat.proxyType,

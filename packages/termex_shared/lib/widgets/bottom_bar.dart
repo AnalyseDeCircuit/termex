@@ -41,12 +41,10 @@ class _TermexBottomBarState extends State<TermexBottomBar>
     with SingleTickerProviderStateMixin {
   late AnimationController _indicatorCtrl;
   late Animation<double> _indicatorAnim;
-  int _prevIndex = 0;
 
   @override
   void initState() {
     super.initState();
-    _prevIndex = widget.selectedIndex;
     _indicatorCtrl = AnimationController(
       vsync: this,
       duration: const Duration(milliseconds: 200),
@@ -62,7 +60,6 @@ class _TermexBottomBarState extends State<TermexBottomBar>
   void didUpdateWidget(TermexBottomBar old) {
     super.didUpdateWidget(old);
     if (old.selectedIndex != widget.selectedIndex) {
-      _prevIndex = old.selectedIndex;
       _indicatorCtrl
         ..reset()
         ..forward();

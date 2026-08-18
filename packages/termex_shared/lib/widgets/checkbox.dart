@@ -100,7 +100,7 @@ class _TermexCheckboxState extends State<TermexCheckbox>
           boxShadow: _focused
               ? [
                   BoxShadow(
-                    color: context.colors.primary.withOpacity(0.3),
+                    color: context.colors.primary.withValues(alpha: 0.3),
                     blurRadius: 0,
                     spreadRadius: 2,
                   )

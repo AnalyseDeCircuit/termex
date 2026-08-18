@@ -33,13 +33,13 @@ class ReconnectBanner extends ConsumerWidget {
 
     final (icon, color, text) = _composeMessage(c, context.colors);
     return Material(
-      color: color.withOpacity(0.12),
+      color: color.withValues(alpha: 0.12),
       child: Container(
         height: 28,
         padding: const EdgeInsets.symmetric(horizontal: 12),
         decoration: BoxDecoration(
           border: Border(
-            bottom: BorderSide(color: color.withOpacity(0.5)),
+            bottom: BorderSide(color: color.withValues(alpha: 0.5)),
           ),
         ),
         child: Row(
@@ -139,7 +139,7 @@ class _CountdownState extends State<_Countdown> {
     return Container(
       padding: const EdgeInsets.symmetric(horizontal: 6, vertical: 1),
       decoration: BoxDecoration(
-        color: widget.color.withOpacity(0.18),
+        color: widget.color.withValues(alpha: 0.18),
         borderRadius: BorderRadius.circular(3),
       ),
       child: Text(

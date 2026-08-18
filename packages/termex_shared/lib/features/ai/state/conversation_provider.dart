@@ -252,7 +252,7 @@ class ConversationNotifier extends Notifier<ConversationState> {
             conversationId: convId,
             content: updated[idx].content,
           )
-          .catchError((_) {});
+          .then((_) {}, onError: (_) {});
     } catch (_) {}
   }
 

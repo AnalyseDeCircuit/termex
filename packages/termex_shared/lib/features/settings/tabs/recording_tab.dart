@@ -8,6 +8,7 @@ import '../../../design/typography.dart';
 import '../../../l10n/app_localizations.dart';
 import '../../../widgets/clickable.dart';
 import '../state/settings_provider.dart';
+import '../../../widgets/radio.dart';
 
 /// Terminal session recording configuration tab.
 class RecordingTab extends ConsumerStatefulWidget {
@@ -234,12 +235,10 @@ class _FormatCard extends StatelessWidget {
                 ],
               ),
             ),
-            Radio<bool>(
+            TermexRadio<bool>(
               value: true,
               groupValue: selected,
               onChanged: (_) => onTap(),
-              activeColor: context.colors.primary,
-              materialTapTargetSize: MaterialTapTargetSize.shrinkWrap,
             ),
           ],
         ),

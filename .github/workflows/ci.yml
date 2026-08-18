@@ -154,6 +154,13 @@ jobs:
     steps:
       - uses: actions/checkout@v4
 
+      # Codegen builds the bridge crate, which pulls keyring -> Secret
+      # Service -> libdbus-sys. Same headers the rust-test job needs.
+      - name: Install system dependencies
+        run: |
+          sudo apt-get update
+          sudo apt-get install -y libsqlcipher-dev pkg-config libdbus-1-dev
+
       - uses: subosito/flutter-action@v2
         with:
           flutter-version: '3.35.x'

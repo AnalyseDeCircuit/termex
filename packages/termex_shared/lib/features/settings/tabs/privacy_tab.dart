@@ -214,12 +214,12 @@ class _DangerSection extends StatelessWidget {
       padding: const EdgeInsets.all(16),
       decoration: BoxDecoration(
         color: danger
-            ? context.colors.danger.withOpacity(0.05)
+            ? context.colors.danger.withValues(alpha: 0.05)
             : context.colors.backgroundSecondary,
         borderRadius: BorderRadius.circular(8),
         border: Border.all(
           color: danger
-              ? context.colors.danger.withOpacity(0.4)
+              ? context.colors.danger.withValues(alpha: 0.4)
               : context.colors.border,
         ),
       ),

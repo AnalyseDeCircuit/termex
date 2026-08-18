@@ -69,11 +69,11 @@ TermexThemeData resolveThemeData(
 @immutable
 class TermexThemeData {
   final TermexColorScheme colors;
-  final _TermexTypographyRef typography;
-  final _TermexSpacingRef spacing;
-  final _TermexRadiusRef radius;
-  final _TermexElevationRef elevation;
-  final _AppAnimationsRef animations;
+  final TermexTypographyRef typography;
+  final TermexSpacingRef spacing;
+  final TermexRadiusRef radius;
+  final TermexElevationRef elevation;
+  final AppAnimationsRef animations;
 
   const TermexThemeData({
     required this.colors,
@@ -86,20 +86,20 @@ class TermexThemeData {
 
   factory TermexThemeData.dark() => TermexThemeData(
         colors: TermexColorScheme.dark(),
-        typography: const _TermexTypographyRef(),
-        spacing: const _TermexSpacingRef(),
-        radius: const _TermexRadiusRef(),
-        elevation: const _TermexElevationRef(),
-        animations: const _AppAnimationsRef(),
+        typography: const TermexTypographyRef(),
+        spacing: const TermexSpacingRef(),
+        radius: const TermexRadiusRef(),
+        elevation: const TermexElevationRef(),
+        animations: const AppAnimationsRef(),
       );
 
   factory TermexThemeData.light() => TermexThemeData(
         colors: TermexColorScheme.light(),
-        typography: const _TermexTypographyRef(),
-        spacing: const _TermexSpacingRef(),
-        radius: const _TermexRadiusRef(),
-        elevation: const _TermexElevationRef(),
-        animations: const _AppAnimationsRef(),
+        typography: const TermexTypographyRef(),
+        spacing: const TermexSpacingRef(),
+        radius: const TermexRadiusRef(),
+        elevation: const TermexElevationRef(),
+        animations: const AppAnimationsRef(),
       );
 
   @override
@@ -112,8 +112,8 @@ class TermexThemeData {
 }
 
 @immutable
-class _TermexTypographyRef {
-  const _TermexTypographyRef();
+class TermexTypographyRef {
+  const TermexTypographyRef();
 
   TextStyle get heading1 => TermexTypography.heading1;
   TextStyle get heading2 => TermexTypography.heading2;
@@ -126,8 +126,8 @@ class _TermexTypographyRef {
 }
 
 @immutable
-class _TermexSpacingRef {
-  const _TermexSpacingRef();
+class TermexSpacingRef {
+  const TermexSpacingRef();
 
   double get xs => TermexSpacing.xs;
   double get sm => TermexSpacing.sm;
@@ -139,8 +139,8 @@ class _TermexSpacingRef {
 }
 
 @immutable
-class _TermexRadiusRef {
-  const _TermexRadiusRef();
+class TermexRadiusRef {
+  const TermexRadiusRef();
 
   BorderRadius get none => TermexRadius.none;
   BorderRadius get sm => TermexRadius.sm;
@@ -150,8 +150,8 @@ class _TermexRadiusRef {
 }
 
 @immutable
-class _TermexElevationRef {
-  const _TermexElevationRef();
+class TermexElevationRef {
+  const TermexElevationRef();
 
   List<BoxShadow> get e0 => TermexElevation.e0;
   List<BoxShadow> get e1 => TermexElevation.e1;
@@ -160,8 +160,8 @@ class _TermexElevationRef {
 }
 
 @immutable
-class _AppAnimationsRef {
-  const _AppAnimationsRef();
+class AppAnimationsRef {
+  const AppAnimationsRef();
 
   Duration get dialogOpen => AppAnimations.dialogOpen;
   Duration get dialogClose => AppAnimations.dialogClose;

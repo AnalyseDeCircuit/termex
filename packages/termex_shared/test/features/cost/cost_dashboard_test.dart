@@ -11,13 +11,13 @@ Widget host(Widget child) => Directionality(
       ),
     );
 
-CostSummaryVM sampleSummary() => CostSummaryVM(
+CostSummaryVM sampleSummary() => const CostSummaryVM(
       periodLabel: 'This month',
       totalUsd: 1.25,
       taskCount: 3,
       totalInputTokens: 12345,
       totalOutputTokens: 6789,
-      byServer: const [
+      byServer: [
         ServerCostVM(
           serverId: 's1',
           serverName: 'home-dev',
@@ -31,11 +31,11 @@ CostSummaryVM sampleSummary() => CostSummaryVM(
           taskCount: 1,
         ),
       ],
-      topTasks: const [
+      topTasks: [
         TaskCostVM(taskId: 'tA', promptPreview: 'refactor parser', costUsd: 0.50),
         TaskCostVM(taskId: 'tB', promptPreview: 'add tests', costUsd: 0.30),
       ],
-      byKind: const {
+      byKind: {
         CostKindVM.primaryAiCall: 1.00,
         CostKindVM.streamingSummary: 0.20,
         CostKindVM.toolUse: 0.05,

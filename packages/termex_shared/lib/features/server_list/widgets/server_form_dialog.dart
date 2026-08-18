@@ -72,6 +72,12 @@ class ServerFormDialog extends ConsumerStatefulWidget {
 }
 
 class _ServerFormDialogState extends ConsumerState<ServerFormDialog> {
+  /// Rebuild hook for the tab bodies, which are separate widgets holding a
+  /// reference to this state. They used to call `state.setState` directly —
+  /// setState is protected, and reaching across the class boundary for it is
+  /// what the analyzer was flagging.
+  void rebuild(VoidCallback fn) => setState(fn);
+
   final _nameCtrl = TextEditingController();
   final _hostCtrl = TextEditingController();
   final _portCtrl = TextEditingController(text: '22');
@@ -573,7 +579,7 @@ class _FormTabBar extends StatelessWidget {
               bottom: BorderSide(
                 color: active && !disabled
                     ? context.colors.primary
-                    : Colors_transparent,
+                    : kTransparent,
                 width: 2,
               ),
             ),
@@ -597,7 +603,7 @@ class _FormTabBar extends StatelessWidget {
 
 // Convenience — `Colors.transparent` lives in material/, but the dialog
 // stays in widgets/. Inline the value to keep this file Material-free.
-const Color Colors_transparent = Color(0x00000000);
+const Color kTransparent = Color(0x00000000);
 
 // ─── Tab body: Auth ──────────────────────────────────────────────────────────
 
@@ -666,7 +672,7 @@ class _AuthTabBody extends ConsumerWidget {
           child: TermexSelect<String>(
             options: _authTypeOptions(l10n),
             value: state._authType,
-            onChanged: (v) => state.setState(() => state._authType = v),
+            onChanged: (v) => state.rebuild(() => state._authType = v),
           ),
         ),
         if (state._authType == 'password') ...[
@@ -682,7 +688,7 @@ class _AuthTabBody extends ConsumerWidget {
           const SizedBox(height: TermexSpacing.md),
           _KeySourceTabs(
             value: state._keySource,
-            onChanged: (v) => state.setState(() => state._keySource = v),
+            onChanged: (v) => state.rebuild(() => state._keySource = v),
             pathLabel: l10n.connectionKeySourcePath,
             pasteLabel: l10n.connectionKeySourcePaste,
           ),
@@ -735,7 +741,7 @@ class _AuthTabBody extends ConsumerWidget {
           child: TermexSelect<String?>(
             options: groupOptions,
             value: state._groupId,
-            onChanged: (v) => state.setState(() => state._groupId = v),
+            onChanged: (v) => state.rebuild(() => state._groupId = v),
             placeholder: l10n.connectionGroupNone,
           ),
         ),
@@ -797,7 +803,7 @@ class _ChainTabBody extends ConsumerWidget {
           child: TermexSelect<String?>(
             options: bastionOptions,
             value: state._bastionId,
-            onChanged: (v) => state.setState(() => state._bastionId = v),
+            onChanged: (v) => state.rebuild(() => state._bastionId = v),
             placeholder: l10n.connectionNoProxyConfigured,
           ),
         ),
@@ -814,7 +820,7 @@ class _ChainTabBody extends ConsumerWidget {
           child: TermexSelect<String?>(
             options: proxyOptions,
             value: state._proxyId,
-            onChanged: (v) => state.setState(() => state._proxyId = v),
+            onChanged: (v) => state.rebuild(() => state._proxyId = v),
             placeholder: l10n.connectionProxyNone,
           ),
         ),
@@ -974,7 +980,7 @@ class _SyncTabBody extends ConsumerWidget {
           child: TermexSelect<String>(
             options: tmuxOptions,
             value: state._tmuxMode,
-            onChanged: (v) => state.setState(() => state._tmuxMode = v),
+            onChanged: (v) => state.rebuild(() => state._tmuxMode = v),
           ),
         ),
         if (state._tmuxMode != 'disabled') ...[
@@ -985,7 +991,7 @@ class _SyncTabBody extends ConsumerWidget {
               options: tmuxCloseOptions,
               value: state._tmuxCloseAction,
               onChanged: (v) =>
-                  state.setState(() => state._tmuxCloseAction = v),
+                  state.rebuild(() => state._tmuxCloseAction = v),
             ),
           ),
         ],
@@ -1001,7 +1007,7 @@ class _SyncTabBody extends ConsumerWidget {
         TermexCheckbox(
           value: state._autoRecord,
           label: l10n.connectionAutoRecord,
-          onChanged: (v) => state.setState(() => state._autoRecord = v ?? false),
+          onChanged: (v) => state.rebuild(() => state._autoRecord = v ?? false),
         ),
         Padding(
           padding: const EdgeInsets.only(left: 24, top: 2),
@@ -1029,7 +1035,7 @@ class _SyncTabBody extends ConsumerWidget {
           value: state._gitSyncEnabled,
           label: l10n.connectionGitSyncEnable,
           onChanged: (v) =>
-              state.setState(() => state._gitSyncEnabled = v ?? false),
+              state.rebuild(() => state._gitSyncEnabled = v ?? false),
         ),
         if (state._gitSyncEnabled) ...[
           const SizedBox(height: TermexSpacing.md),
@@ -1051,7 +1057,7 @@ class _SyncTabBody extends ConsumerWidget {
               options: gitSyncModeOptions,
               value: state._gitSyncMode,
               onChanged: (v) =>
-                  state.setState(() => state._gitSyncMode = v),
+                  state.rebuild(() => state._gitSyncMode = v),
             ),
           ),
           const SizedBox(height: TermexSpacing.xs),
@@ -1075,7 +1081,7 @@ class _SyncTabBody extends ConsumerWidget {
           value: state._shared,
           label: l10n.teamShareServer,
           onChanged: (v) =>
-              state.setState(() => state._shared = v ?? false),
+              state.rebuild(() => state._shared = v ?? false),
         ),
         const SizedBox(height: TermexSpacing.xs),
         Text(

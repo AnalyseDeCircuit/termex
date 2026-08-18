@@ -48,12 +48,12 @@ class SnippetCategoryFilter extends ConsumerWidget {
         padding: const EdgeInsets.symmetric(horizontal: 6),
         decoration: BoxDecoration(
           color: active
-              ? context.colors.primary.withOpacity(0.12)
+              ? context.colors.primary.withValues(alpha: 0.12)
               : context.colors.backgroundTertiary,
           borderRadius: BorderRadius.circular(4),
           border: Border.all(
             color: active
-                ? context.colors.primary.withOpacity(0.4)
+                ? context.colors.primary.withValues(alpha: 0.4)
                 : context.colors.border,
           ),
         ),

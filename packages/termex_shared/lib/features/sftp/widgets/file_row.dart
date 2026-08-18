@@ -158,7 +158,7 @@ class FileRow extends StatelessWidget {
         height: rowHeight,
         padding: padding,
         color: isSelected
-            ? context.colors.primary.withOpacity(0.2)
+            ? context.colors.primary.withValues(alpha: 0.2)
             : Colors.transparent,
         child: Row(
           children: [

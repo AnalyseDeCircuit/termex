@@ -16,7 +16,7 @@ Widget host(Widget child) {
 void main() {
   testWidgets('renders risk reasons + prompt preview + server',
       (tester) async {
-    final risk = const RiskAssessment(
+    const risk = RiskAssessment(
       level: RiskLevel.high,
       reasons: ['sudo invocation', 'Server tagged as production'],
       preview: 'sudo systemctl restart nginx',

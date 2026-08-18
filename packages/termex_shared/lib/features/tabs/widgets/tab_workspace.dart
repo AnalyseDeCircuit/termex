@@ -16,11 +16,11 @@ import '../../../l10n/app_localizations.dart';
 import '../../monitor/monitor_panel.dart';
 import '../../sftp/sftp_panel.dart';
 import '../../sftp/state/sftp_transfer_provider.dart'
-    show sftpTransferProvider, TransferDirection, TransferItem;
+    show sftpTransferProvider, TransferDirection;
 import '../../../terminal/pane/terminal_pane.dart';
 import '../../recording/widgets/recording_controls.dart';
 import '../state/tab_controller.dart'
-    show pendingSftpTabProvider, tabListProvider;
+    show pendingSftpTabProvider;
 
 // ─── State ───────────────────────────────────────────────────────────────────
 
@@ -63,7 +63,6 @@ class _TabWorkspaceState extends ConsumerState<TabWorkspace> {
   // Which group is in the split panel (when layout != tabs)
   _SubTab _splitGroup = _SubTab.sftp;
   double _splitRatio = 0.55; // terminal takes this fraction
-  final bool _resizing = false;
 
   // Drag detection for panel tabs (SFTP / Monitor)
   Offset? _dragStart;

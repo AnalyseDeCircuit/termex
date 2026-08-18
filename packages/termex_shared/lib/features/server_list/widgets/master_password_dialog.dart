@@ -177,7 +177,7 @@ class _MasterPasswordDialogState extends ConsumerState<MasterPasswordDialog> {
                         width: 56,
                         height: 56,
                         decoration: BoxDecoration(
-                          color: context.colors.primary.withOpacity(0.12),
+                          color: context.colors.primary.withValues(alpha: 0.12),
                           borderRadius: TermexRadius.lg,
                         ),
                         child: Center(
@@ -291,9 +291,9 @@ class _LockoutBanner extends StatelessWidget {
     return Container(
       padding: const EdgeInsets.all(TermexSpacing.sm),
       decoration: BoxDecoration(
-        color: context.colors.danger.withOpacity(0.08),
+        color: context.colors.danger.withValues(alpha: 0.08),
         borderRadius: TermexRadius.sm,
-        border: Border.all(color: context.colors.danger.withOpacity(0.3)),
+        border: Border.all(color: context.colors.danger.withValues(alpha: 0.3)),
       ),
       child: Text(
         'Too many failed attempts. Please wait $timeLeft before trying again.',

@@ -455,7 +455,7 @@ class _MiniToggle extends StatelessWidget {
                 const EdgeInsets.symmetric(horizontal: 6, vertical: 3),
             decoration: BoxDecoration(
               color: value
-                  ? context.colors.primary.withOpacity(0.15)
+                  ? context.colors.primary.withValues(alpha: 0.15)
                   : context.colors.backgroundSecondary,
               border: Border.all(
                 color: value
@@ -650,7 +650,7 @@ class _PrimaryButtonState extends State<_PrimaryButton> {
               const EdgeInsets.symmetric(horizontal: 12, vertical: 6),
           decoration: BoxDecoration(
             color: context.colors.primary
-                .withOpacity(_hovered ? 0.25 : 0.15),
+                .withValues(alpha: _hovered ? 0.25 : 0.15),
             borderRadius: BorderRadius.circular(4),
           ),
           child: Text(

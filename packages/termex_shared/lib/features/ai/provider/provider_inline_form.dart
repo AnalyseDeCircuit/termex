@@ -279,7 +279,7 @@ class _ProviderInlineFormState extends ConsumerState<ProviderInlineForm> {
       });
     }
     return DropdownButtonFormField<String>(
-      value: value,
+      initialValue: value,
       isDense: true,
       dropdownColor: context.colors.backgroundSecondary,
       style: TextStyle(fontSize: 12, color: context.colors.textPrimary),
@@ -354,7 +354,7 @@ class _SmallBtn extends StatelessWidget {
     final disabled = onTap == null;
     final bg = primary
         ? (disabled
-            ? context.colors.primary.withOpacity(0.5)
+            ? context.colors.primary.withValues(alpha: 0.5)
             : context.colors.primary)
         : context.colors.backgroundTertiary;
     final fg = primary ? Colors.white : context.colors.textPrimary;

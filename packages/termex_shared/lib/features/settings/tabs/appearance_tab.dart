@@ -5,6 +5,7 @@ import '../../../../design/tokens.dart';
 import '../../../l10n/app_localizations.dart';
 import '../../../widgets/clickable.dart';
 import '../state/settings_provider.dart';
+import '../../../widgets/radio.dart';
 
 class AppearanceTab extends ConsumerWidget {
   const AppearanceTab({super.key});
@@ -54,7 +55,7 @@ class AppearanceTab extends ConsumerWidget {
                   padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 5),
                   decoration: BoxDecoration(
                     color: isSelected
-                        ? context.colors.primary.withOpacity(0.15)
+                        ? context.colors.primary.withValues(alpha: 0.15)
                         : context.colors.backgroundTertiary,
                     borderRadius: BorderRadius.circular(5),
                     border: Border.all(
@@ -189,13 +190,10 @@ class _RadioRow<T> extends StatelessWidget {
         padding: const EdgeInsets.symmetric(vertical: 3),
         child: Row(
           children: [
-            Radio<T>(
+            TermexRadio<T>(
               value: value,
               groupValue: groupValue,
-              onChanged: (v) => onChanged(v as T),
-              activeColor: context.colors.primary,
-              materialTapTargetSize: MaterialTapTargetSize.shrinkWrap,
-              visualDensity: VisualDensity.compact,
+              onChanged: onChanged,
             ),
             const SizedBox(width: 4),
             Text(label, style: TextStyle(fontSize: 13, color: context.colors.textPrimary)),
