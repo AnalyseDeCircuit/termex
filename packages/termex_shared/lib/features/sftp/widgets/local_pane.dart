@@ -188,7 +188,7 @@ class _LocalPaneState extends ConsumerState<LocalPane> {
                   .selectLocalOnly(name),
               onSelectAll: () => ref
                   .read(sftpPaneProvider(widget.sessionId).notifier)
-                  .selectAllLocal(_viewEntries().map((e) => e.name)),
+                  .selectAllLocal(_entries.map((e) => e.name)),
               onRefresh: _loadCurrentDir,
               onOpen: (entry) async {
                 if (entry.isDirectory) {
