@@ -2637,6 +2637,15 @@ class AppLocalizationsZh extends AppLocalizations {
   String get recordingTitle => '会话录制';
 
   @override
+  String get recordingPlay => '播放';
+
+  @override
+  String get recordingPause => '暂停';
+
+  @override
+  String get recordingEmptyCast => '此录制不包含任何输出';
+
+  @override
   String get recordingRetentionPeriod => '保留周期';
 
   @override

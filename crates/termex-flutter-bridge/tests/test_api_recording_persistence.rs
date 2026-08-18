@@ -59,7 +59,7 @@ async fn test_recording_stop_sets_ended_at() {
     let _dir = setup();
 
     let id = recording_start("s".into(), "srv".into(), "prod".into(), 80, 24, None, 0, false).await.unwrap();
-    recording_stop(id.clone()).await.unwrap();
+    recording_stop("s".into()).await.unwrap();
 
     let all = recording_list_full().unwrap();
     assert_eq!(all.len(), 1);

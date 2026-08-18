@@ -447,6 +447,29 @@ pub fn recording_get_path(id: String) -> Result<String, String> {
 }
 
 /// Exports a recording to `dest_path`.  Copies the underlying `.cast` file.
+/// Reads a recording's asciicast content for playback.
+///
+/// The Tauri build exposed this as `recording_read`; the Flutter bridge had
+/// no equivalent, so the list could locate a `.cast` file but nothing could
+/// open it.
+///
+/// Capped at 64 MiB — a recording larger than that is not something to hold
+/// in memory and hand to a player in one piece.
+pub fn recording_read(path: String) -> Result<String, String> {
+    const MAX_BYTES: u64 = 64 * 1024 * 1024;
+
+    let meta = std::fs::metadata(&path)
+        .map_err(|e| format!("cannot open recording: {e}"))?;
+    if meta.len() > MAX_BYTES {
+        return Err(format!(
+            "recording is {} MiB, larger than the {} MiB playback limit",
+            meta.len() / (1024 * 1024),
+            MAX_BYTES / (1024 * 1024)
+        ));
+    }
+    std::fs::read_to_string(&path).map_err(|e| format!("cannot read recording: {e}"))
+}
+
 pub fn recording_export(id: String, dest_path: String) -> Result<(), String> {
     let source = recording_get_path(id.clone())?;
     if std::path::Path::new(&source).exists() {

@@ -2692,6 +2692,15 @@ class AppLocalizationsEn extends AppLocalizations {
   String get recordingTitle => 'Session Recording';
 
   @override
+  String get recordingPlay => 'Play';
+
+  @override
+  String get recordingPause => 'Pause';
+
+  @override
+  String get recordingEmptyCast => 'This recording contains no output';
+
+  @override
   String get recordingRetentionPeriod => 'Retention Period';
 
   @override

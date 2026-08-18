@@ -5026,6 +5026,24 @@ abstract class AppLocalizations {
   /// **'Session Recording'**
   String get recordingTitle;
 
+  /// No description provided for @recordingPlay.
+  ///
+  /// In en, this message translates to:
+  /// **'Play'**
+  String get recordingPlay;
+
+  /// No description provided for @recordingPause.
+  ///
+  /// In en, this message translates to:
+  /// **'Pause'**
+  String get recordingPause;
+
+  /// No description provided for @recordingEmptyCast.
+  ///
+  /// In en, this message translates to:
+  /// **'This recording contains no output'**
+  String get recordingEmptyCast;
+
   /// No description provided for @recordingRetentionPeriod.
   ///
   /// In en, this message translates to:

@@ -13,6 +13,8 @@ import 'package:flutter/services.dart';
 import 'package:flutter/widgets.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 
+import 'widgets/recording_player.dart';
+
 import '../server_list/widgets/server_search_bar.dart';
 import '../sidebar_search.dart';
 import 'package:termex_bridge/src/api.dart' as bridge;
@@ -34,6 +36,7 @@ class RecordingListPanel extends ConsumerStatefulWidget {
   final void Function(String recordingId, String filePath)? onOpen;
 
   const RecordingListPanel({super.key, this.onOpen});
+
 
   @override
   ConsumerState<RecordingListPanel> createState() => _RecordingListPanelState();
@@ -155,7 +158,19 @@ class _RecordingListPanelState extends ConsumerState<RecordingListPanel> {
                   return _GroupSection(
                     label: g.key,
                     rows: g.value,
-                    onOpen: widget.onOpen,
+                    // Defaults to the bundled player. The desktop sidebar
+                    // constructs this panel without an onOpen, which left the
+                    // open action — and the row's menu entry — inert.
+                    onOpen: widget.onOpen ??
+                        (id, filePath) => showRecordingPlayer(
+                              context,
+                              filePath: filePath,
+                              title: g.value
+                                      .where((r) => r.id == id)
+                                      .map((r) => r.serverName)
+                                      .firstOrNull ??
+                                  l10n.recordingTitle,
+                            ),
                     onDelete: _delete,
                   );
                 },

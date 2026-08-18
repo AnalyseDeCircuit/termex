@@ -93,6 +93,17 @@ Future<String> recordingGetPath({required String id}) =>
     TermexBridge.instance.api.crateApiRecordingRecordingGetPath(id: id);
 
 /// Exports a recording to `dest_path`.  Copies the underlying `.cast` file.
+/// Reads a recording's asciicast content for playback.
+///
+/// The Tauri build exposed this as `recording_read`; the Flutter bridge had
+/// no equivalent, so the list could locate a `.cast` file but nothing could
+/// open it.
+///
+/// Capped at 64 MiB — a recording larger than that is not something to hold
+/// in memory and hand to a player in one piece.
+Future<String> recordingRead({required String path}) =>
+    TermexBridge.instance.api.crateApiRecordingRecordingRead(path: path);
+
 Future<void> recordingExport({required String id, required String destPath}) =>
     TermexBridge.instance.api
         .crateApiRecordingRecordingExport(id: id, destPath: destPath);

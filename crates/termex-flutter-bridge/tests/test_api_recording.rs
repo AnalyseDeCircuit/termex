@@ -40,7 +40,9 @@ async fn test_recording_start_unique_ids() {
 async fn test_recording_stop_returns_entry() {
     let _guard = setup();
     let id = recording_start("session-stop".into(), "srv".into(), "prod".into(), 80, 24, Some("Test".into()), 0, false).await.unwrap();
-    let entry = recording_stop(id.clone()).await.unwrap();
+    // stop() is keyed by session, matching the Tauri command — the recorder
+    // tracks one active recording per session, not per recording id.
+    let entry = recording_stop("session-stop".into()).await.unwrap();
     assert_eq!(entry.id, id);
     // v0.47 filename is {server}_{timestamp}_{rand6}.cast — no UUID.
     assert!(entry.file_path.ends_with(".cast"), "file should be .cast");
@@ -50,8 +52,8 @@ async fn test_recording_stop_returns_entry() {
 #[tokio::test]
 async fn test_recording_stop_file_path_format() {
     let _guard = setup();
-    let id = recording_start("session-path".into(), "srv".into(), "prod".into(), 80, 24, None, 0, false).await.unwrap();
-    let entry = recording_stop(id.clone()).await.unwrap();
+    let _id = recording_start("session-path".into(), "srv".into(), "prod".into(), 80, 24, None, 0, false).await.unwrap();
+    let entry = recording_stop("session-path".into()).await.unwrap();
     assert!(entry.file_path.ends_with(".cast"), "file should be .cast");
 }
 
