@@ -22,14 +22,40 @@ Future<String> recordingRenderPartFilename(
         basename: basename, partN: partN);
 
 /// Begins recording terminal output for `session_id`.  Returns a new recording id.
-Future<String> recordingStart({required String sessionId, String? title}) =>
+/// Starts recording `session_id`, capturing terminal output to an asciicast
+/// file.
+///
+/// Mirrors the Tauri command's shape (session + server identity + geometry)
+/// rather than the id-only stub this replaces — the recorder keys everything
+/// by session, and the header needs the real terminal size to replay
+/// correctly.
+Future<String> recordingStart(
+        {required String sessionId,
+        required String serverId,
+        required String serverName,
+        required int cols,
+        required int rows,
+        String? title,
+        required int maxRecordingMb}) =>
+    TermexBridge.instance.api.crateApiRecordingRecordingStart(
+        sessionId: sessionId,
+        serverId: serverId,
+        serverName: serverName,
+        cols: cols,
+        rows: rows,
+        title: title,
+        maxRecordingMb: maxRecordingMb);
+
+/// Whether `session_id` is currently being recorded. Used by the UI to render
+/// the correct control after a rebuild or a tab switch.
+Future<bool> recordingIsActive({required String sessionId}) =>
     TermexBridge.instance.api
-        .crateApiRecordingRecordingStart(sessionId: sessionId, title: title);
+        .crateApiRecordingRecordingIsActive(sessionId: sessionId);
 
 /// Stops an active recording and returns its metadata.
-Future<RecordingEntry> recordingStop({required String recordingId}) =>
+Future<RecordingEntry> recordingStop({required String sessionId}) =>
     TermexBridge.instance.api
-        .crateApiRecordingRecordingStop(recordingId: recordingId);
+        .crateApiRecordingRecordingStop(sessionId: sessionId);
 
 /// Lists all known recordings (legacy DTO).
 Future<List<RecordingEntry>> recordingList() =>

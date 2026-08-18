@@ -598,6 +598,10 @@ class _ServerTreeState extends ConsumerState<ServerTree> {
                     itemCount: rows.length,
                     itemBuilder: (ctx, i) {
                     final row = rows[i];
+                    // Only reserve the chevron gutter when there is a group
+                    // for the servers to align under. On a flat list it is
+                    // 16px of dead space at the head of every row.
+                    final hasGroups = rows.any((r) => r.isGroup);
                     if (row.isGroup) {
                       final g = row.group!;
                       return ServerTreeNode(
@@ -630,6 +634,7 @@ class _ServerTreeState extends ConsumerState<ServerTree> {
                         hasBastion: s.hasBastion,
                         isShared: s.shared,
                         depth: row.depth,
+                        reserveExpandSpace: hasGroups,
                         onTap: () => _select(s.id),
                         onDoubleTap: () => widget.onServerConnect?.call(s.id),
                         onContextMenu: (pos) => _openContextMenu(s, pos),

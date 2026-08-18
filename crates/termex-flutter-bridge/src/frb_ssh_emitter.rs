@@ -109,13 +109,59 @@ pub fn push_disconnected(session_id: &str) {
 }
 
 /// Pushes an event to the session's queue if it is still registered.
+///
+/// Also the capture point for session recording. Every byte the terminal
+/// shows passes through here — the SSH channel reader, the local PTY reader
+/// and the chain emitter all funnel into it — so it is the one place that
+/// sees the same stream the user does. The Tauri build hooked the equivalent
+/// spot in its SSH read loop; the Flutter bridge never did, which is why
+/// recordings were empty files.
 fn enqueue(session_id: &str, event: SshStreamEvent) {
+    if event.kind == "stdout" && !event.data.is_empty() {
+        record_stdout(session_id, &event.data);
+    }
     if let Some(entry) = QUEUES.get(session_id) {
         if let Ok(mut q) = entry.lock() {
             q.push_back(event);
         }
     }
 }
+
+/// Hands terminal output to the recorder without blocking the reader.
+///
+/// `enqueue` is synchronous and runs on the PTY reader thread and inside
+/// russh callbacks, while `RecorderRegistry::record_output` is async. Blocking
+/// on it here would stall the terminal, so the work is handed to the runtime
+/// and the caller returns immediately.
+fn record_stdout(session_id: &str, data: &[u8]) {
+    // Recording is off for almost every session; skip the allocation and the
+    // spawn unless this one is armed.
+    if !ACTIVE_RECORDINGS.contains(session_id) {
+        return;
+    }
+    let sid = session_id.to_string();
+    let text = String::from_utf8_lossy(data).into_owned();
+    if let Ok(handle) = tokio::runtime::Handle::try_current() {
+        handle.spawn(async move {
+            let within_limit = crate::api::recording::RECORDER
+                .record_output(&sid, &text)
+                .await;
+            // The recorder reports its size cap by returning false; stop
+            // rather than growing the file unbounded.
+            if !within_limit {
+                let _ = crate::api::recording::RECORDER.stop(&sid).await;
+                ACTIVE_RECORDINGS.remove(&sid);
+            }
+        });
+    }
+}
+
+/// Sessions currently being recorded.
+///
+/// A synchronous set so `enqueue` can check it without awaiting the
+/// recorder's async lock on every chunk of output.
+pub static ACTIVE_RECORDINGS: Lazy<dashmap::DashSet<String>> =
+    Lazy::new(dashmap::DashSet::new);
 
 /// FRB-side implementation of `SshEventEmitter`.
 ///

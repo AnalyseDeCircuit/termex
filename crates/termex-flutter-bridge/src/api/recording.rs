@@ -12,6 +12,16 @@ use std::sync::Mutex;
 use once_cell::sync::Lazy;
 
 use crate::db_state;
+use termex_core::recording::recorder::RecorderRegistry;
+
+/// The live recorder — the piece the Flutter build was missing.
+///
+/// `recording_start` used to only insert a database row, so the list panel
+/// showed entries whose `.cast` files were never written and whose terminal
+/// output was never captured. The Tauri build kept this registry in AppState
+/// and fed it from the SSH read loop (src-tauri/src/ssh/channel.rs); this is
+/// the equivalent, fed from `frb_ssh_emitter`.
+pub static RECORDER: Lazy<RecorderRegistry> = Lazy::new(RecorderRegistry::new);
 
 // ─── DTOs ────────────────────────────────────────────────────────────────────
 
@@ -107,23 +117,58 @@ pub fn recording_render_part_filename(basename: &str, part_n: u32) -> String {
 // ─── Core API ───────────────────────────────────────────────────────────────
 
 /// Begins recording terminal output for `session_id`.  Returns a new recording id.
-pub fn recording_start(session_id: String, title: Option<String>) -> Result<String, String> {
-    let id = uuid::Uuid::new_v4().to_string();
-    let filename = recording_render_filename(title.as_deref().unwrap_or("session"));
-    let file_path = format!("/tmp/{}", filename); // Final path set by core::recording
+/// Starts recording `session_id`, capturing terminal output to an asciicast
+/// file.
+///
+/// Mirrors the Tauri command's shape (session + server identity + geometry)
+/// rather than the id-only stub this replaces — the recorder keys everything
+/// by session, and the header needs the real terminal size to replay
+/// correctly.
+pub async fn recording_start(
+    session_id: String,
+    server_id: String,
+    server_name: String,
+    cols: u32,
+    rows: u32,
+    title: Option<String>,
+    max_recording_mb: u32,
+) -> Result<String, String> {
+    crate::frb_ssh_emitter::ACTIVE_RECORDINGS.insert(session_id.clone());
+    let (id, file_path) = RECORDER
+        .start(
+            &session_id,
+            &server_id,
+            &server_name,
+            cols,
+            rows,
+            title.clone(),
+            false,
+            max_recording_mb,
+        )
+        .await
+        .map_err(|e| e.to_string())?;
+
+    let path_str = file_path.to_string_lossy().to_string();
+    let now = chrono::Utc::now().to_rfc3339();
 
     if db_state::is_unlocked() {
+        let (id2, sid, name, path, started) = (
+            id.clone(),
+            session_id.clone(),
+            title.clone().unwrap_or_else(|| server_name.clone()),
+            path_str.clone(),
+            now.clone(),
+        );
         db_state::with_db(|db| {
             db.with_conn(|conn| {
-                let now = chrono::Utc::now().to_rfc3339();
                 conn.execute(
                     "INSERT INTO recordings
                        (id, session_id, server_id, server_name, file_path, file_size,
                         duration_ms, cols, rows, event_count, summary, auto_recorded,
                         started_at, ended_at, created_at, parent_id, is_encrypted)
-                     VALUES (?1, ?2, '', ?3, ?4, 0, 0, 80, 24, 0, NULL, 0, ?5, NULL, ?5, NULL, 0)",
+                     VALUES (?1, ?2, ?3, ?4, ?5, 0, 0, ?6, ?7, 0, NULL, 0, ?8, NULL, ?8, NULL, 0)",
                     rusqlite::params![
-                        id, session_id, title.clone().unwrap_or_default(), file_path, now,
+                        id2, sid, server_id, name, path, cols, rows, started,
                     ],
                 )?;
                 Ok(())
@@ -131,31 +176,52 @@ pub fn recording_start(session_id: String, title: Option<String>) -> Result<Stri
             .map_err(|e| e.to_string())
         })?;
     } else {
-        let entry = RecordingEntry {
-            id: id.clone(),
-            session_id,
-            title,
-            file_path,
-            duration_seconds: 0,
-            size_bytes: 0,
-            created_at: chrono::Utc::now().to_rfc3339(),
-        };
-        RECORDING_REGISTRY.lock().unwrap().insert(id.clone(), entry);
+        RECORDING_REGISTRY.lock().unwrap().insert(
+            id.clone(),
+            RecordingEntry {
+                id: id.clone(),
+                session_id,
+                title,
+                file_path: path_str,
+                duration_seconds: 0,
+                size_bytes: 0,
+                created_at: now,
+            },
+        );
     }
 
     Ok(id)
 }
 
+/// Whether `session_id` is currently being recorded. Used by the UI to render
+/// the correct control after a rebuild or a tab switch.
+pub async fn recording_is_active(session_id: String) -> bool {
+    RECORDER.is_recording(&session_id).await
+}
+
 /// Stops an active recording and returns its metadata.
-pub fn recording_stop(recording_id: String) -> Result<RecordingEntry, String> {
+pub async fn recording_stop(session_id: String) -> Result<RecordingEntry, String> {
+    // Flush the asciicast to disk first — this is what actually produces the
+    // file the list panel links to. Keyed by session, matching the Tauri
+    // command; the previous signature took a recording id and wrote nothing.
+    crate::frb_ssh_emitter::ACTIVE_RECORDINGS.remove(&session_id);
+    let (recording_id, file_path) = RECORDER
+        .stop(&session_id)
+        .await
+        .map_err(|e| e.to_string())?;
+    let path_str = file_path.to_string_lossy().to_string();
+    let size = std::fs::metadata(&file_path).map(|m| m.len()).unwrap_or(0);
+
     if db_state::is_unlocked() {
         // Fill in ended_at + return DTO.
         let entry = db_state::with_db(|db| {
             db.with_conn(|conn| {
                 let now = chrono::Utc::now().to_rfc3339();
                 conn.execute(
-                    "UPDATE recordings SET ended_at = ?1 WHERE id = ?2",
-                    rusqlite::params![now, recording_id],
+                    "UPDATE recordings
+                        SET ended_at = ?1, file_path = ?2, file_size = ?3
+                      WHERE id = ?4",
+                    rusqlite::params![now, path_str, size, recording_id],
                 )?;
                 let row: Option<(String, String, String, u64, u64, String)> = conn
                     .query_row(
@@ -174,13 +240,13 @@ pub fn recording_stop(recording_id: String) -> Result<RecordingEntry, String> {
                         },
                     )
                     .ok();
-                Ok(row.map(|(id, sid, title, dur_ms, size, created)| RecordingEntry {
+                Ok(row.map(|(id, sid, title, dur_ms, sz, created)| RecordingEntry {
                     id,
                     session_id: sid,
                     title: Some(title),
-                    file_path: String::new(),
+                    file_path: path_str.clone(),
                     duration_seconds: dur_ms / 1000,
-                    size_bytes: size,
+                    size_bytes: if sz == 0 { size } else { sz },
                     created_at: created,
                 }))
             })

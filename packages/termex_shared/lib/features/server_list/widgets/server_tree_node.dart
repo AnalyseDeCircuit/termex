@@ -56,6 +56,15 @@ class ServerTreeNode extends StatefulWidget {
   /// chevron-width step.
   final int depth;
 
+  /// Whether to reserve the chevron column on non-group rows.
+  ///
+  /// Servers have no chevron, so the space exists purely to line their icons
+  /// up with the group rows above them. When the tree contains no groups at
+  /// all there is nothing to align with, and the reserved column reads as a
+  /// wide empty gutter down the left of every row — 32px of dead space before
+  /// the icon on a flat list, counting the list's own padding.
+  final bool reserveExpandSpace;
+
   const ServerTreeNode({
     super.key,
     required this.isGroup,
@@ -74,6 +83,7 @@ class ServerTreeNode extends StatefulWidget {
     this.onLongPress,
     this.onContextMenu,
     this.depth = 0,
+    this.reserveExpandSpace = true,
   });
 
   @override
@@ -130,12 +140,19 @@ class _ServerTreeNodeState extends State<ServerTreeNode> {
           ),
           child: Row(
             children: [
-              // Expand/collapse chevron (groups) or spacer (servers)
-              if (widget.isGroup)
-                _ExpandIcon(isExpanded: widget.isExpanded)
-              else
-                const SizedBox(width: 16),
-              const SizedBox(width: TermexSpacing.xs),
+              // Expand/collapse chevron (groups), or the matching spacer on
+              // server rows so their icons align under it. Dropped entirely
+              // when the tree has no groups — see [reserveExpandSpace].
+              if (widget.isGroup) ...[
+                _ExpandIcon(isExpanded: widget.isExpanded),
+                const SizedBox(width: TermexSpacing.xs),
+              ] else if (widget.reserveExpandSpace) ...[
+                // Matches `_ExpandIcon`'s 12px glyph. It was 16, which put
+                // every server icon 4px to the right of the group icons it
+                // was supposed to line up under.
+                const SizedBox(width: 12),
+                const SizedBox(width: TermexSpacing.xs),
+              ],
               // Folder / server icon
               TermexIconWidget(
                 widget.isGroup

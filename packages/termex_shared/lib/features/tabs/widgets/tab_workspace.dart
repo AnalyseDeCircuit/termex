@@ -18,7 +18,9 @@ import '../../sftp/sftp_panel.dart';
 import '../../sftp/state/sftp_transfer_provider.dart'
     show sftpTransferProvider, TransferDirection, TransferItem;
 import '../../../terminal/pane/terminal_pane.dart';
-import '../state/tab_controller.dart' show pendingSftpTabProvider;
+import '../../recording/widgets/recording_controls.dart';
+import '../state/tab_controller.dart'
+    show pendingSftpTabProvider, tabListProvider;
 
 // ─── State ───────────────────────────────────────────────────────────────────
 
@@ -367,10 +369,36 @@ class _SubTabBar extends ConsumerWidget {
             onDragEnd: (pos) => onDragEnd(pos, _SubTab.monitor),
           ),
           const Spacer(),
+          // Session recording. The Tauri build placed this control in the
+          // terminal chrome (RecordingControls.vue in TabWorkspace.vue); the
+          // Flutter port had no entry point for it at all. Local PTY tabs are
+          // excluded — the recorder keys off an SSH session.
+          if (!isLocal) _RecordingSlot(sessionId: sessionId),
           if (onCloseSplit != null)
             _CloseBtn(onTap: onCloseSplit!),
         ],
       ),
+    );
+  }
+}
+
+/// Resolves the tab's server identity, which the asciicast header needs, and
+/// renders the control. Split out so _SubTabBar stays declarative.
+class _RecordingSlot extends ConsumerWidget {
+  final String sessionId;
+  const _RecordingSlot({required this.sessionId});
+
+  @override
+  Widget build(BuildContext context, WidgetRef ref) {
+    final tab = ref
+        .watch(tabListProvider)
+        .where((t) => t.id == sessionId)
+        .firstOrNull;
+    if (tab == null) return const SizedBox.shrink();
+    return RecordingControls(
+      sessionId: sessionId,
+      serverId: tab.serverId,
+      serverName: tab.title,
     );
   }
 }

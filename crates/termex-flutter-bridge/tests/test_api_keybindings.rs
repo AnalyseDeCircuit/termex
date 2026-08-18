@@ -139,6 +139,10 @@ fn test_keybinding_check_conflict_no_conflict() {
 #[test]
 fn test_keybinding_check_conflict_terminal_vs_global() {
     // "⌘T" is global, so it should conflict even when checking terminal context.
+    // Guarded for the same reason as the two above: `check_conflict` reads the
+    // shared overrides registry, so a concurrent test that rebinds new_tab
+    // makes ⌘T stop conflicting.
+    let _guard = setup();
     let conflict = keybinding_check_conflict("⌘T".into(), "terminal".into()).unwrap();
     assert!(conflict.is_some(), "global binding should conflict in terminal context");
 }
