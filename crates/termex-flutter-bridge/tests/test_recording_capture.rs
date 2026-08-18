@@ -75,3 +75,43 @@ async fn auto_recorded_flag_is_carried_through_start() {
     assert_eq!(entry.title.as_deref(), Some("Auto: prod"));
     let _ = std::fs::remove_file(&entry.file_path);
 }
+
+#[tokio::test]
+async fn stop_records_the_duration_and_event_count() {
+    // The list showed "0s · 0 events" for every recording: start inserts
+    // zeros and nothing ever replaced them.
+    let sid = format!("sess-{}", uuid::Uuid::new_v4());
+    recording::recording_start(
+        sid.clone(), "srv".into(), "prod".into(), 80, 24, None, 0, false, None,
+    )
+    .await
+    .expect("start");
+
+    recording::RECORDER.record_output(&sid, "one\r\n").await;
+    tokio::time::sleep(std::time::Duration::from_millis(30)).await;
+    recording::RECORDER.record_output(&sid, "two\r\n").await;
+
+    let entry = recording::recording_stop(sid).await.expect("stop");
+    let body = std::fs::read_to_string(&entry.file_path).unwrap();
+    // Two output events plus the header line.
+    assert_eq!(body.lines().filter(|l| l.starts_with('[')).count(), 2);
+    let _ = std::fs::remove_file(&entry.file_path);
+}
+
+#[tokio::test]
+async fn the_initial_screen_becomes_the_first_frame() {
+    // Without this a replay opens black until the session next writes.
+    let sid = format!("sess-{}", uuid::Uuid::new_v4());
+    recording::recording_start(
+        sid.clone(), "srv".into(), "prod".into(), 80, 24, None, 0, false,
+        Some("\x1b[2J\x1b[Hwelcome back\r\n".into()),
+    )
+    .await
+    .expect("start");
+
+    let entry = recording::recording_stop(sid).await.expect("stop");
+    let body = std::fs::read_to_string(&entry.file_path).unwrap();
+    assert!(body.contains("welcome back"),
+        "opening frame missing from {}", entry.file_path);
+    let _ = std::fs::remove_file(&entry.file_path);
+}

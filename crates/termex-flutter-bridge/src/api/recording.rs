@@ -214,6 +214,31 @@ pub async fn recording_is_active(session_id: String) -> bool {
     RECORDER.is_recording(&session_id).await
 }
 
+/// Duration and event count of a finished asciicast.
+///
+/// Read back from the file rather than tracked during capture: the recorder
+/// owns the event list, and re-deriving here keeps the bridge from
+/// second-guessing what it actually wrote.
+fn summarise_cast(path: &std::path::Path) -> (u64, u32) {
+    let Ok(content) = std::fs::read_to_string(path) else {
+        return (0, 0);
+    };
+    let mut count = 0u32;
+    let mut last = 0f64;
+    for line in content.lines() {
+        if !line.starts_with('[') {
+            continue; // header
+        }
+        if let Ok(v) = serde_json::from_str::<serde_json::Value>(line) {
+            if let Some(t) = v.get(0).and_then(|t| t.as_f64()) {
+                last = last.max(t);
+                count += 1;
+            }
+        }
+    }
+    ((last * 1000.0) as u64, count)
+}
+
 /// Stops an active recording and returns its metadata.
 pub async fn recording_stop(session_id: String) -> Result<RecordingEntry, String> {
     // Flush the asciicast to disk first — this is what actually produces the
@@ -227,6 +252,11 @@ pub async fn recording_stop(session_id: String) -> Result<RecordingEntry, String
     let path_str = file_path.to_string_lossy().to_string();
     let size = std::fs::metadata(&file_path).map(|m| m.len()).unwrap_or(0);
 
+    // Derived from the file just written. Without this every recording showed
+    // "0s · 0 events" in the list no matter how much it captured, because
+    // nothing ever updated the zeros inserted at start.
+    let (duration_ms, event_count) = summarise_cast(&file_path);
+
     if db_state::is_unlocked() {
         // Fill in ended_at + return DTO.
         let entry = db_state::with_db(|db| {
@@ -234,9 +264,13 @@ pub async fn recording_stop(session_id: String) -> Result<RecordingEntry, String
                 let now = chrono::Utc::now().to_rfc3339();
                 conn.execute(
                     "UPDATE recordings
-                        SET ended_at = ?1, file_path = ?2, file_size = ?3
-                      WHERE id = ?4",
-                    rusqlite::params![now, path_str, size, recording_id],
+                        SET ended_at = ?1, file_path = ?2, file_size = ?3,
+                            duration_ms = ?4, event_count = ?5
+                      WHERE id = ?6",
+                    rusqlite::params![
+                        now, path_str, size, duration_ms, event_count,
+                        recording_id
+                    ],
                 )?;
                 let row: Option<(String, String, String, u64, u64, String)> = conn
                     .query_row(
@@ -405,6 +439,22 @@ pub fn recording_register_part(
 /// helper below to delete a full group).
 pub fn recording_delete(id: String) -> Result<(), String> {
     if db_state::is_unlocked() {
+        // Read the path before dropping the row — afterwards there is nothing
+        // left pointing at the file, which is how deleted recordings used to
+        // leave their .cast behind forever.
+        let path: Option<String> = db_state::with_db(|db| {
+            db.with_conn(|conn| {
+                Ok(conn
+                    .query_row(
+                        "SELECT file_path FROM recordings WHERE id = ?1",
+                        rusqlite::params![id],
+                        |r| r.get::<_, String>(0),
+                    )
+                    .ok())
+            })
+            .map_err(|e| e.to_string())
+        })?;
+
         db_state::with_db(|db| {
             db.with_conn(|conn| {
                 conn.execute("DELETE FROM recordings WHERE id = ?1", rusqlite::params![id])?;
@@ -412,6 +462,12 @@ pub fn recording_delete(id: String) -> Result<(), String> {
             })
             .map_err(|e| e.to_string())
         })?;
+
+        // Best-effort: the row is already gone, and a file that cannot be
+        // removed must not report the delete as failed.
+        if let Some(p) = path.filter(|p| !p.is_empty()) {
+            let _ = std::fs::remove_file(p);
+        }
     } else {
         RECORDING_REGISTRY.lock().unwrap().remove(&id);
     }
