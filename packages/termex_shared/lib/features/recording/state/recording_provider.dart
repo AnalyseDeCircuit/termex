@@ -84,11 +84,17 @@ class RecordingNotifier extends FamilyNotifier<RecordingStatus, String> {
   /// Reconciles with the backend — the widget can be rebuilt or the tab
   /// reopened while a recording is still running.
   Future<void> refresh() async {
-    final active = await bridge.recordingIsActive(sessionId: arg);
-    if (active == state.active) return;
-    state = active
-        ? RecordingStatus(active: true, startedAt: DateTime.now())
-        : const RecordingStatus();
+    try {
+      final active = await bridge.recordingIsActive(sessionId: arg);
+      if (active == state.active) return;
+      state = active
+          ? RecordingStatus(active: true, startedAt: DateTime.now())
+          : const RecordingStatus();
+    } catch (_) {
+      // Reconciling is best-effort: this runs from initState, and a failure
+      // here (bridge not up yet, session already gone) must leave the control
+      // usable rather than take the terminal chrome down with it.
+    }
   }
 }
 

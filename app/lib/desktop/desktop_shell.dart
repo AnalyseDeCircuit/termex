@@ -328,6 +328,8 @@ class _DesktopShellState extends ConsumerState<DesktopShell> {
                                                         TabWorkspace(
                                                           sessionId: sessionId,
                                                           isLocal: tab.isLocal,
+                                                          serverId: tab.serverId,
+                                                          serverName: tab.title,
                                                         ),
                                               ))
                                           .toList(),

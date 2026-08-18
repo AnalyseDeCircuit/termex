@@ -39,10 +39,18 @@ class TabWorkspace extends ConsumerStatefulWidget {
   /// SFTP and Transfers sub-tabs because both require an SSH session.
   final bool isLocal;
 
+  /// Server identity for this session. Supplied by the host shell, which
+  /// holds the tab entry — [sessionId] is the SSH session id and does not
+  /// match `TabEntry.id`, so it cannot be looked up from the tab list.
+  final String? serverId;
+  final String? serverName;
+
   const TabWorkspace({
     super.key,
     required this.sessionId,
     this.isLocal = false,
+    this.serverId,
+    this.serverName,
   });
 
   @override
@@ -164,6 +172,8 @@ class _TabWorkspaceState extends ConsumerState<TabWorkspace> {
             height: 24,
             child: _SubTabBar(
               sessionId: widget.sessionId,
+              serverId: widget.serverId,
+              serverName: widget.serverName,
               active: _subTab,
               layout: _layout,
               transferCount: transferCount,
@@ -305,6 +315,8 @@ class _TabWorkspaceState extends ConsumerState<TabWorkspace> {
 
 class _SubTabBar extends ConsumerWidget {
   final String sessionId;
+  final String? serverId;
+  final String? serverName;
   final _SubTab active;
   final _Layout layout;
   final int transferCount;
@@ -316,6 +328,8 @@ class _SubTabBar extends ConsumerWidget {
 
   const _SubTabBar({
     required this.sessionId,
+    this.serverId,
+    this.serverName,
     required this.active,
     required this.layout,
     required this.transferCount,
@@ -373,32 +387,16 @@ class _SubTabBar extends ConsumerWidget {
           // terminal chrome (RecordingControls.vue in TabWorkspace.vue); the
           // Flutter port had no entry point for it at all. Local PTY tabs are
           // excluded — the recorder keys off an SSH session.
-          if (!isLocal) _RecordingSlot(sessionId: sessionId),
+          if (!isLocal && serverId != null)
+            RecordingControls(
+              sessionId: sessionId,
+              serverId: serverId!,
+              serverName: serverName ?? serverId!,
+            ),
           if (onCloseSplit != null)
             _CloseBtn(onTap: onCloseSplit!),
         ],
       ),
-    );
-  }
-}
-
-/// Resolves the tab's server identity, which the asciicast header needs, and
-/// renders the control. Split out so _SubTabBar stays declarative.
-class _RecordingSlot extends ConsumerWidget {
-  final String sessionId;
-  const _RecordingSlot({required this.sessionId});
-
-  @override
-  Widget build(BuildContext context, WidgetRef ref) {
-    final tab = ref
-        .watch(tabListProvider)
-        .where((t) => t.id == sessionId)
-        .firstOrNull;
-    if (tab == null) return const SizedBox.shrink();
-    return RecordingControls(
-      sessionId: sessionId,
-      serverId: tab.serverId,
-      serverName: tab.title,
     );
   }
 }
