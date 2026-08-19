@@ -2,6 +2,7 @@ import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 
 import '../../../../design/tokens.dart';
+import '../../../l10n/app_localizations.dart';
 import '../state/local_ai_provider.dart';
 import 'model_card.dart';
 
@@ -16,7 +17,7 @@ class ModelList extends ConsumerWidget {
     if (models.isEmpty) {
       return Center(
         child: Text(
-          '正在加载模型列表…',
+          AppLocalizations.of(context).localAiLoadingModels,
           style:
               TextStyle(fontSize: 13, color: context.colors.textSecondary),
         ),

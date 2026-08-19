@@ -2691,5 +2691,10 @@
         "type": "String"
       }
     }
-  }
+  },
+  "localAiLoadingModels": "正在加载模型列表…",
+  "localAiAdoptedModel": "本地已有",
+  "localAiAdoptedHint": "在模型目录中找到，不在内置目录中。",
+  "localAiRamRequirement": "{gb} GB 内存",
+  "localAiContextTokens": "{tokens} 上下文"
 }

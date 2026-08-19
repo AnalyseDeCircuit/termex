@@ -38,6 +38,19 @@ pub struct LocalModelDto {
     pub is_downloaded: bool,
     /// Local file path, if downloaded.
     pub local_path: Option<String>,
+    /// Size tier: micro / small / medium / large.
+    pub tier: String,
+    /// RAM the model needs to run, in GB. Shown by the Tauri build's list and
+    /// dropped in the port.
+    pub min_ram_gb: u32,
+    /// Context window the model was built for.
+    pub context_length: u32,
+    /// Marks the entry the catalogue suggests first.
+    pub recommended: bool,
+    /// True when the file is on disk but no catalogue entry describes it —
+    /// a model an older build downloaded, or one dropped in by hand. It can
+    /// be run and deleted, but not re-downloaded.
+    pub is_adopted: bool,
 }
 
 /// Progress update emitted during model download.
@@ -77,9 +90,11 @@ pub struct LocalAiHealth {
 pub async fn local_ai_start(model_id: String, port: u16) -> Result<(), String> {
     let _ = port;
 
-    // Resolve model file: `<data_dir>/models/<id>.gguf`
-    let models_dir = termex_core::paths::data_dir().join("models");
-    let model_path = models_dir.join(format!("{model_id}.gguf"));
+    // Resolve the model wherever it actually sits — a file the Tauri build
+    // downloaded lives in a different directory from this build's default.
+    let model_path = local_ai_state::find_model_file(&format!("{model_id}.gguf"))
+        .unwrap_or_else(|| local_ai_state::model_download_dir()
+            .join(format!("{model_id}.gguf")));
     if !model_path.exists() {
         return Err(format!(
             "Model file not found: {}. Download it first.",
@@ -147,54 +162,67 @@ pub async fn local_ai_health() -> LocalAiHealth {
 /// `is_downloaded`.
 #[frb]
 pub fn local_ai_list_models() -> Vec<LocalModelDto> {
-    let models_dir = termex_core::paths::data_dir().join("models");
-    let catalogue = [
-        (
-            "llama3-8b-q4",
-            "Llama 3 8B (Q4_K_M)",
-            "Fast, general-purpose model. Good for command explanation.",
-            4_661_190_656u64,
-            "4.3 GB",
-            "Q4_K_M",
-        ),
-        (
-            "phi3-mini-q4",
-            "Phi-3 Mini (Q4_K_M)",
-            "Lightweight model for constrained hardware.",
-            2_176_843_776,
-            "2.0 GB",
-            "Q4_K_M",
-        ),
-        (
-            "qwen2-7b-q4",
-            "Qwen2 7B (Q4_K_M)",
-            "Strong CJK and code understanding.",
-            4_294_967_296,
-            "4.0 GB",
-            "Q4_K_M",
-        ),
-    ];
-    catalogue
-        .into_iter()
-        .map(|(id, name, desc, size, label, quant)| {
-            let file = models_dir.join(format!("{id}.gguf"));
-            let is_downloaded = file.exists();
+    let on_disk = local_ai_state::scan_downloaded_models();
+
+    let mut out: Vec<LocalModelDto> = local_ai_state::MODEL_CATALOG
+        .iter()
+        .map(|e| {
+            let found = on_disk.iter().find(|(id, _, _)| id == e.id);
             LocalModelDto {
-                id: id.to_string(),
-                name: name.to_string(),
-                description: desc.to_string(),
-                size_bytes: size,
-                size_label: label.to_string(),
-                quantization: quant.to_string(),
-                is_downloaded,
-                local_path: if is_downloaded {
-                    Some(file.to_string_lossy().into_owned())
-                } else {
-                    None
-                },
+                id: e.id.to_string(),
+                name: e.display_name.to_string(),
+                description: e.description.to_string(),
+                size_bytes: e.size_bytes,
+                size_label: e.size_label.to_string(),
+                quantization: e.quantization.to_string(),
+                is_downloaded: found.is_some(),
+                local_path: found.map(|(_, p, _)| p.to_string_lossy().into_owned()),
+                tier: e.tier.to_string(),
+                min_ram_gb: e.min_ram_gb,
+                context_length: e.context_length,
+                recommended: e.recommended,
+                is_adopted: false,
             }
         })
-        .collect()
+        .collect();
+
+    // Files present on disk that no catalogue entry claims. The Tauri build
+    // listed what was actually there, so a model downloaded under an id this
+    // build no longer ships still has to appear — and be runnable — instead
+    // of prompting a re-download of something the user already has.
+    for (id, path, size) in on_disk {
+        if local_ai_state::catalog_lookup(&id).is_some() {
+            continue;
+        }
+        out.push(LocalModelDto {
+            id: id.clone(),
+            name: id,
+            description: String::new(),
+            size_bytes: size,
+            size_label: format_size(size),
+            quantization: String::new(),
+            is_downloaded: true,
+            local_path: Some(path.to_string_lossy().into_owned()),
+            tier: String::new(),
+            min_ram_gb: 0,
+            context_length: 0,
+            recommended: false,
+            is_adopted: true,
+        });
+    }
+    out
+}
+
+/// Human-readable byte count for models discovered on disk, which carry no
+/// catalogue label of their own.
+fn format_size(bytes: u64) -> String {
+    const GB: f64 = 1024.0 * 1024.0 * 1024.0;
+    let gb = bytes as f64 / GB;
+    if gb < 1.0 {
+        format!("{:.0} MB", bytes as f64 / (1024.0 * 1024.0))
+    } else {
+        format!("{gb:.1} GB")
+    }
 }
 
 /// Start downloading a model and block until completion (or cancellation).
@@ -215,7 +243,7 @@ pub async fn local_ai_download_model(model_id: String) -> Result<(), String> {
     let entry = local_ai_state::catalog_lookup(&model_id)
         .ok_or_else(|| format!("unknown model id: {model_id}"))?;
 
-    let models_dir = termex_core::paths::data_dir().join("models");
+    let models_dir = local_ai_state::model_download_dir();
     tokio::fs::create_dir_all(&models_dir)
         .await
         .map_err(|e| format!("failed to create models dir: {e}"))?;
@@ -314,15 +342,16 @@ pub fn local_ai_download_progress(
 /// Missing files are treated as successful (idempotent delete).
 #[frb]
 pub async fn local_ai_delete_model(model_id: String) -> Result<(), String> {
-    let models_dir = termex_core::paths::data_dir().join("models");
-
     // Prefer the catalog filename — defensive against future catalog
     // entries whose filename doesn't equal `{id}.gguf`.
     let filename = local_ai_state::catalog_lookup(&model_id)
         .map(|e| e.filename.to_string())
         .unwrap_or_else(|| format!("{model_id}.gguf"));
 
-    let path = models_dir.join(&filename);
+    // Delete it where it actually is, which may be the directory the Tauri
+    // build wrote to rather than this build's own.
+    let path = local_ai_state::find_model_file(&filename)
+        .unwrap_or_else(|| local_ai_state::model_download_dir().join(&filename));
     if path.exists() {
         tokio::fs::remove_file(&path)
             .await

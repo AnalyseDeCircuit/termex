@@ -15,15 +15,12 @@ void main() {
       expect(container.read(localAiProvider).status, LocalAiStatus.stopped);
     });
 
-    test('models are loaded on creation', () {
-      final models = container.read(localAiProvider).models;
-      expect(models, isNotEmpty);
-      expect(models.first.id, isNotEmpty);
-    });
-
-    test('all initial models are not downloaded', () {
-      final models = container.read(localAiProvider).models;
-      expect(models.every((m) => !m.isDownloaded), isTrue);
+    // The catalogue lives in Rust, keyed by the ids the files on disk are
+    // named after. Dart used to carry two invented entries as a fallback —
+    // 'llama-3-8b' and 'qwen-2-7b', which matched neither the bridge nor any
+    // file — so downloading one failed with "unknown model id".
+    test('no models are invented when the bridge is unavailable', () {
+      expect(container.read(localAiProvider).models, isEmpty);
     });
 
     test('no download progress initially', () {
@@ -33,21 +30,20 @@ void main() {
 
     test('startServer transitions through starting → running', () async {
       final notifier = container.read(localAiProvider.notifier);
-      final firstModel = container.read(localAiProvider).models.first;
 
       // Mark model as downloaded for test purposes (internal helper)
       // We verify state transitions indirectly via the stub behavior.
-      await notifier.startServer(firstModel.id);
+      await notifier.startServer('qwen2.5-7b-q4');
 
       final state = container.read(localAiProvider);
       // Stub immediately transitions to running
       expect(state.status, LocalAiStatus.running);
-      expect(state.loadedModelId, firstModel.id);
+      expect(state.loadedModelId, 'qwen2.5-7b-q4');
     });
 
     test('stopServer resets status to stopped', () async {
       final notifier = container.read(localAiProvider.notifier);
-      await notifier.startServer(container.read(localAiProvider).models.first.id);
+      await notifier.startServer('qwen2.5-7b-q4');
       await notifier.stopServer();
       final state = container.read(localAiProvider);
       expect(state.status, LocalAiStatus.stopped);

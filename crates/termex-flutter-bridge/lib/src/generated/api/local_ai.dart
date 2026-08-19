@@ -6,6 +6,7 @@
 import '../frb_generated.dart';
 import 'package:flutter_rust_bridge/flutter_rust_bridge_for_generated.dart';
 
+// These functions are ignored because they are not marked as `pub`: `format_size`
 // These types are ignored because they are neither used by any `pub` functions nor (for structs and enums) marked `#[frb(unignore)]`: `ModelDownloadProgress`
 // These function are ignored because they are on traits that is not defined in current crate (put an empty `#[frb]` on it to unignore): `assert_fields_are_eq`, `clone`, `clone`, `clone`, `clone`, `clone`, `eq`, `fmt`, `fmt`, `fmt`, `fmt`, `fmt`
 
@@ -217,6 +218,24 @@ class LocalModelDto {
   /// Local file path, if downloaded.
   final String? localPath;
 
+  /// Size tier: micro / small / medium / large.
+  final String tier;
+
+  /// RAM the model needs to run, in GB. Shown by the Tauri build's list and
+  /// dropped in the port.
+  final int minRamGb;
+
+  /// Context window the model was built for.
+  final int contextLength;
+
+  /// Marks the entry the catalogue suggests first.
+  final bool recommended;
+
+  /// True when the file is on disk but no catalogue entry describes it —
+  /// a model an older build downloaded, or one dropped in by hand. It can
+  /// be run and deleted, but not re-downloaded.
+  final bool isAdopted;
+
   const LocalModelDto({
     required this.id,
     required this.name,
@@ -226,6 +245,11 @@ class LocalModelDto {
     required this.quantization,
     required this.isDownloaded,
     this.localPath,
+    required this.tier,
+    required this.minRamGb,
+    required this.contextLength,
+    required this.recommended,
+    required this.isAdopted,
   });
 
   @override
@@ -237,7 +261,12 @@ class LocalModelDto {
       sizeLabel.hashCode ^
       quantization.hashCode ^
       isDownloaded.hashCode ^
-      localPath.hashCode;
+      localPath.hashCode ^
+      tier.hashCode ^
+      minRamGb.hashCode ^
+      contextLength.hashCode ^
+      recommended.hashCode ^
+      isAdopted.hashCode;
 
   @override
   bool operator ==(Object other) =>
@@ -251,5 +280,10 @@ class LocalModelDto {
           sizeLabel == other.sizeLabel &&
           quantization == other.quantization &&
           isDownloaded == other.isDownloaded &&
-          localPath == other.localPath;
+          localPath == other.localPath &&
+          tier == other.tier &&
+          minRamGb == other.minRamGb &&
+          contextLength == other.contextLength &&
+          recommended == other.recommended &&
+          isAdopted == other.isAdopted;
 }

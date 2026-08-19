@@ -8835,6 +8835,36 @@ abstract class AppLocalizations {
   /// In en, this message translates to:
   /// **'Apply failed: {error}'**
   String sftpChmodApplyFailed(String error);
+
+  /// No description provided for @localAiLoadingModels.
+  ///
+  /// In en, this message translates to:
+  /// **'Loading models…'**
+  String get localAiLoadingModels;
+
+  /// No description provided for @localAiAdoptedModel.
+  ///
+  /// In en, this message translates to:
+  /// **'Already on disk'**
+  String get localAiAdoptedModel;
+
+  /// No description provided for @localAiAdoptedHint.
+  ///
+  /// In en, this message translates to:
+  /// **'Found in your models folder; not in the catalogue.'**
+  String get localAiAdoptedHint;
+
+  /// No description provided for @localAiRamRequirement.
+  ///
+  /// In en, this message translates to:
+  /// **'{gb} GB RAM'**
+  String localAiRamRequirement(int gb);
+
+  /// No description provided for @localAiContextTokens.
+  ///
+  /// In en, this message translates to:
+  /// **'{tokens} ctx'**
+  String localAiContextTokens(String tokens);
 }
 
 class _AppLocalizationsDelegate

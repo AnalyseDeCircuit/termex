@@ -4699,4 +4699,23 @@ class AppLocalizationsZh extends AppLocalizations {
   String sftpChmodApplyFailed(String error) {
     return '应用失败：$error';
   }
+
+  @override
+  String get localAiLoadingModels => '正在加载模型列表…';
+
+  @override
+  String get localAiAdoptedModel => '本地已有';
+
+  @override
+  String get localAiAdoptedHint => '在模型目录中找到，不在内置目录中。';
+
+  @override
+  String localAiRamRequirement(int gb) {
+    return '$gb GB 内存';
+  }
+
+  @override
+  String localAiContextTokens(String tokens) {
+    return '$tokens 上下文';
+  }
 }

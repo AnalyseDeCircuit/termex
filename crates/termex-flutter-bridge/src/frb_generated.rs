@@ -14534,6 +14534,11 @@ impl SseDecode for crate::api::local_ai::LocalModelDto {
         let mut var_quantization = <String>::sse_decode(deserializer);
         let mut var_isDownloaded = <bool>::sse_decode(deserializer);
         let mut var_localPath = <Option<String>>::sse_decode(deserializer);
+        let mut var_tier = <String>::sse_decode(deserializer);
+        let mut var_minRamGb = <u32>::sse_decode(deserializer);
+        let mut var_contextLength = <u32>::sse_decode(deserializer);
+        let mut var_recommended = <bool>::sse_decode(deserializer);
+        let mut var_isAdopted = <bool>::sse_decode(deserializer);
         return crate::api::local_ai::LocalModelDto {
             id: var_id,
             name: var_name,
@@ -14543,6 +14548,11 @@ impl SseDecode for crate::api::local_ai::LocalModelDto {
             quantization: var_quantization,
             is_downloaded: var_isDownloaded,
             local_path: var_localPath,
+            tier: var_tier,
+            min_ram_gb: var_minRamGb,
+            context_length: var_contextLength,
+            recommended: var_recommended,
+            is_adopted: var_isAdopted,
         };
     }
 }
@@ -17855,6 +17865,11 @@ impl flutter_rust_bridge::IntoDart for crate::api::local_ai::LocalModelDto {
             self.quantization.into_into_dart().into_dart(),
             self.is_downloaded.into_into_dart().into_dart(),
             self.local_path.into_into_dart().into_dart(),
+            self.tier.into_into_dart().into_dart(),
+            self.min_ram_gb.into_into_dart().into_dart(),
+            self.context_length.into_into_dart().into_dart(),
+            self.recommended.into_into_dart().into_dart(),
+            self.is_adopted.into_into_dart().into_dart(),
         ]
         .into_dart()
     }
@@ -20101,6 +20116,11 @@ impl SseEncode for crate::api::local_ai::LocalModelDto {
         <String>::sse_encode(self.quantization, serializer);
         <bool>::sse_encode(self.is_downloaded, serializer);
         <Option<String>>::sse_encode(self.local_path, serializer);
+        <String>::sse_encode(self.tier, serializer);
+        <u32>::sse_encode(self.min_ram_gb, serializer);
+        <u32>::sse_encode(self.context_length, serializer);
+        <bool>::sse_encode(self.recommended, serializer);
+        <bool>::sse_encode(self.is_adopted, serializer);
     }
 }
 

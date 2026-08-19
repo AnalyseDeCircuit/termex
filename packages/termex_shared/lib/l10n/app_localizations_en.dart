@@ -4798,4 +4798,24 @@ class AppLocalizationsEn extends AppLocalizations {
   String sftpChmodApplyFailed(String error) {
     return 'Apply failed: $error';
   }
+
+  @override
+  String get localAiLoadingModels => 'Loading models…';
+
+  @override
+  String get localAiAdoptedModel => 'Already on disk';
+
+  @override
+  String get localAiAdoptedHint =>
+      'Found in your models folder; not in the catalogue.';
+
+  @override
+  String localAiRamRequirement(int gb) {
+    return '$gb GB RAM';
+  }
+
+  @override
+  String localAiContextTokens(String tokens) {
+    return '$tokens ctx';
+  }
 }

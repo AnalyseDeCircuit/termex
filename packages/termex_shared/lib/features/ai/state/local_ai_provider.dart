@@ -35,6 +35,18 @@ class LocalModel {
   /// (chunked transfer / no Content-Length). UI renders indeterminate.
   final bool totalBytesKnown;
 
+  /// Size tier, RAM requirement and context window — shown by the Tauri
+  /// build's model list and dropped when the panel was ported.
+  final String tier;
+  final int minRamGb;
+  final int contextLength;
+  final bool recommended;
+
+  /// The file is on disk but no catalogue entry describes it — downloaded by
+  /// an older build, or dropped in by hand. Runnable and deletable, but not
+  /// re-downloadable.
+  final bool isAdopted;
+
   const LocalModel({
     required this.id,
     required this.name,
@@ -42,6 +54,11 @@ class LocalModel {
     required this.sizeBytes,
     required this.sizeLabel,
     required this.quantization,
+    this.tier = '',
+    this.minRamGb = 0,
+    this.contextLength = 0,
+    this.recommended = false,
+    this.isAdopted = false,
     this.isDownloaded = false,
     this.localPath,
     this.downloadProgress,
@@ -64,6 +81,11 @@ class LocalModel {
         sizeBytes: sizeBytes,
         sizeLabel: sizeLabel,
         quantization: quantization,
+        tier: tier,
+        minRamGb: minRamGb,
+        contextLength: contextLength,
+        recommended: recommended,
+        isAdopted: isAdopted,
         isDownloaded: isDownloaded ?? this.isDownloaded,
         localPath: localPath ?? this.localPath,
         downloadProgress: clearProgress ? null : (downloadProgress ?? this.downloadProgress),
@@ -115,26 +137,12 @@ class LocalAiState {
 
 // ─── Defaults (shown when the bridge is unavailable) ──────────────────────────
 
-const List<LocalModel> _defaultCatalog = [
-  LocalModel(
-    id: 'llama-3-8b',
-    name: 'Llama 3 8B',
-    description: 'General-purpose 8B parameter model (Meta)',
-    sizeBytes: 4500000000,
-    sizeLabel: '4.5 GB',
-    quantization: 'Q4_K_M',
-    isDownloaded: false,
-  ),
-  LocalModel(
-    id: 'qwen-2-7b',
-    name: 'Qwen 2 7B',
-    description: 'Multilingual 7B parameter model (Alibaba)',
-    sizeBytes: 4200000000,
-    sizeLabel: '4.2 GB',
-    quantization: 'Q4_K_M',
-    isDownloaded: false,
-  ),
-];
+/// Shown until the bridge answers. It used to hold two invented entries whose
+/// ids ('llama-3-8b', 'qwen-2-7b') matched neither the Rust catalogue nor
+/// anything on disk, so downloading one failed with "unknown model id".
+/// The bridge owns the catalogue; there is nothing truthful to show without
+/// it.
+const List<LocalModel> _defaultCatalog = [];
 
 // ─── Notifier ────────────────────────────────────────────────────────────────
 
@@ -164,7 +172,13 @@ class LocalAiNotifier extends Notifier<LocalAiState> {
                   sizeBytes: m.sizeBytes.toInt(),
                   sizeLabel: m.sizeLabel,
                   quantization: m.quantization,
+                  tier: m.tier,
+                  minRamGb: m.minRamGb,
+                  contextLength: m.contextLength,
+                  recommended: m.recommended,
+                  isAdopted: m.isAdopted,
                   isDownloaded: m.isDownloaded,
+                  localPath: m.localPath,
                 ))
             .toList(),
       );

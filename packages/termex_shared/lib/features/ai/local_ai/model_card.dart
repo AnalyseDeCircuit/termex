@@ -55,6 +55,16 @@ class ModelCard extends ConsumerWidget {
                   ],
                 ),
               ),
+              if (model.recommended) ...[
+                _Tag(label: l10n.localAiRecommended,
+                    color: context.colors.primary),
+                const SizedBox(width: 6),
+              ],
+              if (model.isAdopted) ...[
+                _Tag(label: l10n.localAiAdoptedModel,
+                    color: context.colors.warning),
+                const SizedBox(width: 6),
+              ],
               _SizeChip(label: model.sizeLabel),
               const SizedBox(width: 8),
               if (isLoaded)
@@ -75,10 +85,33 @@ class ModelCard extends ConsumerWidget {
           ),
           const SizedBox(height: 6),
           Text(
-            model.description,
+            model.isAdopted ? l10n.localAiAdoptedHint : model.description,
             style:
                 TextStyle(fontSize: 11, color: context.colors.textSecondary),
           ),
+          if (model.minRamGb > 0 || model.contextLength > 0) ...[
+            const SizedBox(height: 4),
+            Row(
+              children: [
+                if (model.minRamGb > 0)
+                  Text(
+                    l10n.localAiRamRequirement(model.minRamGb),
+                    style: TextStyle(
+                        fontSize: 10, color: context.colors.textMuted),
+                  ),
+                if (model.minRamGb > 0 && model.contextLength > 0)
+                  Text(' · ',
+                      style: TextStyle(
+                          fontSize: 10, color: context.colors.textMuted)),
+                if (model.contextLength > 0)
+                  Text(
+                    l10n.localAiContextTokens(_ctxLabel(model.contextLength)),
+                    style: TextStyle(
+                        fontSize: 10, color: context.colors.textMuted),
+                  ),
+              ],
+            ),
+          ],
           const SizedBox(height: 8),
 
           // Download progress
@@ -108,7 +141,7 @@ class ModelCard extends ConsumerWidget {
                       if (ok) notifier.deleteModel(model.id);
                     },
                   ),
-                ] else
+                ] else if (!model.isAdopted)
                   _Action(
                     label: l10n.localAiDownloadWithSize(model.sizeLabel),
                     icon: Icons.download_rounded,
@@ -149,6 +182,27 @@ class ModelCard extends ConsumerWidget {
         ) ??
         false;
   }
+}
+
+/// 131072 reads as "128K"; the raw number crowds the row.
+String _ctxLabel(int tokens) =>
+    tokens >= 1024 ? '${(tokens / 1024).round()}K' : '$tokens';
+
+/// Small pill used for the recommended / already-on-disk markers.
+class _Tag extends StatelessWidget {
+  final String label;
+  final Color color;
+  const _Tag({required this.label, required this.color});
+
+  @override
+  Widget build(BuildContext context) => Container(
+        padding: const EdgeInsets.symmetric(horizontal: 6, vertical: 2),
+        decoration: BoxDecoration(
+          color: color.withValues(alpha: 0.12),
+          borderRadius: BorderRadius.circular(4),
+        ),
+        child: Text(label, style: TextStyle(fontSize: 10, color: color)),
+      );
 }
 
 class _SizeChip extends StatelessWidget {

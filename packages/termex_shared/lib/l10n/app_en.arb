@@ -2615,5 +2615,24 @@
         "type": "String"
       }
     }
+  },
+  "localAiLoadingModels": "Loading models…",
+  "localAiAdoptedModel": "Already on disk",
+  "localAiAdoptedHint": "Found in your models folder; not in the catalogue.",
+  "localAiRamRequirement": "{gb} GB RAM",
+  "@localAiRamRequirement": {
+    "placeholders": {
+      "gb": {
+        "type": "int"
+      }
+    }
+  },
+  "localAiContextTokens": "{tokens} ctx",
+  "@localAiContextTokens": {
+    "placeholders": {
+      "tokens": {
+        "type": "String"
+      }
+    }
   }
 }

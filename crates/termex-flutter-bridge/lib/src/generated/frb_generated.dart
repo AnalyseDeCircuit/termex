@@ -12134,8 +12134,8 @@ class TermexBridgeApiImpl extends TermexBridgeApiImplPlatform
   LocalModelDto dco_decode_local_model_dto(dynamic raw) {
     // Codec=Dco (DartCObject based), see doc to use other codecs
     final arr = raw as List<dynamic>;
-    if (arr.length != 8)
-      throw Exception('unexpected arr length: expect 8 but see ${arr.length}');
+    if (arr.length != 13)
+      throw Exception('unexpected arr length: expect 13 but see ${arr.length}');
     return LocalModelDto(
       id: dco_decode_String(arr[0]),
       name: dco_decode_String(arr[1]),
@@ -12145,6 +12145,11 @@ class TermexBridgeApiImpl extends TermexBridgeApiImplPlatform
       quantization: dco_decode_String(arr[5]),
       isDownloaded: dco_decode_bool(arr[6]),
       localPath: dco_decode_opt_String(arr[7]),
+      tier: dco_decode_String(arr[8]),
+      minRamGb: dco_decode_u_32(arr[9]),
+      contextLength: dco_decode_u_32(arr[10]),
+      recommended: dco_decode_bool(arr[11]),
+      isAdopted: dco_decode_bool(arr[12]),
     );
   }
 
@@ -14633,6 +14638,11 @@ class TermexBridgeApiImpl extends TermexBridgeApiImplPlatform
     var var_quantization = sse_decode_String(deserializer);
     var var_isDownloaded = sse_decode_bool(deserializer);
     var var_localPath = sse_decode_opt_String(deserializer);
+    var var_tier = sse_decode_String(deserializer);
+    var var_minRamGb = sse_decode_u_32(deserializer);
+    var var_contextLength = sse_decode_u_32(deserializer);
+    var var_recommended = sse_decode_bool(deserializer);
+    var var_isAdopted = sse_decode_bool(deserializer);
     return LocalModelDto(
         id: var_id,
         name: var_name,
@@ -14641,7 +14651,12 @@ class TermexBridgeApiImpl extends TermexBridgeApiImplPlatform
         sizeLabel: var_sizeLabel,
         quantization: var_quantization,
         isDownloaded: var_isDownloaded,
-        localPath: var_localPath);
+        localPath: var_localPath,
+        tier: var_tier,
+        minRamGb: var_minRamGb,
+        contextLength: var_contextLength,
+        recommended: var_recommended,
+        isAdopted: var_isAdopted);
   }
 
   @protected
@@ -16936,6 +16951,11 @@ class TermexBridgeApiImpl extends TermexBridgeApiImplPlatform
     sse_encode_String(self.quantization, serializer);
     sse_encode_bool(self.isDownloaded, serializer);
     sse_encode_opt_String(self.localPath, serializer);
+    sse_encode_String(self.tier, serializer);
+    sse_encode_u_32(self.minRamGb, serializer);
+    sse_encode_u_32(self.contextLength, serializer);
+    sse_encode_bool(self.recommended, serializer);
+    sse_encode_bool(self.isAdopted, serializer);
   }
 
   @protected

@@ -29,7 +29,41 @@ pub async fn ensure_binary_exists(_bin_path: &PathBuf) -> Result<String, String>
         }
     }
 
-    // 2. Check Homebrew installation paths (platform-specific)
+    // 2. Check the app's own bin directory. The Tauri build downloaded
+    //    llama-server here under a platform-suffixed name; nothing in the
+    //    Flutter port ever looked, so an install that already had a working
+    //    engine still reported the server as stopped.
+    let bin_dir = crate::paths::bin_dir();
+    let candidates = [
+        "llama-server-macos-arm64",
+        "llama-server-macos-x64",
+        "llama-server-linux-x64",
+        "llama-server-windows-x64.exe",
+        "llama-server",
+        "llama-server.exe",
+    ];
+    for name in candidates {
+        let candidate = bin_dir.join(name);
+        if !candidate.exists() {
+            continue;
+        }
+        eprintln!(">>> [BINARY_MANAGER] Found file at: {}", candidate.display());
+        match std::process::Command::new(&candidate).arg("--help").output() {
+            Ok(test) if test.status.success() => {
+                eprintln!(
+                    ">>> [BINARY_MANAGER] \u{2713} Found working llama-server at: {}",
+                    candidate.display()
+                );
+                return Ok(candidate.to_string_lossy().into_owned());
+            }
+            _ => eprintln!(
+                ">>> [BINARY_MANAGER] \u{2717} {} exists but --help failed",
+                candidate.display()
+            ),
+        }
+    }
+
+    // 3. Check Homebrew installation paths (platform-specific)
     let homebrew_paths = vec![
         // macOS
         "/opt/homebrew/bin/llama-server",      // Apple Silicon (M1/M2/M3)
@@ -62,7 +96,7 @@ pub async fn ensure_binary_exists(_bin_path: &PathBuf) -> Result<String, String>
         }
     }
 
-    // 3. Check PATH environment variable
+    // 4. Check PATH environment variable
     eprintln!(">>> [BINARY_MANAGER] Checking PATH for llama-server...");
 
     // First, try 'which' command
@@ -92,7 +126,7 @@ pub async fn ensure_binary_exists(_bin_path: &PathBuf) -> Result<String, String>
         eprintln!(">>> [BINARY_MANAGER] ✗ which command not found (or failed)");
     }
 
-    // 4. Try 'llama-server' directly (if it's in PATH and 'which' didn't work)
+    // 5. Try 'llama-server' directly (if it's in PATH and 'which' didn't work)
     eprintln!(">>> [BINARY_MANAGER] Trying to run 'llama-server' directly...");
     if let Ok(test) = std::process::Command::new("llama-server")
         .arg("--help")
